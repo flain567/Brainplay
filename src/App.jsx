@@ -7,6 +7,7 @@ import Home from './pages/Home.jsx'
 import MemoryCardMatch from './pages/games/MemoryCardMatch.jsx'
 import SlitherWorm from './pages/games/SlitherWorm.jsx'
 import Game2048 from './pages/games/Game2048.jsx'
+import WordleGame from './pages/games/WordleGame.jsx'
 
 export const GAMES = [
   {
