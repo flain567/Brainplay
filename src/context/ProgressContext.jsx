@@ -49,7 +49,7 @@ export const ACHIEVEMENTS = [
 
   // Variety - different games
   { id: 'explorer_2',     icon: '🧭', title: 'Penjelajah',         desc: 'Mainkan 2 game berbeda',       category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 2 },
-  { id: 'explorer_4',     icon: '🌍', title: 'Petualang Dunia',    desc: 'Mainkan semua 5 game',         category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 5 },
+  { id: 'explorer_4',     icon: '🌍', title: 'Petualang Dunia',    desc: 'Mainkan semua 8 game',         category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 8 },
 
   // Difficulty - hard mode
   { id: 'brave',          icon: '🦁', title: 'Pemberani',          desc: 'Selesaikan 1 game di mode Sulit', category: 'skill',  check: (s) => s.hardGamesWon >= 1 },
@@ -79,6 +79,9 @@ export const ACHIEVEMENTS = [
   { id: 'block_master',   icon: '🔗', title: 'Master Blok',        desc: 'Capai 1024+ di Connect Blocks',   category: 'game',  check: (s) => (s.gameBests['2048'] || 0) >= 1024 },
   { id: 'word_hunter',    icon: '🔍', title: 'Pemburu Kata',       desc: 'Selesaikan Word Search 5 kali',   category: 'game',  check: (s) => (s.gameWins['word-search'] || 0) >= 5 },
   { id: 'space_ace',      icon: '🚀', title: 'Ace Pilot',          desc: 'Menangkan Space Shooter 3x',      category: 'game',  check: (s) => (s.gameWins['space-shooter'] || 0) >= 3 },
+  { id: 'hangman_hero',   icon: '💀', title: 'Penyelamat Kata',    desc: 'Menangkan Hangman 5 kali',        category: 'game',  check: (s) => (s.gameWins['hangman'] || 0) >= 5 },
+  { id: 'sort_master',    icon: '🧪', title: 'Master Sortir',      desc: 'Menangkan Color Sort 5 kali',     category: 'game',  check: (s) => (s.gameWins['color-sort'] || 0) >= 5 },
+  { id: 'sudoku_sage',    icon: '🔢', title: 'Ahli Sudoku',        desc: 'Menangkan Sudoku 3 kali',         category: 'game',  check: (s) => (s.gameWins['sudoku'] || 0) >= 3 },
 ]
 
 // ─── Default state ───────────────────────────────────────────────────────────

@@ -15,6 +15,9 @@ import SlitherWorm from './pages/games/SlitherWorm.jsx'
 import Game2048 from './pages/games/Game2048.jsx'
 import WordSearchGame from './pages/games/WordSearchGame.jsx'
 import SpaceShooter from './pages/games/SpaceShooter.jsx'
+import HangmanGame from './pages/games/HangmanGame.jsx'
+import ColorSortGame from './pages/games/ColorSortGame.jsx'
+import SudokuGame from './pages/games/SudokuGame.jsx'
 import { migrateOldStorage } from './utils/storage.js'
 import { useMusic } from './hooks/useMusic.js'
 
@@ -82,6 +85,45 @@ export const GAMES = [
       { id:'easy',   description:'Musuh lambat, 5 nyawa — misi santai untuk pemula',    stats:['5 nyawa','Target 300'] },
       { id:'medium', description:'Musuh sedang, 4 nyawa — butuh strategi yang pas!',     stats:['4 nyawa','Target 500'] },
       { id:'hard',   description:'Musuh cepat, 3 nyawa — hanya pilot terbaik yang selamat!', stats:['3 nyawa','Target 800'] },
+    ],
+  },
+  {
+    id: 'hangman',
+    title: 'Hangman',
+    emoji: '💀',
+    description: 'Tebak kata tersembunyi dengan menebak huruf satu per satu. Jangan sampai nyawa habis!',
+    color: '#E17055', bg: '#FFF3F0', tag: 'Kata',
+    component: HangmanGame, day: 6,
+    difficulties: [
+      { id:'easy',   description:'Kata pendek (4-5 huruf), 8 nyawa — sempurna untuk pemula', stats:['4-5 huruf','8 nyawa'] },
+      { id:'medium', description:'Kata sedang (5-7 huruf), 7 nyawa — lebih menantang!',       stats:['5-7 huruf','7 nyawa'] },
+      { id:'hard',   description:'Kata panjang (7-12 huruf), 6 nyawa — untuk ahli bahasa!',   stats:['7-12 huruf','6 nyawa'] },
+    ],
+  },
+  {
+    id: 'color-sort',
+    title: 'Color Sort',
+    emoji: '🧪',
+    description: 'Urutkan bola warna ke dalam tabung yang tepat. Semakin banyak warna, semakin rumit!',
+    color: '#6C5CE7', bg: '#F0EFFE', tag: 'Puzzle',
+    component: ColorSortGame, day: 7,
+    difficulties: [
+      { id:'easy',   description:'4 warna, 6 tabung — logika dasar untuk pemula',   stats:['4 warna','6 tabung'] },
+      { id:'medium', description:'6 warna, 8 tabung — perlu strategi yang tepat!',   stats:['6 warna','8 tabung'] },
+      { id:'hard',   description:'8 warna, 10 tabung — tantangan otak tingkat tinggi!', stats:['8 warna','10 tabung'] },
+    ],
+  },
+  {
+    id: 'sudoku',
+    title: 'Sudoku',
+    emoji: '🔢',
+    description: 'Isi grid 9×9 dengan angka 1-9 tanpa duplikat di setiap baris, kolom, dan kotak 3×3!',
+    color: '#0984E3', bg: '#E8F4FD', tag: 'Logika',
+    component: SudokuGame, day: 8,
+    difficulties: [
+      { id:'easy',   description:'36 sel kosong — cocok untuk pemanasan otak',         stats:['45 terisi','36 kosong'] },
+      { id:'medium', description:'46 sel kosong — butuh deduksi yang lebih dalam',     stats:['35 terisi','46 kosong'] },
+      { id:'hard',   description:'54 sel kosong — hanya master logika yang mampu!',    stats:['27 terisi','54 kosong'] },
     ],
   },
 ]
