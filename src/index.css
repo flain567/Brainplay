@@ -31,9 +31,41 @@ body {
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--lavender); border-radius: 100px; }
+body.dark-mode::-webkit-scrollbar-track { background: #0d0b1e; }
+body.dark-mode::-webkit-scrollbar-thumb { background: #3d3561; }
 
 button { cursor: pointer; font-family: var(--font-body); }
 a { text-decoration: none; color: inherit; }
+
+/* Focus ring for keyboard accessibility */
+:focus-visible {
+  outline: 2px solid var(--lavender);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+button:focus:not(:focus-visible),
+div[tabindex]:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Better tap feedback on mobile */
+@media (hover: none) {
+  .gcard:active, .filter-btn:active, .nav-btn:active,
+  .diff-option:active, .shop-pack:active, .ach-filter-btn:active,
+  .shop-tab:active {
+    transform: scale(0.97) !important;
+    transition: transform 0.1s !important;
+  }
+}
+
+/* Horizontal scroll utilities */
+.scroll-row {
+  display: flex; gap: 8px; overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  padding-bottom: 4px;
+}
+.scroll-row::-webkit-scrollbar { display: none; }
 
 /* ── Global animations ── */
 @keyframes float-y {

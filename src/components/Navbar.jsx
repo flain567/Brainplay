@@ -99,6 +99,23 @@ export default function Navbar({ onHome, onProfile, onShop, currentGame, difficu
         .nav-btn:hover { transform: scale(1.15) rotate(-6deg); border-color: ${dark ? 'rgba(162,155,254,0.4)' : '#A29BFE'}; background: ${dark ? 'rgba(162,155,254,0.1)' : 'rgba(162,155,254,0.08)'}; }
         .nav-btn:active { transform: scale(0.9); }
         @keyframes scale-in { from{transform:scale(0.6);opacity:0} to{transform:scale(1);opacity:1} }
+
+        /* Mobile responsive */
+        @media (max-width: 600px) {
+          .nav-root { padding: 0 14px; }
+          .nav-inner { height: 56px; gap: 8px; }
+          .nav-logo-icon { width: 34px; height: 34px; border-radius: 10px; font-size: 18px; }
+          .nav-logo-text { font-size: 18px; }
+          .nav-center { display: none; }
+          .nav-actions { gap: 5px; }
+          .nav-btn { width: 36px; height: 36px; border-radius: 10px; font-size: 16px; }
+          .nav-coin-btn { min-width: 52px !important; padding: 0 8px !important; }
+          .nav-coin-btn span:first-child { font-size: 12px !important; }
+          .nav-coin-btn span:last-child { font-size: 11px !important; }
+        }
+        @media (max-width: 380px) {
+          .nav-actions .nav-btn-music { display: none; }
+        }
       `}</style>
 
       <nav
@@ -129,7 +146,7 @@ export default function Navbar({ onHome, onProfile, onShop, currentGame, difficu
           <div className="nav-actions">
             {/* Coin balance */}
             <button
-              className="nav-btn"
+              className="nav-btn nav-coin-btn"
               title="Shop"
               onClick={() => { play('click'); onShop && onShop() }}
               style={{ display:'flex', alignItems:'center', gap:4, width:'auto', minWidth:60, padding:'0 10px', borderRadius:100, background: dark ? 'rgba(253,203,110,0.08)' : 'rgba(253,203,110,0.12)', border: `1.5px solid ${dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.35)'}` }}
@@ -145,7 +162,7 @@ export default function Navbar({ onHome, onProfile, onShop, currentGame, difficu
               👤
             </button>
             <button
-              className="nav-btn"
+              className="nav-btn nav-btn-music"
               title={musicOff ? 'Nyalakan musik' : 'Matikan musik'}
               onClick={() => { play('click'); toggle.musicOff() }}
               style={{ position: 'relative' }}

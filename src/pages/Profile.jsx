@@ -105,11 +105,18 @@ export default function Profile({ onBack, games }) {
           background: transparent; font-size: 12px; font-weight: 700;
           cursor: pointer; transition: all 0.2s;
           font-family: 'Nunito',sans-serif; color: ${textMuted};
+          white-space: nowrap;
         }
         .ach-filter-btn.active {
           border-color: #A29BFE; background: #A29BFE22; color: #A29BFE;
         }
         .ach-filter-btn:hover { border-color: #A29BFE; }
+
+        @media (max-width: 500px) {
+          .ach-filter-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+          .ach-filter-row::-webkit-scrollbar { display: none; }
+          .ach-filter-btn { flex-shrink: 0; }
+        }
 
         /* Achievement item */
         .ach-item {
@@ -342,6 +349,94 @@ export default function Profile({ onBack, games }) {
                 Tidak ada achievement di kategori ini
               </div>
             )}
+          </div>
+
+          {/* ── About BrainPlay ── */}
+          <div className="prof-about" style={{
+            background: surface, border: `2px solid ${borderCol}`,
+            borderRadius: 24, padding: 28, marginTop: 20,
+            animation: 'slide-up 0.4s 0.4s ease both',
+            position: 'relative', overflow: 'hidden',
+          }}>
+            {/* Rainbow bottom border */}
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0, height: 3,
+              background: 'linear-gradient(90deg, #FF6B6B, #A29BFE, #4ECDC4, #FDCB6E)',
+            }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+              <span style={{ fontSize: 22 }}>ℹ️</span>
+              <h3 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 18, color: textMain }}>
+                Tentang BrainPlay
+              </h3>
+            </div>
+
+            <p style={{ fontSize: 13, color: textMuted, lineHeight: 1.7, marginBottom: 16 }}>
+              BrainPlay adalah platform web game 30 hari — kumpulan game santai & mengasah otak yang bertambah setiap hari.
+              Main, asah otak, kumpulkan achievement, dan cetak rekormu!
+            </p>
+
+            <div style={{ fontSize: 13, color: textMuted, lineHeight: 1.7, marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span>🎮</span><span>25 game unik dari berbagai genre</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span>🏆</span><span>Sistem achievement & XP progression</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span>🪙</span><span>Coin system & cosmetic shop</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>🌙</span><span>Dark mode & responsive mobile design</span>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div style={{
+              height: 1, margin: '20px 0',
+              background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+            }} />
+
+            {/* Creator credit */}
+            <div style={{ textAlign: 'center' }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 12,
+                background: dark ? 'rgba(162,155,254,0.08)' : 'rgba(162,155,254,0.06)',
+                border: `1.5px solid ${dark ? 'rgba(162,155,254,0.18)' : 'rgba(162,155,254,0.22)'}`,
+                borderRadius: 20, padding: '14px 24px',
+                transition: 'all 0.25s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#A29BFE'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? 'rgba(162,155,254,0.18)' : 'rgba(162,155,254,0.22)'; e.currentTarget.style.transform = 'translateY(0)' }}
+              >
+                <div style={{
+                  width: 44, height: 44, borderRadius: 14,
+                  background: 'linear-gradient(135deg, #A29BFE22, #4ECDC422)',
+                  border: '2px solid #A29BFE33',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 22, flexShrink: 0,
+                }}>
+                  👨‍💻
+                </div>
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontSize: 11, color: textMuted, fontWeight: 700, marginBottom: 2, letterSpacing: '0.3px' }}>
+                    DIBUAT OLEH
+                  </div>
+                  <div style={{
+                    fontFamily: "'Fredoka One',cursive", fontSize: 16,
+                    background: 'linear-gradient(135deg, #A29BFE, #4ECDC4)',
+                    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}>
+                    Dwi Agus Hidayat
+                  </div>
+                </div>
+              </div>
+
+              <p style={{ fontSize: 11, color: dark ? 'rgba(136,146,176,0.5)' : 'rgba(99,110,114,0.5)', marginTop: 14, fontWeight: 600 }}>
+                © 2025 BrainPlay v0.8.1 — Semua hak dilindungi.
+              </p>
+            </div>
           </div>
 
         </div>

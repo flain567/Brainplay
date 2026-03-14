@@ -116,6 +116,16 @@ export default function DifficultySelector({ game, onSelect, onBack }) {
         .diff-score-cell   { text-align: center; padding: 12px 8px; border-radius: 14px; background: ${dark ? '#1e2a4a' : '#F8F9FA'}; }
         .diff-score-val    { font-family: 'Fredoka One',cursive; font-size: 16px; margin-bottom: 2px; }
         .diff-score-lbl    { font-size: 11px; color: ${textMuted}; font-weight: 600; }
+
+        @media (max-width: 500px) {
+          .diff-root { padding: 24px 16px; }
+          .diff-game-title { font-size: 24px; }
+          .diff-emoji-wrap { width: 76px; height: 76px; font-size: 42px; border-radius: 22px; }
+          .diff-option { padding: 14px 16px; gap: 12px; border-radius: 16px; }
+          .diff-icon-wrap { width: 44px; height: 44px; border-radius: 12px; font-size: 24px; }
+          .diff-name { font-size: 17px; }
+          .diff-chips { display: none; }
+        }
       `}</style>
 
       <div className="diff-root" style={{ background: bg }}>

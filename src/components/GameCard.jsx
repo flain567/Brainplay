@@ -66,6 +66,12 @@ export default function GameCard({ game, onPlay }) {
           pointer-events: none;
         }
         .gcard:hover .gcard-shine { left: 120%; }
+
+        @media (max-width: 600px) {
+          .gcard { padding: 22px; border-radius: 22px; }
+          .gcard-emoji { font-size: 42px; margin-bottom: 12px; }
+          .gcard-play-btn { padding: 10px 22px; font-size: 13px; }
+        }
       `}</style>
 
       <div

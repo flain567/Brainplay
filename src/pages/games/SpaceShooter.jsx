@@ -461,7 +461,7 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 500
 
   return (
-    <div style={{ width:'100%', height:'100vh', height:'100dvh', background:'#07071a', position:'relative', overflow:'hidden', userSelect:'none' }}>
+    <div style={{ width:'100%', height: typeof CSS !== 'undefined' && CSS.supports('height','100dvh') ? '100dvh' : '100vh', background:'#07071a', position:'relative', overflow:'hidden', userSelect:'none' }}>
       <div style={{ position:'absolute', inset:0, zIndex:1 }}>
         <canvas ref={canvasRef} style={{ width:'100%', height:'100%', display:'block', touchAction:'none' }} />
       </div>

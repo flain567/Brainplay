@@ -192,6 +192,12 @@ export default function Shop({ onBack }) {
           color:${textMuted}; cursor:pointer; transition:all 0.2s; text-align:center; white-space:nowrap;
         }
         .shop-tab.active { border-color:#FDCB6E; background:#FDCB6E18; color:#F9A825; }
+
+        @media (max-width: 500px) {
+          .shop-tab-row { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:4px; }
+          .shop-tab-row::-webkit-scrollbar { display:none; }
+          .shop-tab { flex:0 0 auto; min-width:auto; padding:9px 14px; }
+        }
         .tx-row {
           display:flex; align-items:center; gap:12px; padding:10px 14px;
           border-radius:12px; margin-bottom:6px;
@@ -212,9 +218,11 @@ export default function Shop({ onBack }) {
             <h1 style={{ fontFamily:"'Fredoka One',cursive", fontSize:30, color:textMain, marginBottom:6 }}>Shop</h1>
             <div style={{
               display:'inline-flex', alignItems:'center', gap:8,
-              background:'linear-gradient(135deg,#FFF8E1,#FFFDE7)',
-              border:'2px solid #FDCB6E', borderRadius:100, padding:'8px 22px',
-              boxShadow:'0 4px 14px rgba(253,203,110,0.2)',
+              background: dark
+                ? 'linear-gradient(135deg, rgba(253,203,110,0.12), rgba(249,168,37,0.08))'
+                : 'linear-gradient(135deg,#FFF8E1,#FFFDE7)',
+              border:`2px solid ${dark ? 'rgba(253,203,110,0.3)' : '#FDCB6E'}`, borderRadius:100, padding:'8px 22px',
+              boxShadow: dark ? '0 4px 14px rgba(253,203,110,0.1)' : '0 4px 14px rgba(253,203,110,0.2)',
             }}>
               <span style={{ fontSize:22 }}>🪙</span>
               <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:22, color:'#F9A825' }}>{coins.toLocaleString()}</span>

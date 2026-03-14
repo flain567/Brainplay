@@ -144,12 +144,13 @@ function AppInner() {
   const openGame = (gameId) => {
     setCurrentGame(GAMES.find(g => g.id === gameId))
     setScreen('difficulty')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
-  const selectDifficulty  = (diffId) => { setDifficulty(diffId); setScreen('game') }
-  const goHome            = () => { setScreen('home'); setCurrentGame(null); setDifficulty(null) }
-  const goBackToDifficulty = () => { setDifficulty(null); setScreen('difficulty') }
-  const goProfile         = () => { setScreen('profile'); setCurrentGame(null); setDifficulty(null) }
-  const goShop            = () => { setScreen('shop'); setCurrentGame(null); setDifficulty(null) }
+  const selectDifficulty  = (diffId) => { setDifficulty(diffId); setScreen('game'); window.scrollTo({ top: 0 }) }
+  const goHome            = () => { setScreen('home'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goBackToDifficulty = () => { setDifficulty(null); setScreen('difficulty'); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goProfile         = () => { setScreen('profile'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goShop            = () => { setScreen('shop'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
 
   const activeDiff   = currentGame?.difficulties?.find(d => d.id === difficulty)
   const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter')

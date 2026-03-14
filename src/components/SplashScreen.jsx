@@ -71,6 +71,18 @@ export default function SplashScreen({ onDone }) {
           }} />
         ))}
       </div>
+
+      {/* Creator credit */}
+      <div style={{
+        position: 'absolute', bottom: 32, left: 0, right: 0,
+        textAlign: 'center',
+        opacity: step >= 2 ? 1 : 0,
+        animation: step >= 2 ? 'splashSlide 0.4s 0.15s ease both' : 'none',
+      }}>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontWeight: 600, letterSpacing: '0.5px' }}>
+          by Dwi Agus Hidayat
+        </div>
+      </div>
     </div>
   )
 }

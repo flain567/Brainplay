@@ -165,9 +165,9 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
 
         /* Section headers */
         .section-head { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; animation: slide-up 0.5s ease both; }
-        .section-title { font-family: 'Fredoka One',cursive; font-size: 26px; color: ${textMain}; }
+        .section-title { font-family: 'Fredoka One',cursive; font-size: 26px; color: ${textMain}; white-space: nowrap; }
         .section-count { border-radius: 100px; padding: '4px 14px'; font-size: 13px; font-weight: 800; }
-        .section-line  { flex: 1; height: 2px; border-radius: 100px; background: ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}; }
+        .section-line  { flex: 1; height: 2px; border-radius: 100px; background: ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}; min-width: 20px; }
 
         /* Coming soon grid */
         .cs-card {
@@ -184,8 +184,69 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
           .hero-section { margin-bottom: 36px; }
           .hero-title { font-size: 34px; }
           .hero-sub { font-size: 14px; margin-bottom: 20px; }
-          .filter-row { margin-bottom: 32px; }
-          .filter-btn { padding: 8px 16px; font-size: 13px; }
+          .filter-row { margin-bottom: 32px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; justify-content: flex-start; padding-bottom: 4px; }
+          .filter-row::-webkit-scrollbar { display: none; }
+          .filter-btn { padding: 8px 16px; font-size: 13px; flex-shrink: 0; }
+          .section-title { font-size: 20px; }
+          .section-head { gap: 10px; margin-bottom: 20px; }
+        }
+
+        /* Footer */
+        .home-footer {
+          margin-top: 80px; padding-bottom: 20px;
+          animation: slide-up 0.5s 0.5s ease both;
+        }
+        .footer-divider {
+          height: 2px; border-radius: 100px; margin-bottom: 40px;
+          background: ${dark
+            ? 'linear-gradient(90deg, transparent, rgba(162,155,254,0.2), rgba(78,205,196,0.2), transparent)'
+            : 'linear-gradient(90deg, transparent, rgba(162,155,254,0.3), rgba(78,205,196,0.3), transparent)'};
+        }
+        .footer-content { text-align: center; }
+        .footer-logo {
+          display: inline-flex; align-items: center; gap: 10px;
+          margin-bottom: 12px;
+        }
+        .footer-logo-icon {
+          width: 36px; height: 36px; border-radius: 10px;
+          background: linear-gradient(135deg,#FF6B6B,#A29BFE);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 18px; box-shadow: 0 3px 10px rgba(162,155,254,0.3);
+        }
+        .footer-logo-text {
+          font-family: 'Fredoka One',cursive; font-size: 20px;
+          background: linear-gradient(135deg,#FF6B6B,#A29BFE);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .footer-tagline {
+          font-size: 13px; color: ${textMuted}; margin-bottom: 20px;
+          line-height: 1.5;
+        }
+        .footer-credit {
+          display: inline-flex; align-items: center; gap: 8px;
+          background: ${dark ? 'rgba(162,155,254,0.08)' : 'rgba(162,155,254,0.06)'};
+          border: 1.5px solid ${dark ? 'rgba(162,155,254,0.15)' : 'rgba(162,155,254,0.2)'};
+          border-radius: 100px; padding: 8px 20px;
+          margin-bottom: 16px;
+          transition: all 0.2s;
+        }
+        .footer-credit:hover {
+          border-color: #A29BFE;
+          background: ${dark ? 'rgba(162,155,254,0.12)' : 'rgba(162,155,254,0.1)'};
+        }
+        .footer-credit-label {
+          font-size: 12px; color: ${textMuted}; font-weight: 600;
+        }
+        .footer-credit-name {
+          font-family: 'Fredoka One',cursive; font-size: 13px;
+          background: linear-gradient(135deg, #A29BFE, #4ECDC4);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .footer-copy {
+          font-size: 11px; color: ${dark ? 'rgba(136,146,176,0.5)' : 'rgba(99,110,114,0.5)'};
+          font-weight: 600;
         }
       `}</style>
 
@@ -339,7 +400,7 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
                 </span>
                 <div className="section-line" />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 18 }}>
+              <div className="game-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 18 }}>
                 {filteredAvailable.map((game, i) => (
                   <div key={game.id} style={{ animation: `slide-up 0.4s ${i * 0.07}s ease both` }}>
                     <GameCard game={game} onPlay={onPlay} />
@@ -382,6 +443,23 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
               <p style={{ fontSize: 14, color: textMuted }}>Segera hadir di hari-hari berikutnya!</p>
             </div>
           )}
+
+          {/* ── Footer Credit ── */}
+          <footer className="home-footer">
+            <div className="footer-divider" />
+            <div className="footer-content">
+              <div className="footer-logo">
+                <div className="footer-logo-icon">🎮</div>
+                <span className="footer-logo-text">BrainPlay</span>
+              </div>
+              <p className="footer-tagline">Santai & Mengasah Otak — 30 Hari, 25 Game, 1 Tujuan</p>
+              <div className="footer-credit">
+                <span className="footer-credit-label">Dibuat dengan ❤️ oleh</span>
+                <span className="footer-credit-name">Dwi Agus Hidayat</span>
+              </div>
+              <p className="footer-copy">© 2025 BrainPlay. Semua hak dilindungi.</p>
+            </div>
+          </footer>
 
         </div>
       </div>

@@ -24,6 +24,7 @@ export function SettingsProvider({ children }) {
       root.style.setProperty('--border',   '#2d3561')
       document.body.style.background = '#1a1a2e'
       document.body.style.color = '#e8e8f0'
+      document.body.classList.add('dark-mode')
     } else {
       root.style.setProperty('--bg',       '#FFF9F0')
       root.style.setProperty('--surface',  '#FFFFFF')
@@ -32,6 +33,7 @@ export function SettingsProvider({ children }) {
       root.style.setProperty('--border',   '#DFE6E9')
       document.body.style.background = '#FFF9F0'
       document.body.style.color = '#2D3436'
+      document.body.classList.remove('dark-mode')
     }
     localStorage.setItem('brainplay-dark', darkMode)
   }, [darkMode])
