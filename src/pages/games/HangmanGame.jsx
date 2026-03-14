@@ -7,9 +7,9 @@ import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
 
 const TUTORIAL_STEPS = [
-  { emoji:'💀', title:'Hangman', desc:'Tebak kata tersembunyi dengan memilih huruf satu per satu sebelum nyawamu habis!', tip:'Mulai dengan huruf vokal (A, I, U, E, O) untuk membuka lebih banyak huruf.' },
-  { emoji:'🔤', title:'Cara Main', desc:'Pilih huruf dari keyboard. Jika huruf ada di kata, posisinya terbuka. Jika salah, nyawa berkurang!', tip:'Perhatikan pola kata yang sudah terbuka untuk menebak lebih akurat.' },
-  { emoji:'⭐', title:'Sistem Bintang', desc:'Semakin sedikit kesalahan, semakin banyak bintang! Targetkan 0-1 salah untuk 3 bintang.', tip:'Easy: ≤2 salah, Medium: ≤2 salah, Hard: ≤1 salah untuk 3 bintang.' },
+  { emoji:'💀', title:'Hangman', desc:'Tebak kata tersembunyi dengan memilih huruf satu per satu sebelum nyawamu habis!', tip:'Baca petunjuk di atas kata untuk tahu konteks jawabannya.' },
+  { emoji:'🔤', title:'Cara Main', desc:'Pilih huruf dari keyboard. Jika huruf ada di kata, posisinya terbuka. Jika salah, nyawa berkurang!', tip:'Mulai dengan huruf vokal (A, I, U, E, O) untuk membuka lebih banyak huruf.' },
+  { emoji:'⭐', title:'Sistem Bintang', desc:'Semakin sedikit kesalahan, semakin banyak bintang! Gunakan tombol "Buka Huruf" jika stuck.', tip:'Easy: ≤2 salah, Medium: ≤2 salah, Hard: ≤1 salah untuk 3 bintang.' },
 ]
 
 // Indonesian word lists by difficulty
@@ -181,7 +181,6 @@ export default function HangmanGame({ onBack, game, difficulty }) {
   const [showConfetti, setShowConfetti] = useState(false)
   const [resetKey, setResetKey] = useState(0)
   const [hintUsed, setHintUsed] = useState(0)
-  const [showHint, setShowHint] = useState(false)
 
   const word = wordData.word
   const wrongLetters = [...guessed].filter(l => !word.includes(l))
@@ -258,18 +257,13 @@ export default function HangmanGame({ onBack, game, difficulty }) {
   }, [guessLetter])
 
   const useHintAction = () => {
-    if (hintUsed >= 2 || !isGameActive) return
+    if (hintUsed >= 3 || !isGameActive) return
     play('click')
-    if (hintUsed === 0) {
-      // First hint: show the word hint
-      setShowHint(true)
-    } else {
-      // Second hint: reveal a random unguessed letter
-      const unguessedLetters = word.split('').filter(l => !guessed.has(l))
-      if (unguessedLetters.length > 0) {
-        const randomLetter = unguessedLetters[Math.floor(Math.random() * unguessedLetters.length)]
-        setGuessed(prev => new Set([...prev, randomLetter]))
-      }
+    // Reveal a random unguessed letter
+    const unguessedLetters = [...new Set(word.split(''))].filter(l => !guessed.has(l))
+    if (unguessedLetters.length > 0) {
+      const randomLetter = unguessedLetters[Math.floor(Math.random() * unguessedLetters.length)]
+      setGuessed(prev => new Set([...prev, randomLetter]))
     }
     setHintUsed(h => h + 1)
   }
@@ -282,7 +276,6 @@ export default function HangmanGame({ onBack, game, difficulty }) {
     setLost(false)
     setShowConfetti(false)
     setHintUsed(0)
-    setShowHint(false)
     setResetKey(k => k + 1)
   }
 
@@ -345,12 +338,10 @@ export default function HangmanGame({ onBack, game, difficulty }) {
         </div>
       </div>
 
-      {/* Hint display */}
-      {showHint && (
-        <div style={{ background: darkMode ? '#2d2d1e' : '#FFFDE7', border: `2px solid #FFD93D44`, borderRadius: 14, padding: '10px 16px', textAlign: 'center', marginBottom: 16, fontSize: 14, color: textMuted }}>
-          💡 <strong style={{ color: '#FFD93D' }}>Petunjuk:</strong> {wordData.hint}
-        </div>
-      )}
+      {/* Hint — always visible as clue */}
+      <div style={{ background: darkMode ? '#2d2d1e' : '#FFFDE7', border: `2px solid #FFD93D44`, borderRadius: 14, padding: '10px 16px', textAlign: 'center', marginBottom: 16, fontSize: 14, color: textMuted }}>
+        💡 <strong style={{ color: '#FFD93D' }}>Petunjuk:</strong> {wordData.hint}
+      </div>
 
       {/* Word display */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
@@ -419,9 +410,9 @@ export default function HangmanGame({ onBack, game, difficulty }) {
           style={{ background: accent, color: '#fff', border: 'none', borderRadius: 100, padding: '12px 28px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', boxShadow: `0 4px 14px ${accent}44` }}>
           🔄 Main Lagi
         </button>
-        <button onClick={useHintAction} disabled={hintUsed >= 2 || !isGameActive}
-          style={{ background: hintUsed>=2||!isGameActive ? 'rgba(255,255,255,0.05)' : 'rgba(255,211,61,0.15)', color: hintUsed>=2||!isGameActive ? textMuted : '#FFD93D', border: `2px solid ${hintUsed>=2||!isGameActive ? borderCol : '#FFD93D44'}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: hintUsed>=2||!isGameActive ? 'default' : 'pointer' }}>
-          💡 Hint ({2-hintUsed})
+        <button onClick={useHintAction} disabled={hintUsed >= 3 || !isGameActive}
+          style={{ background: hintUsed>=3||!isGameActive ? 'rgba(255,255,255,0.05)' : 'rgba(255,211,61,0.15)', color: hintUsed>=3||!isGameActive ? textMuted : '#FFD93D', border: `2px solid ${hintUsed>=3||!isGameActive ? borderCol : '#FFD93D44'}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: hintUsed>=3||!isGameActive ? 'default' : 'pointer' }}>
+          🔤 Buka Huruf ({3-hintUsed})
         </button>
         <button onClick={() => { play('click'); onBack() }}
           style={{ background: surface, color: textMuted, border: `2px solid ${borderCol}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 700, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>
