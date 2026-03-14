@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react'
 import GameCard from '../components/GameCard.jsx'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
+import { useProgress, getLevelInfo } from '../context/ProgressContext.jsx'
 
 const COMING_SOON = [
-  { day: 4,  emoji: '💬', title: 'Wordle',           tag: 'Kata',     color: '#A29BFE' },
   { day: 5,  emoji: '🪓', title: 'Hangman',          tag: 'Kata',     color: '#FD79A8' },
   { day: 6,  emoji: '🎨', title: 'Color Sort',       tag: 'Puzzle',   color: '#FF6B6B' },
   { day: 7,  emoji: '🧱', title: 'Brick Breaker',    tag: 'Casual',   color: '#45B7D1' },
-  { day: 8,  emoji: '🔎', title: 'Word Search',      tag: 'Kata',     color: '#55EFC4' },
+  { day: 8,  emoji: '💬', title: 'Wordle',            tag: 'Kata',     color: '#55EFC4' },
   { day: 9,  emoji: '🧩', title: 'Jigsaw Puzzle',    tag: 'Puzzle',   color: '#FDCB6E' },
   { day: 10, emoji: '🎯', title: 'Block Puzzle',     tag: 'Casual',   color: '#A29BFE' },
   { day: 11, emoji: '🔢', title: 'Sudoku',           tag: 'Logika',   color: '#FF6B6B' },
@@ -46,27 +46,14 @@ const BLOBS = [
   { color: '#FD79A8', size: 200, top: '35%',  left: '40%',  dur: '10s', delay: '0.5s' },
 ]
 
-export default function Home({ games, onPlay }) {
+export default function Home({ games, onPlay, onProfile }) {
   const { darkMode } = useSettings()
   const { play }     = useSound()
+  const { progress } = useProgress()
   const [activeTag, setActiveTag] = useState('Semua')
 
-  // Streak logic
-  const streak = (() => {
-    try {
-      const data = JSON.parse(localStorage.getItem('brainplay-streak') || '{}')
-      const today = new Date().toDateString()
-      const yesterday = new Date(Date.now()-86400000).toDateString()
-      if (data.last === today) return data.count || 1
-      if (data.last === yesterday) {
-        const nc = (data.count || 0) + 1
-        localStorage.setItem('brainplay-streak', JSON.stringify({ last: today, count: nc }))
-        return nc
-      }
-      localStorage.setItem('brainplay-streak', JSON.stringify({ last: today, count: 1 }))
-      return 1
-    } catch { return 1 }
-  })()
+  const levelInfo = getLevelInfo(progress.totalXP || 0)
+  const streak = progress.currentStreak || 0
   const [visible, setVisible]     = useState(false)
   const dark = darkMode
 
@@ -231,12 +218,39 @@ export default function Home({ games, onPlay }) {
             </div>
           </div>
 
-          {/* ── Streak Banner ── */}
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:12, marginBottom:20, marginTop:4 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, background: dark?"rgba(255,107,107,0.1)":"rgba(255,107,107,0.08)", border:"1.5px solid rgba(255,107,107,0.25)", borderRadius:100, padding:"8px 20px" }}>
-              <span style={{ fontSize:20 }}>🔥</span>
-              <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color:"#FF6B6B" }}>{streak} hari berturut-turut</span>
-              {streak >= 7 && <span style={{ fontSize:14 }}>🏆</span>}
+          {/* ── XP & Profile Banner ── */}
+          <div
+            onClick={() => { play('click'); onProfile && onProfile() }}
+            style={{ maxWidth:480, margin:'0 auto 20px', cursor:'pointer', animation:'slide-up 0.5s 0.25s ease both' }}
+          >
+            <div style={{
+              display:'flex', alignItems:'center', gap:14,
+              background: dark?'rgba(162,155,254,0.08)':'rgba(162,155,254,0.06)',
+              border:`1.5px solid ${dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.25)'}`,
+              borderRadius:20, padding:'14px 20px',
+              transition:'all 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#A29BFE'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.25)'; e.currentTarget.style.transform = 'translateY(0)' }}
+            >
+              <div style={{ fontSize:28, flexShrink:0 }}>
+                {levelInfo.level < 5 ? '🌱' : levelInfo.level < 10 ? '⚔️' : '👑'}
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
+                  <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:14, color:'#A29BFE' }}>Lv.{levelInfo.level} {levelInfo.title}</span>
+                  <span style={{ fontSize:12, color:textMuted }}>•</span>
+                  <span style={{ fontSize:12, color:textMuted, fontWeight:700 }}>{(progress.totalXP||0).toLocaleString()} XP</span>
+                </div>
+                <div style={{ height:6, borderRadius:100, background:dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)', overflow:'hidden' }}>
+                  <div style={{ height:'100%', borderRadius:100, background:'linear-gradient(90deg,#A29BFE,#FDCB6E)', width:`${Math.round(levelInfo.progress*100)}%`, transition:'width 0.6s ease' }} />
+                </div>
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
+                <span style={{ fontSize:16 }}>🔥</span>
+                <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#FF6B6B' }}>{streak}</span>
+              </div>
+              <span style={{ fontSize:16, color:textMuted }}>→</span>
             </div>
           </div>
 

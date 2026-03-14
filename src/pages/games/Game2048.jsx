@@ -9,6 +9,8 @@ const TUTORIAL_STEPS_CB = [
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSound } from '../../hooks/useSound.js'
+import { useProgress } from '../../context/ProgressContext.jsx'
+import { useSettings } from '../../context/SettingsContext.jsx'
 
 const TILE_VALUES = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
 const TILE_COLOR = {
@@ -37,10 +39,33 @@ const randVal  = (mi) => TILE_VALUES[Math.floor(Math.random() * mi)]
 const initGrid = (c, r, mi) => Array.from({length:r}, () => Array.from({length:c}, () => ({id:makeId(), value:randVal(mi)})))
 const isAdj    = (a,b) => Math.abs(a.r-b.r)<=1 && Math.abs(a.c-b.c)<=1
 
+function checkGameOver(grid, CN, RN) {
+  for (let r = 0; r < RN; r++) {
+    for (let c = 0; c < CN; c++) {
+      if (!grid[r][c]) return false // empty cell means not over
+      const val = grid[r][c].value
+      // Check all 8 neighbors
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue
+          const nr = r + dr, nc = c + dc
+          if (nr >= 0 && nr < RN && nc >= 0 && nc < CN) {
+            if (grid[nr][nc] && grid[nr][nc].value === val) return false // match exists
+          }
+        }
+      }
+    }
+  }
+  return true // no matches anywhere
+}
+
 export default function Game2048({ onBack, game, difficulty }) {
   const cfg  = DIFF_CFG[difficulty.id]
   const CN   = cfg.cols, RN = cfg.rows
   const { play } = useSound()
+  const { reportGameResult } = useProgress()
+  const { darkMode } = useSettings()
+  const dark = darkMode
 
   const [level,   setLevel]   = useState(1)
   const [maxIdx,  setMaxIdx]  = useState(cfg.startMax)
@@ -88,9 +113,10 @@ export default function Game2048({ onBack, game, difficulty }) {
   }, [cellSize, RN, CN])
 
   const startDrag = useCallback((cx,cy) => {
+    if (phase !== 'playing') return
     const cell = getCellAt(cx,cy); if (!cell) return
     setDragging(true); setChain([cell]); play('flip')
-  }, [getCellAt, play])
+  }, [getCellAt, play, phase])
 
   const moveDrag = useCallback((cx,cy) => {
     if (!dragging) return
@@ -161,6 +187,17 @@ export default function Game2048({ onBack, game, difficulty }) {
       setPhase('levelup'); play('levelUp')
       setShowConfetti(true); setTimeout(()=>setShowConfetti(false), 100)
       setLevel(nLevel); setGoal(nGoal); setMaxIdx(nMax)
+
+      // Report to global progress on every level up
+      const currentScore = score + sum
+      reportGameResult({
+        gameId: '2048',
+        difficultyId: difficulty.id,
+        won: true,
+        score: currentScore,
+        stars: nLevel >= 5 ? 3 : nLevel >= 3 ? 2 : 1,
+        timeSec: 0,
+      })
     }
     setChain([])
   }, [dragging, best, CN, RN, play])
@@ -172,6 +209,27 @@ export default function Game2048({ onBack, game, difficulty }) {
     setMaxIdx(cfg.startMax); setGoal(cfg.goal)
     setPhase('playing'); setDragging(false)
   }
+
+  // Check for game over after every grid change
+  useEffect(() => {
+    if (phase !== 'playing') return
+    // Delay check slightly so new tiles are in place
+    const t = setTimeout(() => {
+      if (checkGameOver(grid, CN, RN)) {
+        play('gameOver')
+        setPhase('gameover')
+        reportGameResult({
+          gameId: '2048',
+          difficultyId: difficulty.id,
+          won: false,
+          score,
+          stars: score >= 2000 ? 2 : 1,
+          timeSec: 0,
+        })
+      }
+    }, 350)
+    return () => clearTimeout(t)
+  }, [grid, phase])
 
   const chainVal = chain.length && gridRef.current[chain[0].r]?.[chain[0].c]?.value
   const progPct  = Math.min(100, Math.floor((score / (goal * level)) * 100))
@@ -321,6 +379,43 @@ export default function Game2048({ onBack, game, difficulty }) {
               ▶ Lanjut Main
             </button>
             <div onClick={()=>{setPhase('playing');setLuInfo(null)}} style={{color:'rgba(255,255,255,0.35)',fontSize:13,cursor:'pointer',padding:4}}>No Thanks</div>
+          </div>
+        </div>
+      )}
+
+      {/* Game Over Modal */}
+      {phase==='gameover'&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.82)',backdropFilter:'blur(10px)',zIndex:50,display:'flex',alignItems:'center',justifyContent:'center',padding:20,animation:'fadeIn 0.3s ease'}}>
+          <div style={{background:dark?'#1a1a2e':'#fff',borderRadius:28,padding:'32px 24px',maxWidth:340,width:'100%',textAlign:'center',boxShadow:'0 24px 60px rgba(0,0,0,0.3)',animation:'popIn 0.4s cubic-bezier(0.34,1.56,0.64,1)'}}>
+            <div style={{fontSize:56,marginBottom:8}}>😔</div>
+            <h2 style={{fontFamily:"'Fredoka One',cursive",fontSize:26,color:dark?'#FF6B6B':'#E53935',marginBottom:6}}>Game Over!</h2>
+            <p style={{fontSize:13,color:dark?'#8892b0':'#636E72',marginBottom:20}}>Tidak ada lagi blok yang bisa disambungkan</p>
+
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:22}}>
+              <div style={{background:dark?'#16213e':'#F8F9FA',borderRadius:14,padding:'14px 10px'}}>
+                <div style={{fontFamily:"'Fredoka One',cursive",fontSize:22,color:'#A29BFE'}}>{score.toLocaleString()}</div>
+                <div style={{fontSize:11,color:dark?'#8892b0':'#636E72',fontWeight:700}}>Skor</div>
+              </div>
+              <div style={{background:dark?'#16213e':'#F8F9FA',borderRadius:14,padding:'14px 10px'}}>
+                <div style={{fontFamily:"'Fredoka One',cursive",fontSize:22,color:'#4ECDC4'}}>Lv.{level}</div>
+                <div style={{fontSize:11,color:dark?'#8892b0':'#636E72',fontWeight:700}}>Level</div>
+              </div>
+            </div>
+
+            {score >= best && score > 0 && (
+              <div style={{background:'#FDCB6E22',border:'1.5px solid #FDCB6E44',borderRadius:12,padding:'8px 14px',marginBottom:16,fontFamily:"'Fredoka One',cursive",fontSize:14,color:'#FDCB6E'}}>
+                🏆 Rekor Baru!
+              </div>
+            )}
+
+            <div style={{display:'flex',gap:10}}>
+              <button onClick={restart} style={{flex:1,background:'linear-gradient(135deg,#A29BFE,#6C5CE7)',color:'#fff',border:'none',borderRadius:100,padding:'13px',fontSize:15,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer',boxShadow:'0 4px 16px rgba(162,155,254,0.4)'}}>
+                🔄 Main Lagi
+              </button>
+              <button onClick={()=>{play('click');onBack()}} style={{flex:1,background:dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)',color:dark?'#e8e8f0':'#2D3436',border:`1.5px solid ${dark?'rgba(255,255,255,0.15)':'rgba(0,0,0,0.15)'}`,borderRadius:100,padding:'13px',fontSize:15,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer'}}>
+                🎯 Level
+              </button>
+            </div>
           </div>
         </div>
       )}

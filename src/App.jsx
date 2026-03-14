@@ -1,14 +1,18 @@
-import { useState } from 'react'
-import { SettingsProvider } from './context/SettingsContext.jsx'
+import { useState, useEffect } from 'react'
+import { SettingsProvider, useSettings } from './context/SettingsContext.jsx'
+import { ProgressProvider } from './context/ProgressContext.jsx'
 import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
 import PageTransition from './components/PageTransition.jsx'
+import AchievementToast from './components/AchievementToast.jsx'
 import Home from './pages/Home.jsx'
+import Profile from './pages/Profile.jsx'
 import MemoryCardMatch from './pages/games/MemoryCardMatch.jsx'
 import SlitherWorm from './pages/games/SlitherWorm.jsx'
 import Game2048 from './pages/games/Game2048.jsx'
-import WordleGame from './pages/games/WordleGame.jsx'
-import WordSearch from './pages/games/WordSearch.jsx'
+import WordSearchGame from './pages/games/WordSearchGame.jsx'
+import { migrateOldStorage } from './utils/storage.js'
+import { useMusic } from './hooks/useMusic.js'
 
 export const GAMES = [
   {
@@ -51,16 +55,16 @@ export const GAMES = [
     ],
   },
   {
-    id: 'wordle',
-    title: 'Wordle',
-    emoji: '💬',
-    description: 'Tebak kata rahasia dalam 6 percobaan. Petunjuk warna memandumu ke jawaban!',
-    color: '#538D4E', bg: '#F0FFF0', tag: 'Kata',
-    component: WordleGame, day: 4,
+    id: 'word-search',
+    title: 'Word Search',
+    emoji: '🔍',
+    description: 'Temukan kata-kata tersembunyi di dalam grid huruf acak. Geser ke segala arah!',
+    color: '#F39C12', bg: '#FFF8E1', tag: 'Puzzle',
+    component: WordSearchGame, day: 4,
     difficulties: [
-      { id:'easy',   description:'Kata 4 huruf — cocok untuk pemanasan!',        stats:['4 huruf','6 percobaan'] },
-      { id:'medium', description:'Kata 5 huruf — mode klasik Wordle yang seru!', stats:['5 huruf','6 percobaan'] },
-      { id:'hard',   description:'Kata 6 huruf — uji kemampuan bahasamu!',       stats:['6 huruf','6 percobaan'] },
+      { id:'easy',   description:'Grid 8×8, 6 kata — cukup besar untuk pemula',              stats:['8×8 grid','6 kata']  },
+      { id:'medium', description:'Grid 10×10, 8 kata — lebih banyak kata, lebih menantang',   stats:['10×10 grid','8 kata'] },
+      { id:'hard',   description:'Grid 12×12, 10 kata — pencarian tingkat ahli!',             stats:['12×12 grid','10 kata'] },
     ],
   },
 ]
@@ -69,6 +73,14 @@ function AppInner() {
   const [currentGame, setCurrentGame] = useState(null)
   const [difficulty,  setDifficulty]  = useState(null)
   const [screen,      setScreen]      = useState('home')
+  const { muted, musicOff } = useSettings()
+
+  // Run migration once
+  useEffect(() => { migrateOldStorage() }, [])
+
+  // Music plays on lobby screens (home, profile, difficulty), stops during game
+  const isLobby = screen === 'home' || screen === 'profile' || screen === 'difficulty'
+  useMusic(isLobby, muted || musicOff)
 
   const openGame = (gameId) => {
     setCurrentGame(GAMES.find(g => g.id === gameId))
@@ -77,6 +89,7 @@ function AppInner() {
   const selectDifficulty  = (diffId) => { setDifficulty(diffId); setScreen('game') }
   const goHome            = () => { setScreen('home'); setCurrentGame(null); setDifficulty(null) }
   const goBackToDifficulty = () => { setDifficulty(null); setScreen('difficulty') }
+  const goProfile         = () => { setScreen('profile'); setCurrentGame(null); setDifficulty(null) }
 
   const activeDiff   = currentGame?.difficulties?.find(d => d.id === difficulty)
   const isFullscreen = screen === 'game' && currentGame?.id === 'slither-worm'
@@ -84,12 +97,16 @@ function AppInner() {
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
       {!isFullscreen && (
-        <Navbar onHome={goHome} currentGame={screen === 'game' ? currentGame : null} />
+        <Navbar onHome={goHome} onProfile={goProfile} currentGame={screen === 'game' ? currentGame : null} />
       )}
+      <AchievementToast />
       <main style={{ flex:1 }}>
         <PageTransition pageKey={`${screen}-${currentGame?.id}-${difficulty}`}>
           {screen === 'home' && (
-            <Home games={GAMES} onPlay={openGame} />
+            <Home games={GAMES} onPlay={openGame} onProfile={goProfile} />
+          )}
+          {screen === 'profile' && (
+            <Profile onBack={goHome} games={GAMES} />
           )}
           {screen === 'difficulty' && currentGame && (
             <DifficultySelector game={currentGame} onSelect={selectDifficulty} onBack={goHome} />
@@ -104,5 +121,11 @@ function AppInner() {
 }
 
 export default function App() {
-  return <SettingsProvider><AppInner /></SettingsProvider>
+  return (
+    <SettingsProvider>
+      <ProgressProvider>
+        <AppInner />
+      </ProgressProvider>
+    </SettingsProvider>
+  )
 }

@@ -10,6 +10,7 @@ const TUTORIAL_STEPS = [
 import { useState, useEffect, useCallback } from 'react'
 import { useSettings } from '../../context/SettingsContext.jsx'
 import { useSound } from '../../hooks/useSound.js'
+import { useProgress } from '../../context/ProgressContext.jsx'
 
 // Pool emoji — ambil sejumlah pairs yang dibutuhkan
 const EMOJI_POOL = ['🐶','🐱','🦊','🐻','🦁','🐯','🐸','🐧','🦄','🐼','🦋','🐙']
@@ -32,8 +33,9 @@ function createDeck(pairs) {
   )
 }
 
-function useTimer(running) {
+function useTimer(running, resetKey) {
   const [time, setTime] = useState(0)
+  useEffect(() => { setTime(0) }, [resetKey])
   useEffect(() => {
     if (!running) return
     const id = setInterval(() => setTime(t => t + 1), 1000)
@@ -50,6 +52,7 @@ const DIFF_LABEL = { easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Suli
 export default function MemoryCardMatch({ onBack, game, difficulty }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
+  const { reportGameResult } = useProgress()
 
   const { pairs, cols } = difficulty
 
@@ -60,12 +63,13 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
   const [won, setWon]           = useState(false)
   const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('tut-memory'))
   const [showConfetti, setShowConfetti] = useState(false)
+  const [resetKey, setResetKey] = useState(0)
 
   const bestKey = `${game.id}-best-${difficulty.id}`
   const [bestMoves, setBestMoves] = useState(() => parseInt(localStorage.getItem(bestKey) || '0'))
 
   const timerRunning = !won && moves > 0
-  const time = useTimer(timerRunning)
+  const time = useTimer(timerRunning, resetKey)
 
   useEffect(() => {
     if (deck.length > 0 && deck.every(c => c.matched)) {
@@ -76,6 +80,15 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
         localStorage.setItem(bestKey, moves)
         setBestMoves(moves)
       }
+      const stars = moves <= (pairs * 1.5) ? 3 : moves <= (pairs * 2.5) ? 2 : 1
+      reportGameResult({
+        gameId: 'memory-card',
+        difficultyId: difficulty.id,
+        won: true,
+        score: Math.max(0, pairs * 100 - moves * 10),
+        stars,
+        timeSec: time,
+      })
     }
   }, [deck])
 
@@ -149,6 +162,10 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
     setMoves(0)
     setLocked(false)
     setWon(false)
+    setShowConfetti(false)
+    setHintUsed(0)
+    setHintCells([])
+    setResetKey(k => k + 1)
   }
 
   const matchedCount = deck.filter(c => c.matched).length / 2

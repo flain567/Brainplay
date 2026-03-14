@@ -9,6 +9,7 @@ const TUTORIAL_STEPS_SW = [
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useSound } from '../../hooks/useSound.js'
+import { useProgress } from '../../context/ProgressContext.jsx'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SEG_R       = 11
@@ -181,6 +182,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
   const boostRef   = useRef(false)
   const animRef    = useRef(null)
   const { play }   = useSound()
+  const { reportGameResult } = useProgress()
 
   const cfg = CFG[difficulty.id]
 
@@ -288,6 +290,28 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
         return
       }
 
+      // Player head hits bot body → Player dies
+      for (const bot of g.bots) {
+        if (!bot.alive) continue
+        // Check against bot body segments (skip head, index 0)
+        for (let si = 3; si < bot.segs.length; si++) {
+          if (dist2({ x: nx, y: ny }, bot.segs[si]) < (SEG_R * 1.9) ** 2) {
+            p.alive = false
+            play('gameOver')
+            const fs = g.score
+            if (fs > bestScore) { localStorage.setItem(`slither-best-${difficulty.id}`, fs); setBestScore(fs); setShowConfetti(true); setTimeout(()=>setShowConfetti(false),100) }
+            // Drop player pellets
+            const drop = Math.min(25, Math.floor(p.segs.length / 3))
+            for (let i = 0; i < drop; i++) {
+              const ps = p.segs[i * 3] || p.segs[0]
+              g.foods.push({ x: ps.x + rand(-12,12), y: ps.y + rand(-12,12), color: PLAYER_SKIN.head, r: rand(5,9), pulse: 0 })
+            }
+            setPhase('dead')
+            return
+          }
+        }
+      }
+
       p.segs.unshift({ x: nx, y: ny })
 
       // Food eating
@@ -338,9 +362,26 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
           return
         }
 
-        // Player kills bot by cutting off (head-to-head or player head near bot body)
-        const playerHead = p.segs[0]
-        if (dist2(playerHead, { x: bnx, y: bny }) < (SEG_R * 2.2) ** 2) {
+        // Bot head hits player body → Bot dies (player gets kill)
+        for (let si = 3; si < p.segs.length; si++) {
+          if (dist2({ x: bnx, y: bny }, p.segs[si]) < (SEG_R * 1.9) ** 2) {
+            bot.alive = false; bot.respawnTimer = 220
+            g.score  += Math.floor(bot.segs.length * 2)
+            g.kills  += 1
+            play('levelUp')
+            setScore(g.score); setKills(g.kills)
+
+            const drop = Math.min(30, Math.floor(bot.segs.length / 2))
+            for (let i = 0; i < drop; i++) {
+              const bs = bot.segs[i * 2] || bot.segs[0]
+              g.foods.push({ x: bs.x + rand(-14,14), y: bs.y + rand(-14,14), color: bot.skin.head, r: rand(6,10), pulse: 0 })
+            }
+            return
+          }
+        }
+
+        // Head-to-head collision → both die but player gets points
+        if (dist2({ x: bnx, y: bny }, p.segs[0]) < (SEG_R * 2.2) ** 2) {
           bot.alive = false; bot.respawnTimer = 220
           g.score  += Math.floor(bot.segs.length * 2)
           g.kills  += 1
@@ -464,6 +505,21 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
     window.addEventListener('keyup',   up)
     return () => { window.removeEventListener('keydown', dn); window.removeEventListener('keyup', up) }
   }, [])
+
+  // ── Report to global progress on death ──
+  useEffect(() => {
+    if (phase === 'dead' && score > 0) {
+      const stars = score >= 100 ? 3 : score >= 50 ? 2 : 1
+      reportGameResult({
+        gameId: 'slither-worm',
+        difficultyId: difficulty.id,
+        won: false,
+        score,
+        stars,
+        timeSec: 0,
+      })
+    }
+  }, [phase])
 
   // ── Joystick ──
   const handleJoy = useCallback((e, type) => {

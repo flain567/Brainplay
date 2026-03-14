@@ -9,6 +9,9 @@ export function SettingsProvider({ children }) {
   const [muted, setMuted] = useState(
     () => localStorage.getItem('brainplay-muted') === 'true'
   )
+  const [musicOff, setMusicOff] = useState(
+    () => localStorage.getItem('brainplay-music-off') === 'true'
+  )
 
   // Apply dark mode ke root CSS variables
   useEffect(() => {
@@ -37,13 +40,18 @@ export function SettingsProvider({ children }) {
     localStorage.setItem('brainplay-muted', muted)
   }, [muted])
 
+  useEffect(() => {
+    localStorage.setItem('brainplay-music-off', musicOff)
+  }, [musicOff])
+
   const toggle = {
     darkMode: () => setDarkMode(v => !v),
     muted:    () => setMuted(v => !v),
+    musicOff: () => setMusicOff(v => !v),
   }
 
   return (
-    <SettingsContext.Provider value={{ darkMode, muted, toggle }}>
+    <SettingsContext.Provider value={{ darkMode, muted, musicOff, toggle }}>
       {children}
     </SettingsContext.Provider>
   )

@@ -2,8 +2,8 @@ import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useEffect, useState } from 'react'
 
-export default function Navbar({ onHome, currentGame, difficulty }) {
-  const { darkMode, muted, toggle } = useSettings()
+export default function Navbar({ onHome, onProfile, currentGame, difficulty }) {
+  const { darkMode, muted, musicOff, toggle } = useSettings()
   const { play, setMuted } = useSound()
   const [scrolled, setScrolled] = useState(false)
 
@@ -125,6 +125,22 @@ export default function Navbar({ onHome, currentGame, difficulty }) {
 
           {/* Actions */}
           <div className="nav-actions">
+            <button
+              className="nav-btn"
+              title="Profil & Achievement"
+              onClick={() => { play('click'); onProfile && onProfile() }}
+            >
+              👤
+            </button>
+            <button
+              className="nav-btn"
+              title={musicOff ? 'Nyalakan musik' : 'Matikan musik'}
+              onClick={() => { play('click'); toggle.musicOff() }}
+              style={{ position: 'relative' }}
+            >
+              {musicOff ? '🎵' : '🎶'}
+              {musicOff && <span style={{ position:'absolute', top:6, right:6, width:14, height:2, background:'#FF6B6B', borderRadius:2, transform:'rotate(-45deg)' }} />}
+            </button>
             <button
               className="nav-btn"
               title={muted ? 'Nyalakan suara' : 'Matikan suara'}
