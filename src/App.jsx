@@ -14,6 +14,7 @@ import MemoryCardMatch from './pages/games/MemoryCardMatch.jsx'
 import SlitherWorm from './pages/games/SlitherWorm.jsx'
 import Game2048 from './pages/games/Game2048.jsx'
 import WordSearchGame from './pages/games/WordSearchGame.jsx'
+import SpaceShooter from './pages/games/SpaceShooter.jsx'
 import { migrateOldStorage } from './utils/storage.js'
 import { useMusic } from './hooks/useMusic.js'
 
@@ -70,6 +71,19 @@ export const GAMES = [
       { id:'hard',   description:'Grid 12×12, 10 kata — pencarian tingkat ahli!',             stats:['12×12 grid','10 kata'] },
     ],
   },
+  {
+    id: 'space-shooter',
+    title: 'Space Shooter',
+    emoji: '🚀',
+    description: 'Hancurkan alien, kumpulkan power-up, dan kalahkan boss di luar angkasa!',
+    color: '#00B894', bg: '#E8FFF8', tag: 'Casual',
+    component: SpaceShooter, day: 5,
+    difficulties: [
+      { id:'easy',   description:'Musuh lambat, 5 nyawa — misi santai untuk pemula',    stats:['5 nyawa','Target 300'] },
+      { id:'medium', description:'Musuh sedang, 4 nyawa — butuh strategi yang pas!',     stats:['4 nyawa','Target 500'] },
+      { id:'hard',   description:'Musuh cepat, 3 nyawa — hanya pilot terbaik yang selamat!', stats:['3 nyawa','Target 800'] },
+    ],
+  },
 ]
 
 function AppInner() {
@@ -96,7 +110,7 @@ function AppInner() {
   const goShop            = () => { setScreen('shop'); setCurrentGame(null); setDifficulty(null) }
 
   const activeDiff   = currentGame?.difficulties?.find(d => d.id === difficulty)
-  const isFullscreen = screen === 'game' && currentGame?.id === 'slither-worm'
+  const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter')
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>

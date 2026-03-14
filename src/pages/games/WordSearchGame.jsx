@@ -64,13 +64,8 @@ const DIRECTIONS = [
   [0, -1], [-1, 0], [-1, -1], [-1, 1],
 ]
 
-// ─── Warna highlight ─────────────────────────────────────────────────────────
-const WORD_COLORS_LIGHT = [
-  '#FF6B6B', '#4ECDC4', '#A29BFE', '#FD79A8', '#00B894',
-  '#FDCB6E', '#6C5CE7', '#E17055', '#00CEC9', '#0984E3',
-  '#E84393', '#55EFC4', '#81ECEC', '#FAB1A0', '#74B9FF',
-]
-const WORD_COLORS_DARK = [
+// ─── Warna highlight (defaults) ──────────────────────────────────────────────
+const DEFAULT_WORD_COLORS = [
   '#FF6B6B', '#4ECDC4', '#A29BFE', '#FD79A8', '#00B894',
   '#FDCB6E', '#6C5CE7', '#E17055', '#00CEC9', '#0984E3',
   '#E84393', '#55EFC4', '#81ECEC', '#FAB1A0', '#74B9FF',
@@ -210,7 +205,8 @@ export default function WordSearchGame({ onBack, game, difficulty }) {
   const { play } = useSound()
   const { darkMode } = useSettings()
   const { reportGameResult } = useProgress()
-  const { earnCoins } = useCoins()
+  const { earnCoins, getActiveHighlightColors } = useCoins()
+  const WORD_COLORS = (getActiveHighlightColors ? getActiveHighlightColors() : null) || DEFAULT_WORD_COLORS
   const dark = darkMode
 
   // ── State ──
@@ -328,7 +324,7 @@ export default function WordSearchGame({ onBack, game, difficulty }) {
     setTimeout(() => setLastFoundAnim(null), 800)
 
     // Highlight colors
-    const colors = dark ? WORD_COLORS_DARK : WORD_COLORS_LIGHT
+    const colors = WORD_COLORS
     const color = colors[colorIdx.current % colors.length]
     colorIdx.current++
 
@@ -608,7 +604,7 @@ export default function WordSearchGame({ onBack, game, difficulty }) {
       <div style={{ width: '100%', maxWidth: 480, display: 'flex', flexWrap: 'wrap', gap: 6, padding: '6px 16px 10px', justifyContent: 'center' }}>
         {placements.map((p, i) => {
           const isFound = foundWords.includes(p.word)
-          const color = isFound ? (dark ? WORD_COLORS_DARK : WORD_COLORS_LIGHT)[i % WORD_COLORS_LIGHT.length] : null
+          const color = isFound ? (WORD_COLORS)[i % WORD_COLORS.length] : null
           return (
             <span key={p.word} style={{
               padding: '5px 12px', borderRadius: 100,

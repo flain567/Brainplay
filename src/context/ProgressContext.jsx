@@ -49,7 +49,7 @@ export const ACHIEVEMENTS = [
 
   // Variety - different games
   { id: 'explorer_2',     icon: '🧭', title: 'Penjelajah',         desc: 'Mainkan 2 game berbeda',       category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 2 },
-  { id: 'explorer_4',     icon: '🌍', title: 'Petualang Dunia',    desc: 'Mainkan semua 4 game',         category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 4 },
+  { id: 'explorer_4',     icon: '🌍', title: 'Petualang Dunia',    desc: 'Mainkan semua 5 game',         category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 5 },
 
   // Difficulty - hard mode
   { id: 'brave',          icon: '🦁', title: 'Pemberani',          desc: 'Selesaikan 1 game di mode Sulit', category: 'skill',  check: (s) => s.hardGamesWon >= 1 },
@@ -78,6 +78,7 @@ export const ACHIEVEMENTS = [
   { id: 'snake_king',     icon: '🐍', title: 'Raja Ular',          desc: 'Capai skor 50+ di Slither Worm',  category: 'game',  check: (s) => (s.gameBests['slither-worm'] || 0) >= 50 },
   { id: 'block_master',   icon: '🔗', title: 'Master Blok',        desc: 'Capai 1024+ di Connect Blocks',   category: 'game',  check: (s) => (s.gameBests['2048'] || 0) >= 1024 },
   { id: 'word_hunter',    icon: '🔍', title: 'Pemburu Kata',       desc: 'Selesaikan Word Search 5 kali',   category: 'game',  check: (s) => (s.gameWins['word-search'] || 0) >= 5 },
+  { id: 'space_ace',      icon: '🚀', title: 'Ace Pilot',          desc: 'Menangkan Space Shooter 3x',      category: 'game',  check: (s) => (s.gameWins['space-shooter'] || 0) >= 3 },
 ]
 
 // ─── Default state ───────────────────────────────────────────────────────────

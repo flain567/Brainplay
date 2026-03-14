@@ -3,231 +3,286 @@ import { getJSON, setJSON, StorageKeys } from '../utils/storage.js'
 
 const CoinContext = createContext(null)
 
-// ─── Card Icon Packs ─────────────────────────────────────────────────────────
+// ─── Card Icon Packs (Memory Card Match) ────────────────────────────────────
 export const ICON_PACKS = [
-  {
-    id: 'default',
-    name: 'Emoji Pack',
-    desc: 'Emoji klasik yang ekspresif dan berwarna',
-    price: 0,
-    icon: '😀',
-    color: '#FDCB6E',
-    icons: ['🐶','🐱','🦊','🐻','🦁','🐯','🐸','🐧','🦄','🐼','🦋','🐙'],
-  },
-  {
-    id: 'animal',
-    name: 'Animal Pack',
-    desc: 'Berbagai jenis hewan lucu dari seluruh dunia',
-    price: 150,
-    icon: '🐾',
-    color: '#4ECDC4',
-    icons: ['🐘','🦒','🦘','🐬','🦜','🦩','🐢','🦔','🦦','🐝','🦚','🐞'],
-  },
-  {
-    id: 'food',
-    name: 'Food Pack',
-    desc: 'Makanan dan buah-buahan yang menggugah selera',
-    price: 150,
-    icon: '🍔',
-    color: '#FF6B6B',
-    icons: ['🍕','🍔','🍣','🌮','🍩','🧁','🍦','🥐','🍪','🫐','🍜','🥟'],
-  },
-  {
-    id: 'space',
-    name: 'Space Pack',
-    desc: 'Tema luar angkasa — planet, bintang, dan galaksi',
-    price: 250,
-    icon: '🚀',
-    color: '#A29BFE',
-    icons: ['🚀','🌍','🌙','⭐','🪐','☄️','🛸','👽','🌌','🔭','🌞','💫'],
-  },
-  {
-    id: 'sport',
-    name: 'Sport Pack',
-    desc: 'Peralatan olahraga dan aktivitas seru',
-    price: 200,
-    icon: '⚽',
-    color: '#00B894',
-    icons: ['⚽','🏀','🎾','🏐','🏈','⚾','🎱','🏓','🥊','🏹','🎣','🛹'],
-  },
-  {
-    id: 'flag',
-    name: 'Flag Pack',
-    desc: 'Bendera dari berbagai negara di dunia',
-    price: 200,
-    icon: '🏳️',
-    color: '#FD79A8',
-    icons: ['🇮🇩','🇯🇵','🇧🇷','🇺🇸','🇬🇧','🇫🇷','🇩🇪','🇰🇷','🇪🇸','🇮🇹','🇹🇭','🇲🇽'],
-  },
-  {
-    id: 'music',
-    name: 'Music Pack',
-    desc: 'Instrumen musik dan simbol melodi',
-    price: 300,
-    icon: '🎵',
-    color: '#E17055',
-    icons: ['🎸','🎹','🥁','🎺','🎷','🎻','🪗','🪘','🎤','🎧','🎼','🎵'],
-  },
-  {
-    id: 'fantasy',
-    name: 'Fantasy Pack',
-    desc: 'Makhluk mistis dan sihir dari dunia fantasi',
-    price: 350,
-    icon: '🐉',
-    color: '#6C5CE7',
-    icons: ['🐉','🧙','🧚','🦅','🗡️','🛡️','👑','💎','🔮','⚔️','🏰','🧝'],
-  },
+  { id:'default', name:'Emoji Pack', desc:'Emoji klasik yang ekspresif dan berwarna', price:0, icon:'😀', color:'#FDCB6E',
+    icons:['🐶','🐱','🦊','🐻','🦁','🐯','🐸','🐧','🦄','🐼','🦋','🐙'] },
+  { id:'animal', name:'Animal Pack', desc:'Berbagai jenis hewan lucu dari seluruh dunia', price:150, icon:'🐾', color:'#4ECDC4',
+    icons:['🐘','🦒','🦘','🐬','🦜','🦩','🐢','🦔','🦦','🐝','🦚','🐞'] },
+  { id:'food', name:'Food Pack', desc:'Makanan dan buah-buahan yang menggugah selera', price:150, icon:'🍔', color:'#FF6B6B',
+    icons:['🍕','🍔','🍣','🌮','🍩','🧁','🍦','🥐','🍪','🫐','🍜','🥟'] },
+  { id:'space', name:'Space Pack', desc:'Tema luar angkasa — planet, bintang, dan galaksi', price:250, icon:'🚀', color:'#A29BFE',
+    icons:['🚀','🌍','🌙','⭐','🪐','☄️','🛸','👽','🌌','🔭','🌞','💫'] },
+  { id:'sport', name:'Sport Pack', desc:'Peralatan olahraga dan aktivitas seru', price:200, icon:'⚽', color:'#00B894',
+    icons:['⚽','🏀','🎾','🏐','🏈','⚾','🎱','🏓','🥊','🏹','🎣','🛹'] },
+  { id:'flag', name:'Flag Pack', desc:'Bendera dari berbagai negara di dunia', price:200, icon:'🏳️', color:'#FD79A8',
+    icons:['🇮🇩','🇯🇵','🇧🇷','🇺🇸','🇬🇧','🇫🇷','🇩🇪','🇰🇷','🇪🇸','🇮🇹','🇹🇭','🇲🇽'] },
+  { id:'music', name:'Music Pack', desc:'Instrumen musik dan simbol melodi', price:300, icon:'🎵', color:'#E17055',
+    icons:['🎸','🎹','🥁','🎺','🎷','🎻','🪗','🪘','🎤','🎧','🎼','🎵'] },
+  { id:'fantasy', name:'Fantasy Pack', desc:'Makhluk mistis dan sihir dari dunia fantasi', price:350, icon:'🐉', color:'#6C5CE7',
+    icons:['🐉','🧙','🧚','🦅','🗡️','🛡️','👑','💎','🔮','⚔️','🏰','🧝'] },
 ]
 
-// ─── Coin reward rates ───────────────────────────────────────────────────────
+// ─── Snake Skin Packs (Slither Worm) ────────────────────────────────────────
+export const SNAKE_SKINS = [
+  { id:'default', name:'Tosca Classic', desc:'Warna tosca default yang elegan', price:0, icon:'🟢', color:'#4ECDC4',
+    skin:{ head:'#4ecdc4', body:'#2eada4', glow:'#4ecdc4' } },
+  { id:'neon-pink', name:'Neon Pink', desc:'Pink neon yang menyala terang di kegelapan', price:100, icon:'💗', color:'#FF6B9D',
+    skin:{ head:'#FF6B9D', body:'#D4437A', glow:'#FF6B9D' } },
+  { id:'golden-dragon', name:'Golden Dragon', desc:'Emas berkilau bak naga legendaris', price:200, icon:'🐲', color:'#FFD700',
+    skin:{ head:'#FFD700', body:'#DAA520', glow:'#FFD700' } },
+  { id:'ice-blue', name:'Ice Blue', desc:'Biru es yang dingin dan membekukan arena', price:150, icon:'🧊', color:'#74B9FF',
+    skin:{ head:'#74B9FF', body:'#4A8DD8', glow:'#74B9FF' } },
+  { id:'lava-red', name:'Lava Red', desc:'Merah lava panas membara dari kedalaman bumi', price:150, icon:'🌋', color:'#FF4757',
+    skin:{ head:'#FF4757', body:'#C0392B', glow:'#FF4757' } },
+  { id:'galaxy', name:'Galaxy Purple', desc:'Ungu galaksi yang misterius dan kosmik', price:250, icon:'🌌', color:'#A29BFE',
+    skin:{ head:'#A29BFE', body:'#6C5CE7', glow:'#A29BFE' } },
+  { id:'rainbow', name:'Rainbow', desc:'Pelangi warna-warni yang berubah-ubah!', price:300, icon:'🌈', color:'#FF6B6B',
+    skin:{ head:'#FF6B6B', body:'#A29BFE', glow:'#FDCB6E', rainbow:true } },
+]
+
+// ─── Tile Theme Packs (Connect Blocks / 2048) ──────────────────────────────
+export const TILE_THEMES = [
+  { id:'default', name:'Classic', desc:'Warna klasik yang sudah familiar', price:0, icon:'🎨', color:'#4CAF50',
+    colors:{
+      2:{bg:'#4CAF50',dark:'#388E3C',text:'#fff'},4:{bg:'#FFC107',dark:'#F9A825',text:'#333'},
+      8:{bg:'#9C27B0',dark:'#7B1FA2',text:'#fff'},16:{bg:'#E91E63',dark:'#C2185B',text:'#fff'},
+      32:{bg:'#2196F3',dark:'#1565C0',text:'#fff'},64:{bg:'#FF5722',dark:'#D84315',text:'#fff'},
+      128:{bg:'#00BCD4',dark:'#00838F',text:'#fff'},256:{bg:'#8BC34A',dark:'#558B2F',text:'#fff'},
+      512:{bg:'#FF9800',dark:'#E65100',text:'#fff'},1024:{bg:'#3F51B5',dark:'#283593',text:'#fff'},
+      2048:{bg:'#F44336',dark:'#B71C1C',text:'#fff'},
+    }},
+  { id:'ocean', name:'Ocean', desc:'Nuansa biru laut yang menenangkan', price:150, icon:'🌊', color:'#0984E3',
+    colors:{
+      2:{bg:'#74B9FF',dark:'#5A9FE6',text:'#fff'},4:{bg:'#0984E3',dark:'#0767B0',text:'#fff'},
+      8:{bg:'#00CEC9',dark:'#00A8A3',text:'#fff'},16:{bg:'#006266',dark:'#004D50',text:'#fff'},
+      32:{bg:'#1289A7',dark:'#0E6B83',text:'#fff'},64:{bg:'#3DC1D3',dark:'#2FA3B3',text:'#fff'},
+      128:{bg:'#22A6B3',dark:'#1A8490',text:'#fff'},256:{bg:'#7ED6DF',dark:'#5FC0CC',text:'#333'},
+      512:{bg:'#01A3A4',dark:'#007F80',text:'#fff'},1024:{bg:'#0652DD',dark:'#043DB0',text:'#fff'},
+      2048:{bg:'#1B1464',dark:'#120D44',text:'#fff'},
+    }},
+  { id:'sunset', name:'Sunset', desc:'Gradien senja yang hangat dan romantis', price:150, icon:'🌅', color:'#E17055',
+    colors:{
+      2:{bg:'#FFECD2',dark:'#E8D4BA',text:'#5D4037'},4:{bg:'#FCAF45',dark:'#E09A30',text:'#fff'},
+      8:{bg:'#F97F51',dark:'#D66A3E',text:'#fff'},16:{bg:'#EE5A24',dark:'#C44818',text:'#fff'},
+      32:{bg:'#EA2027',dark:'#C01A1F',text:'#fff'},64:{bg:'#B53471',dark:'#8E2959',text:'#fff'},
+      128:{bg:'#833471',dark:'#66285A',text:'#fff'},256:{bg:'#6F1E51',dark:'#56173F',text:'#fff'},
+      512:{bg:'#FDA7DF',dark:'#E48EC6',text:'#333'},1024:{bg:'#D980FA',dark:'#BD66E0',text:'#fff'},
+      2048:{bg:'#9B59B6',dark:'#7D3F94',text:'#fff'},
+    }},
+  { id:'mono', name:'Monochrome', desc:'Hitam putih minimalis — elegan dan bersih', price:100, icon:'⬛', color:'#636E72',
+    colors:{
+      2:{bg:'#DFE6E9',dark:'#B2BEC3',text:'#2D3436'},4:{bg:'#B2BEC3',dark:'#95A5A6',text:'#2D3436'},
+      8:{bg:'#95A5A6',dark:'#7F8C8D',text:'#fff'},16:{bg:'#7F8C8D',dark:'#636E72',text:'#fff'},
+      32:{bg:'#636E72',dark:'#4A5457',text:'#fff'},64:{bg:'#4A5457',dark:'#363D3F',text:'#fff'},
+      128:{bg:'#2D3436',dark:'#1E2324',text:'#fff'},256:{bg:'#1E2324',dark:'#131818',text:'#fff'},
+      512:{bg:'#0D1111',dark:'#060909',text:'#fff'},1024:{bg:'#000000',dark:'#000000',text:'#fff'},
+      2048:{bg:'#2D3436',dark:'#1E2324',text:'#FDCB6E'},
+    }},
+  { id:'candy', name:'Candy Pastel', desc:'Warna pastel manis bak permen kapas', price:200, icon:'🍬', color:'#FD79A8',
+    colors:{
+      2:{bg:'#FFB8D0',dark:'#E8A0B8',text:'#5D4037'},4:{bg:'#B8E6FF',dark:'#A0CEE8',text:'#2D3436'},
+      8:{bg:'#C8FFB8',dark:'#B0E8A0',text:'#2D3436'},16:{bg:'#FFE0B8',dark:'#E8C8A0',text:'#5D4037'},
+      32:{bg:'#E0B8FF',dark:'#C8A0E8',text:'#2D3436'},64:{bg:'#FFFAB8',dark:'#E8E2A0',text:'#5D4037'},
+      128:{bg:'#FD79A8',dark:'#D45E88',text:'#fff'},256:{bg:'#81ECEC',dark:'#5ED4D4',text:'#2D3436'},
+      512:{bg:'#55EFC4',dark:'#3ED7AC',text:'#2D3436'},1024:{bg:'#A29BFE',dark:'#8880E0',text:'#fff'},
+      2048:{bg:'#6C5CE7',dark:'#5544CC',text:'#fff'},
+    }},
+  { id:'neon', name:'Neon', desc:'Neon terang yang bersinar di kegelapan', price:200, icon:'💡', color:'#00FF88',
+    colors:{
+      2:{bg:'#00FF88',dark:'#00CC6E',text:'#0a0a1a'},4:{bg:'#00FFFF',dark:'#00CCCC',text:'#0a0a1a'},
+      8:{bg:'#FF00FF',dark:'#CC00CC',text:'#fff'},16:{bg:'#FFFF00',dark:'#CCCC00',text:'#0a0a1a'},
+      32:{bg:'#FF0066',dark:'#CC0052',text:'#fff'},64:{bg:'#0066FF',dark:'#0052CC',text:'#fff'},
+      128:{bg:'#FF6600',dark:'#CC5200',text:'#fff'},256:{bg:'#9900FF',dark:'#7A00CC',text:'#fff'},
+      512:{bg:'#00FF00',dark:'#00CC00',text:'#0a0a1a'},1024:{bg:'#FF0000',dark:'#CC0000',text:'#fff'},
+      2048:{bg:'#FFFFFF',dark:'#CCCCCC',text:'#0a0a1a'},
+    }},
+]
+
+// ─── Highlight Packs (Word Search) ──────────────────────────────────────────
+export const HIGHLIGHT_PACKS = [
+  { id:'default', name:'Rainbow', desc:'Warna pelangi yang ceria dan bervariasi', price:0, icon:'🌈', color:'#FF6B6B',
+    colors:['#FF6B6B','#4ECDC4','#A29BFE','#FD79A8','#00B894','#FDCB6E','#6C5CE7','#E17055','#00CEC9','#0984E3','#E84393','#55EFC4','#81ECEC','#FAB1A0','#74B9FF'] },
+  { id:'neon-glow', name:'Neon Glow', desc:'Neon terang yang menyala di kegelapan', price:100, icon:'💡', color:'#00FF88',
+    colors:['#00FF88','#00FFFF','#FF00FF','#FFFF00','#FF0066','#0066FF','#FF6600','#9900FF','#00FF00','#FF3366','#33FFCC','#FF9900','#6633FF','#CCFF00','#FF0099'] },
+  { id:'pastel', name:'Pastel Dream', desc:'Warna pastel lembut yang menenangkan mata', price:100, icon:'🎀', color:'#FFB8D0',
+    colors:['#FFB8D0','#B8E6FF','#C8FFB8','#FFE0B8','#E0B8FF','#FFFAB8','#FFD1DC','#B8FFE0','#D4B8FF','#FFF0B8','#B8FFFA','#FFB8B8','#B8D4FF','#E8FFB8','#FFB8F0'] },
+  { id:'fire', name:'Fire', desc:'Api membara dari merah ke kuning', price:150, icon:'🔥', color:'#FF4500',
+    colors:['#FF0000','#FF2200','#FF4400','#FF6600','#FF8800','#FFAA00','#FFCC00','#FFE000','#FF3300','#FF5500','#FF7700','#FF9900','#FFBB00','#FFDD00','#FF1100'] },
+  { id:'ocean-wave', name:'Ocean Wave', desc:'Gelombang laut biru yang menenangkan', price:150, icon:'🌊', color:'#0984E3',
+    colors:['#0984E3','#74B9FF','#00CEC9','#00A8A3','#1289A7','#3DC1D3','#22A6B3','#7ED6DF','#01A3A4','#0652DD','#1B1464','#48DBFB','#0ABDE3','#54A0FF','#2E86DE'] },
+  { id:'minimalist', name:'Minimalist', desc:'Warna netral yang bersih dan minimalis', price:100, icon:'⬜', color:'#636E72',
+    colors:['#636E72','#95A5A6','#2D3436','#B2BEC3','#7F8C8D','#4A5457','#DFE6E9','#1E2324','#ABB2B9','#6C7A82','#3D4E56','#8395A7','#576574','#222F3E','#C8D6E5'] },
+]
+
+// ─── Consumable Items ───────────────────────────────────────────────────────
+export const CONSUMABLES = [
+  { id:'extra-hints', name:'Extra Hints ×5', desc:'Tambah 5 hint di game yang mendukung hint', price:50, icon:'💡', color:'#FDCB6E', amount:5 },
+  { id:'time-freeze', name:'Time Freeze +30s', desc:'Tambah 30 detik di game berbasis timer', price:40, icon:'⏱️', color:'#74B9FF', amount:30 },
+]
+
+// ─── Coin reward rates ──────────────────────────────────────────────────────
 export const COIN_REWARDS = {
-  gameWin:      { easy: 15, medium: 25, hard: 40 },
-  gameLose:     5,
-  threeStars:   20,  // bonus
-  achievement:  50,
-  dailyLogin:   [10, 15, 20, 25, 30, 40, 60], // day 1-7, resets weekly
-  levelUp:      30,
+  gameWin:    { easy:15, medium:25, hard:40 },
+  gameLose:   5,
+  threeStars: 20,
+  achievement:50,
+  dailyLogin: [10,15,20,25,30,40,60],
+  levelUp:    30,
 }
 
-// ─── Default state ───────────────────────────────────────────────────────────
+// ─── Default state ──────────────────────────────────────────────────────────
 function getDefaultCoinState() {
   return {
-    balance: 50,  // start with 50 coins
-    totalEarned: 50,
-    totalSpent: 0,
-    ownedPacks: ['default'],
-    activePack: 'default',
-    lastDailyClaim: null,
-    dailyStreak: 0,
-    transactions: [], // { type, amount, desc, date } — keep last 20
+    balance:50, totalEarned:50, totalSpent:0,
+    ownedPacks:['default'], activePack:'default',
+    ownedSkins:['default'], activeSkin:'default',
+    ownedTileThemes:['default'], activeTileTheme:'default',
+    ownedHighlights:['default'], activeHighlight:'default',
+    hints:0, timeFreezes:0,
+    lastDailyClaim:null, dailyStreak:0, transactions:[],
   }
 }
 
-// ─── Provider ────────────────────────────────────────────────────────────────
+// ─── Provider ───────────────────────────────────────────────────────────────
 export function CoinProvider({ children }) {
   const [state, setState] = useState(() => {
     const saved = getJSON(StorageKeys.COINS)
     return saved ? { ...getDefaultCoinState(), ...saved } : getDefaultCoinState()
   })
-  const [coinAnim, setCoinAnim] = useState(null) // { amount, x?, y? } for floating anim
+  const [coinAnim, setCoinAnim] = useState(null)
 
-  // Persist
-  useEffect(() => {
-    setJSON(StorageKeys.COINS, state)
-  }, [state])
+  useEffect(() => { setJSON(StorageKeys.COINS, state) }, [state])
 
-  // Add coins
-  const earnCoins = useCallback((amount, desc = '') => {
+  const earnCoins = useCallback((amount, desc='') => {
     if (amount <= 0) return
     setCoinAnim({ amount, desc })
     setTimeout(() => setCoinAnim(null), 2000)
-
     setState(s => {
-      const tx = { type: 'earn', amount, desc, date: Date.now() }
-      const txs = [tx, ...(s.transactions || [])].slice(0, 20)
-      return {
-        ...s,
-        balance: s.balance + amount,
-        totalEarned: (s.totalEarned || 0) + amount,
-        transactions: txs,
-      }
+      const tx = { type:'earn', amount, desc, date:Date.now() }
+      const txs = [tx, ...(s.transactions||[])].slice(0,20)
+      return { ...s, balance:s.balance+amount, totalEarned:(s.totalEarned||0)+amount, transactions:txs }
     })
   }, [])
 
-  // Spend coins
-  const spendCoins = useCallback((amount, desc = '') => {
+  const spendCoins = useCallback((amount, desc='') => {
     return new Promise((resolve) => {
       setState(s => {
-        if (s.balance < amount) {
-          resolve(false)
-          return s
-        }
-        const tx = { type: 'spend', amount, desc, date: Date.now() }
-        const txs = [tx, ...(s.transactions || [])].slice(0, 20)
+        if (s.balance < amount) { resolve(false); return s }
+        const tx = { type:'spend', amount, desc, date:Date.now() }
+        const txs = [tx, ...(s.transactions||[])].slice(0,20)
         resolve(true)
-        return {
-          ...s,
-          balance: s.balance - amount,
-          totalSpent: (s.totalSpent || 0) + amount,
-          transactions: txs,
-        }
+        return { ...s, balance:s.balance-amount, totalSpent:(s.totalSpent||0)+amount, transactions:txs }
       })
     })
   }, [])
 
-  // Buy pack
-  const buyPack = useCallback(async (packId) => {
-    const pack = ICON_PACKS.find(p => p.id === packId)
-    if (!pack) return { success: false, reason: 'Pack tidak ditemukan' }
-    if (state.ownedPacks.includes(packId)) return { success: false, reason: 'Sudah dimiliki' }
-    if (state.balance < pack.price) return { success: false, reason: 'Coin tidak cukup' }
+  // Generic buy cosmetic
+  const buyCosmetic = useCallback(async (type, itemId) => {
+    const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS }
+    const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights' }
+    const items = catalog[type]; const key = ownedKey[type]
+    if (!items||!key) return { success:false, reason:'Tipe tidak valid' }
+    const item = items.find(i => i.id === itemId)
+    if (!item) return { success:false, reason:'Item tidak ditemukan' }
+    if ((state[key]||[]).includes(itemId)) return { success:false, reason:'Sudah dimiliki' }
+    if (state.balance < item.price) return { success:false, reason:'Coin tidak cukup' }
+    const ok = await spendCoins(item.price, `Beli ${item.name}`)
+    if (ok) { setState(s => ({ ...s, [key]:[...(s[key]||[]), itemId] })); return { success:true } }
+    return { success:false, reason:'Gagal membeli' }
+  }, [state, spendCoins])
 
-    const ok = await spendCoins(pack.price, `Beli ${pack.name}`)
+  const buyPack = useCallback((packId) => buyCosmetic('packs', packId), [buyCosmetic])
+
+  const equipCosmetic = useCallback((type, itemId) => {
+    const ownedKey  = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights' }
+    const activeKey = { packs:'activePack', skins:'activeSkin', tileThemes:'activeTileTheme', highlights:'activeHighlight' }
+    const key = ownedKey[type]; const aKey = activeKey[type]
+    if (!key||!aKey) return
+    if (!(state[key]||[]).includes(itemId)) return
+    setState(s => ({ ...s, [aKey]:itemId }))
+  }, [state])
+
+  const setActivePack = useCallback((packId) => equipCosmetic('packs', packId), [equipCosmetic])
+
+  const buyConsumable = useCallback(async (consumableId) => {
+    const item = CONSUMABLES.find(c => c.id === consumableId)
+    if (!item) return { success:false, reason:'Item tidak ditemukan' }
+    if (state.balance < item.price) return { success:false, reason:'Coin tidak cukup' }
+    const ok = await spendCoins(item.price, `Beli ${item.name}`)
     if (ok) {
-      setState(s => ({ ...s, ownedPacks: [...s.ownedPacks, packId] }))
-      return { success: true }
+      setState(s => {
+        if (consumableId === 'extra-hints') return { ...s, hints:(s.hints||0)+item.amount }
+        if (consumableId === 'time-freeze') return { ...s, timeFreezes:(s.timeFreezes||0)+item.amount }
+        return s
+      })
+      return { success:true }
     }
-    return { success: false, reason: 'Gagal membeli' }
-  }, [state.ownedPacks, state.balance, spendCoins])
+    return { success:false, reason:'Gagal membeli' }
+  }, [state.balance, spendCoins])
 
-  // Set active pack
-  const setActivePack = useCallback((packId) => {
-    if (!state.ownedPacks.includes(packId)) return
-    setState(s => ({ ...s, activePack: packId }))
-  }, [state.ownedPacks])
+  const useHint = useCallback(() => {
+    if ((state.hints||0) <= 0) return false
+    setState(s => ({ ...s, hints:(s.hints||0)-1 })); return true
+  }, [state.hints])
 
-  // Claim daily reward
+  const useTimeFreeze = useCallback(() => {
+    if ((state.timeFreezes||0) <= 0) return false
+    setState(s => ({ ...s, timeFreezes:(s.timeFreezes||0)-1 })); return true
+  }, [state.timeFreezes])
+
   const claimDaily = useCallback(() => {
     const today = new Date().toDateString()
-    if (state.lastDailyClaim === today) return { success: false, reason: 'Sudah diklaim hari ini' }
-
-    const yesterday = new Date(Date.now() - 86400000).toDateString()
-    let newStreak = state.lastDailyClaim === yesterday ? (state.dailyStreak || 0) + 1 : 1
+    if (state.lastDailyClaim === today) return { success:false, reason:'Sudah diklaim hari ini' }
+    const yesterday = new Date(Date.now()-86400000).toDateString()
+    let newStreak = state.lastDailyClaim === yesterday ? (state.dailyStreak||0)+1 : 1
     if (newStreak > 7) newStreak = 1
-
-    const reward = COIN_REWARDS.dailyLogin[Math.min(newStreak - 1, COIN_REWARDS.dailyLogin.length - 1)]
-
-    setState(s => ({
-      ...s,
-      lastDailyClaim: today,
-      dailyStreak: newStreak,
-    }))
+    const reward = COIN_REWARDS.dailyLogin[Math.min(newStreak-1, COIN_REWARDS.dailyLogin.length-1)]
+    setState(s => ({ ...s, lastDailyClaim:today, dailyStreak:newStreak }))
     earnCoins(reward, `Login harian (hari ke-${newStreak})`)
-    return { success: true, amount: reward, streak: newStreak }
+    return { success:true, amount:reward, streak:newStreak }
   }, [state.lastDailyClaim, state.dailyStreak, earnCoins])
 
-  // Check if daily is claimable
   const isDailyClaimable = state.lastDailyClaim !== new Date().toDateString()
 
-  // Get active icon pack
   const getActiveIcons = useCallback(() => {
     const pack = ICON_PACKS.find(p => p.id === state.activePack)
     return pack ? pack.icons : ICON_PACKS[0].icons
   }, [state.activePack])
 
+  const getActiveSkin = useCallback(() => {
+    const s = SNAKE_SKINS.find(sk => sk.id === state.activeSkin)
+    return s ? s.skin : SNAKE_SKINS[0].skin
+  }, [state.activeSkin])
+
+  const getActiveTileColors = useCallback(() => {
+    const t = TILE_THEMES.find(th => th.id === state.activeTileTheme)
+    return t ? t.colors : TILE_THEMES[0].colors
+  }, [state.activeTileTheme])
+
+  const getActiveHighlightColors = useCallback(() => {
+    const p = HIGHLIGHT_PACKS.find(h => h.id === state.activeHighlight)
+    return p ? p.colors : HIGHLIGHT_PACKS[0].colors
+  }, [state.activeHighlight])
+
   return (
     <CoinContext.Provider value={{
-      coins: state.balance,
-      totalEarned: state.totalEarned,
-      totalSpent: state.totalSpent,
-      ownedPacks: state.ownedPacks,
-      activePack: state.activePack,
-      dailyStreak: state.dailyStreak,
-      transactions: state.transactions || [],
-      isDailyClaimable,
-      coinAnim,
-      earnCoins,
-      spendCoins,
-      buyPack,
-      setActivePack,
-      claimDaily,
-      getActiveIcons,
+      coins:state.balance, totalEarned:state.totalEarned, totalSpent:state.totalSpent,
+      ownedPacks:state.ownedPacks||[], activePack:state.activePack,
+      ownedSkins:state.ownedSkins||[], activeSkin:state.activeSkin,
+      ownedTileThemes:state.ownedTileThemes||[], activeTileTheme:state.activeTileTheme,
+      ownedHighlights:state.ownedHighlights||[], activeHighlight:state.activeHighlight,
+      hints:state.hints||0, timeFreezes:state.timeFreezes||0,
+      dailyStreak:state.dailyStreak, transactions:state.transactions||[],
+      isDailyClaimable, coinAnim,
+      earnCoins, spendCoins, buyPack, buyCosmetic, equipCosmetic,
+      buyConsumable, useHint, useTimeFreeze,
+      setActivePack, claimDaily,
+      getActiveIcons, getActiveSkin, getActiveTileColors, getActiveHighlightColors,
     }}>
       {children}
     </CoinContext.Provider>
   )
 }
 
-export function useCoins() {
-  return useContext(CoinContext)
-}
+export function useCoins() { return useContext(CoinContext) }

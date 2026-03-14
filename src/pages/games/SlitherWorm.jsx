@@ -23,7 +23,7 @@ const BOT_SKINS = [
   { head: '#fd79a8', body: '#c94d80', glow: '#fd79a8', name: 'Pinky'  },
   { head: '#ff9f43', body: '#cc7520', glow: '#ff9f43', name: 'Blaze'  },
 ]
-const PLAYER_SKIN = { head: '#4ecdc4', body: '#2eada4', glow: '#4ecdc4' }
+const DEFAULT_PLAYER_SKIN = { head: '#4ecdc4', body: '#2eada4', glow: '#4ecdc4' }
 
 const CFG = {
   easy:   { speed: 2.2, boostMul: 2.0, foodCount: 55, mapSize: 1800, turn: 0.10, bots: 2 },
@@ -184,7 +184,8 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
   const animRef    = useRef(null)
   const { play }   = useSound()
   const { reportGameResult } = useProgress()
-  const { earnCoins } = useCoins()
+  const { earnCoins, getActiveSkin } = useCoins()
+  const PLAYER_SKIN = getActiveSkin ? getActiveSkin() : DEFAULT_PLAYER_SKIN
 
   const cfg = CFG[difficulty.id]
 

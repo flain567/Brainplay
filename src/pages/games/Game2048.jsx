@@ -14,7 +14,7 @@ import { useSettings } from '../../context/SettingsContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
 
 const TILE_VALUES = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
-const TILE_COLOR = {
+const DEFAULT_TILE_COLOR = {
   2:    { bg:'#4CAF50', dark:'#388E3C', text:'#fff' },
   4:    { bg:'#FFC107', dark:'#F9A825', text:'#333' },
   8:    { bg:'#9C27B0', dark:'#7B1FA2', text:'#fff' },
@@ -27,7 +27,6 @@ const TILE_COLOR = {
   1024: { bg:'#3F51B5', dark:'#283593', text:'#fff' },
   2048: { bg:'#F44336', dark:'#B71C1C', text:'#fff' },
 }
-const getColor = v => TILE_COLOR[v] || { bg:'#607D8B', dark:'#37474F', text:'#fff' }
 
 const DIFF_CFG = {
   easy:   { cols:5, rows:6, startMax:3, goal:512,  goalStep:512  },
@@ -66,7 +65,9 @@ export default function Game2048({ onBack, game, difficulty }) {
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { darkMode } = useSettings()
-  const { earnCoins } = useCoins()
+  const { earnCoins, getActiveTileColors } = useCoins()
+  const TILE_COLOR = (getActiveTileColors ? getActiveTileColors() : null) || DEFAULT_TILE_COLOR
+  const getColor = v => TILE_COLOR[v] || { bg:'#607D8B', dark:'#37474F', text:'#fff' }
   const dark = darkMode
 
   const [level,   setLevel]   = useState(1)
