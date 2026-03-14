@@ -214,16 +214,37 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
     return {
       player, bots, foods,
       score: 0, kills: 0, mapSize: M,
-      cam: { x: M / 2 - canvas.width / 2, y: M / 2 - canvas.height / 2 },
+      cam: { x: M / 2 - (canvas._logicalW || canvas.width) / 2, y: M / 2 - (canvas._logicalH || canvas.height) / 2 },
       tick: 0,
     }
+  }
+
+  function sizeCanvas() {
+    const c = canvasRef.current
+    if (!c) return { w:0, h:0 }
+    const parent = c.parentElement
+    if (!parent) return { w:0, h:0 }
+    const rect = parent.getBoundingClientRect()
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const w = Math.floor(rect.width)
+    const h = Math.floor(rect.height)
+    c.width = w * dpr
+    c.height = h * dpr
+    c.style.width = w + 'px'
+    c.style.height = h + 'px'
+    const ctx = c.getContext('2d')
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    // Store logical size for game code
+    c._logicalW = w
+    c._logicalH = h
+    return { w, h }
   }
 
   function startGame() {
     const canvas = canvasRef.current
     if (!canvas) return
-    canvas.width  = canvas.offsetWidth
-    canvas.height = canvas.offsetHeight
+    const { w, h } = sizeCanvas()
+    if (w === 0 || h === 0) return
     gameRef.current = initGame(canvas)
     setScore(0); setLength(0); setKills(0)
     setPhase('playing')
@@ -231,14 +252,12 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
 
   // ── Resize ──
   useEffect(() => {
-    const fn = () => {
-      const c = canvasRef.current
-      if (!c) return
-      c.width = c.offsetWidth; c.height = c.offsetHeight
-    }
+    sizeCanvas()
+    const fn = () => { sizeCanvas() }
     fn()
     window.addEventListener('resize', fn)
-    return () => window.removeEventListener('resize', fn)
+    window.addEventListener('orientationchange', () => setTimeout(fn, 200))
+    return () => { window.removeEventListener('resize', fn) }
   }, [])
 
   // ── Game loop ──
@@ -418,17 +437,18 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
       g.foods.forEach(f => { f.pulse += 0.05 })
 
       // Camera
-      g.cam.x += (nx - canvas.width  / 2 - g.cam.x) * 0.09
-      g.cam.y += (ny - canvas.height / 2 - g.cam.y) * 0.09
-      g.cam.x  = Math.max(0, Math.min(M - canvas.width,  g.cam.x))
-      g.cam.y  = Math.max(0, Math.min(M - canvas.height, g.cam.y))
+      const cW = canvas._logicalW || canvas.width, cH = canvas._logicalH || canvas.height
+      g.cam.x += (nx - cW / 2 - g.cam.x) * 0.09
+      g.cam.y += (ny - cH / 2 - g.cam.y) * 0.09
+      g.cam.x  = Math.max(0, Math.min(M - cW,  g.cam.x))
+      g.cam.y  = Math.max(0, Math.min(M - cH, g.cam.y))
       g.tick++
     }
 
     function draw() {
       const g = gameRef.current
       if (!g) return
-      const W = canvas.width, H = canvas.height
+      const W = canvas._logicalW || canvas.width, H = canvas._logicalH || canvas.height
       const cx = g.cam.x, cy = g.cam.y
 
       // Background
@@ -553,8 +573,8 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
   const DLABEL = { easy:'🟢 Mudah', medium:'🟡 Sedang', hard:'🔴 Sulit' }
 
   return (
-    <div style={{ width:'100%', height:'100vh', background:'#07071a', position:'relative', overflow:'hidden' }}>
-      <canvas ref={canvasRef} style={{ width:'100%', height:'100%', display:'block' }} />
+    <div style={{ width:'100%', height:'100vh', height:'100dvh', background:'#07071a', position:'relative', overflow:'hidden', userSelect:'none' }}>
+      <canvas ref={canvasRef} style={{ width:'100%', height:'100%', display:'block', touchAction:'none' }} />
       {showTutorial && <TutorialModal steps={TUTORIAL_STEPS_SW} color="#4ECDC4" onClose={()=>{ setShowTutorial(false); localStorage.setItem('tut-slither','1') }} />}
       <Confetti active={showConfetti} onDone={()=>setShowConfetti(false)} />
 
@@ -606,8 +626,12 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
             <span>🕹 Joystick</span><span>⚡ Boost</span><span>💀 Bunuh bot = skor</span>
           </div>
           <button onClick={startGame}
-            style={{ background:'linear-gradient(135deg,#4ecdc4,#a29bfe)', color:'#fff', border:'none', borderRadius:100, padding:'15px 50px', fontSize:19, fontWeight:800, fontFamily:"'Fredoka One',cursive", cursor:'pointer', boxShadow:'0 0 36px rgba(78,205,196,0.4)', letterSpacing:'0.5px' }}>
+            style={{ background:'linear-gradient(135deg,#4ecdc4,#a29bfe)', color:'#fff', border:'none', borderRadius:100, padding:'15px 50px', fontSize:19, fontWeight:800, fontFamily:"'Fredoka One',cursive", cursor:'pointer', boxShadow:'0 0 36px rgba(78,205,196,0.4)', letterSpacing:'0.5px', WebkitTapHighlightColor:'transparent' }}>
             ▶ Mulai Main
+          </button>
+          <button onClick={() => { play('click'); onBack() }}
+            style={{ marginTop:12, background:'transparent', color:'rgba(255,255,255,0.35)', border:'1.5px solid rgba(255,255,255,0.1)', borderRadius:100, padding:'10px 24px', fontSize:13, fontWeight:700, fontFamily:"'Fredoka One',cursive", cursor:'pointer', WebkitTapHighlightColor:'transparent' }}>
+            ← Kembali
           </button>
         </div>
       )}
@@ -653,7 +677,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
 
       {/* ── Joystick ── */}
       {phase === 'playing' && (
-        <div style={{ position:'absolute', bottom:40, left:40, zIndex:15, userSelect:'none' }}>
+        <div style={{ position:'absolute', bottom:'max(20px, 4vh)', left:'max(16px, 3vw)', zIndex:15, userSelect:'none' }}>
           <div
             ref={joyRef}
             onTouchStart={e=>handleJoy(e,'start')} onTouchMove={e=>handleJoy(e,'move')} onTouchEnd={e=>handleJoy(e,'end')}
@@ -670,7 +694,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
 
       {/* ── Boost ── */}
       {phase === 'playing' && (
-        <div style={{ position:'absolute', bottom:48, right:40, zIndex:15, userSelect:'none' }}>
+        <div style={{ position:'absolute', bottom:'max(28px, 5vh)', right:'max(16px, 3vw)', zIndex:15, userSelect:'none' }}>
           <button
             onTouchStart={e=>{e.preventDefault();boostRef.current=true;setBoosting(true)}}
             onTouchEnd={e=>{e.preventDefault();boostRef.current=false;setBoosting(false)}}

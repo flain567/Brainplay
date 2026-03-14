@@ -25,6 +25,7 @@ export default function GameCard({ game, onPlay }) {
         }
         .gcard:hover { transform: translateY(-8px) scale(1.02); }
         .gcard:active { transform: translateY(-3px) scale(0.99); }
+        .gcard { -webkit-tap-highlight-color: transparent; }
 
         .gcard-bg-orb {
           position: absolute; border-radius: 50%; pointer-events: none;

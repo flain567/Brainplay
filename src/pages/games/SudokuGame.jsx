@@ -259,10 +259,10 @@ export default function SudokuGame({ onBack, game, difficulty }) {
       if (key >= '1' && key <= '9') handleNumberInput(parseInt(key))
       else if (key === 'Backspace' || key === 'Delete' || key === '0') handleNumberInput(0)
       else if (key === 'n' || key === 'N') setNotesMode(m => !m)
-      else if (key === 'ArrowUp' && selectedCell) setSelectedCell(([r, c]) => [Math.max(0, r - 1), c])
-      else if (key === 'ArrowDown' && selectedCell) setSelectedCell(([r, c]) => [Math.min(8, r + 1), c])
-      else if (key === 'ArrowLeft' && selectedCell) setSelectedCell(([r, c]) => [r, Math.max(0, c - 1)])
-      else if (key === 'ArrowRight' && selectedCell) setSelectedCell(([r, c]) => [r, Math.min(8, c + 1)])
+      else if (key === 'ArrowUp' && selectedCell) { e.preventDefault(); setSelectedCell(([r, c]) => [Math.max(0, r - 1), c]) }
+      else if (key === 'ArrowDown' && selectedCell) { e.preventDefault(); setSelectedCell(([r, c]) => [Math.min(8, r + 1), c]) }
+      else if (key === 'ArrowLeft' && selectedCell) { e.preventDefault(); setSelectedCell(([r, c]) => [r, Math.max(0, c - 1)]) }
+      else if (key === 'ArrowRight' && selectedCell) { e.preventDefault(); setSelectedCell(([r, c]) => [r, Math.min(8, c + 1)]) }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)

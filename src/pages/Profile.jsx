@@ -202,9 +202,9 @@ export default function Profile({ onBack, games }) {
               { icon: '🎮', label: 'Game Dimainkan', value: progress.totalGamesPlayed || 0 },
               { icon: '🔥', label: 'Streak', value: `${progress.currentStreak || 0} hari` },
               { icon: '🏆', label: 'Achievements', value: `${unlockedCount}/${totalAchievements}` },
-              { icon: '⏱️', label: 'Total Main', value: formatPlayTime(progress.totalPlayTime) },
+              { icon: '🎯', label: 'Game Unik', value: `${progress.uniqueGamesPlayed || 0}/${games?.length || 8}` },
               { icon: '⭐', label: '3 Bintang', value: progress.threeStarCount || 0 },
-              { icon: '⚡', label: 'Tercepat', value: progress.fastestGame > 0 ? `${progress.fastestGame}d` : '—' },
+              { icon: '⏱️', label: 'Total Main', value: formatPlayTime(progress.totalPlayTime) },
             ].map(s => (
               <div key={s.label} className="prof-stat">
                 <div style={{ fontSize: 24, marginBottom: 6 }}>{s.icon}</div>
@@ -223,6 +223,13 @@ export default function Profile({ onBack, games }) {
               {games.map(g => {
                 const wins = (progress.gameWins || {})[g.id] || 0
                 const best = (progress.gameBests || {})[g.id] || 0
+                // Contextual best label per game type
+                const bestLabel = g.id === 'hangman' ? `${best} salah`
+                  : g.id === 'sudoku' ? `${Math.floor(best/60)}:${(best%60).toString().padStart(2,'0')}`
+                  : g.id === 'color-sort' ? `${best} langkah`
+                  : g.id === 'slither-worm' ? `${best} poin`
+                  : g.id === 'space-shooter' ? `${best} poin`
+                  : best.toLocaleString()
                 return (
                   <div key={g.id} style={{
                     display: 'flex', alignItems: 'center', gap: 14,
@@ -235,7 +242,7 @@ export default function Profile({ onBack, games }) {
                       <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 14, color: textMain }}>{g.title}</div>
                       <div style={{ fontSize: 11, color: textMuted }}>
                         {wins > 0 ? `${wins}× menang` : 'Belum dimainkan'}
-                        {best > 0 ? ` • Best: ${best.toLocaleString()}` : ''}
+                        {best > 0 ? ` • Best: ${bestLabel}` : ''}
                       </div>
                     </div>
                     <div style={{
@@ -282,6 +289,8 @@ export default function Profile({ onBack, games }) {
             {filteredAchievements.map(ach => {
               const unlocked = unlockedSet.has(ach.id)
               const catMeta = CATEGORY_META[ach.category]
+              const prog = !unlocked && ach.progress ? ach.progress(progress) : null
+              const isNew = ['hangman_hero','sort_master','sudoku_sage'].includes(ach.id)
               return (
                 <div key={ach.id} className={`ach-item ${unlocked ? 'unlocked' : 'locked'}`}>
                   <div className="ach-icon-wrap" style={{
@@ -292,14 +301,34 @@ export default function Profile({ onBack, games }) {
                     {unlocked ? ach.icon : '🔒'}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{
-                      fontFamily: "'Fredoka One',cursive", fontSize: 14,
-                      color: unlocked ? textMain : textMuted,
-                      marginBottom: 2,
-                    }}>
-                      {ach.title}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                      <span style={{
+                        fontFamily: "'Fredoka One',cursive", fontSize: 14,
+                        color: unlocked ? textMain : textMuted,
+                      }}>
+                        {ach.title}
+                      </span>
+                      {isNew && !unlocked && (
+                        <span style={{ fontSize: 9, fontWeight: 800, background: '#FF6B6B', color: '#fff', padding: '1px 6px', borderRadius: 100, letterSpacing: '0.5px' }}>NEW</span>
+                      )}
                     </div>
                     <div style={{ fontSize: 12, color: textMuted }}>{ach.desc}</div>
+                    {/* Progress bar for locked achievements */}
+                    {!unlocked && prog && prog.max > 1 && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                        <div style={{ flex: 1, height: 6, borderRadius: 100, background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+                          <div style={{
+                            height: '100%', borderRadius: 100,
+                            background: `linear-gradient(90deg, ${catMeta?.color || '#A29BFE'}, ${catMeta?.color || '#A29BFE'}aa)`,
+                            width: `${Math.round((prog.cur / prog.max) * 100)}%`,
+                            transition: 'width 0.6s ease',
+                          }} />
+                        </div>
+                        <span style={{ fontSize: 10, fontWeight: 800, color: catMeta?.color || '#A29BFE', whiteSpace: 'nowrap', fontFamily: "'Fredoka One',cursive" }}>
+                          {prog.cur}/{prog.max}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   {unlocked && (
                     <span style={{ fontSize: 11, fontWeight: 800, color: '#4ECDC4', whiteSpace: 'nowrap' }}>✓ Unlocked</span>

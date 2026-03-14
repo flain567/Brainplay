@@ -6,13 +6,9 @@ import { useProgress, getLevelInfo } from '../context/ProgressContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
 
 const COMING_SOON = [
-  { day: 5,  emoji: '🪓', title: 'Hangman',          tag: 'Kata',     color: '#FD79A8' },
-  { day: 6,  emoji: '🎨', title: 'Color Sort',       tag: 'Puzzle',   color: '#FF6B6B' },
-  { day: 7,  emoji: '🧱', title: 'Brick Breaker',    tag: 'Casual',   color: '#45B7D1' },
-  { day: 8,  emoji: '💬', title: 'Wordle',            tag: 'Kata',     color: '#55EFC4' },
-  { day: 9,  emoji: '🧩', title: 'Jigsaw Puzzle',    tag: 'Puzzle',   color: '#FDCB6E' },
-  { day: 10, emoji: '🎯', title: 'Block Puzzle',     tag: 'Casual',   color: '#A29BFE' },
-  { day: 11, emoji: '🔢', title: 'Sudoku',           tag: 'Logika',   color: '#FF6B6B' },
+  { day: 9,  emoji: '🧱', title: 'Brick Breaker',    tag: 'Casual',   color: '#45B7D1' },
+  { day: 10, emoji: '💬', title: 'Wordle Indonesia',  tag: 'Kata',     color: '#55EFC4' },
+  { day: 11, emoji: '🧩', title: 'Jigsaw Puzzle',    tag: 'Puzzle',   color: '#FDCB6E' },
   { day: 12, emoji: '🫧', title: 'Bubble Shooter',   tag: 'Casual',   color: '#4ECDC4' },
   { day: 13, emoji: '⌨️', title: 'Typing Speed',     tag: 'Kata',     color: '#FD79A8' },
   { day: 14, emoji: '💣', title: 'Minesweeper',      tag: 'Logika',   color: '#45B7D1' },
@@ -95,7 +91,7 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
         .home-content { position: relative; z-index: 1; max-width: 1140px; margin: 0 auto; padding: 52px 28px 80px; }
 
         /* Hero */
-        .hero-section { text-align: center; margin-bottom: 64px; }
+        .hero-section { text-align: center; margin-bottom: 48px; }
         .hero-tag {
           display: inline-flex; align-items: center; gap: 6px;
           background: ${dark ? 'rgba(162,155,254,0.12)' : 'rgba(162,155,254,0.1)'};
@@ -150,7 +146,7 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
         .progress-dot.done { background: #A29BFE; }
 
         /* Filter tabs */
-        .filter-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 48px; animation: slide-up 0.5s 0.35s ease both; }
+        .filter-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 36px; animation: slide-up 0.5s 0.35s ease both; }
         .filter-btn {
           display: flex; align-items: center; gap: 6px;
           border-radius: 100px; padding: 10px 22px;
@@ -165,6 +161,7 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
         .filter-btn:hover::before { background: rgba(255,255,255,0.08); }
         .filter-btn:hover { transform: translateY(-3px) scale(1.05); }
         .filter-btn:active { transform: scale(0.96); }
+        .filter-btn { -webkit-tap-highlight-color: transparent; }
 
         /* Section headers */
         .section-head { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; animation: slide-up 0.5s ease both; }
@@ -183,8 +180,12 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
         .cs-card:hover { opacity: 0.85; transform: scale(1.03); border-style: solid; }
 
         @media (max-width: 600px) {
-          .home-content { padding: 32px 16px 60px; }
-          .hero-title { font-size: 40px; }
+          .home-content { padding: 24px 16px 60px; }
+          .hero-section { margin-bottom: 36px; }
+          .hero-title { font-size: 34px; }
+          .hero-sub { font-size: 14px; margin-bottom: 20px; }
+          .filter-row { margin-bottom: 32px; }
+          .filter-btn { padding: 8px 16px; font-size: 13px; }
         }
       `}</style>
 
@@ -338,7 +339,7 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
                 </span>
                 <div className="section-line" />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(290px,1fr))', gap: 22 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 18 }}>
                 {filteredAvailable.map((game, i) => (
                   <div key={game.id} style={{ animation: `slide-up 0.4s ${i * 0.07}s ease both` }}>
                     <GameCard game={game} onPlay={onPlay} />

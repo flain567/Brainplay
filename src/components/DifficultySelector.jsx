@@ -54,6 +54,7 @@ export default function DifficultySelector({ game, onSelect, onBack }) {
           font-family: 'Nunito',sans-serif;
         }
         .diff-back-btn:hover { border-color: ${game.color}; color: ${game.color}; transform: translateX(-3px); }
+        .diff-back-btn { -webkit-tap-highlight-color: transparent; }
 
         .diff-game-info { text-align: center; margin-bottom: 40px; }
         .diff-emoji-wrap {
@@ -85,6 +86,7 @@ export default function DifficultySelector({ game, onSelect, onBack }) {
         }
         .diff-option:hover   { transform: translateX(8px) scale(1.01); }
         .diff-option:active  { transform: translateX(4px) scale(0.99); }
+        .diff-option { -webkit-tap-highlight-color: transparent; }
 
         .diff-icon-wrap {
           width: 52px; height: 52px; border-radius: 16px;

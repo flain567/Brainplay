@@ -42,46 +42,46 @@ export function getLevelInfo(xp) {
 // ─── Achievement Definitions ─────────────────────────────────────────────────
 export const ACHIEVEMENTS = [
   // Milestone - games played
-  { id: 'first_game',     icon: '🎮', title: 'Langkah Pertama',   desc: 'Selesaikan 1 game',           category: 'milestone', check: (s) => s.totalGamesPlayed >= 1 },
-  { id: 'gamer_5',        icon: '🕹️', title: 'Gamer Sejati',      desc: 'Selesaikan 5 game',           category: 'milestone', check: (s) => s.totalGamesPlayed >= 5 },
-  { id: 'gamer_25',       icon: '🏅', title: 'Tidak Bisa Berhenti',desc: 'Selesaikan 25 game',          category: 'milestone', check: (s) => s.totalGamesPlayed >= 25 },
-  { id: 'gamer_100',      icon: '👑', title: 'Centurion',          desc: 'Selesaikan 100 game',          category: 'milestone', check: (s) => s.totalGamesPlayed >= 100 },
+  { id: 'first_game',     icon: '🎮', title: 'Langkah Pertama',   desc: 'Selesaikan 1 game',           category: 'milestone', check: (s) => s.totalGamesPlayed >= 1, progress: (s) => ({ cur: s.totalGamesPlayed || 0, max: 1 }) },
+  { id: 'gamer_5',        icon: '🕹️', title: 'Gamer Sejati',      desc: 'Selesaikan 5 game',           category: 'milestone', check: (s) => s.totalGamesPlayed >= 5, progress: (s) => ({ cur: Math.min(s.totalGamesPlayed || 0, 5), max: 5 }) },
+  { id: 'gamer_25',       icon: '🏅', title: 'Tidak Bisa Berhenti',desc: 'Selesaikan 25 game',          category: 'milestone', check: (s) => s.totalGamesPlayed >= 25, progress: (s) => ({ cur: Math.min(s.totalGamesPlayed || 0, 25), max: 25 }) },
+  { id: 'gamer_100',      icon: '👑', title: 'Centurion',          desc: 'Selesaikan 100 game',          category: 'milestone', check: (s) => s.totalGamesPlayed >= 100, progress: (s) => ({ cur: Math.min(s.totalGamesPlayed || 0, 100), max: 100 }) },
 
   // Variety - different games
-  { id: 'explorer_2',     icon: '🧭', title: 'Penjelajah',         desc: 'Mainkan 2 game berbeda',       category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 2 },
-  { id: 'explorer_4',     icon: '🌍', title: 'Petualang Dunia',    desc: 'Mainkan semua 8 game',         category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 8 },
+  { id: 'explorer_2',     icon: '🧭', title: 'Penjelajah',         desc: 'Mainkan 2 game berbeda',       category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 2, progress: (s) => ({ cur: Math.min(s.uniqueGamesPlayed || 0, 2), max: 2 }) },
+  { id: 'explorer_4',     icon: '🌍', title: 'Petualang Dunia',    desc: 'Mainkan semua 8 game',         category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 8, progress: (s) => ({ cur: Math.min(s.uniqueGamesPlayed || 0, 8), max: 8 }) },
 
   // Difficulty - hard mode
-  { id: 'brave',          icon: '🦁', title: 'Pemberani',          desc: 'Selesaikan 1 game di mode Sulit', category: 'skill',  check: (s) => s.hardGamesWon >= 1 },
-  { id: 'fearless',       icon: '⚔️', title: 'Tanpa Takut',        desc: 'Selesaikan 10 game di mode Sulit',category: 'skill',  check: (s) => s.hardGamesWon >= 10 },
+  { id: 'brave',          icon: '🦁', title: 'Pemberani',          desc: 'Selesaikan 1 game di mode Sulit', category: 'skill',  check: (s) => s.hardGamesWon >= 1, progress: (s) => ({ cur: Math.min(s.hardGamesWon || 0, 1), max: 1 }) },
+  { id: 'fearless',       icon: '⚔️', title: 'Tanpa Takut',        desc: 'Selesaikan 10 game di mode Sulit',category: 'skill',  check: (s) => s.hardGamesWon >= 10, progress: (s) => ({ cur: Math.min(s.hardGamesWon || 0, 10), max: 10 }) },
 
   // Streak
-  { id: 'streak_3',       icon: '🔥', title: 'Tiga Hari Berturut', desc: 'Main 3 hari berturut-turut',   category: 'streak',  check: (s) => s.currentStreak >= 3 },
-  { id: 'streak_7',       icon: '💥', title: 'Seminggu Penuh',     desc: 'Main 7 hari berturut-turut',   category: 'streak',  check: (s) => s.currentStreak >= 7 },
-  { id: 'streak_14',      icon: '🌟', title: 'Dua Minggu Nonstop', desc: 'Main 14 hari berturut-turut',  category: 'streak',  check: (s) => s.currentStreak >= 14 },
-  { id: 'streak_30',      icon: '🏆', title: 'Legenda 30 Hari',   desc: 'Main 30 hari berturut-turut',  category: 'streak',  check: (s) => s.currentStreak >= 30 },
+  { id: 'streak_3',       icon: '🔥', title: 'Tiga Hari Berturut', desc: 'Main 3 hari berturut-turut',   category: 'streak',  check: (s) => s.currentStreak >= 3, progress: (s) => ({ cur: Math.min(s.currentStreak || 0, 3), max: 3 }) },
+  { id: 'streak_7',       icon: '💥', title: 'Seminggu Penuh',     desc: 'Main 7 hari berturut-turut',   category: 'streak',  check: (s) => s.currentStreak >= 7, progress: (s) => ({ cur: Math.min(s.currentStreak || 0, 7), max: 7 }) },
+  { id: 'streak_14',      icon: '🌟', title: 'Dua Minggu Nonstop', desc: 'Main 14 hari berturut-turut',  category: 'streak',  check: (s) => s.currentStreak >= 14, progress: (s) => ({ cur: Math.min(s.currentStreak || 0, 14), max: 14 }) },
+  { id: 'streak_30',      icon: '🏆', title: 'Legenda 30 Hari',   desc: 'Main 30 hari berturut-turut',  category: 'streak',  check: (s) => s.currentStreak >= 30, progress: (s) => ({ cur: Math.min(s.currentStreak || 0, 30), max: 30 }) },
 
   // Score
-  { id: 'score_1k',       icon: '💰', title: 'Seribu Pertama',     desc: 'Kumpulkan total 1.000 XP',     category: 'score',   check: (s) => s.totalXP >= 1000 },
-  { id: 'score_5k',       icon: '💎', title: 'Kolektor XP',        desc: 'Kumpulkan total 5.000 XP',     category: 'score',   check: (s) => s.totalXP >= 5000 },
-  { id: 'score_20k',      icon: '🌈', title: 'XP Miliader',        desc: 'Kumpulkan total 20.000 XP',    category: 'score',   check: (s) => s.totalXP >= 20000 },
+  { id: 'score_1k',       icon: '💰', title: 'Seribu Pertama',     desc: 'Kumpulkan total 1.000 XP',     category: 'score',   check: (s) => s.totalXP >= 1000, progress: (s) => ({ cur: Math.min(s.totalXP || 0, 1000), max: 1000 }) },
+  { id: 'score_5k',       icon: '💎', title: 'Kolektor XP',        desc: 'Kumpulkan total 5.000 XP',     category: 'score',   check: (s) => s.totalXP >= 5000, progress: (s) => ({ cur: Math.min(s.totalXP || 0, 5000), max: 5000 }) },
+  { id: 'score_20k',      icon: '🌈', title: 'XP Miliader',        desc: 'Kumpulkan total 20.000 XP',    category: 'score',   check: (s) => s.totalXP >= 20000, progress: (s) => ({ cur: Math.min(s.totalXP || 0, 20000), max: 20000 }) },
 
   // Perfect
-  { id: 'perfect_star',   icon: '⭐', title: 'Bintang Sempurna',   desc: 'Dapatkan 3 bintang di game apapun', category: 'perfect', check: (s) => s.threeStarCount >= 1 },
-  { id: 'star_collector',  icon: '🌟', title: 'Kolektor Bintang',  desc: 'Dapatkan 3 bintang 10 kali',   category: 'perfect', check: (s) => s.threeStarCount >= 10 },
+  { id: 'perfect_star',   icon: '⭐', title: 'Bintang Sempurna',   desc: 'Dapatkan 3 bintang di game apapun', category: 'perfect', check: (s) => s.threeStarCount >= 1, progress: (s) => ({ cur: Math.min(s.threeStarCount || 0, 1), max: 1 }) },
+  { id: 'star_collector',  icon: '🌟', title: 'Kolektor Bintang',  desc: 'Dapatkan 3 bintang 10 kali',   category: 'perfect', check: (s) => s.threeStarCount >= 10, progress: (s) => ({ cur: Math.min(s.threeStarCount || 0, 10), max: 10 }) },
 
   // Speed
-  { id: 'speedster',      icon: '⚡', title: 'Secepat Kilat',      desc: 'Selesaikan game dalam < 30 detik', category: 'speed', check: (s) => s.fastestGame <= 30 && s.fastestGame > 0 },
+  { id: 'speedster',      icon: '⚡', title: 'Secepat Kilat',      desc: 'Selesaikan game dalam < 30 detik', category: 'speed', check: (s) => s.fastestGame <= 30 && s.fastestGame > 0, progress: (s) => ({ cur: s.fastestGame > 0 ? 1 : 0, max: 1 }) },
 
   // Per-game specific
-  { id: 'memory_master',  icon: '🧠', title: 'Memori Sempurna',    desc: 'Menangkan Memory Card Match 3x', category: 'game',  check: (s) => (s.gameWins['memory-card'] || 0) >= 3 },
-  { id: 'snake_king',     icon: '🐍', title: 'Raja Ular',          desc: 'Capai skor 50+ di Slither Worm',  category: 'game',  check: (s) => (s.gameBests['slither-worm'] || 0) >= 50 },
-  { id: 'block_master',   icon: '🔗', title: 'Master Blok',        desc: 'Capai 1024+ di Connect Blocks',   category: 'game',  check: (s) => (s.gameBests['2048'] || 0) >= 1024 },
-  { id: 'word_hunter',    icon: '🔍', title: 'Pemburu Kata',       desc: 'Selesaikan Word Search 5 kali',   category: 'game',  check: (s) => (s.gameWins['word-search'] || 0) >= 5 },
-  { id: 'space_ace',      icon: '🚀', title: 'Ace Pilot',          desc: 'Menangkan Space Shooter 3x',      category: 'game',  check: (s) => (s.gameWins['space-shooter'] || 0) >= 3 },
-  { id: 'hangman_hero',   icon: '💀', title: 'Penyelamat Kata',    desc: 'Menangkan Hangman 5 kali',        category: 'game',  check: (s) => (s.gameWins['hangman'] || 0) >= 5 },
-  { id: 'sort_master',    icon: '🧪', title: 'Master Sortir',      desc: 'Menangkan Color Sort 5 kali',     category: 'game',  check: (s) => (s.gameWins['color-sort'] || 0) >= 5 },
-  { id: 'sudoku_sage',    icon: '🔢', title: 'Ahli Sudoku',        desc: 'Menangkan Sudoku 3 kali',         category: 'game',  check: (s) => (s.gameWins['sudoku'] || 0) >= 3 },
+  { id: 'memory_master',  icon: '🧠', title: 'Memori Sempurna',    desc: 'Menangkan Memory Card Match 3x', category: 'game',  check: (s) => (s.gameWins['memory-card'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['memory-card'] || 0, 3), max: 3 }) },
+  { id: 'snake_king',     icon: '🐍', title: 'Raja Ular',          desc: 'Capai skor 50+ di Slither Worm',  category: 'game',  check: (s) => (s.gameBests['slither-worm'] || 0) >= 50, progress: (s) => ({ cur: Math.min(s.gameBests?.['slither-worm'] || 0, 50), max: 50 }) },
+  { id: 'block_master',   icon: '🔗', title: 'Master Blok',        desc: 'Capai 1024+ di Connect Blocks',   category: 'game',  check: (s) => (s.gameBests['2048'] || 0) >= 1024, progress: (s) => ({ cur: Math.min(s.gameBests?.['2048'] || 0, 1024), max: 1024 }) },
+  { id: 'word_hunter',    icon: '🔍', title: 'Pemburu Kata',       desc: 'Selesaikan Word Search 5 kali',   category: 'game',  check: (s) => (s.gameWins['word-search'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['word-search'] || 0, 5), max: 5 }) },
+  { id: 'space_ace',      icon: '🚀', title: 'Ace Pilot',          desc: 'Menangkan Space Shooter 3x',      category: 'game',  check: (s) => (s.gameWins['space-shooter'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['space-shooter'] || 0, 3), max: 3 }) },
+  { id: 'hangman_hero',   icon: '💀', title: 'Penyelamat Kata',    desc: 'Menangkan Hangman 5 kali',        category: 'game',  check: (s) => (s.gameWins['hangman'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['hangman'] || 0, 5), max: 5 }) },
+  { id: 'sort_master',    icon: '🧪', title: 'Master Sortir',      desc: 'Menangkan Color Sort 5 kali',     category: 'game',  check: (s) => (s.gameWins['color-sort'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['color-sort'] || 0, 5), max: 5 }) },
+  { id: 'sudoku_sage',    icon: '🔢', title: 'Ahli Sudoku',        desc: 'Menangkan Sudoku 3 kali',         category: 'game',  check: (s) => (s.gameWins['sudoku'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['sudoku'] || 0, 3), max: 3 }) },
 ]
 
 // ─── Default state ───────────────────────────────────────────────────────────
