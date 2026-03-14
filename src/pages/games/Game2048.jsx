@@ -11,6 +11,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useSettings } from '../../context/SettingsContext.jsx'
+import { useCoins } from '../../context/CoinContext.jsx'
 
 const TILE_VALUES = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
 const TILE_COLOR = {
@@ -65,6 +66,7 @@ export default function Game2048({ onBack, game, difficulty }) {
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { darkMode } = useSettings()
+  const { earnCoins } = useCoins()
   const dark = darkMode
 
   const [level,   setLevel]   = useState(1)
@@ -198,6 +200,8 @@ export default function Game2048({ onBack, game, difficulty }) {
         stars: nLevel >= 5 ? 3 : nLevel >= 3 ? 2 : 1,
         timeSec: 0,
       })
+      // Coin reward for level up
+      earnCoins(30, `Level Up! (Lv.${nLevel})`)
     }
     setChain([])
   }, [dragging, best, CN, RN, play])

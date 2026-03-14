@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useSound } from '../../hooks/useSound.js'
 import { useSettings } from '../../context/SettingsContext.jsx'
 import { useProgress } from '../../context/ProgressContext.jsx'
+import { useCoins } from '../../context/CoinContext.jsx'
 import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
 
@@ -209,6 +210,7 @@ export default function WordSearchGame({ onBack, game, difficulty }) {
   const { play } = useSound()
   const { darkMode } = useSettings()
   const { reportGameResult } = useProgress()
+  const { earnCoins } = useCoins()
   const dark = darkMode
 
   // ── State ──
@@ -356,6 +358,12 @@ export default function WordSearchGame({ onBack, game, difficulty }) {
           stars,
           timeSec: timer,
         })
+
+        // Coin reward
+        const coinReward = { easy: 15, medium: 25, hard: 40 }
+        let coinAmount = coinReward[difficulty.id] || 15
+        if (stars === 3) coinAmount += 20
+        earnCoins(coinAmount, `Menang Word Search (${difficulty.id})`)
 
         // Local stats
         setStats(st => {

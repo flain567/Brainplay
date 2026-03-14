@@ -3,6 +3,7 @@ import GameCard from '../components/GameCard.jsx'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useProgress, getLevelInfo } from '../context/ProgressContext.jsx'
+import { useCoins } from '../context/CoinContext.jsx'
 
 const COMING_SOON = [
   { day: 5,  emoji: '🪓', title: 'Hangman',          tag: 'Kata',     color: '#FD79A8' },
@@ -46,10 +47,11 @@ const BLOBS = [
   { color: '#FD79A8', size: 200, top: '35%',  left: '40%',  dur: '10s', delay: '0.5s' },
 ]
 
-export default function Home({ games, onPlay, onProfile }) {
+export default function Home({ games, onPlay, onProfile, onShop }) {
   const { darkMode } = useSettings()
   const { play }     = useSound()
   const { progress } = useProgress()
+  const { coins, isDailyClaimable, claimDaily } = useCoins()
   const [activeTag, setActiveTag] = useState('Semua')
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
@@ -251,6 +253,52 @@ export default function Home({ games, onPlay, onProfile }) {
                 <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#FF6B6B' }}>{streak}</span>
               </div>
               <span style={{ fontSize:16, color:textMuted }}>→</span>
+            </div>
+          </div>
+
+          {/* ── Shop & Daily Reward Row ── */}
+          <div style={{ maxWidth:480, margin:'0 auto 20px', display:'flex', gap:10, animation:'slide-up 0.5s 0.3s ease both' }}>
+            {/* Daily Reward */}
+            {isDailyClaimable && (
+              <div
+                onClick={() => { play('levelUp'); claimDaily() }}
+                style={{
+                  flex:1, display:'flex', alignItems:'center', gap:10, cursor:'pointer',
+                  background: dark?'rgba(253,203,110,0.08)':'rgba(253,203,110,0.1)',
+                  border:`1.5px solid ${dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.3)'}`,
+                  borderRadius:16, padding:'12px 16px', transition:'all 0.2s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.borderColor='#FDCB6E' }}
+                onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.borderColor=dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.3)' }}
+              >
+                <span style={{ fontSize:24 }}>🎁</span>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#F9A825' }}>Hadiah Harian</div>
+                  <div style={{ fontSize:11, color:textMuted }}>Klik untuk klaim!</div>
+                </div>
+              </div>
+            )}
+            {/* Shop button */}
+            <div
+              onClick={() => { play('click'); onShop && onShop() }}
+              style={{
+                flex:1, display:'flex', alignItems:'center', gap:10, cursor:'pointer',
+                background: dark?'rgba(162,155,254,0.08)':'rgba(162,155,254,0.06)',
+                border:`1.5px solid ${dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.2)'}`,
+                borderRadius:16, padding:'12px 16px', transition:'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.borderColor='#A29BFE' }}
+              onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.borderColor=dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.2)' }}
+            >
+              <span style={{ fontSize:24 }}>🏪</span>
+              <div style={{ flex:1 }}>
+                <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#A29BFE' }}>Shop</div>
+                <div style={{ fontSize:11, color:textMuted }}>Card packs & lainnya</div>
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:3, background:'#FDCB6E22', borderRadius:100, padding:'3px 10px' }}>
+                <span style={{ fontSize:12 }}>🪙</span>
+                <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:12, color:'#F9A825' }}>{coins}</span>
+              </div>
             </div>
           </div>
 

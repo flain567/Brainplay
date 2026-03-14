@@ -11,9 +11,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSettings } from '../../context/SettingsContext.jsx'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
+import { useCoins } from '../../context/CoinContext.jsx'
 
-// Pool emoji — ambil sejumlah pairs yang dibutuhkan
-const EMOJI_POOL = ['🐶','🐱','🦊','🐻','🦁','🐯','🐸','🐧','🦄','🐼','🦋','🐙']
+// Pool emoji — diganti dari active icon pack
+const DEFAULT_POOL = ['🐶','🐱','🦊','🐻','🦁','🐯','🐸','🐧','🦄','🐼','🦋','🐙']
 
 function shuffle(arr) {
   const a = [...arr]
@@ -24,10 +25,10 @@ function shuffle(arr) {
   return a
 }
 
-function createDeck(pairs) {
-  const emojis = EMOJI_POOL.slice(0, pairs)
+function createDeck(pairs, pool) {
+  const icons = (pool || DEFAULT_POOL).slice(0, pairs)
   return shuffle(
-    [...emojis, ...emojis].map((emoji, idx) => ({
+    [...icons, ...icons].map((emoji, idx) => ({
       id: idx, emoji, flipped: false, matched: false,
     }))
   )
@@ -53,10 +54,12 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { reportGameResult } = useProgress()
+  const { getActiveIcons, earnCoins } = useCoins()
 
   const { pairs, cols } = difficulty
+  const iconPool = getActiveIcons()
 
-  const [deck, setDeck]         = useState(() => createDeck(pairs))
+  const [deck, setDeck]         = useState(() => createDeck(pairs, iconPool))
   const [selected, setSelected] = useState([])
   const [moves, setMoves]       = useState(0)
   const [locked, setLocked]     = useState(false)
@@ -89,6 +92,11 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
         stars,
         timeSec: time,
       })
+      // Coin reward
+      const coinReward = { easy: 15, medium: 25, hard: 40 }
+      let coinAmount = coinReward[difficulty.id] || 15
+      if (stars === 3) coinAmount += 20
+      earnCoins(coinAmount, `Menang Memory Card (${difficulty.id})`)
     }
   }, [deck])
 
@@ -157,7 +165,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
   }
   const restart = () => {
     play('click')
-    setDeck(createDeck(pairs))
+    setDeck(createDeck(pairs, iconPool))
     setSelected([])
     setMoves(0)
     setLocked(false)

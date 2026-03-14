@@ -10,6 +10,7 @@ const TUTORIAL_STEPS_SW = [
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
+import { useCoins } from '../../context/CoinContext.jsx'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SEG_R       = 11
@@ -183,6 +184,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
   const animRef    = useRef(null)
   const { play }   = useSound()
   const { reportGameResult } = useProgress()
+  const { earnCoins } = useCoins()
 
   const cfg = CFG[difficulty.id]
 
@@ -518,6 +520,9 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
         stars,
         timeSec: 0,
       })
+      // Coin reward based on score
+      const coinAmount = Math.max(5, Math.min(Math.floor(score / 5), 30))
+      earnCoins(coinAmount, `Slither Worm — skor ${score}`)
     }
   }, [phase])
 

@@ -1,10 +1,12 @@
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
+import { useCoins } from '../context/CoinContext.jsx'
 import { useEffect, useState } from 'react'
 
-export default function Navbar({ onHome, onProfile, currentGame, difficulty }) {
+export default function Navbar({ onHome, onProfile, onShop, currentGame, difficulty }) {
   const { darkMode, muted, musicOff, toggle } = useSettings()
   const { play, setMuted } = useSound()
+  const { coins } = useCoins()
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => { setMuted(muted) }, [muted, setMuted])
@@ -125,6 +127,16 @@ export default function Navbar({ onHome, onProfile, currentGame, difficulty }) {
 
           {/* Actions */}
           <div className="nav-actions">
+            {/* Coin balance */}
+            <button
+              className="nav-btn"
+              title="Shop"
+              onClick={() => { play('click'); onShop && onShop() }}
+              style={{ display:'flex', alignItems:'center', gap:4, width:'auto', minWidth:60, padding:'0 10px', borderRadius:100, background: dark ? 'rgba(253,203,110,0.08)' : 'rgba(253,203,110,0.12)', border: `1.5px solid ${dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.35)'}` }}
+            >
+              <span style={{ fontSize:14 }}>🪙</span>
+              <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#F9A825' }}>{coins}</span>
+            </button>
             <button
               className="nav-btn"
               title="Profil & Achievement"

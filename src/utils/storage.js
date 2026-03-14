@@ -10,6 +10,10 @@ export const StorageKeys = {
   ACHIEVEMENTS:`${PREFIX}achievements`,
   XP:          `${PREFIX}xp`,
   DAILY:       `${PREFIX}daily`,
+  // Coin & Shop
+  COINS:       `${PREFIX}coins`,
+  SHOP:        `${PREFIX}shop`,       // { ownedPacks: [...], activePack: 'default' }
+  DAILY_CLAIM: `${PREFIX}daily_claim`, // last claim date
   // Per-game stats: bp_stats_{gameId}_{diffId}
   gameStats: (gameId, diffId) => `${PREFIX}stats_${gameId}_${diffId}`,
   // Per-game best score
