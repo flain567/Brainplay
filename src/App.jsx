@@ -8,6 +8,7 @@ import MemoryCardMatch from './pages/games/MemoryCardMatch.jsx'
 import SlitherWorm from './pages/games/SlitherWorm.jsx'
 import Game2048 from './pages/games/Game2048.jsx'
 import WordleGame from './pages/games/WordleGame.jsx'
+import WordSearch from './pages/games/WordSearch.jsx'
 
 export const GAMES = [
   {
@@ -47,6 +48,19 @@ export const GAMES = [
       { id:'easy',   description:'Grid 5×6, target 512 — santai untuk pemula',          stats:['5×6 grid','Target 512']  },
       { id:'medium', description:'Grid 5×7, target 1024 — lebih banyak baris, lebih seru', stats:['5×7 grid','Target 1024'] },
       { id:'hard',   description:'Grid 5×8, target 2048 — tantangan penuh untuk master!',  stats:['5×8 grid','Target 2048'] },
+    ],
+  },
+  {
+    id: 'wordle',
+    title: 'Wordle',
+    emoji: '💬',
+    description: 'Tebak kata rahasia dalam 6 percobaan. Petunjuk warna memandumu ke jawaban!',
+    color: '#538D4E', bg: '#F0FFF0', tag: 'Kata',
+    component: WordleGame, day: 4,
+    difficulties: [
+      { id:'easy',   description:'Kata 4 huruf — cocok untuk pemanasan!',        stats:['4 huruf','6 percobaan'] },
+      { id:'medium', description:'Kata 5 huruf — mode klasik Wordle yang seru!', stats:['5 huruf','6 percobaan'] },
+      { id:'hard',   description:'Kata 6 huruf — uji kemampuan bahasamu!',       stats:['6 huruf','6 percobaan'] },
     ],
   },
 ]

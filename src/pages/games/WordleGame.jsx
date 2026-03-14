@@ -4,50 +4,147 @@ import { useSettings } from '../../context/SettingsContext.jsx'
 import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
 
-// ─── Word Banks ───────────────────────────────────────────────────────────────
-const WORDS_4 = [
-  'BUKU','MEJA','KURSI','PENA','TOPI','BAJU','KAKI','MATA','GIGI','LIDAH',
-  'BOLA','KUDA','SAPI','AYAM','IKAN','KAYU','BATU','EMAS','PERAK','TAMAN',
-  'BUNGA','DAUN','AKAR','BIJI','BUAH','NASI','ROTI','GULA','GARAM','MADU',
-  'SUSU','TAHU','TEMPE','DAGING','SAYUR','PASAR','TOKO','JALAN','RUMAH','PINTU',
-  'JENDELA','ATAP','LANTAI','DINDING','TANGGA','LAMPU','KIPAS','MANDI','SABUN','SISIR',
-  'BUKU','PENSIL','KERTAS','RAUTAN','PENGHAPUS','PAPAN','KAPUR','GURU','MURID','KELAS',
-  'MOBIL','MOTOR','KAPAL','PERAHU','KERETA','PESAWAT','SEPEDA','BECAK','BUS','TAXI',
-  'HUJAN','ANGIN','PANAS','DINGIN','MENDUNG','CERAH','PETIR','BADAI','KABUT','EMBUN',
-  'SATU','DUA','TIGA','EMPAT','LIMA','ENAM','TUJUH','DELAPAN','SEMBILAN','SEPULUH',
-  'MERAH','BIRU','HIJAU','KUNING','PUTIH','HITAM','COKLAT','UNGU','ORANYE','ABU',
+// ─── Word Banks dengan Kategori ──────────────────────────────────────────────
+const WORD_LIST_4 = [
+  { word:'BUKU',  kategori:'📚 Benda' },
+  { word:'MEJA',  kategori:'📚 Benda' },
+  { word:'TOPI',  kategori:'👕 Pakaian' },
+  { word:'BAJU',  kategori:'👕 Pakaian' },
+  { word:'KAKI',  kategori:'🧍 Tubuh' },
+  { word:'MATA',  kategori:'🧍 Tubuh' },
+  { word:'GIGI',  kategori:'🧍 Tubuh' },
+  { word:'BOLA',  kategori:'⚽ Olahraga' },
+  { word:'KUDA',  kategori:'🐾 Hewan' },
+  { word:'SAPI',  kategori:'🐾 Hewan' },
+  { word:'AYAM',  kategori:'🐾 Hewan' },
+  { word:'IKAN',  kategori:'🐾 Hewan' },
+  { word:'NASI',  kategori:'🍚 Makanan' },
+  { word:'ROTI',  kategori:'🍚 Makanan' },
+  { word:'GULA',  kategori:'🍚 Makanan' },
+  { word:'MADU',  kategori:'🍚 Makanan' },
+  { word:'SUSU',  kategori:'🥛 Minuman' },
+  { word:'TAHU',  kategori:'🍚 Makanan' },
+  { word:'BUAH',  kategori:'🍎 Buah' },
+  { word:'DAUN',  kategori:'🌿 Alam' },
+  { word:'BATU',  kategori:'🌿 Alam' },
+  { word:'EMAS',  kategori:'💎 Mineral' },
+  { word:'JALAN', kategori:'🏙 Tempat' },
+  { word:'RUMAH', kategori:'🏙 Tempat' },
+  { word:'PINTU', kategori:'🏠 Rumah' },
+  { word:'ATAP',  kategori:'🏠 Rumah' },
+  { word:'LAMPU', kategori:'🏠 Rumah' },
+  { word:'SABUN', kategori:'🚿 Kebersihan' },
+  { word:'GURU',  kategori:'🏫 Sekolah' },
+  { word:'KELAS', kategori:'🏫 Sekolah' },
+  { word:'MOBIL', kategori:'🚗 Kendaraan' },
+  { word:'KAPAL', kategori:'🚗 Kendaraan' },
+  { word:'HUJAN', kategori:'🌦 Cuaca' },
+  { word:'ANGIN', kategori:'🌦 Cuaca' },
+  { word:'PETIR', kategori:'🌦 Cuaca' },
+  { word:'MERAH', kategori:'🎨 Warna' },
+  { word:'HIJAU', kategori:'🎨 Warna' },
+  { word:'HITAM', kategori:'🎨 Warna' },
+  { word:'UNGU',  kategori:'🎨 Warna' },
+  { word:'PENA',  kategori:'📚 Benda' },
 ]
 
-const WORDS_5 = [
-  'MAKAN','MINUM','TIDUR','BANGUN','JALAN','LARI','RENANG','LONCAT','DUDUK','BERDIRI',
-  'RUMAH','MOBIL','SEPEDA','SEKOLAH','KANTOR','PASAR','MASJID','GEREJA','RUMAH SAKIT','BANDARA',
-  'BUNGA','POHON','SUNGAI','GUNUNG','PANTAI','HUTAN','SAWAH','KEBUN','KOLAM','DANAU',
-  'KUCING','ANJING','KELINCI','KURA','BURUNG','ULAR','KATAK','KELELAWAR','HARIMAU','SINGA',
-  'APEL','MANGA','PISANG','JERUK','ANGGUR','SEMANGKA','MELON','PEPAYA','JAMBU','DURIAN',
-  'PUTIH','HITAM','MERAH','KUNING','HIJAU','BIRU','UNGU','COKLAT','ORANYE','MERAH MUDA',
-  'BESAR','KECIL','TINGGI','PENDEK','PANJANG','LEBAR','TEBAL','TIPIS','BERAT','RINGAN',
-  'SENANG','SEDIH','MARAH','TAKUT','CINTA','BENCI','MALU','BANGGA','BOSAN','KHAWATIR',
-  'PINTAR','BODOH','CANTIK','TAMPAN','BAIK','JAHAT','JUJUR','BOHONG','BERANI','PENGECUT',
-  'MALAM','SIANG','PAGI','SORE','SUBUH','TENGAH','DINI','FAJAR','SENJA','WAKTU',
-  'KERJA','BELAJAR','BERMAIN','BERLARI','BERNYANYI','MENARI','MELUKIS','MENULIS','MEMBACA','MEMASAK',
-  'HUJAN','ANGIN','PANAS','PETIR','MENDUNG','CERAH','BADAI','KABUT','EMBUN','SALJU',
-  'SEGAR','LEZAT','PAHIT','MANIS','ASIN','ASAM','PEDAS','GURIH','HAMBAR','BUSUK',
-  'CEPAT','LAMBAT','KERAS','LEMBUT','KASAR','HALUS','BASAH','KERING','PANAS','DINGIN',
-  'BENAR','SALAH','BETUL','KELIRU','TEPAT','MELESET','BAGUS','JELEK','INDAH','BURUK',
+const WORD_LIST_5 = [
+  { word:'MAKAN',   kategori:'🍚 Aktivitas' },
+  { word:'MINUM',   kategori:'🍚 Aktivitas' },
+  { word:'TIDUR',   kategori:'😴 Aktivitas' },
+  { word:'LARI',    kategori:'⚽ Olahraga' },
+  { word:'RENANG',  kategori:'⚽ Olahraga' },
+  { word:'POHON',   kategori:'🌿 Alam' },
+  { word:'SUNGAI',  kategori:'🌿 Alam' },
+  { word:'GUNUNG',  kategori:'🌿 Alam' },
+  { word:'PANTAI',  kategori:'🌿 Alam' },
+  { word:'HUTAN',   kategori:'🌿 Alam' },
+  { word:'SAWAH',   kategori:'🌿 Alam' },
+  { word:'KUCING',  kategori:'🐾 Hewan' },
+  { word:'ANJING',  kategori:'🐾 Hewan' },
+  { word:'BURUNG',  kategori:'🐾 Hewan' },
+  { word:'ULAR',    kategori:'🐾 Hewan' },
+  { word:'HARIMAU', kategori:'🐾 Hewan' },
+  { word:'PISANG',  kategori:'🍎 Buah' },
+  { word:'JERUK',   kategori:'🍎 Buah' },
+  { word:'PEPAYA',  kategori:'🍎 Buah' },
+  { word:'JAMBU',   kategori:'🍎 Buah' },
+  { word:'DURIAN',  kategori:'🍎 Buah' },
+  { word:'SENANG',  kategori:'💭 Perasaan' },
+  { word:'MARAH',   kategori:'💭 Perasaan' },
+  { word:'TAKUT',   kategori:'💭 Perasaan' },
+  { word:'CINTA',   kategori:'💭 Perasaan' },
+  { word:'BANGGA',  kategori:'💭 Perasaan' },
+  { word:'PINTAR',  kategori:'🧠 Sifat' },
+  { word:'CANTIK',  kategori:'🧠 Sifat' },
+  { word:'BERANI',  kategori:'🧠 Sifat' },
+  { word:'JUJUR',   kategori:'🧠 Sifat' },
+  { word:'MALAM',   kategori:'🕐 Waktu' },
+  { word:'SIANG',   kategori:'🕐 Waktu' },
+  { word:'SUBUH',   kategori:'🕐 Waktu' },
+  { word:'SENJA',   kategori:'🕐 Waktu' },
+  { word:'MANIS',   kategori:'👅 Rasa' },
+  { word:'PEDAS',   kategori:'👅 Rasa' },
+  { word:'ASIN',    kategori:'👅 Rasa' },
+  { word:'GURIH',   kategori:'👅 Rasa' },
+  { word:'CEPAT',   kategori:'🏃 Sifat' },
+  { word:'KERAS',   kategori:'🏃 Sifat' },
 ]
 
-const WORDS_6 = [
-  'MATAHARI','BULAN','BINTANG','LANGIT','AWAN','PELANGI','CAHAYA','BAYANGAN','GELAP','TERANG',
-  'SEKOLAH','KAMPUS','PERPUSTAKAAN','LABORATORIUM','KANTIN','HALAMAN','KORIDOR','RUANGAN','GEDUNG','MENARA',
-  'KELUARGA','AYAH','IBU','KAKAK','ADIK','NENEK','KAKEK','PAMAN','BIBI','SEPUPU',
-  'MAKANAN','MINUMAN','SARAPAN','MAKAN SIANG','MAKAN MALAM','KUDAPAN','CAMILAN','CEMILAN','JAJANAN','HIDANGAN',
-  'PELAJARAN','MATEMATIKA','BAHASA','SEJARAH','BIOLOGI','KIMIA','FISIKA','OLAHRAGA','SENI','MUSIK',
-  'PEKERJAAN','DOKTER','PERAWAT','GURU','POLISI','TENTARA','PETANI','NELAYAN','PEDAGANG','PEGAWAI',
-  'PERJALANAN','LIBURAN','WISATA','PETUALANGAN','EKSPEDISI','PENJELAHAN','PERJALANAN','TOURING','PIKNIK','KEMAH',
-  'PERSAHABATAN','KERJASAMA','KEBERSAMAAN','KEPERCAYAAN','KEJUJURAN','KESETIAAN','KEBERANIAN','KESABARAN','KEIKHLASAN','KETULUSAN',
-  'INDONESIA','JAKARTA','SURABAYA','BANDUNG','MEDAN','SEMARANG','MAKASSAR','PALEMBANG','YOGYAKARTA','BALI',
-  'TEKNOLOGI','KOMPUTER','INTERNET','HANDPHONE','TELEVISI','RADIO','KAMERA','PRINTER','SCANNER','PROYEKTOR',
+const WORD_LIST_6 = [
+  { word:'BULAN',    kategori:'🌙 Luar Angkasa' },
+  { word:'BINTANG',  kategori:'🌙 Luar Angkasa' },
+  { word:'PELANGI',  kategori:'🌦 Alam' },
+  { word:'GUNUNG',   kategori:'🌿 Alam' },
+  { word:'SUNGAI',   kategori:'🌿 Alam' },
+  { word:'DOKTER',   kategori:'💼 Profesi' },
+  { word:'POLISI',   kategori:'💼 Profesi' },
+  { word:'PETANI',   kategori:'💼 Profesi' },
+  { word:'NELAYAN',  kategori:'💼 Profesi' },
+  { word:'PEDAGANG', kategori:'💼 Profesi' },
+  { word:'LIBURAN',  kategori:'✈️ Perjalanan' },
+  { word:'WISATA',   kategori:'✈️ Perjalanan' },
+  { word:'KEMAH',    kategori:'✈️ Perjalanan' },
+  { word:'JAKARTA',  kategori:'🏙 Kota' },
+  { word:'BANDUNG',  kategori:'🏙 Kota' },
+  { word:'MEDAN',    kategori:'🏙 Kota' },
+  { word:'BALI',     kategori:'🏙 Kota' },
+  { word:'KOMPUTER', kategori:'💻 Teknologi' },
+  { word:'KAMERA',   kategori:'💻 Teknologi' },
+  { word:'PRINTER',  kategori:'💻 Teknologi' },
+  { word:'BIOLOGI',  kategori:'📚 Pelajaran' },
+  { word:'KIMIA',    kategori:'📚 Pelajaran' },
+  { word:'FISIKA',   kategori:'📚 Pelajaran' },
+  { word:'SEJARAH',  kategori:'📚 Pelajaran' },
+  { word:'KAKAK',    kategori:'👨‍👩‍👧 Keluarga' },
+  { word:'NENEK',    kategori:'👨‍👩‍👧 Keluarga' },
+  { word:'KAKEK',    kategori:'👨‍👩‍👧 Keluarga' },
+  { word:'SARAPAN',  kategori:'🍚 Waktu Makan' },
+  { word:'JAJANAN',  kategori:'🍚 Makanan' },
+  { word:'KEJUJURAN',kategori:'🧠 Nilai' },
+  { word:'KEBERANIAN',kategori:'🧠 Nilai' },
+  { word:'KESABARAN',kategori:'🧠 Nilai' },
+  { word:'INTERNET', kategori:'💻 Teknologi' },
+  { word:'OLAHRAGA', kategori:'⚽ Aktivitas' },
+  { word:'MELUKIS',  kategori:'🎨 Seni' },
+  { word:'BERNYANYI',kategori:'🎵 Seni' },
+  { word:'MENARI',   kategori:'🎵 Seni' },
+  { word:'MEMBACA',  kategori:'📚 Aktivitas' },
+  { word:'MENULIS',  kategori:'📚 Aktivitas' },
+  { word:'MEMASAK',  kategori:'🍳 Aktivitas' },
 ]
+
+// Helpers
+const WORDS_4 = WORD_LIST_4.map(w => w.word)
+const WORDS_5 = WORD_LIST_5.map(w => w.word)
+const WORDS_6 = WORD_LIST_6.map(w => w.word)
+
+function getWordWithKategori(words, wordLists) {
+  const idx  = Math.floor(Math.random() * words.length)
+  const word = words[idx]
+  const found = wordLists.find(w => w.word === word)
+  return { word, kategori: found?.kategori || '📝 Kata' }
+}
 
 const TUTORIAL_STEPS = [
   { emoji:'💬', title:'Tebak Kata!', desc:'Tebak kata rahasia dalam 6 kesempatan. Setiap tebakan harus kata yang valid!', tip:'Kata berbeda panjangnya tergantung difficulty yang kamu pilih.' },
@@ -57,9 +154,9 @@ const TUTORIAL_STEPS = [
 
 // ─── Config per difficulty ────────────────────────────────────────────────────
 const DIFF_CFG = {
-  easy:   { len: 4, words: WORDS_4,  maxGuess: 6 },
-  medium: { len: 5, words: WORDS_5,  maxGuess: 6 },
-  hard:   { len: 6, words: WORDS_6,  maxGuess: 6 },
+  easy:   { len: 4, words: WORDS_4, wordList: WORD_LIST_4, maxGuess: 6 },
+  medium: { len: 5, words: WORDS_5, wordList: WORD_LIST_5, maxGuess: 6 },
+  hard:   { len: 6, words: WORDS_6, wordList: WORD_LIST_6, maxGuess: 6 },
 }
 
 // ─── Keyboard layout ──────────────────────────────────────────────────────────
@@ -217,7 +314,9 @@ export default function WordleGame({ onBack, game, difficulty }) {
   const { darkMode } = useSettings()
   const dark = darkMode
 
-  const [answer,      setAnswer]      = useState(() => getRandWord(cfg.words))
+  const [wordData,    setWordData]    = useState(() => getWordWithKategori(cfg.words, cfg.wordList))
+  const answer = wordData.word
+  const kategori = wordData.kategori
   const [guesses,     setGuesses]     = useState([])        // string[]
   const [evaluations, setEvaluations] = useState([])        // state[][]
   const [current,     setCurrent]     = useState('')        // current input
@@ -326,7 +425,7 @@ export default function WordleGame({ onBack, game, difficulty }) {
   // New game
   const newGame = () => {
     play('click')
-    setAnswer(getRandWord(cfg.words))
+    setWordData(getWordWithKategori(cfg.words, cfg.wordList))
     setGuesses([]); setEvaluations([])
     setCurrent(''); setPhase('playing')
     setRevealRow(-1); setShowConfetti(false)
@@ -414,8 +513,33 @@ export default function WordleGame({ onBack, game, difficulty }) {
         </button>
       </div>
 
+      {/* ── Kategori Clue ── */}
+      <div style={{ width:'100%', maxWidth:480, padding:'10px 16px 0' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10, background: dark?'rgba(83,141,78,0.12)':'rgba(83,141,78,0.08)', border:'1.5px solid rgba(83,141,78,0.3)', borderRadius:14, padding:'10px 16px' }}>
+          <span style={{ fontSize:20 }}>💡</span>
+          <div>
+            <div style={{ fontSize:11, color:'#538D4E', fontWeight:800, letterSpacing:'0.5px', marginBottom:1 }}>KATEGORI KATA</div>
+            <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color:textMain }}>{kategori}</div>
+          </div>
+        </div>
+
+        {/* How to play guide */}
+        <div style={{ display:'flex', gap:8, marginTop:8, flexWrap:'wrap' }}>
+          {[
+            { color:'#538D4E', label:'Huruf benar & posisi tepat' },
+            { color:'#B59F3B', label:'Huruf ada, posisi salah' },
+            { color:'#3A3A3C', label:'Huruf tidak ada' },
+          ].map(g => (
+            <div key={g.label} style={{ display:'flex', alignItems:'center', gap:5, fontSize:11, color:textMuted }}>
+              <div style={{ width:14, height:14, borderRadius:3, background:g.color, flexShrink:0 }}/>
+              {g.label}
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Board */}
-      <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'20px 16px 10px', width:'100%', maxWidth:480 }}>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'12px 16px 10px', width:'100%', maxWidth:480 }}>
         <div style={{ display:'flex', flexDirection:'column', gap:6, width:'100%', maxWidth:boardMax }}>
           {gridRows}
         </div>
