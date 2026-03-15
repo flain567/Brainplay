@@ -461,13 +461,15 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 500
 
   return (
+    <>
+      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS_SS} color="#4ECDC4" onClose={() => { setShowTutorial(false); localStorage.setItem('tut-space-shooter','1') }} />}
+      {showConfetti && <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />}
+
     <div style={{ width:'100%', height: typeof CSS !== 'undefined' && CSS.supports('height','100dvh') ? '100dvh' : '100vh', background:'#07071a', position:'relative', overflow:'hidden', userSelect:'none' }}>
       <div style={{ position:'absolute', inset:0, zIndex:1 }}>
         <canvas ref={canvasRef} style={{ width:'100%', height:'100%', display:'block', touchAction:'none' }} />
       </div>
 
-      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS_SS} color="#4ECDC4" onClose={() => { setShowTutorial(false); localStorage.setItem('tut-space-shooter','1') }} />}
-      <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
 
       {phase === 'playing' && (
         <div style={{ position:'absolute', top:0, left:0, right:0, zIndex:10, display:'flex', alignItems:'center', justifyContent:'space-between', padding:isMobile?'8px 10px':'10px 16px', background:'linear-gradient(to bottom,rgba(7,7,26,0.92),rgba(7,7,26,0.4),transparent)', pointerEvents:'none' }}>
@@ -559,5 +561,6 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
 
       <style>{`@keyframes fadeIn{from{opacity:0;transform:scale(0.97)}to{opacity:1;transform:scale(1)}}`}</style>
     </div>
+    </>
   )
 }

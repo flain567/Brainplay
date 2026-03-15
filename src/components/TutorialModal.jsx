@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useSound } from '../hooks/useSound.js'
 import { useSettings } from '../context/SettingsContext.jsx'
 
@@ -6,6 +6,7 @@ export default function TutorialModal({ steps, onClose, color = '#A29BFE' }) {
   const [page, setPage]   = useState(0)
   const { play }          = useSound()
   const { darkMode }      = useSettings()
+  const firedRef          = useRef(false)
 
   const step    = steps[page]
   const isLast  = page === steps.length - 1
@@ -15,13 +16,23 @@ export default function TutorialModal({ steps, onClose, color = '#A29BFE' }) {
   const textMain  = dark ? '#e8e8f0' : '#2D3436'
   const textMuted = dark ? '#8892b0' : '#636E72'
 
-  const next = () => {
+  // Debounce to prevent double fire from onClick + onTouchEnd
+  const fire = (fn) => {
+    if (firedRef.current) return
+    firedRef.current = true
+    fn()
+    setTimeout(() => { firedRef.current = false }, 300)
+  }
+
+  const next = () => fire(() => {
     play('click')
     if (isLast) { onClose(); return }
     setPage(p => p + 1)
-  }
+  })
 
-  const prev = () => { play('click'); setPage(p => p - 1) }
+  const prev = () => fire(() => { play('click'); setPage(p => p - 1) })
+
+  const skip = () => fire(() => { play('click'); onClose() })
 
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.65)', backdropFilter:'blur(8px)', zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:24, animation:'fadeInTut 0.3s ease' }}>
@@ -59,18 +70,18 @@ export default function TutorialModal({ steps, onClose, color = '#A29BFE' }) {
         {/* Buttons */}
         <div style={{ display:'flex', gap:10 }}>
           {page > 0 && (
-            <button onClick={prev} style={{ flex:1, background:'transparent', border:`2px solid ${color}44`, borderRadius:100, padding:'12px', fontSize:14, fontWeight:800, color:textMuted, cursor:'pointer', fontFamily:"'Fredoka One',cursive" }}>
+            <button onClick={prev} onTouchEnd={prev} style={{ flex:1, background:'transparent', border:`2px solid ${color}44`, borderRadius:100, padding:'12px', fontSize:14, fontWeight:800, color:textMuted, cursor:'pointer', fontFamily:"'Fredoka One',cursive", WebkitTapHighlightColor:'transparent' }}>
               ← Kembali
             </button>
           )}
-          <button onClick={next} style={{ flex:2, background:`linear-gradient(135deg,${color},${color}bb)`, border:'none', borderRadius:100, padding:'13px', fontSize:16, fontWeight:800, color:'#fff', cursor:'pointer', fontFamily:"'Fredoka One',cursive", boxShadow:`0 6px 20px ${color}44` }}>
+          <button onClick={next} onTouchEnd={next} style={{ flex:2, background:`linear-gradient(135deg,${color},${color}bb)`, border:'none', borderRadius:100, padding:'13px', fontSize:16, fontWeight:800, color:'#fff', cursor:'pointer', fontFamily:"'Fredoka One',cursive", boxShadow:`0 6px 20px ${color}44`, WebkitTapHighlightColor:'transparent' }}>
             {isLast ? '▶ Mulai Main!' : 'Lanjut →'}
           </button>
         </div>
 
         {/* Skip */}
         {!isLast && (
-          <div onClick={() => { play('click'); onClose() }} style={{ textAlign:'center', marginTop:12, fontSize:12, color:textMuted, cursor:'pointer', opacity:0.6 }}>
+          <div onClick={skip} onTouchEnd={skip} style={{ textAlign:'center', marginTop:12, fontSize:12, color:textMuted, cursor:'pointer', opacity:0.6, WebkitTapHighlightColor:'transparent', padding:'8px' }}>
             Lewati tutorial
           </div>
         )}

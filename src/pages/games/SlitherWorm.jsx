@@ -573,10 +573,12 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
   const DLABEL = { easy:'🟢 Mudah', medium:'🟡 Sedang', hard:'🔴 Sulit' }
 
   return (
+    <>
+      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS_SW} color="#4ECDC4" onClose={()=>{ setShowTutorial(false); localStorage.setItem('tut-slither','1') }} />}
+      {showConfetti && <Confetti active={showConfetti} onDone={()=>setShowConfetti(false)} />}
+
     <div style={{ width:'100%', height: typeof CSS !== 'undefined' && CSS.supports('height','100dvh') ? '100dvh' : '100vh', background:'#07071a', position:'relative', overflow:'hidden', userSelect:'none' }}>
       <canvas ref={canvasRef} style={{ width:'100%', height:'100%', display:'block', touchAction:'none' }} />
-      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS_SW} color="#4ECDC4" onClose={()=>{ setShowTutorial(false); localStorage.setItem('tut-slither','1') }} />}
-      <Confetti active={showConfetti} onDone={()=>setShowConfetti(false)} />
 
       {/* ── HUD ── */}
       {phase === 'playing' && (
@@ -709,5 +711,6 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
 
       <style>{`@keyframes fadeIn{from{opacity:0;transform:scale(0.97)}to{opacity:1;transform:scale(1)}}`}</style>
     </div>
+    </>
   )
 }
