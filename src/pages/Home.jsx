@@ -6,9 +6,8 @@ import { useProgress, getLevelInfo } from '../context/ProgressContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
 
 const COMING_SOON = [
-  { day: 9,  emoji: '🧱', title: 'Brick Breaker',    tag: 'Casual',   color: '#45B7D1' },
-  { day: 10, emoji: '💬', title: 'Wordle Indonesia',  tag: 'Kata',     color: '#55EFC4' },
-  { day: 11, emoji: '🧩', title: 'Jigsaw Puzzle',    tag: 'Puzzle',   color: '#FDCB6E' },
+  { day: 10, emoji: '🧱', title: 'Brick Breaker',    tag: 'Casual',   color: '#45B7D1' },
+  { day: 11, emoji: '💬', title: 'Wordle Indonesia',  tag: 'Kata',     color: '#55EFC4' },
   { day: 12, emoji: '🫧', title: 'Bubble Shooter',   tag: 'Casual',   color: '#4ECDC4' },
   { day: 13, emoji: '⌨️', title: 'Typing Speed',     tag: 'Kata',     color: '#FD79A8' },
   { day: 14, emoji: '💣', title: 'Minesweeper',      tag: 'Logika',   color: '#45B7D1' },

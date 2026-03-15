@@ -49,7 +49,7 @@ export const ACHIEVEMENTS = [
 
   // Variety - different games
   { id: 'explorer_2',     icon: '🧭', title: 'Penjelajah',         desc: 'Mainkan 2 game berbeda',       category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 2, progress: (s) => ({ cur: Math.min(s.uniqueGamesPlayed || 0, 2), max: 2 }) },
-  { id: 'explorer_4',     icon: '🌍', title: 'Petualang Dunia',    desc: 'Mainkan semua 8 game',         category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 8, progress: (s) => ({ cur: Math.min(s.uniqueGamesPlayed || 0, 8), max: 8 }) },
+  { id: 'explorer_4',     icon: '🌍', title: 'Petualang Dunia',    desc: 'Mainkan semua 9 game',         category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 9, progress: (s) => ({ cur: Math.min(s.uniqueGamesPlayed || 0, 9), max: 9 }) },
 
   // Difficulty - hard mode
   { id: 'brave',          icon: '🦁', title: 'Pemberani',          desc: 'Selesaikan 1 game di mode Sulit', category: 'skill',  check: (s) => s.hardGamesWon >= 1, progress: (s) => ({ cur: Math.min(s.hardGamesWon || 0, 1), max: 1 }) },
@@ -82,6 +82,7 @@ export const ACHIEVEMENTS = [
   { id: 'hangman_hero',   icon: '💀', title: 'Penyelamat Kata',    desc: 'Menangkan Hangman 5 kali',        category: 'game',  check: (s) => (s.gameWins['hangman'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['hangman'] || 0, 5), max: 5 }) },
   { id: 'sort_master',    icon: '🧪', title: 'Master Sortir',      desc: 'Menangkan Color Sort 5 kali',     category: 'game',  check: (s) => (s.gameWins['color-sort'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['color-sort'] || 0, 5), max: 5 }) },
   { id: 'sudoku_sage',    icon: '🔢', title: 'Ahli Sudoku',        desc: 'Menangkan Sudoku 3 kali',         category: 'game',  check: (s) => (s.gameWins['sudoku'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['sudoku'] || 0, 3), max: 3 }) },
+  { id: 'jigsaw_pro',     icon: '🧩', title: 'Tukang Puzzle',      desc: 'Menangkan Jigsaw Puzzle 5 kali',  category: 'game',  check: (s) => (s.gameWins['jigsaw'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['jigsaw'] || 0, 5), max: 5 }) },
 ]
 
 // ─── Default state ───────────────────────────────────────────────────────────

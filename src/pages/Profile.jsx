@@ -233,6 +233,7 @@ export default function Profile({ onBack, games }) {
                 // Contextual best label per game type
                 const bestLabel = g.id === 'hangman' ? `${best} salah`
                   : g.id === 'sudoku' ? `${Math.floor(best/60)}:${(best%60).toString().padStart(2,'0')}`
+                  : g.id === 'jigsaw' ? `${Math.floor(best/60)}:${(best%60).toString().padStart(2,'0')}`
                   : g.id === 'color-sort' ? `${best} langkah`
                   : g.id === 'slither-worm' ? `${best} poin`
                   : g.id === 'space-shooter' ? `${best} poin`
@@ -297,7 +298,7 @@ export default function Profile({ onBack, games }) {
               const unlocked = unlockedSet.has(ach.id)
               const catMeta = CATEGORY_META[ach.category]
               const prog = !unlocked && ach.progress ? ach.progress(progress) : null
-              const isNew = ['hangman_hero','sort_master','sudoku_sage'].includes(ach.id)
+              const isNew = ['hangman_hero','sort_master','sudoku_sage','jigsaw_pro'].includes(ach.id)
               return (
                 <div key={ach.id} className={`ach-item ${unlocked ? 'unlocked' : 'locked'}`}>
                   <div className="ach-icon-wrap" style={{

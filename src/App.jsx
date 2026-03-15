@@ -18,6 +18,7 @@ import SpaceShooter from './pages/games/SpaceShooter.jsx'
 import HangmanGame from './pages/games/HangmanGame.jsx'
 import ColorSortGame from './pages/games/ColorSortGame.jsx'
 import SudokuGame from './pages/games/SudokuGame.jsx'
+import JigsawPuzzle from './pages/games/JigsawPuzzle.jsx'
 import { migrateOldStorage } from './utils/storage.js'
 import { useMusic } from './hooks/useMusic.js'
 
@@ -124,6 +125,19 @@ export const GAMES = [
       { id:'easy',   description:'36 sel kosong — cocok untuk pemanasan otak',         stats:['45 terisi','36 kosong'] },
       { id:'medium', description:'46 sel kosong — butuh deduksi yang lebih dalam',     stats:['35 terisi','46 kosong'] },
       { id:'hard',   description:'54 sel kosong — hanya master logika yang mampu!',    stats:['27 terisi','54 kosong'] },
+    ],
+  },
+  {
+    id: 'jigsaw',
+    title: 'Jigsaw Puzzle',
+    emoji: '🧩',
+    description: 'Susun potongan gambar ke posisi yang benar! Semakin banyak keping, semakin menantang!',
+    color: '#E84393', bg: '#FFF0F8', tag: 'Puzzle',
+    component: JigsawPuzzle, day: 9,
+    difficulties: [
+      { id:'easy',   description:'Grid 3×3, 9 keping — cocok untuk pemula',           stats:['3×3 grid','9 keping']  },
+      { id:'medium', description:'Grid 4×4, 16 keping — butuh strategi yang tepat!',   stats:['4×4 grid','16 keping'] },
+      { id:'hard',   description:'Grid 5×5, 25 keping — tantangan otak tingkat tinggi!', stats:['5×5 grid','25 keping'] },
     ],
   },
 ]
