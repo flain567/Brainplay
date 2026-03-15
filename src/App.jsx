@@ -54,13 +54,13 @@ export const GAMES = [
     id: '2048',
     title: 'Connect Blocks',
     emoji: '🔗',
-    description: 'Sambungkan blok angka yang sama, capai target, dan naiki level untuk blok baru!',
+    description: 'Sambungkan blok angka yang sama! Buat chain agar hasilnya ≥ target untuk naik level. Capai level 5 untuk menang!',
     color: '#A29BFE', bg: '#F0EFFE', tag: 'Puzzle',
     component: Game2048, day: 3,
     difficulties: [
-      { id:'easy',   description:'Grid 5×6, target 512 — santai untuk pemula',          stats:['5×6 grid','Target 512']  },
-      { id:'medium', description:'Grid 5×7, target 1024 — lebih banyak baris, lebih seru', stats:['5×7 grid','Target 1024'] },
-      { id:'hard',   description:'Grid 5×8, target 2048 — tantangan penuh untuk master!',  stats:['5×8 grid','Target 2048'] },
+      { id:'easy',   description:'Grid 5×6, target merge 512 per level — santai untuk pemula',          stats:['5×6 grid','Target 512','5 Level']  },
+      { id:'medium', description:'Grid 5×7, target merge 1024 per level — lebih banyak baris, lebih seru', stats:['5×7 grid','Target 1024','5 Level'] },
+      { id:'hard',   description:'Grid 5×8, target merge 2048 per level — tantangan penuh untuk master!',  stats:['5×8 grid','Target 2048','5 Level'] },
     ],
   },
   {

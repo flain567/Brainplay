@@ -4,7 +4,7 @@ import Confetti from '../../components/Confetti.jsx'
 const TUTORIAL_STEPS_CB = [
   { emoji:'🔗', title:'Connect Blocks', desc:'Sambungkan blok angka yang sama dengan cara drag dari satu blok ke blok lain yang bersebelahan!', tip:'Kamu bisa menyambung ke 8 arah termasuk diagonal.' },
   { emoji:'👆', title:'Cara Drag', desc:'Tekan dan tahan blok, lalu geser ke blok tetangga yang angkanya sama. Lepas untuk menggabungkan!', tip:'Semakin panjang chain, semakin besar nilainya.' },
-  { emoji:'🏆', title:'Level Up!', desc:'Capai target skor untuk naik level. Setiap level baru membuka blok dengan angka lebih besar!', tip:'Gabungkan chain panjang untuk menanjak level lebih cepat.' },
+  { emoji:'🏆', title:'Cara Menang', desc:'Buat chain yang NILAI HASILNYA ≥ target. Contoh: 4 blok × 128 = 512 = Level Up! Capai level 5 untuk menang!', tip:'Chain 2×256 juga = 512. Strategikan merge kamu!' },
 ]
 
 import { useState, useEffect, useRef, useCallback } from 'react'
@@ -29,9 +29,9 @@ const DEFAULT_TILE_COLOR = {
 }
 
 const DIFF_CFG = {
-  easy:   { cols:5, rows:6, startMax:3, goal:512,  goalStep:512  },
-  medium: { cols:5, rows:7, startMax:4, goal:1024, goalStep:1024 },
-  hard:   { cols:5, rows:8, startMax:5, goal:2048, goalStep:2048 },
+  easy:   { cols:5, rows:6, startMax:3, goal:512,  goalStep:512,  maxLevel:5 },
+  medium: { cols:5, rows:7, startMax:4, goal:1024, goalStep:1024, maxLevel:5 },
+  hard:   { cols:5, rows:8, startMax:5, goal:2048, goalStep:2048, maxLevel:5 },
 }
 
 const makeId   = () => Math.random().toString(36).slice(2)
@@ -85,6 +85,7 @@ export default function Game2048({ onBack, game, difficulty }) {
   const [luInfo,  setLuInfo]  = useState(null)
   const [mergeKeys,setMergeKeys]= useState([])
   const [newIds,  setNewIds]  = useState([])
+  const [bestMerge, setBestMerge] = useState(0)
 
   const boardRef = useRef(null)
   const gridRef  = useRef(grid);  gridRef.current  = grid
@@ -150,6 +151,9 @@ export default function Game2048({ onBack, game, difficulty }) {
 
     play(sum >= 64 ? 'win' : 'match')
 
+    // Track best merge value this level
+    setBestMerge(prev => Math.max(prev, sum))
+
     const keys = cur.map(p=>`${p.r}-${p.c}`)
     setMergeKeys(keys)
     setTimeout(()=>setMergeKeys([]), 320)
@@ -183,25 +187,38 @@ export default function Game2048({ onBack, game, difficulty }) {
     })
 
     if (sum >= gl) {
-      const nGoal  = gl + (DIFF_CFG[difficulty.id].goalStep)
       const nLevel = lv + 1
+
+      // Check definitive win
+      if (nLevel > cfg.maxLevel) {
+        const currentScore = score + sum
+        setPhase('win')
+        play('levelUp')
+        setShowConfetti(true); setTimeout(()=>setShowConfetti(false), 100)
+        reportGameResult({
+          gameId: '2048', difficultyId: difficulty.id, won: true,
+          score: currentScore, stars: 3, timeSec: 0,
+        })
+        earnCoins(cfg.maxLevel * 15, `Menang Connect Blocks! (Lv.${cfg.maxLevel})`)
+        setChain([]); return
+      }
+
+      const nGoal  = gl + (DIFF_CFG[difficulty.id].goalStep)
       const nMax   = Math.min(mi+1, TILE_VALUES.length-1)
       setLuInfo({ tile: TILE_VALUES[nMax-1], reward: nLevel*5 })
       setPhase('levelup'); play('levelUp')
       setShowConfetti(true); setTimeout(()=>setShowConfetti(false), 100)
       setLevel(nLevel); setGoal(nGoal); setMaxIdx(nMax)
+      setBestMerge(0) // Reset for new level
 
       // Report to global progress on every level up
       const currentScore = score + sum
       reportGameResult({
-        gameId: '2048',
-        difficultyId: difficulty.id,
-        won: true,
+        gameId: '2048', difficultyId: difficulty.id, won: true,
         score: currentScore,
-        stars: nLevel >= 5 ? 3 : nLevel >= 3 ? 2 : 1,
+        stars: nLevel >= 4 ? 3 : nLevel >= 2 ? 2 : 1,
         timeSec: 0,
       })
-      // Coin reward for level up
       earnCoins(30, `Level Up! (Lv.${nLevel})`)
     }
     setChain([])
@@ -212,7 +229,7 @@ export default function Game2048({ onBack, game, difficulty }) {
     setGrid(initGrid(CN,RN,cfg.startMax))
     setChain([]); setScore(0); setLevel(1)
     setMaxIdx(cfg.startMax); setGoal(cfg.goal)
-    setPhase('playing'); setDragging(false)
+    setPhase('playing'); setDragging(false); setBestMerge(0)
   }
 
   // Check for game over after every grid change
@@ -238,7 +255,7 @@ export default function Game2048({ onBack, game, difficulty }) {
   }, [grid, phase])
 
   const chainVal = chain.length && gridRef.current[chain[0].r]?.[chain[0].c]?.value
-  const progPct  = Math.min(100, Math.floor((score / (goal * level)) * 100))
+  const mergePct = Math.min(100, Math.floor((bestMerge / goal) * 100))
   const DLABEL   = {easy:'🟢 Mudah',medium:'🟡 Sedang',hard:'🔴 Sulit'}
   const boardPx  = (cellSize+gap)*CN - gap + 16
 
@@ -274,14 +291,17 @@ export default function Game2048({ onBack, game, difficulty }) {
         ))}
       </div>
 
-      {/* Progress */}
+      {/* Progress — shows how close best merge is to the level-up goal */}
       <div style={{width:'100%',maxWidth:boardPx,marginBottom:10}}>
         <div style={{display:'flex',justifyContent:'space-between',marginBottom:4,fontSize:11,color:'rgba(255,255,255,0.35)',fontWeight:700}}>
-          <span>Target: <span style={{color:'#4CAF50'}}>{goal.toLocaleString()}</span></span>
-          <span style={{color:'#FFC107'}}>Lv{level} → Lv{level+1}</span>
+          <span>🎯 Gabungkan ≥ <span style={{color:'#4CAF50'}}>{goal.toLocaleString()}</span></span>
+          <span style={{color:'#FFC107'}}>Lv{level}/{cfg.maxLevel}</span>
         </div>
         <div style={{height:9,background:'rgba(255,255,255,0.07)',borderRadius:100,overflow:'hidden'}}>
-          <div style={{height:'100%',width:`${progPct}%`,background:'linear-gradient(90deg,#4CAF50,#FFC107,#FF5722)',borderRadius:100,transition:'width 0.4s ease',backgroundSize:'200% 100%',animation:'shimmer 2s linear infinite'}}/>
+          <div style={{height:'100%',width:`${mergePct}%`,background:'linear-gradient(90deg,#4CAF50,#FFC107,#FF5722)',borderRadius:100,transition:'width 0.4s ease',backgroundSize:'200% 100%',animation:'shimmer 2s linear infinite'}}/>
+        </div>
+        <div style={{fontSize:10,color:'rgba(255,255,255,0.25)',marginTop:3,textAlign:'center'}}>
+          Merge terbaik: <span style={{color:bestMerge>=goal?'#4CAF50':'#FFC107'}}>{bestMerge > 0 ? bestMerge.toLocaleString() : '—'}</span> / {goal.toLocaleString()}
         </div>
       </div>
 
@@ -420,6 +440,44 @@ export default function Game2048({ onBack, game, difficulty }) {
               </button>
               <button onClick={()=>{play('click');onBack()}} style={{flex:1,background:dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)',color:dark?'#e8e8f0':'#2D3436',border:`1.5px solid ${dark?'rgba(255,255,255,0.15)':'rgba(0,0,0,0.15)'}`,borderRadius:100,padding:'13px',fontSize:15,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer'}}>
                 🎯 Level
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Win Modal — all levels cleared! */}
+      {phase==='win'&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.82)',backdropFilter:'blur(10px)',zIndex:50,display:'flex',alignItems:'center',justifyContent:'center',padding:20,animation:'fadeIn 0.3s ease'}}>
+          <div style={{background:'linear-gradient(160deg,#1a3a1a,#0d470d)',border:'2px solid rgba(100,255,100,0.4)',borderRadius:28,padding:'32px 24px',maxWidth:340,width:'100%',textAlign:'center',boxShadow:'0 0 80px rgba(76,175,80,0.5)',animation:'popIn 0.4s cubic-bezier(0.34,1.56,0.64,1)'}}>
+            <div style={{fontSize:56,marginBottom:8}}>🏆</div>
+            <h2 style={{fontFamily:"'Fredoka One',cursive",fontSize:26,color:'#FDCB6E',marginBottom:6,textShadow:'0 0 20px #FDCB6E44'}}>Kamu Menang!</h2>
+            <p style={{fontSize:13,color:'rgba(255,255,255,0.5)',marginBottom:6}}>Semua {cfg.maxLevel} level berhasil ditaklukkan!</p>
+            <div style={{fontSize:30,marginBottom:14,letterSpacing:4}}>⭐⭐⭐</div>
+
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:22}}>
+              <div style={{background:'rgba(255,255,255,0.06)',borderRadius:14,padding:'14px 10px'}}>
+                <div style={{fontFamily:"'Fredoka One',cursive",fontSize:22,color:'#4CAF50'}}>{score.toLocaleString()}</div>
+                <div style={{fontSize:11,color:'rgba(255,255,255,0.4)',fontWeight:700}}>Skor</div>
+              </div>
+              <div style={{background:'rgba(255,255,255,0.06)',borderRadius:14,padding:'14px 10px'}}>
+                <div style={{fontFamily:"'Fredoka One',cursive",fontSize:22,color:'#FFC107'}}>Lv.{cfg.maxLevel}</div>
+                <div style={{fontSize:11,color:'rgba(255,255,255,0.4)',fontWeight:700}}>Level Max</div>
+              </div>
+            </div>
+
+            {score >= best && score > 0 && (
+              <div style={{background:'#FDCB6E22',border:'1.5px solid #FDCB6E44',borderRadius:12,padding:'8px 14px',marginBottom:16,fontFamily:"'Fredoka One',cursive",fontSize:14,color:'#FDCB6E'}}>
+                🏆 Rekor Baru!
+              </div>
+            )}
+
+            <div style={{display:'flex',gap:10}}>
+              <button onClick={restart} style={{flex:1,background:'linear-gradient(135deg,#4CAF50,#8BC34A)',color:'#fff',border:'none',borderRadius:100,padding:'13px',fontSize:15,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer',boxShadow:'0 4px 16px rgba(76,175,80,0.4)'}}>
+                🔄 Main Lagi
+              </button>
+              <button onClick={()=>{play('click');onBack()}} style={{flex:1,background:'rgba(255,255,255,0.08)',color:'#e8e8f0',border:'1.5px solid rgba(255,255,255,0.15)',borderRadius:100,padding:'13px',fontSize:15,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer'}}>
+                🏠 Home
               </button>
             </div>
           </div>
