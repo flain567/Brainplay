@@ -1,13 +1,17 @@
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useCoins } from '../context/CoinContext.jsx'
+import { useProgress, getComboMultiplier } from '../context/ProgressContext.jsx'
 import { useEffect, useState } from 'react'
 
 export default function Navbar({ onHome, onProfile, onShop, currentGame, difficulty }) {
   const { darkMode, muted, musicOff, toggle } = useSettings()
   const { play, setMuted } = useSound()
   const { coins } = useCoins()
+  const { progress } = useProgress()
   const [scrolled, setScrolled] = useState(false)
+  const streak = progress.currentStreak || 0
+  const combo = getComboMultiplier(streak)
 
   useEffect(() => { setMuted(muted) }, [muted, setMuted])
 
@@ -144,6 +148,23 @@ export default function Navbar({ onHome, onProfile, onShop, currentGame, difficu
 
           {/* Actions */}
           <div className="nav-actions">
+            {/* Streak combo */}
+            {streak > 0 && (
+              <div style={{
+                display:'flex', alignItems:'center', gap:3,
+                background: combo > 1
+                  ? (dark ? 'rgba(255,107,107,0.12)' : 'rgba(255,107,107,0.1)')
+                  : (dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'),
+                border: `1.5px solid ${combo > 1 ? '#FF6B6B44' : 'transparent'}`,
+                borderRadius: 100, padding: '0 10px', height: 40,
+                fontSize: 12, fontFamily: "'Fredoka One',cursive",
+                animation: combo > 1 ? 'glow-pulse 2s ease infinite' : 'none',
+              }}>
+                <span style={{ fontSize: 14 }}>🔥</span>
+                <span style={{ color: '#FF6B6B' }}>{streak}</span>
+                {combo > 1 && <span style={{ color: '#FD79A8', fontSize: 10 }}>{combo}×</span>}
+              </div>
+            )}
             {/* Coin balance */}
             <button
               className="nav-btn nav-coin-btn"

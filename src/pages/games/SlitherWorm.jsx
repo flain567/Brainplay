@@ -190,7 +190,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
   const cfg = CFG[difficulty.id]
 
   const [phase, setPhase]       = useState('idle')
-  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('tut-slither'))
+  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('bp_tut_slither-worm'))
   const [showConfetti, setShowConfetti] = useState(false)
   const [score, setScore]       = useState(0)
   const [length, setLength]     = useState(0)
@@ -574,7 +574,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
 
   return (
     <>
-      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS_SW} color="#4ECDC4" onClose={()=>{ setShowTutorial(false); localStorage.setItem('tut-slither','1') }} />}
+      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS_SW} color="#4ECDC4" onClose={()=>{ setShowTutorial(false); localStorage.setItem('bp_tut_slither-worm','1') }} />}
       {showConfetti && <Confetti active={showConfetti} onDone={()=>setShowConfetti(false)} />}
 
     <div style={{ width:'100%', height: typeof CSS !== 'undefined' && CSS.supports('height','100dvh') ? '100dvh' : '100vh', background:'#07071a', position:'relative', overflow:'hidden', userSelect:'none' }}>

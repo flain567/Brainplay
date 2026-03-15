@@ -1,130 +1,67 @@
-# 🎮 BrainPlay
+# 🎮 BrainPlay v0.9.2
 
-> Kumpulan game santai & mengasah otak yang dibangun **1 game per hari** selama 30 hari.
+**Platform Web Game 30 Hari — Santai & Mengasah Otak**
 
-![React](https://img.shields.io/badge/React-v18-61DAFB?style=flat-square&logo=react) ![Vite](https://img.shields.io/badge/Vite-v5-646CFF?style=flat-square&logo=vite) ![Games](https://img.shields.io/badge/Games-3%2F25-4ECDC4?style=flat-square) ![Status](https://img.shields.io/badge/Status-Active-4CAF50?style=flat-square)
-
----
-
-## 🕹 Game yang Tersedia
-
-| Hari | Game | Kategori | Difficulty |
-|------|------|----------|------------|
-| 1 | 🃏 Memory Card Match | Puzzle | Easy / Medium / Hard |
-| 2 | 🐍 Slither Worm | Casual | Easy / Medium / Hard |
-| 3 | 🔗 Connect Blocks | Puzzle | Easy / Medium / Hard |
-
-> Game baru ditambahkan setiap hari!
+Dibuat oleh **Dwi Agus Hidayat**
 
 ---
 
-## ✨ Fitur
+## Teknologi
+- React 18 + Vite 5
+- Pure CSS animations (no external UI lib)
+- localStorage persistence
+- Deploy: Vercel
 
-- 🌙 **Dark mode** — toggle di navbar
-- 🔊 **Sound effects** — Web Audio API, tanpa library eksternal
-- 🎯 **Difficulty selector** — Easy / Medium / Hard per game
-- 📊 **Statistik & high score** — tersimpan di localStorage
-- 🎓 **Tutorial** — panduan singkat sebelum main pertama kali
-- 🎊 **Confetti** — efek saat menang atau cetak rekor baru
-- 🔥 **Streak harian** — hitung berapa hari berturut-turut main
-- 📱 **Responsif** — bisa dimainkan di HP maupun desktop
-- ⚡ **PWA ready** — bisa di-install di HP
+## Game Aktif (9 Game)
+| # | Game | Tipe | Hari |
+|---|------|------|------|
+| 1 | Memory Card Match | Puzzle | Day 1 |
+| 2 | Slither Worm | Casual | Day 2 |
+| 3 | Connect Blocks | Puzzle | Day 3 |
+| 4 | Word Search | Puzzle | Day 4 |
+| 5 | Space Shooter | Casual | Day 5 |
+| 6 | Hangman | Kata | Day 6 |
+| 7 | Color Sort | Puzzle | Day 7 |
+| 8 | Sudoku | Logika | Day 8 |
+| 9 | Jigsaw Puzzle | Puzzle | Day 9 |
 
----
+## Fitur
+- 9 game dengan 3 level kesulitan masing-masing
+- Coin system + Shop (icon packs, snake skins, tile themes, highlights, consumables)
+- 26 achievements dengan progress tracking
+- XP dan level progression system
+- Streak combo multiplier (1.2x 3hari, 1.5x 7hari, 2.0x 14hari)
+- Daily login reward (7-day streak)
+- Dark mode + responsive mobile design
+- Sound effects + background music
+- Interactive particle background
+- Notification toast system
 
-## 🚀 Cara Menjalankan
+## Changelog v0.9.2
+
+### UI/UX Improvements
+- Interactive Particle Background — canvas-based animated particles yang bereaksi terhadap mouse/touch
+- GameCard ripple effect + win count badge per game
+- Scroll-to-top button di Home page
+- Streak combo badge di Navbar dan Home banner
+- Improved hover/tap animations pada quick action cards
+
+### Sistem Baru
+- Streak Combo Multiplier — XP bonus berdasarkan streak harian
+- NotifContext — toast notification system baru (info, success, error, reward, levelup)
+- GameLayout components — reusable GameHeader, StatsBar, ActionButtons, WinModal, LoseModal
+- Participation coins — game yang kalah dapat 5 coin sebagai partisipasi
+
+### Bug Fixes
+- MemoryCardMatch WinModal star calculation (sebelumnya hardcoded, sekarang pakai pairs)
+- MemoryCardMatch hint system stale closure + board lock saat hint
+- Tutorial storage keys di semua 9 game ke centralized bp_tut prefix
+- Storage migration untuk old tutorial keys
+
+## Development
 
 ```bash
-# Clone repo
-git clone https://github.com/USERNAME/brainplay.git
-cd brainplay
-
-# Install dependencies
 npm install
-
-# Jalankan development server
 npm run dev
-
-# Build untuk production
 npm run build
 ```
-
-Buka `http://localhost:5173` di browser.
-
----
-
-## 📁 Struktur Project
-
-```
-brainplay/
-├── public/
-│   ├── favicon.svg
-│   └── manifest.json
-├── src/
-│   ├── components/
-│   │   ├── Confetti.jsx
-│   │   ├── DifficultySelector.jsx
-│   │   ├── GameCard.jsx
-│   │   ├── Navbar.jsx
-│   │   ├── PageTransition.jsx
-│   │   ├── SplashScreen.jsx
-│   │   └── TutorialModal.jsx
-│   ├── context/
-│   │   └── SettingsContext.jsx
-│   ├── hooks/
-│   │   └── useSound.js
-│   ├── pages/
-│   │   ├── Home.jsx
-│   │   └── games/
-│   │       ├── MemoryCardMatch.jsx
-│   │       ├── SlitherWorm.jsx
-│   │       └── Game2048.jsx
-│   ├── App.jsx
-│   └── main.jsx
-└── index.html
-```
-
----
-
-## ➕ Cara Menambah Game Baru
-
-1. Buat file baru di `src/pages/games/NamaGame.jsx`
-2. Komponen menerima props: `{ onBack, game, difficulty }`
-3. Daftarkan di `src/App.jsx` dalam array `GAMES`
-
-```jsx
-{
-  id: 'nama-game',
-  title: 'Nama Game',
-  emoji: '🎯',
-  description: 'Deskripsi singkat.',
-  color: '#FF6B6B',
-  bg: '#FFF0F0',
-  tag: 'Puzzle',
-  component: NamaGame,
-  day: 4,
-  difficulties: [
-    { id: 'easy',   description: '...', stats: ['...'] },
-    { id: 'medium', description: '...', stats: ['...'] },
-    { id: 'hard',   description: '...', stats: ['...'] },
-  ],
-}
-```
-
----
-
-## 📅 Roadmap
-
-- [x] Hari 1 — Memory Card Match 🃏
-- [x] Hari 2 — Slither Worm 🐍
-- [x] Hari 3 — Connect Blocks 🔗
-- [ ] Hari 4 — Wordle 💬
-- [ ] Hari 5 — Hangman 🪓
-- [ ] ...dst hingga Hari 25
-- [ ] Konversi ke Android (Capacitor)
-- [ ] Google AdMob integration
-- [ ] Submit ke Google Play Store
-
----
-
-Made with ❤️ — 30 Hari · 25 Game · 1 Website

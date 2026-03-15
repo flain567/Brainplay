@@ -177,7 +177,7 @@ export default function HangmanGame({ onBack, game, difficulty }) {
   const [guessed, setGuessed] = useState(new Set())
   const [won, setWon] = useState(false)
   const [lost, setLost] = useState(false)
-  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('tut-hangman'))
+  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('bp_tut_hangman'))
   const [showConfetti, setShowConfetti] = useState(false)
   const [resetKey, setResetKey] = useState(0)
   const [hintUsed, setHintUsed] = useState(0)
@@ -235,6 +235,7 @@ export default function HangmanGame({ onBack, game, difficulty }) {
         stars: 0,
         timeSec: time,
       })
+      earnCoins(5, 'Partisipasi Hangman')
     }
   }, [guessed])
 
@@ -295,7 +296,7 @@ export default function HangmanGame({ onBack, game, difficulty }) {
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100vh', transition: 'background 0.3s' }}>
-      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem("tut-hangman","1") }} />}
+      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_hangman","1") }} />}
       <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
 
       {/* Header */}

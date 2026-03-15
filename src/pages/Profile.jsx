@@ -435,7 +435,7 @@ export default function Profile({ onBack, games }) {
               </div>
 
               <p style={{ fontSize: 11, color: dark ? 'rgba(136,146,176,0.5)' : 'rgba(99,110,114,0.5)', marginTop: 14, fontWeight: 600 }}>
-                © 2025 BrainPlay v0.8.1 — Semua hak dilindungi.
+                © 2025 BrainPlay v0.9.2 — Semua hak dilindungi.
               </p>
             </div>
           </div>

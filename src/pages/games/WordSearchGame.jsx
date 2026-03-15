@@ -223,7 +223,7 @@ export default function WordSearchGame({ onBack, game, difficulty }) {
   const [phase, setPhase] = useState('playing') // playing | won
   const [hints, setHints] = useState(cfg.hintCount)
   const [hintCells, setHintCells] = useState({}) // cellKey -> true (temporary highlight)
-  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('tut-wordsearch'))
+  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('bp_tut_word-search'))
   const [showConfetti, setShowConfetti] = useState(false)
   const [toast, setToast] = useState('')
   const [stats, setStats] = useState(() => loadStats(difficulty.id))
@@ -540,7 +540,7 @@ export default function WordSearchGame({ onBack, game, difficulty }) {
       `}</style>
 
       {showTutorial && (
-        <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem('tut-wordsearch', '1') }} />
+        <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem('bp_tut_word-search', '1') }} />
       )}
       <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
 

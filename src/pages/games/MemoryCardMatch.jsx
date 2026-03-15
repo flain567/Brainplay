@@ -64,7 +64,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
   const [moves, setMoves]       = useState(0)
   const [locked, setLocked]     = useState(false)
   const [won, setWon]           = useState(false)
-  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('tut-memory'))
+  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('bp_tut_memory-card'))
   const [showConfetti, setShowConfetti] = useState(false)
   const [resetKey, setResetKey] = useState(0)
 
@@ -143,9 +143,9 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
   const [hintUsed, setHintUsed] = useState(0)
   const [hintCells, setHintCells] = useState([])
   const useHint = () => {
-    if (locked || hintUsed >= 3) return
+    if (locked || hintUsed >= 3 || won) return
     play('click')
-    const unmatched = deck.filter(c => !c.matched)
+    const unmatched = deck.filter(c => !c.matched && !c.flipped)
     if (unmatched.length < 2) return
     // Find first unmatched pair
     const found = []
@@ -155,11 +155,14 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
       seen[c.emoji] = c
     }
     if (found.length < 2) return
-    setHintCells(found.map(c=>c.id))
-    setDeck(d => d.map(c => found.some(f=>f.id===c.id) ? {...c, flipped:true} : c))
+    const foundIds = found.map(c => c.id)
+    setHintCells(foundIds)
+    setLocked(true)
+    setDeck(d => d.map(c => foundIds.includes(c.id) ? {...c, flipped:true} : c))
     setTimeout(() => {
-      setDeck(d => d.map(c => hintCells.includes(c.id)||found.some(f=>f.id===c.id) ? {...c, flipped:false} : c))
+      setDeck(d => d.map(c => foundIds.includes(c.id) ? {...c, flipped:false} : c))
       setHintCells([])
+      setLocked(false)
     }, 1500)
     setHintUsed(h => h+1)
   }
@@ -187,7 +190,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100vh', transition: 'background 0.3s' }}>
-      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color="#FF6B6B" onClose={() => { setShowTutorial(false); localStorage.setItem("tut-memory","1") }} />}
+      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color="#FF6B6B" onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_memory-card","1") }} />}
       <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
 
       {/* Header */}
@@ -263,6 +266,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
           onBack={onBack}
           darkMode={darkMode}
           game={game}
+          pairs={pairs}
         />
       )}
     </div>
@@ -289,8 +293,8 @@ function CardTile({ card, onClick, darkMode, small }) {
   )
 }
 
-function WinModal({ moves, time, diffLabel, onRestart, onBack, darkMode, game }) {
-  const stars   = moves <= (8 * 1.5) ? 3 : moves <= (8 * 2.5) ? 2 : 1
+function WinModal({ moves, time, diffLabel, onRestart, onBack, darkMode, game, pairs }) {
+  const stars   = moves <= (pairs * 1.5) ? 3 : moves <= (pairs * 2.5) ? 2 : 1
   const bg      = darkMode ? '#1a1a2e' : '#fff'
   const textMain  = darkMode ? '#e8e8f0' : '#2D3436'
   const textMuted = darkMode ? '#8892b0' : '#636E72'

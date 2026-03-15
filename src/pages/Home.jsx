@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import GameCard from '../components/GameCard.jsx'
+import ParticleBackground from '../components/ParticleBackground.jsx'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useProgress, getLevelInfo } from '../context/ProgressContext.jsx'
@@ -33,30 +34,22 @@ const TAG_META   = {
   Logika:  { icon: '🧠', color: '#FF6B6B' },
 }
 
-// Animated background blobs
-const BLOBS = [
-  { color: '#FF6B6B', size: 420, top: '-8%',  left: '-5%',  dur: '9s',  delay: '0s'   },
-  { color: '#A29BFE', size: 380, top: '10%',  left: '70%',  dur: '11s', delay: '2s'   },
-  { color: '#4ECDC4', size: 320, top: '55%',  left: '-3%',  dur: '13s', delay: '1s'   },
-  { color: '#FFE66D', size: 280, top: '70%',  left: '75%',  dur: '8s',  delay: '3s'   },
-  { color: '#FD79A8', size: 200, top: '35%',  left: '40%',  dur: '10s', delay: '0.5s' },
-]
-
 export default function Home({ games, onPlay, onProfile, onShop }) {
   const { darkMode } = useSettings()
   const { play }     = useSound()
   const { progress } = useProgress()
   const { coins, isDailyClaimable, claimDaily } = useCoins()
   const [activeTag, setActiveTag] = useState('Semua')
+  const [scrollTop, setScrollTop] = useState(false)
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
   const streak = progress.currentStreak || 0
-  const [visible, setVisible]     = useState(false)
   const dark = darkMode
 
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 50)
-    return () => clearTimeout(t)
+    const fn = () => setScrollTop(window.scrollY > 400)
+    window.addEventListener('scroll', fn, { passive: true })
+    return () => window.removeEventListener('scroll', fn)
   }, [])
 
   const textMain  = dark ? '#e8e8f0' : '#2D3436'
@@ -70,6 +63,10 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
   const totalDone = games.length
   const pct = Math.round((totalDone / 25) * 100)
 
+  // Streak combo multiplier
+  const comboMultiplier = streak >= 7 ? 2.0 : streak >= 3 ? 1.5 : streak >= 1 ? 1.2 : 1.0
+  const comboLabel = comboMultiplier > 1 ? `${comboMultiplier}×` : null
+
   return (
     <>
       <style>{`
@@ -78,14 +75,6 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
           position: relative;
           overflow: hidden;
           transition: background 0.4s;
-        }
-        /* Animated mesh background */
-        .home-blob {
-          position: absolute; border-radius: 50%;
-          filter: blur(80px);
-          pointer-events: none; z-index: 0;
-          opacity: ${dark ? '0.07' : '0.13'};
-          animation: float-y var(--dur) ease-in-out var(--delay) infinite alternate;
         }
         .home-content { position: relative; z-index: 1; max-width: 1140px; margin: 0 auto; padding: 52px 28px 80px; }
 
@@ -141,8 +130,8 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
           transition: width 1s cubic-bezier(0.34,1.56,0.64,1);
         }
         .progress-dots { display: flex; justify-content: space-between; margin-top: 8px; }
-        .progress-dot  { width: 6px; height: 6px; border-radius: 50%; background: ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}; }
-        .progress-dot.done { background: #A29BFE; }
+        .progress-dot  { width: 6px; height: 6px; border-radius: 50%; background: ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}; transition: all 0.3s; }
+        .progress-dot.done { background: #A29BFE; box-shadow: 0 0 6px #A29BFE44; }
 
         /* Filter tabs */
         .filter-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 36px; animation: slide-up 0.5s 0.35s ease both; }
@@ -165,7 +154,6 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
         /* Section headers */
         .section-head { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; animation: slide-up 0.5s ease both; }
         .section-title { font-family: 'Fredoka One',cursive; font-size: 26px; color: ${textMain}; white-space: nowrap; }
-        .section-count { border-radius: 100px; padding: '4px 14px'; font-size: 13px; font-weight: 800; }
         .section-line  { flex: 1; height: 2px; border-radius: 100px; background: ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}; min-width: 20px; }
 
         /* Coming soon grid */
@@ -177,6 +165,38 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
           transition: all 0.2s ease;
         }
         .cs-card:hover { opacity: 0.85; transform: scale(1.03); border-style: solid; }
+
+        /* Quick action cards */
+        .qa-card {
+          flex: 1; display: flex; align-items: center; gap: 10; cursor: pointer;
+          border-radius: 16px; padding: 12px 16px; transition: all 0.2s;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .qa-card:hover { transform: translateY(-2px); }
+        .qa-card:active { transform: scale(0.98); }
+
+        /* Combo badge */
+        .combo-badge {
+          display: inline-flex; align-items: center; gap: 4px;
+          background: linear-gradient(135deg, #FF6B6B, #FD79A8);
+          color: #fff; padding: 2px 8px; border-radius: 100px;
+          font-size: 10px; font-weight: 800; font-family: 'Fredoka One',cursive;
+          animation: glow-pulse 2s ease infinite;
+        }
+
+        /* Scroll to top button */
+        .scroll-top-btn {
+          position: fixed; bottom: 24px; right: 24px; z-index: 100;
+          width: 44px; height: 44px; border-radius: 14px;
+          background: linear-gradient(135deg, #A29BFE, #FD79A8);
+          color: #fff; border: none; font-size: 20px;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; box-shadow: 0 4px 16px rgba(162,155,254,0.4);
+          transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+          opacity: 0; pointer-events: none; transform: translateY(20px);
+        }
+        .scroll-top-btn.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .scroll-top-btn:hover { transform: translateY(-4px) scale(1.1); }
 
         @media (max-width: 600px) {
           .home-content { padding: 24px 16px 60px; }
@@ -251,10 +271,8 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
 
       <div className="home-root" style={{ background: dark ? '#0d0b1e' : '#FFF9F0' }}>
 
-        {/* Mesh blobs */}
-        {BLOBS.map((b, i) => (
-          <div key={i} className="home-blob" style={{ width: b.size, height: b.size, top: b.top, left: b.left, background: b.color, '--dur': b.dur, '--delay': b.delay }} />
-        ))}
+        {/* Interactive particle background */}
+        <ParticleBackground dark={dark} />
 
         <div className="home-content">
 
@@ -312,6 +330,7 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
               <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
                 <span style={{ fontSize:16 }}>🔥</span>
                 <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#FF6B6B' }}>{streak}</span>
+                {comboLabel && <span className="combo-badge">{comboLabel}</span>}
               </div>
               <span style={{ fontSize:16, color:textMuted }}>→</span>
             </div>
@@ -322,15 +341,14 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
             {/* Daily Reward */}
             {isDailyClaimable && (
               <div
+                className="qa-card"
                 onClick={() => { play('levelUp'); claimDaily() }}
                 style={{
-                  flex:1, display:'flex', alignItems:'center', gap:10, cursor:'pointer',
                   background: dark?'rgba(253,203,110,0.08)':'rgba(253,203,110,0.1)',
                   border:`1.5px solid ${dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.3)'}`,
-                  borderRadius:16, padding:'12px 16px', transition:'all 0.2s',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.borderColor='#FDCB6E' }}
-                onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.borderColor=dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.3)' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor='#FDCB6E'}
+                onMouseLeave={e => e.currentTarget.style.borderColor=dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.3)'}
               >
                 <span style={{ fontSize:24 }}>🎁</span>
                 <div style={{ flex:1 }}>
@@ -341,15 +359,14 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
             )}
             {/* Shop button */}
             <div
+              className="qa-card"
               onClick={() => { play('click'); onShop && onShop() }}
               style={{
-                flex:1, display:'flex', alignItems:'center', gap:10, cursor:'pointer',
                 background: dark?'rgba(162,155,254,0.08)':'rgba(162,155,254,0.06)',
                 border:`1.5px solid ${dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.2)'}`,
-                borderRadius:16, padding:'12px 16px', transition:'all 0.2s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.borderColor='#A29BFE' }}
-              onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.borderColor=dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.2)' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor='#A29BFE'}
+              onMouseLeave={e => e.currentTarget.style.borderColor=dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.2)'}
             >
               <span style={{ fontSize:24 }}>🏪</span>
               <div style={{ flex:1 }}>
@@ -456,12 +473,20 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
                 <span className="footer-credit-label">Dibuat dengan ❤️ oleh</span>
                 <span className="footer-credit-name">Dwi Agus Hidayat</span>
               </div>
-              <p className="footer-copy">© 2025 BrainPlay. Semua hak dilindungi.</p>
+              <p className="footer-copy">© 2025 BrainPlay v0.9.2 — Semua hak dilindungi.</p>
             </div>
           </footer>
 
         </div>
       </div>
+
+      {/* Scroll to top */}
+      <button
+        className={`scroll-top-btn ${scrollTop ? 'visible' : ''}`}
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      >
+        ↑
+      </button>
     </>
   )
 }

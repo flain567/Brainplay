@@ -119,7 +119,7 @@ export default function SudokuGame({ onBack, game, difficulty }) {
   const [errors, setErrors] = useState(0)
   const [errorCells, setErrorCells] = useState(new Set())
   const [won, setWon] = useState(false)
-  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('tut-sudoku'))
+  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('bp_tut_sudoku'))
   const [showConfetti, setShowConfetti] = useState(false)
   const [resetKey, setResetKey] = useState(0)
   const [notesMode, setNotesMode] = useState(false)
@@ -316,7 +316,7 @@ export default function SudokuGame({ onBack, game, difficulty }) {
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100vh', transition: 'background 0.3s' }}>
-      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem("tut-sudoku","1") }} />}
+      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_sudoku","1") }} />}
       <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
 
       {/* Header */}

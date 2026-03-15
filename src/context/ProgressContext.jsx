@@ -39,6 +39,13 @@ export function getLevelInfo(xp) {
   }
 }
 
+export function getComboMultiplier(streak) {
+  if (streak >= 14) return 2.0
+  if (streak >= 7) return 1.5
+  if (streak >= 3) return 1.2
+  return 1.0
+}
+
 // ─── Achievement Definitions ─────────────────────────────────────────────────
 export const ACHIEVEMENTS = [
   // Milestone - games played
@@ -147,13 +154,18 @@ export function ProgressProvider({ children }) {
     setProgress(p => {
       const next = { ...p }
 
-      // XP calculation
+      // XP calculation with streak combo multiplier
       let xpGain = 20 // base for playing
       if (won) xpGain += 30
       if (score) xpGain += Math.min(Math.floor(score / 10), 50) // cap at 50 bonus
       if (stars === 3) xpGain += 25
       if (difficultyId === 'hard') xpGain += 15
       if (difficultyId === 'medium') xpGain += 5
+
+      // Streak combo multiplier
+      const streak = next.currentStreak || 0
+      const comboMultiplier = streak >= 14 ? 2.0 : streak >= 7 ? 1.5 : streak >= 3 ? 1.2 : 1.0
+      xpGain = Math.round(xpGain * comboMultiplier)
 
       next.totalXP = (next.totalXP || 0) + xpGain
       next.totalGamesPlayed = (next.totalGamesPlayed || 0) + 1

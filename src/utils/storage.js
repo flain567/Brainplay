@@ -63,6 +63,14 @@ export function migrateOldStorage() {
     // Old tutorial flags
     { from: 'tut-wordle',      to: StorageKeys.tutorial('word-search') },
     { from: 'tut-wordsearch',  to: StorageKeys.tutorial('word-search') },
+    { from: 'tut-memory',      to: StorageKeys.tutorial('memory-card') },
+    { from: 'tut-colorsort',   to: StorageKeys.tutorial('color-sort') },
+    { from: 'tut-connect',     to: StorageKeys.tutorial('2048') },
+    { from: 'tut-hangman',     to: StorageKeys.tutorial('hangman') },
+    { from: 'tut-jigsaw',      to: StorageKeys.tutorial('jigsaw') },
+    { from: 'tut-slither',     to: StorageKeys.tutorial('slither-worm') },
+    { from: 'tut-space-shooter', to: StorageKeys.tutorial('space-shooter') },
+    { from: 'tut-sudoku',      to: StorageKeys.tutorial('sudoku') },
   ]
 
   migrations.forEach(({ from, to }) => {

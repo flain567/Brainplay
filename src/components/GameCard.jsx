@@ -1,12 +1,31 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
+import { useProgress } from '../context/ProgressContext.jsx'
 
 export default function GameCard({ game, onPlay }) {
   const [hovered, setHovered] = useState(false)
+  const [ripple, setRipple] = useState(null)
   const { darkMode } = useSettings()
   const { play } = useSound()
+  const { progress } = useProgress()
   const dark = darkMode
+  const cardRef = useRef(null)
+
+  // Game progress info
+  const wins = (progress.gameWins || {})[game.id] || 0
+  const best = (progress.gameBests || {})[game.id] || 0
+
+  const handleClick = (e) => {
+    // Ripple effect
+    const rect = cardRef.current?.getBoundingClientRect()
+    if (rect) {
+      setRipple({ x: e.clientX - rect.left, y: e.clientY - rect.top, id: Date.now() })
+      setTimeout(() => setRipple(null), 600)
+    }
+    play('click')
+    onPlay(game.id)
+  }
 
   return (
     <>
@@ -67,6 +86,25 @@ export default function GameCard({ game, onPlay }) {
         }
         .gcard:hover .gcard-shine { left: 120%; }
 
+        .gcard-ripple {
+          position: absolute; border-radius: 50%;
+          background: rgba(255,255,255,0.25);
+          pointer-events: none;
+          animation: rippleAnim 0.6s ease-out forwards;
+        }
+        @keyframes rippleAnim {
+          0% { width: 0; height: 0; opacity: 0.4; }
+          100% { width: 300px; height: 300px; opacity: 0; }
+        }
+
+        .gcard-progress-dots {
+          display: flex; gap: 3px; margin-top: 2px;
+        }
+        .gcard-progress-dots span {
+          width: 5px; height: 5px; border-radius: 50%;
+          transition: all 0.2s;
+        }
+
         @media (max-width: 600px) {
           .gcard { padding: 22px; border-radius: 22px; }
           .gcard-emoji { font-size: 42px; margin-bottom: 12px; }
@@ -75,8 +113,9 @@ export default function GameCard({ game, onPlay }) {
       `}</style>
 
       <div
+        ref={cardRef}
         className="gcard"
-        onClick={() => { play('click'); onPlay(game.id) }}
+        onClick={handleClick}
         onMouseEnter={() => { play('hover'); setHovered(true) }}
         onMouseLeave={() => setHovered(false)}
         style={{
@@ -89,6 +128,11 @@ export default function GameCard({ game, onPlay }) {
             : dark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.07)',
         }}
       >
+        {/* Ripple */}
+        {ripple && (
+          <div className="gcard-ripple" style={{ left: ripple.x - 150, top: ripple.y - 150 }} />
+        )}
+
         {/* Shine sweep */}
         <div className="gcard-shine" />
 
@@ -113,10 +157,20 @@ export default function GameCard({ game, onPlay }) {
         <div className="gcard-emoji">{game.emoji}</div>
 
         {/* Tags */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ background: game.color, color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 100, letterSpacing: '0.3px' }}>
             {game.tag}
           </span>
+          {wins > 0 && (
+            <span style={{
+              background: dark ? 'rgba(78,205,196,0.15)' : '#E8FFF8',
+              color: '#4ECDC4', fontSize: 10, fontWeight: 800,
+              padding: '3px 10px', borderRadius: 100,
+              border: '1px solid #4ECDC444',
+            }}>
+              {wins}× ✓
+            </span>
+          )}
         </div>
 
         {/* Title */}

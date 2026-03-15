@@ -115,7 +115,7 @@ export default function ColorSortGame({ onBack, game, difficulty }) {
   const [selectedTube, setSelectedTube] = useState(null)
   const [moves, setMoves] = useState(0)
   const [won, setWon] = useState(false)
-  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('tut-colorsort'))
+  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('bp_tut_color-sort'))
   const [showConfetti, setShowConfetti] = useState(false)
   const [resetKey, setResetKey] = useState(0)
   const [history, setHistory] = useState([]) // for undo
@@ -227,7 +227,7 @@ export default function ColorSortGame({ onBack, game, difficulty }) {
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100vh', transition: 'background 0.3s' }}>
-      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem("tut-colorsort","1") }} />}
+      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_color-sort","1") }} />}
       <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
 
       {/* Header */}

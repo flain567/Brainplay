@@ -53,7 +53,7 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
   const cfg = CFG[difficulty.id]
 
   const [phase, _setPhase]             = useState('idle')
-  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('tut-space-shooter'))
+  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('bp_tut_space-shooter'))
   const [showConfetti, setShowConfetti] = useState(false)
   const [score, setScore]             = useState(0)
   const [lives, setLives]             = useState(cfg.lives)
@@ -462,7 +462,7 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
 
   return (
     <>
-      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS_SS} color="#4ECDC4" onClose={() => { setShowTutorial(false); localStorage.setItem('tut-space-shooter','1') }} />}
+      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS_SS} color="#4ECDC4" onClose={() => { setShowTutorial(false); localStorage.setItem('bp_tut_space-shooter','1') }} />}
       {showConfetti && <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />}
 
     <div style={{ width:'100%', height: typeof CSS !== 'undefined' && CSS.supports('height','100dvh') ? '100dvh' : '100vh', background:'#07071a', position:'relative', overflow:'hidden', userSelect:'none' }}>

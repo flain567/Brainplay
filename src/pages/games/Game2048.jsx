@@ -79,7 +79,7 @@ export default function Game2048({ onBack, game, difficulty }) {
   const [chain,   setChain]   = useState([])
   const [dragging,setDragging]= useState(false)
   const [phase,   setPhase]   = useState('playing')
-  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('tut-connect'))
+  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('bp_tut_2048'))
   const [showConfetti, setShowConfetti] = useState(false)
   const [invalidFlash, setInvalidFlash] = useState(false)
   const [luInfo,  setLuInfo]  = useState(null)
@@ -231,6 +231,7 @@ export default function Game2048({ onBack, game, difficulty }) {
           stars: score >= 2000 ? 2 : 1,
           timeSec: 0,
         })
+        earnCoins(5, 'Partisipasi Connect Blocks')
       }
     }, 350)
     return () => clearTimeout(t)
@@ -243,7 +244,7 @@ export default function Game2048({ onBack, game, difficulty }) {
 
   return (
     <div style={{minHeight:'100vh',background:'#111',color:'#fff',display:'flex',flexDirection:'column',alignItems:'center',padding:'18px 12px 40px',userSelect:'none'}}>
-      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS_CB} color="#A29BFE" onClose={()=>{ setShowTutorial(false); localStorage.setItem("tut-connect","1") }} />}
+      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS_CB} color="#A29BFE" onClose={()=>{ setShowTutorial(false); localStorage.setItem("bp_tut_2048","1") }} />}
       <Confetti active={showConfetti} onDone={()=>setShowConfetti(false)} />
       <style>{`
         @keyframes tileNew   {from{transform:scale(0) translateY(-20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}

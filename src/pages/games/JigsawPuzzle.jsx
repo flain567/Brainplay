@@ -119,7 +119,7 @@ export default function JigsawPuzzle({ onBack, game, difficulty }) {
   const { earnCoins } = useCoins()
   const dark = darkMode
 
-  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('tut-jigsaw'))
+  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('bp_tut_jigsaw'))
 
   // Grid config by difficulty
   const config = difficulty.id === 'easy'
@@ -486,7 +486,7 @@ export default function JigsawPuzzle({ onBack, game, difficulty }) {
             <TutorialModal
               steps={TUTORIAL_STEPS}
               color={accent}
-              onClose={() => { setShowTutorial(false); localStorage.setItem('tut-jigsaw','1') }}
+              onClose={() => { setShowTutorial(false); localStorage.setItem('bp_tut_jigsaw','1') }}
             />
           )}
 

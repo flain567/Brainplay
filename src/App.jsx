@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { SettingsProvider, useSettings } from './context/SettingsContext.jsx'
 import { ProgressProvider } from './context/ProgressContext.jsx'
 import { CoinProvider } from './context/CoinContext.jsx'
+import { NotifProvider } from './context/NotifContext.jsx'
 import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
 import PageTransition from './components/PageTransition.jsx'
@@ -204,7 +205,9 @@ export default function App() {
     <SettingsProvider>
       <ProgressProvider>
         <CoinProvider>
-          <AppInner />
+          <NotifProvider>
+            <AppInner />
+          </NotifProvider>
         </CoinProvider>
       </ProgressProvider>
     </SettingsProvider>
