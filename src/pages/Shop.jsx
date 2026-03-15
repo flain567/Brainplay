@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
-import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
+import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
 
 // ─── Generic cosmetic list renderer ─────────────────────────────────────────
 function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMain, textMuted, borderCol, coins, onBuy, onEquip, buyingId, previewId, setPreviewId, renderPreview }) {
@@ -84,6 +84,7 @@ export default function Shop({ onBack }) {
   const {
     coins, ownedPacks, activePack, ownedSkins, activeSkin,
     ownedTileThemes, activeTileTheme, ownedHighlights, activeHighlight,
+    ownedShips, activeShip,
     hints, timeFreezes, dailyStreak, isDailyClaimable,
     buyCosmetic, equipCosmetic, buyConsumable, claimDaily, transactions,
   } = useCoins()
@@ -139,6 +140,7 @@ export default function Shop({ onBack }) {
     { id:'skins',      label:'🐍 Skins',    },
     { id:'tiles',      label:'🔗 Tiles',    },
     { id:'highlights', label:'🔍 Highlight' },
+    { id:'ships',      label:'🚀 Ships'     },
     { id:'items',      label:'💡 Items',    },
     { id:'history',    label:'📜 Riwayat',  },
   ]
@@ -399,6 +401,100 @@ export default function Shop({ onBack }) {
                   </div>
                 )}
               />
+            </div>
+          )}
+
+          {/* ── Ships (Space Shooter) ── */}
+          {tab === 'ships' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                Pesawat mengubah tampilan, stats, dan kemampuan spesial di Space Shooter
+              </p>
+              {SHIP_CATALOG.map((item, i) => {
+                const owned = (ownedShips||[]).includes(item.id)
+                const isActive = activeShip === item.id
+                const expanded = previewId === item.id
+                const st = item.stats
+                return (
+                  <div key={item.id} className={`shop-pack ${owned?'owned':''} ${isActive?'active':''}`}
+                    style={{ animation:`slide-up 0.3s ${i*0.04}s ease both`, background:surface, borderColor: isActive?'#4ECDC4':owned?(dark?'#4ECDC444':'#4ECDC4'):borderCol }}
+                    onClick={() => setPreviewId(expanded ? null : item.id)}>
+                    {isActive && (
+                      <div style={{ position:'absolute', top:12, right:12, background:'#4ECDC4', color:'#fff', fontSize:10, fontWeight:800, padding:'3px 10px', borderRadius:100, fontFamily:"'Fredoka One',cursive" }}>
+                        AKTIF
+                      </div>
+                    )}
+                    <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+                      <div style={{
+                        width:52, height:52, borderRadius:14, flexShrink:0,
+                        background:`${item.color}18`, border:`2px solid ${item.color}33`,
+                        display:'flex', alignItems:'center', justifyContent:'center', fontSize:28,
+                      }}>
+                        {item.icon}
+                      </div>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color:textMain }}>{item.name}</div>
+                        <div style={{ fontSize:12, color:textMuted, marginTop:1 }}>{item.desc}</div>
+                      </div>
+                      {!owned ? (
+                        <button onClick={(e) => { e.stopPropagation(); handleBuyCosmetic('ships', item) }}
+                          disabled={buyingId === item.id}
+                          style={{
+                            background: coins >= item.price ? 'linear-gradient(135deg,#FDCB6E,#F9A825)' : (dark?'#1e2a4a':'#eee'),
+                            color: coins >= item.price ? '#5D4037' : textMuted,
+                            border:'none', borderRadius:12, padding:'8px 16px',
+                            fontFamily:"'Fredoka One',cursive", fontSize:13,
+                            cursor: coins >= item.price ? 'pointer' : 'not-allowed',
+                            display:'flex', alignItems:'center', gap:4,
+                            opacity: buyingId === item.id ? 0.6 : 1,
+                            whiteSpace:'nowrap', flexShrink:0,
+                          }}>
+                          🪙 {item.price}
+                        </button>
+                      ) : !isActive ? (
+                        <button onClick={(e) => { e.stopPropagation(); handleEquip('ships', item.id) }}
+                          style={{
+                            background:'transparent', border:'2px solid #4ECDC4',
+                            borderRadius:12, padding:'8px 16px', color:'#4ECDC4',
+                            fontFamily:"'Fredoka One',cursive", fontSize:13, cursor:'pointer',
+                            whiteSpace:'nowrap', flexShrink:0,
+                          }}>
+                          Pakai
+                        </button>
+                      ) : null}
+                    </div>
+                    {expanded && (
+                      <div style={{ marginTop:14, padding:14, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)' }}>
+                        {[
+                          { label:'Kecepatan', val:st.speed, max:8, c:'#00FF88' },
+                          { label:'Fire Rate', val:(12-st.fireRate), max:8, c:'#FF6B6B' },
+                          { label:'Peluru', val:st.bulletCount, max:3, c:'#74B9FF' },
+                          { label:'HP', val:st.maxHP, max:8, c:'#FDCB6E' },
+                        ].map(bar => (
+                          <div key={bar.label} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
+                            <span style={{ fontSize:11, color:textMuted, width:70, fontWeight:700 }}>{bar.label}</span>
+                            <div style={{ flex:1, height:8, borderRadius:4, background:dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)' }}>
+                              <div style={{ width:`${(bar.val/bar.max)*100}%`, height:'100%', borderRadius:4, background:bar.c, transition:'width 0.3s' }} />
+                            </div>
+                            <span style={{ fontSize:11, fontWeight:800, color:bar.c, width:20, textAlign:'right' }}>{bar.val}</span>
+                          </div>
+                        ))}
+                        <div style={{ marginTop:8, fontSize:12, color:item.color, fontWeight:700 }}>
+                          ⚡ Spesial: {
+                            st.specialType==='bomb' ? 'Bom Area — ledakkan semua musuh di layar' :
+                            st.specialType==='rapid' ? 'Rapid Fire — tembakan 3× lebih cepat selama 5 detik' :
+                            st.specialType==='shield' ? 'Mega Shield — perisai tak tertembus selama 8 detik' :
+                            st.specialType==='firetrail' ? 'Fire Trail — jejak api yang membakar musuh' :
+                            st.specialType==='cloak' ? 'Stealth Cloak — tidak terlihat selama 5 detik + 20% crit' :
+                            st.specialType==='beam' ? 'Mega Beam — laser dahsyat yang menembus semua musuh' :
+                            'Unknown'
+                          }
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           )}
 

@@ -115,6 +115,40 @@ export const HIGHLIGHT_PACKS = [
     colors:['#636E72','#95A5A6','#2D3436','#B2BEC3','#7F8C8D','#4A5457','#DFE6E9','#1E2324','#ABB2B9','#6C7A82','#3D4E56','#8395A7','#576574','#222F3E','#C8D6E5'] },
 ]
 
+// ─── Ship Catalog (Space Shooter) ────────────────────────────────────────────
+export const SHIP_CATALOG = [
+  { id:'falcon', name:'Falcon', desc:'Pesawat standar yang seimbang — cocok untuk semua misi',
+    price:0, icon:'🚀', color:'#4ECDC4',
+    stats:{ speed:5, fireRate:8, bulletCount:1, maxHP:5, specialType:'bomb', specialCharge:300 },
+    design:{ body:'#4ECDC4', wing:'#2d8a85', cockpit:'#74B9FF', engine:'#FDCB6E', accent:'#fff' }
+  },
+  { id:'viper', name:'Viper', desc:'Pesawat cepat dengan tembakan rapid — untuk pilot gesit',
+    price:200, icon:'⚡', color:'#00FF88',
+    stats:{ speed:7, fireRate:5, bulletCount:1, maxHP:4, specialType:'rapid', specialCharge:250 },
+    design:{ body:'#00FF88', wing:'#00CC6E', cockpit:'#B8FFD0', engine:'#00FF88', accent:'#fff' }
+  },
+  { id:'titan', name:'Titan', desc:'Pesawat berat dengan armor tebal dan tembakan menyebar',
+    price:350, icon:'🛡️', color:'#FF6B6B',
+    stats:{ speed:3.5, fireRate:10, bulletCount:3, maxHP:8, specialType:'shield', specialCharge:200 },
+    design:{ body:'#FF6B6B', wing:'#CC4444', cockpit:'#FFB8B8', engine:'#FF4444', accent:'#fff' }
+  },
+  { id:'phoenix', name:'Phoenix', desc:'Pesawat legendaris dengan jejak api yang membakar musuh',
+    price:500, icon:'🔥', color:'#FF8C00',
+    stats:{ speed:5.5, fireRate:7, bulletCount:2, maxHP:6, specialType:'firetrail', specialCharge:280 },
+    design:{ body:'#FF8C00', wing:'#CC6600', cockpit:'#FFD700', engine:'#FF4500', accent:'#FFE0A0' }
+  },
+  { id:'shadow', name:'Shadow', desc:'Pesawat stealth — 20% chance critical hit 2× damage',
+    price:700, icon:'👻', color:'#A29BFE',
+    stats:{ speed:6, fireRate:7, bulletCount:2, maxHP:5, specialType:'cloak', specialCharge:260, critChance:0.2 },
+    design:{ body:'#A29BFE', wing:'#6C5CE7', cockpit:'#D4CFFF', engine:'#A29BFE', accent:'#E0DDFF' }
+  },
+  { id:'nebula', name:'Nebula', desc:'Pesawat terkuat — senjata laser dan pertahanan maksimal',
+    price:1000, icon:'💎', color:'#FFD700',
+    stats:{ speed:5.5, fireRate:6, bulletCount:3, maxHP:7, specialType:'beam', specialCharge:350 },
+    design:{ body:'#FFD700', wing:'#DAA520', cockpit:'#FFFACD', engine:'#FFA500', accent:'#FFF8DC' }
+  },
+]
+
 // ─── Consumable Items ───────────────────────────────────────────────────────
 export const CONSUMABLES = [
   { id:'extra-hints', name:'Extra Hints ×5', desc:'Tambah 5 hint di game yang mendukung hint', price:50, icon:'💡', color:'#FDCB6E', amount:5 },
@@ -139,6 +173,7 @@ function getDefaultCoinState() {
     ownedSkins:['default'], activeSkin:'default',
     ownedTileThemes:['default'], activeTileTheme:'default',
     ownedHighlights:['default'], activeHighlight:'default',
+    ownedShips:['falcon'], activeShip:'falcon',
     hints:0, timeFreezes:0,
     lastDailyClaim:null, dailyStreak:0, transactions:[],
   }
@@ -179,8 +214,8 @@ export function CoinProvider({ children }) {
 
   // Generic buy cosmetic
   const buyCosmetic = useCallback(async (type, itemId) => {
-    const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS }
-    const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights' }
+    const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS, ships:SHIP_CATALOG }
+    const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips' }
     const items = catalog[type]; const key = ownedKey[type]
     if (!items||!key) return { success:false, reason:'Tipe tidak valid' }
     const item = items.find(i => i.id === itemId)
@@ -195,8 +230,8 @@ export function CoinProvider({ children }) {
   const buyPack = useCallback((packId) => buyCosmetic('packs', packId), [buyCosmetic])
 
   const equipCosmetic = useCallback((type, itemId) => {
-    const ownedKey  = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights' }
-    const activeKey = { packs:'activePack', skins:'activeSkin', tileThemes:'activeTileTheme', highlights:'activeHighlight' }
+    const ownedKey  = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips' }
+    const activeKey = { packs:'activePack', skins:'activeSkin', tileThemes:'activeTileTheme', highlights:'activeHighlight', ships:'activeShip' }
     const key = ownedKey[type]; const aKey = activeKey[type]
     if (!key||!aKey) return
     if (!(state[key]||[]).includes(itemId)) return
@@ -265,6 +300,11 @@ export function CoinProvider({ children }) {
     return p ? p.colors : HIGHLIGHT_PACKS[0].colors
   }, [state.activeHighlight])
 
+  const getActiveShip = useCallback(() => {
+    const ship = SHIP_CATALOG.find(s => s.id === state.activeShip)
+    return ship || SHIP_CATALOG[0]
+  }, [state.activeShip])
+
   return (
     <CoinContext.Provider value={{
       coins:state.balance, totalEarned:state.totalEarned, totalSpent:state.totalSpent,
@@ -272,13 +312,14 @@ export function CoinProvider({ children }) {
       ownedSkins:state.ownedSkins||[], activeSkin:state.activeSkin,
       ownedTileThemes:state.ownedTileThemes||[], activeTileTheme:state.activeTileTheme,
       ownedHighlights:state.ownedHighlights||[], activeHighlight:state.activeHighlight,
+      ownedShips:state.ownedShips||[], activeShip:state.activeShip,
       hints:state.hints||0, timeFreezes:state.timeFreezes||0,
       dailyStreak:state.dailyStreak, transactions:state.transactions||[],
       isDailyClaimable, coinAnim,
       earnCoins, spendCoins, buyPack, buyCosmetic, equipCosmetic,
       buyConsumable, useHint, useTimeFreeze,
       setActivePack, claimDaily,
-      getActiveIcons, getActiveSkin, getActiveTileColors, getActiveHighlightColors,
+      getActiveIcons, getActiveSkin, getActiveTileColors, getActiveHighlightColors, getActiveShip,
     }}>
       {children}
     </CoinContext.Provider>

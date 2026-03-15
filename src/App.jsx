@@ -80,13 +80,13 @@ export const GAMES = [
     id: 'space-shooter',
     title: 'Space Shooter',
     emoji: '🚀',
-    description: 'Hancurkan alien, kumpulkan power-up, dan kalahkan boss di luar angkasa!',
-    color: '#00B894', bg: '#E8FFF8', tag: 'Casual',
+    description: 'Hancurkan wave demi wave alien, kalahkan boss, kumpulkan power-up, dan gunakan kemampuan spesial pesawatmu!',
+    color: '#00B894', bg: '#E8FFF8', tag: 'Action',
     component: SpaceShooter, day: 5,
     difficulties: [
-      { id:'easy',   description:'Musuh lambat, 5 nyawa — misi santai untuk pemula',    stats:['5 nyawa','Target 300'] },
-      { id:'medium', description:'Musuh sedang, 4 nyawa — butuh strategi yang pas!',     stats:['4 nyawa','Target 500'] },
-      { id:'hard',   description:'Musuh cepat, 3 nyawa — hanya pilot terbaik yang selamat!', stats:['3 nyawa','Target 800'] },
+      { id:'easy',   description:'5 wave, musuh lambat, 5 HP — misi santai untuk pemula',    stats:['5 wave','5 HP','Boss tiap 3 wave'] },
+      { id:'medium', description:'7 wave, musuh sedang, 4 HP — butuh strategi & skill!',     stats:['7 wave','4 HP','Boss tiap 3 wave'] },
+      { id:'hard',   description:'10 wave, musuh cepat, 3 HP — hanya pilot legendaris!', stats:['10 wave','3 HP','Boss tiap 3 wave'] },
     ],
   },
   {
