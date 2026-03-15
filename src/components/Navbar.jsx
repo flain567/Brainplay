@@ -4,7 +4,7 @@ import { useCoins } from '../context/CoinContext.jsx'
 import { useProgress, getComboMultiplier } from '../context/ProgressContext.jsx'
 import { useEffect, useState } from 'react'
 
-export default function Navbar({ onHome, onProfile, onShop, currentGame, difficulty }) {
+export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, currentGame, difficulty }) {
   const { darkMode, muted, musicOff, toggle } = useSettings()
   const { play, setMuted } = useSound()
   const { coins } = useCoins()
@@ -174,6 +174,13 @@ export default function Navbar({ onHome, onProfile, onShop, currentGame, difficu
             >
               <span style={{ fontSize:14 }}>🪙</span>
               <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#F9A825' }}>{coins}</span>
+            </button>
+            <button
+              className="nav-btn"
+              title="Leaderboard"
+              onClick={() => { play('click'); onLeaderboard && onLeaderboard() }}
+            >
+              🏆
             </button>
             <button
               className="nav-btn"

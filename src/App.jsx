@@ -3,6 +3,7 @@ import { SettingsProvider, useSettings } from './context/SettingsContext.jsx'
 import { ProgressProvider } from './context/ProgressContext.jsx'
 import { CoinProvider } from './context/CoinContext.jsx'
 import { NotifProvider } from './context/NotifContext.jsx'
+import { LeaderboardProvider } from './context/LeaderboardContext.jsx'
 import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
 import PageTransition from './components/PageTransition.jsx'
@@ -11,6 +12,7 @@ import CoinToast from './components/CoinToast.jsx'
 import Home from './pages/Home.jsx'
 import Profile from './pages/Profile.jsx'
 import Shop from './pages/Shop.jsx'
+import Leaderboard from './pages/Leaderboard.jsx'
 import MemoryCardMatch from './pages/games/MemoryCardMatch.jsx'
 import SlitherWorm from './pages/games/SlitherWorm.jsx'
 import Game2048 from './pages/games/Game2048.jsx'
@@ -153,7 +155,7 @@ function AppInner() {
   useEffect(() => { migrateOldStorage() }, [])
 
   // Music plays on lobby screens, stops during game
-  const isLobby = screen === 'home' || screen === 'profile' || screen === 'difficulty' || screen === 'shop'
+  const isLobby = screen === 'home' || screen === 'profile' || screen === 'difficulty' || screen === 'shop' || screen === 'leaderboard'
   useMusic(isLobby, muted || musicOff)
 
   const openGame = (gameId) => {
@@ -166,6 +168,7 @@ function AppInner() {
   const goBackToDifficulty = () => { setDifficulty(null); setScreen('difficulty'); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goProfile         = () => { setScreen('profile'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goShop            = () => { setScreen('shop'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goLeaderboard     = () => { setScreen('leaderboard'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
 
   const activeDiff   = currentGame?.difficulties?.find(d => d.id === difficulty)
   const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter')
@@ -173,7 +176,7 @@ function AppInner() {
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
       {!isFullscreen && (
-        <Navbar onHome={goHome} onProfile={goProfile} onShop={goShop} currentGame={screen === 'game' ? currentGame : null} />
+        <Navbar onHome={goHome} onProfile={goProfile} onShop={goShop} onLeaderboard={goLeaderboard} currentGame={screen === 'game' ? currentGame : null} />
       )}
       <AchievementToast />
       <CoinToast />
@@ -187,6 +190,9 @@ function AppInner() {
           )}
           {screen === 'shop' && (
             <Shop onBack={goHome} />
+          )}
+          {screen === 'leaderboard' && (
+            <Leaderboard onBack={goHome} games={GAMES} />
           )}
           {screen === 'difficulty' && currentGame && (
             <DifficultySelector game={currentGame} onSelect={selectDifficulty} onBack={goHome} />
@@ -205,9 +211,11 @@ export default function App() {
     <SettingsProvider>
       <ProgressProvider>
         <CoinProvider>
-          <NotifProvider>
-            <AppInner />
-          </NotifProvider>
+          <LeaderboardProvider>
+            <NotifProvider>
+              <AppInner />
+            </NotifProvider>
+          </LeaderboardProvider>
         </CoinProvider>
       </ProgressProvider>
     </SettingsProvider>

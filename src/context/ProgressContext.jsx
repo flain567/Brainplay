@@ -151,6 +151,13 @@ export function ProgressProvider({ children }) {
 
   // Report a game result
   const reportGameResult = useCallback(({ gameId, difficultyId, won, score, stars, timeSec }) => {
+    // Dispatch event for leaderboard auto-submission
+    try {
+      window.dispatchEvent(new CustomEvent('bp-game-result', {
+        detail: { gameId, difficultyId, won, score, stars, timeSec }
+      }))
+    } catch(e) {}
+
     setProgress(p => {
       const next = { ...p }
 
