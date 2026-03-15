@@ -249,7 +249,10 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
       if (inp.touchActive && inp.touchX !== null) {
         const targetX = inp.touchX - inp.touchOffsetX
         const dx = targetX - p.x
-        p.x += Math.sign(dx) * Math.min(Math.abs(dx), cfg.playerSpeed + 4)
+        // Smooth lerp for close distances, snap for far distances
+        if (Math.abs(dx) > 2) {
+          p.x += dx * 0.35 // smooth 35% lerp per frame
+        }
       } else {
         if (inp.left) p.x -= cfg.playerSpeed
         if (inp.right) p.x += cfg.playerSpeed
@@ -345,7 +348,7 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
       const g = gameRef.current
       if (!g) return
       const W = g.W, H = g.H, p = g.player
-      const sx = g.shakeTimer > 0 ? rand(-3, 3) : 0, sy = g.shakeTimer > 0 ? rand(-3, 3) : 0
+      const sx = g.shakeTimer > 0 ? rand(-4, 4) * (g.shakeTimer / 15) : 0, sy = g.shakeTimer > 0 ? rand(-4, 4) * (g.shakeTimer / 15) : 0
 
       ctx.save(); ctx.translate(sx, sy)
 

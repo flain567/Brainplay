@@ -9,6 +9,7 @@ Dibuat oleh **Dwi Agus Hidayat**
 ## Teknologi
 - React 18 + Vite 5
 - Pure CSS animations (no external UI lib)
+- Canvas-based games (Slither Worm, Space Shooter)
 - localStorage persistence
 - Deploy: Vercel
 
@@ -39,22 +40,48 @@ Dibuat oleh **Dwi Agus Hidayat**
 
 ## Changelog v0.9.2
 
+### Gameplay Polish (4 game prioritas)
+
+**Slither Worm**
+- Turn rate increased (0.10 → 0.14) + dynamic stick-magnitude scaling
+- Camera follow sped up (0.09 → 0.12 lerp) — less laggy
+- Joystick enlarged 112→130px, knob 44→52px for mobile
+- Boost button enlarged 74→86px for easier tapping
+- Eat particles — sparkle burst when consuming food
+- Kill particles — explosion effect when killing bots
+- Death cause tracking — "menabrak bot musuh" vs "menabrak tembok"
+- Snappier steering — push joystick further = turn faster
+
+**Connect Blocks**
+- Removed confusing red flash on single-tap
+- Cell sizing improved — smarter formula with 44px minimum
+- Chain indicator — bigger glowing badge with pop animation
+
+**Hangman**
+- Keyboard buttons — responsive sizing with clamp() (was fixed 34px)
+- Word letters — dynamic sizing based on word length (Hard mode fits)
+- Visual hearts — replaced numeric lives with heart icons + pulse on low HP
+- Letter reveal animation — popLetter keyframe on correct guess
+
+**Space Shooter**
+- Touch movement — smooth 35% lerp (was hard speed cap) — buttery feel
+- Screen shake — intensity scales with timer for decaying effect
+
 ### UI/UX Improvements
-- Interactive Particle Background — canvas-based animated particles yang bereaksi terhadap mouse/touch
+- Interactive Particle Background on Home page
 - GameCard ripple effect + win count badge per game
 - Scroll-to-top button di Home page
 - Streak combo badge di Navbar dan Home banner
-- Improved hover/tap animations pada quick action cards
 
 ### Sistem Baru
 - Streak Combo Multiplier — XP bonus berdasarkan streak harian
-- NotifContext — toast notification system baru (info, success, error, reward, levelup)
-- GameLayout components — reusable GameHeader, StatsBar, ActionButtons, WinModal, LoseModal
-- Participation coins — game yang kalah dapat 5 coin sebagai partisipasi
+- NotifContext — toast notification system (info, success, error, reward, levelup)
+- GameLayout components — reusable GameHeader, StatsBar, WinModal, LoseModal
+- Participation coins — game yang kalah dapat 5 coin
 
 ### Bug Fixes
-- MemoryCardMatch WinModal star calculation (sebelumnya hardcoded, sekarang pakai pairs)
-- MemoryCardMatch hint system stale closure + board lock saat hint
+- MemoryCardMatch WinModal star calculation (hardcoded → pairs)
+- MemoryCardMatch hint stale closure + board lock saat hint
 - Tutorial storage keys di semua 9 game ke centralized bp_tut prefix
 - Storage migration untuk old tutorial keys
 

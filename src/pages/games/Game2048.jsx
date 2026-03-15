@@ -96,8 +96,8 @@ export default function Game2048({ onBack, game, difficulty }) {
   const [cellSize, setCellSize] = useState(58)
   useEffect(() => {
     const upd = () => {
-      const w = Math.min(window.innerWidth, 500)
-      setCellSize(Math.min(Math.floor((w-28)/CN)-4, 70))
+      const w = Math.min(window.innerWidth - 16, 500)
+      setCellSize(Math.max(44, Math.min(Math.floor((w - 20) / CN) - 4, 72)))
     }
     upd(); window.addEventListener('resize', upd)
     return () => window.removeEventListener('resize', upd)
@@ -141,7 +141,7 @@ export default function Game2048({ onBack, game, difficulty }) {
     if (!dragging) return
     setDragging(false)
     const cur = chainRef.current
-    if (cur.length < 2) { setChain([]); if (cur.length === 1) { setInvalidFlash(true); setTimeout(()=>setInvalidFlash(false),400) } return }
+    if (cur.length < 2) { setChain([]); return }
 
     const g      = gridRef.current
     const val    = g[cur[0].r][cur[0].c].value
@@ -286,10 +286,10 @@ export default function Game2048({ onBack, game, difficulty }) {
       </div>
 
       {/* Chain indicator */}
-      <div style={{height:34,marginBottom:6,display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div style={{height:38,marginBottom:8,display:'flex',alignItems:'center',justifyContent:'center'}}>
         {chain.length>=2 && chainVal && (()=>{
           const col=getColor(chainVal), sum=chainVal*chain.length
-          return <span style={{background:`${col.bg}25`,border:`1.5px solid ${col.bg}66`,borderRadius:100,padding:'5px 18px',fontFamily:"'Fredoka One',cursive",fontSize:15,color:col.bg}}>
+          return <span style={{background:`${col.bg}30`,border:`2px solid ${col.bg}88`,borderRadius:100,padding:'6px 22px',fontFamily:"'Fredoka One',cursive",fontSize:17,color:col.bg,boxShadow:`0 0 16px ${col.bg}33`,animation:'popIn 0.2s ease'}}>
             {chain.length}× {chainVal} = {sum} {sum>=goal?'🏆':''}
           </span>
         })()}

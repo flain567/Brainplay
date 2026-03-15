@@ -298,6 +298,10 @@ export default function HangmanGame({ onBack, game, difficulty }) {
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100vh', transition: 'background 0.3s' }}>
       {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_hangman","1") }} />}
       <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
+      <style>{`
+        @keyframes popLetter { from { transform: scale(1.4); opacity: 0.5; } to { transform: scale(1); opacity: 1; } }
+        @keyframes heartPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+      `}</style>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
@@ -320,8 +324,21 @@ export default function HangmanGame({ onBack, game, difficulty }) {
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 24 }}>
+        <div style={{ background: surface, border: `2px solid #FF6B6B33`, borderRadius: 16, padding: '12px 16px', textAlign: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginBottom: 3 }}>
+            {Array.from({ length: maxWrong }).map((_, i) => (
+              <span key={i} style={{
+                fontSize: maxWrong > 7 ? 14 : 16,
+                opacity: i < (maxWrong - wrongCount) ? 1 : 0.2,
+                filter: i < (maxWrong - wrongCount) ? 'none' : 'grayscale(1)',
+                animation: (maxWrong - wrongCount) <= 2 && i < (maxWrong - wrongCount) ? 'heartPulse 0.8s ease infinite' : 'none',
+                transition: 'all 0.3s',
+              }}>❤️</span>
+            ))}
+          </div>
+          <div style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>❤️ Nyawa</div>
+        </div>
         {[
-          { label: '❤️ Nyawa', value: `${maxWrong - wrongCount}/${maxWrong}`, color: '#FF6B6B' },
           { label: '⏱ Waktu', value: formatTime(time), color: '#4ECDC4' },
           { label: '🔤 Huruf', value: `${guessed.size}`, color: '#A29BFE' },
         ].map(s => (
@@ -345,18 +362,20 @@ export default function HangmanGame({ onBack, game, difficulty }) {
       </div>
 
       {/* Word display */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: word.length > 9 ? 5 : 8, flexWrap: 'wrap', marginBottom: 28 }}>
         {revealedWord.map((item, i) => (
           <div key={i} style={{
-            width: 40, height: 48,
+            width: word.length > 10 ? 30 : word.length > 7 ? 36 : 42,
+            height: word.length > 10 ? 38 : word.length > 7 ? 44 : 50,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             borderBottom: `3px solid ${item.revealed ? (lost && !guessed.has(item.letter) ? '#FF6B6B' : accent) : (darkMode ? '#4a4a6a' : '#B2BEC3')}`,
             fontFamily: "'Fredoka One',cursive",
-            fontSize: 28,
+            fontSize: word.length > 10 ? 20 : word.length > 7 ? 24 : 28,
             color: lost && !guessed.has(item.letter) ? '#FF6B6B' : textMain,
             transition: 'all 0.3s',
             transform: item.revealed ? 'scale(1)' : 'scale(0.8)',
             opacity: item.revealed ? 1 : 0,
+            animation: item.revealed && !lost ? `popLetter 0.3s ease` : 'none',
           }}>
             {item.revealed ? item.letter : ''}
           </div>
@@ -376,7 +395,7 @@ export default function HangmanGame({ onBack, game, difficulty }) {
       {/* Keyboard */}
       <div style={{ marginBottom: 24 }}>
         {KEYBOARD_ROWS.map((row, ri) => (
-          <div key={ri} style={{ display: 'flex', justifyContent: 'center', gap: 5, marginBottom: 6 }}>
+          <div key={ri} style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 7 }}>
             {row.map(letter => {
               const isGuessed = guessed.has(letter)
               const isCorrect = isGuessed && word.includes(letter)
@@ -384,18 +403,21 @@ export default function HangmanGame({ onBack, game, difficulty }) {
               return (
                 <button key={letter} onClick={() => guessLetter(letter)} disabled={isGuessed || !isGameActive}
                   style={{
-                    width: 34, height: 42,
+                    width: 'clamp(30px, 8.5vw, 42px)',
+                    height: 'clamp(38px, 10vw, 50px)',
                     border: 'none',
-                    borderRadius: 10,
-                    fontSize: 15, fontWeight: 800,
+                    borderRadius: 12,
+                    fontSize: 'clamp(14px, 3.8vw, 18px)',
+                    fontWeight: 800,
                     fontFamily: "'Fredoka One',cursive",
                     cursor: (isGuessed || !isGameActive) ? 'default' : 'pointer',
                     background: isCorrect ? '#00b894' : isWrong ? '#FF6B6B' : (darkMode ? '#2d3561' : '#F1F3F5'),
                     color: isGuessed ? '#fff' : textMain,
                     opacity: isGuessed ? 0.7 : 1,
-                    transition: 'all 0.2s',
-                    transform: isGuessed ? 'scale(0.9)' : 'scale(1)',
-                    boxShadow: isGuessed ? 'none' : `0 2px 8px ${darkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.08)'}`,
+                    transition: 'all 0.15s cubic-bezier(0.34,1.56,0.64,1)',
+                    transform: isGuessed ? 'scale(0.88)' : 'scale(1)',
+                    boxShadow: isGuessed ? 'none' : `0 3px 8px ${darkMode ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.1)'}`,
+                    WebkitTapHighlightColor: 'transparent',
                   }}>
                   {letter}
                 </button>

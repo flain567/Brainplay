@@ -26,9 +26,9 @@ const BOT_SKINS = [
 const DEFAULT_PLAYER_SKIN = { head: '#4ecdc4', body: '#2eada4', glow: '#4ecdc4' }
 
 const CFG = {
-  easy:   { speed: 2.2, boostMul: 2.0, foodCount: 55, mapSize: 1800, turn: 0.10, bots: 2 },
-  medium: { speed: 2.8, boostMul: 2.1, foodCount: 42, mapSize: 2200, turn: 0.11, bots: 3 },
-  hard:   { speed: 3.4, boostMul: 2.2, foodCount: 32, mapSize: 2600, turn: 0.12, bots: 5 },
+  easy:   { speed: 2.2, boostMul: 2.0, foodCount: 55, mapSize: 1800, turn: 0.14, bots: 2 },
+  medium: { speed: 2.8, boostMul: 2.1, foodCount: 42, mapSize: 2200, turn: 0.15, bots: 3 },
+  hard:   { speed: 3.4, boostMul: 2.2, foodCount: 32, mapSize: 2600, turn: 0.16, bots: 5 },
 }
 
 const rand  = (a, b) => a + Math.random() * (b - a)
@@ -190,6 +190,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
   const cfg = CFG[difficulty.id]
 
   const [phase, setPhase]       = useState('idle')
+  const [deathCause, setDeathCause] = useState('wall')
   const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('bp_tut_slither-worm'))
   const [showConfetti, setShowConfetti] = useState(false)
   const [score, setScore]       = useState(0)
@@ -212,7 +213,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
     }))
     const foods  = Array.from({ length: cfg.foodCount }, () => spawnFood(M))
     return {
-      player, bots, foods,
+      player, bots, foods, particles: [],
       score: 0, kills: 0, mapSize: M,
       cam: { x: M / 2 - (canvas._logicalW || canvas.width) / 2, y: M / 2 - (canvas._logicalH || canvas.height) / 2 },
       tick: 0,
@@ -294,7 +295,9 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
           let da = target - p.angle
           while (da >  Math.PI) da -= Math.PI * 2
           while (da < -Math.PI) da += Math.PI * 2
-          p.angle += da * cfg.turn
+          // Turn faster proportional to stick distance for snappier control
+          const stickMag = Math.sqrt(dx * dx + dy * dy)
+          p.angle += da * (cfg.turn + stickMag * 0.08)
         }
       }
 
@@ -308,6 +311,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
         play('gameOver')
         const fs = g.score
         if (fs > bestScore) { localStorage.setItem(`slither-best-${difficulty.id}`, fs); setBestScore(fs); setShowConfetti(true); setTimeout(()=>setShowConfetti(false),100) }
+        setDeathCause('wall')
         setPhase('dead')
         return
       }
@@ -328,6 +332,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
               const ps = p.segs[i * 3] || p.segs[0]
               g.foods.push({ x: ps.x + rand(-12,12), y: ps.y + rand(-12,12), color: PLAYER_SKIN.head, r: rand(5,9), pulse: 0 })
             }
+            setDeathCause('bot')
             setPhase('dead')
             return
           }
@@ -340,7 +345,15 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
       let grew = 0
       g.foods = g.foods.filter(f => {
         if (dist2(p.segs[0], f) < (SEG_R + f.r + 2) ** 2) {
-          g.score += Math.round(f.r); grew += Math.ceil(f.r / 2); return false
+          g.score += Math.round(f.r); grew += Math.ceil(f.r / 2)
+          // Spawn eat particles
+          for (let pi = 0; pi < 6; pi++) {
+            g.particles.push({
+              x: f.x, y: f.y, vx: rand(-2, 2), vy: rand(-2, 2),
+              r: rand(2, 5), color: f.color, life: 1,
+            })
+          }
+          return false
         }
         return true
       })
@@ -352,6 +365,12 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
       } else {
         p.segs.pop()
       }
+
+      // Update particles
+      g.particles = g.particles.filter(pt => {
+        pt.x += pt.vx; pt.y += pt.vy; pt.life -= 0.04; pt.r *= 0.97
+        return pt.life > 0
+      })
 
       // Bots update
       g.bots.forEach(bot => {
@@ -392,6 +411,14 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
             g.kills  += 1
             play('levelUp')
             setScore(g.score); setKills(g.kills)
+
+            // Kill celebration particles
+            for (let pi = 0; pi < 12; pi++) {
+              g.particles.push({
+                x: bnx, y: bny, vx: rand(-4, 4), vy: rand(-4, 4),
+                r: rand(3, 7), color: bot.skin.glow, life: 1,
+              })
+            }
 
             const drop = Math.min(30, Math.floor(bot.segs.length / 2))
             for (let i = 0; i < drop; i++) {
@@ -436,10 +463,10 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
       while (g.foods.length < cfg.foodCount) g.foods.push(spawnFood(M))
       g.foods.forEach(f => { f.pulse += 0.05 })
 
-      // Camera
+      // Camera — slightly faster follow for better feel
       const cW = canvas._logicalW || canvas.width, cH = canvas._logicalH || canvas.height
-      g.cam.x += (nx - cW / 2 - g.cam.x) * 0.09
-      g.cam.y += (ny - cH / 2 - g.cam.y) * 0.09
+      g.cam.x += (nx - cW / 2 - g.cam.x) * 0.12
+      g.cam.y += (ny - cH / 2 - g.cam.y) * 0.12
       g.cam.x  = Math.max(0, Math.min(M - cW,  g.cam.x))
       g.cam.y  = Math.max(0, Math.min(M - cH, g.cam.y))
       g.tick++
@@ -494,6 +521,18 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
         }
         ctx.globalAlpha = 1
       }
+
+      // Eat particles
+      g.particles.forEach(pt => {
+        const px = pt.x - cx, py = pt.y - cy
+        if (px < -20 || px > W + 20 || py < -20 || py > H + 20) return
+        ctx.globalAlpha = pt.life
+        ctx.fillStyle = pt.color
+        ctx.beginPath()
+        ctx.arc(px, py, pt.r, 0, Math.PI * 2)
+        ctx.fill()
+      })
+      ctx.globalAlpha = 1
 
       ctx.shadowBlur = 0
     }
@@ -563,11 +602,11 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
     const t   = e.touches ? e.touches[0] : e
     const dx  = t.clientX - bcx, dy = t.clientY - bcy
     const d   = Math.sqrt(dx*dx+dy*dy) || 1
-    const max = 38
+    const max = 46
     const nx  = (dx/d)*Math.min(d,max)/max
     const ny  = (dy/d)*Math.min(d,max)/max
     stickRef.current = { active:true, dx:nx, dy:ny }
-    setKnobPos({ x:nx*32, y:ny*32 })
+    setKnobPos({ x:nx*38, y:ny*38 })
   }, [])
 
   const DLABEL = { easy:'🟢 Mudah', medium:'🟡 Sedang', hard:'🔴 Sulit' }
@@ -643,7 +682,9 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
         <div style={{ position:'absolute', inset:0, zIndex:20, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'rgba(7,7,26,0.93)', animation:'fadeIn 0.3s ease' }}>
           <div style={{ fontSize:68, marginBottom:8 }}>💀</div>
           <h2 style={{ fontFamily:"'Fredoka One',cursive", fontSize:34, color:'#ff6b6b', marginBottom:4, textShadow:'0 0 20px #ff6b6b44' }}>Game Over!</h2>
-          <p style={{ color:'rgba(255,255,255,0.35)', marginBottom:24, fontSize:13 }}>Cacingmu menabrak tembok arena</p>
+          <p style={{ color:'rgba(255,255,255,0.35)', marginBottom:24, fontSize:13 }}>
+            {deathCause === 'bot' ? 'Cacingmu menabrak tubuh bot musuh!' : 'Cacingmu menabrak tembok arena!'}
+          </p>
 
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:22 }}>
             {[
@@ -684,11 +725,11 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
             ref={joyRef}
             onTouchStart={e=>handleJoy(e,'start')} onTouchMove={e=>handleJoy(e,'move')} onTouchEnd={e=>handleJoy(e,'end')}
             onMouseDown={e=>handleJoy(e,'start')}   onMouseMove={e=>handleJoy(e,'move')} onMouseUp={e=>handleJoy(e,'end')} onMouseLeave={e=>handleJoy(e,'end')}
-            style={{ width:112, height:112, borderRadius:'50%', background:'rgba(78,205,196,0.05)', border:'2px solid rgba(78,205,196,0.22)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'grab', touchAction:'none', position:'relative' }}
+            style={{ width:130, height:130, borderRadius:'50%', background:'rgba(78,205,196,0.06)', border:'2.5px solid rgba(78,205,196,0.25)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'grab', touchAction:'none', position:'relative' }}
           >
             <div style={{ position:'absolute', width:'100%', height:1, background:'rgba(78,205,196,0.1)' }} />
             <div style={{ position:'absolute', width:1, height:'100%', background:'rgba(78,205,196,0.1)' }} />
-            <div style={{ width:44, height:44, borderRadius:'50%', background:'rgba(78,205,196,0.45)', border:'2px solid rgba(78,205,196,0.85)', boxShadow:'0 0 14px rgba(78,205,196,0.45)', transform:`translate(${knobPos.x}px,${knobPos.y}px)`, transition:stickRef.current.active?'none':'transform 0.15s', position:'relative', zIndex:1 }} />
+            <div style={{ width:52, height:52, borderRadius:'50%', background:'rgba(78,205,196,0.45)', border:'2.5px solid rgba(78,205,196,0.85)', boxShadow:'0 0 18px rgba(78,205,196,0.5)', transform:`translate(${knobPos.x}px,${knobPos.y}px)`, transition:stickRef.current.active?'none':'transform 0.15s', position:'relative', zIndex:1 }} />
           </div>
           <div style={{ textAlign:'center', marginTop:6, fontSize:10, color:'rgba(255,255,255,0.2)', fontWeight:700, letterSpacing:'1px' }}>STEER</div>
         </div>
@@ -703,7 +744,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
             onMouseDown={()=>{boostRef.current=true;setBoosting(true)}}
             onMouseUp={()=>{boostRef.current=false;setBoosting(false)}}
             onMouseLeave={()=>{boostRef.current=false;setBoosting(false)}}
-            style={{ width:74, height:74, borderRadius:'50%', background:boosting?'rgba(255,107,107,0.28)':'rgba(255,107,107,0.08)', border:`2px solid rgba(255,107,107,${boosting?0.85:0.35})`, color:'#ff6b6b', fontSize:28, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', touchAction:'none', boxShadow:boosting?'0 0 26px rgba(255,107,107,0.5)':'none', transition:'all 0.1s', transform:boosting?'scale(0.93)':'scale(1)' }}
+            style={{ width:86, height:86, borderRadius:'50%', background:boosting?'rgba(255,107,107,0.28)':'rgba(255,107,107,0.08)', border:`2.5px solid rgba(255,107,107,${boosting?0.85:0.35})`, color:'#ff6b6b', fontSize:32, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', touchAction:'none', boxShadow:boosting?'0 0 30px rgba(255,107,107,0.55)':'none', transition:'all 0.1s', transform:boosting?'scale(0.92)':'scale(1)' }}
           >⚡</button>
           <div style={{ textAlign:'center', marginTop:6, fontSize:10, color:'rgba(255,255,255,0.2)', fontWeight:700, letterSpacing:'1px' }}>BOOST</div>
         </div>
