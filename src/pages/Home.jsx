@@ -5,6 +5,7 @@ import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useProgress, getLevelInfo } from '../context/ProgressContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
+import { useDailyChallenge } from '../context/DailyChallengeContext.jsx'
 
 const COMING_SOON = [
   { day: 10, emoji: '🧱', title: 'Brick Breaker',    tag: 'Casual',   color: '#45B7D1' },
@@ -38,7 +39,12 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
   const { darkMode } = useSettings()
   const { play }     = useSound()
   const { progress } = useProgress()
-  const { coins, isDailyClaimable, claimDaily } = useCoins()
+  const { coins, isDailyClaimable, claimDaily, earnCoins } = useCoins()
+  const {
+    challenges, getChallengeProgress, isChallengeComplete,
+    isChallengeClaimed, claimChallenge, claimBonus,
+    completedCount, allComplete, bonusAvailable, bonusClaimed, allCompleteBonus,
+  } = useDailyChallenge()
   const [activeTag, setActiveTag] = useState('Semua')
   const [scrollTop, setScrollTop] = useState(false)
 
@@ -378,6 +384,179 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
                 <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:12, color:'#F9A825' }}>{coins}</span>
               </div>
             </div>
+          </div>
+
+          {/* ── Daily Challenges ── */}
+          <div style={{
+            maxWidth:480, margin:'0 auto 24px',
+            animation:'slide-up 0.5s 0.35s ease both',
+          }}>
+            <div style={{
+              background: dark ? 'rgba(162,155,254,0.06)' : 'rgba(162,155,254,0.04)',
+              border:`1.5px solid ${dark ? 'rgba(162,155,254,0.15)' : 'rgba(162,155,254,0.2)'}`,
+              borderRadius:20, padding:'18px 16px', overflow:'hidden',
+            }}>
+              {/* Header */}
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  <span style={{ fontSize:20 }}>⚔️</span>
+                  <div>
+                    <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:15, color:textMain }}>Misi Harian</div>
+                    <div style={{ fontSize:11, color:textMuted }}>Reset setiap hari</div>
+                  </div>
+                </div>
+                <div style={{
+                  display:'flex', alignItems:'center', gap:4,
+                  background: allComplete
+                    ? 'linear-gradient(135deg,#4ECDC4,#00B894)'
+                    : (dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'),
+                  borderRadius:100, padding:'4px 12px',
+                }}>
+                  <span style={{ fontSize:12, fontFamily:"'Fredoka One',cursive", color: allComplete ? '#fff' : textMuted }}>
+                    {completedCount}/3
+                  </span>
+                </div>
+              </div>
+
+              {/* Challenge cards */}
+              {challenges.map((ch, i) => {
+                const progress = getChallengeProgress(ch)
+                const complete = isChallengeComplete(ch)
+                const claimed = isChallengeClaimed(ch.id)
+                const progressPct = Math.min((progress / ch.target) * 100, 100)
+
+                return (
+                  <div key={ch.id} style={{
+                    display:'flex', alignItems:'center', gap:12,
+                    padding:'10px 12px', borderRadius:14, marginBottom: i < challenges.length - 1 ? 8 : 0,
+                    background: claimed
+                      ? (dark ? 'rgba(78,205,196,0.06)' : 'rgba(78,205,196,0.05)')
+                      : complete
+                        ? (dark ? 'rgba(253,203,110,0.08)' : 'rgba(253,203,110,0.06)')
+                        : (dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'),
+                    border: `1px solid ${claimed ? 'rgba(78,205,196,0.2)' : complete ? 'rgba(253,203,110,0.25)' : 'transparent'}`,
+                    transition:'all 0.2s',
+                    opacity: claimed ? 0.65 : 1,
+                  }}>
+                    {/* Icon */}
+                    <div style={{
+                      width:38, height:38, borderRadius:12, flexShrink:0,
+                      background: claimed
+                        ? 'linear-gradient(135deg,#4ECDC4,#00B894)'
+                        : complete
+                          ? 'linear-gradient(135deg,#FDCB6E,#F9A825)'
+                          : (dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'),
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      fontSize: claimed ? 16 : 18,
+                    }}>
+                      {claimed ? '✓' : ch.icon}
+                    </div>
+
+                    {/* Desc + progress bar */}
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{
+                        fontSize:13, fontWeight:700, color: claimed ? textMuted : textMain,
+                        textDecoration: claimed ? 'line-through' : 'none',
+                        marginBottom:4,
+                      }}>
+                        {ch.desc}
+                      </div>
+                      {!claimed && (
+                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                          <div style={{
+                            flex:1, height:5, borderRadius:100,
+                            background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                            overflow:'hidden',
+                          }}>
+                            <div style={{
+                              height:'100%', borderRadius:100,
+                              background: complete
+                                ? 'linear-gradient(90deg,#4ECDC4,#00B894)'
+                                : 'linear-gradient(90deg,#A29BFE,#6C5CE7)',
+                              width:`${progressPct}%`,
+                              transition:'width 0.5s ease',
+                            }} />
+                          </div>
+                          <span style={{ fontSize:10, color:textMuted, fontWeight:700, flexShrink:0 }}>
+                            {progress}/{ch.target}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Reward / Claim button */}
+                    {claimed ? (
+                      <div style={{ fontSize:11, color:'#4ECDC4', fontWeight:700, flexShrink:0 }}>
+                        +{ch.reward} 🪙
+                      </div>
+                    ) : complete ? (
+                      <button onClick={() => {
+                        const reward = claimChallenge(ch.id)
+                        if (reward > 0) {
+                          play('levelUp')
+                          earnCoins(reward, `Misi: ${ch.desc}`)
+                        }
+                      }} style={{
+                        background:'linear-gradient(135deg,#FDCB6E,#F9A825)',
+                        border:'none', borderRadius:10, padding:'6px 12px',
+                        color:'#fff', fontSize:11, fontWeight:800, cursor:'pointer',
+                        fontFamily:"'Fredoka One',cursive",
+                        boxShadow:'0 3px 10px rgba(253,203,110,0.35)',
+                        animation:'pulse 1.5s ease infinite',
+                        flexShrink:0,
+                      }}>
+                        Klaim!
+                      </button>
+                    ) : (
+                      <div style={{
+                        fontSize:11, color:'#A29BFE', fontWeight:700, flexShrink:0,
+                        display:'flex', alignItems:'center', gap:2,
+                      }}>
+                        {ch.reward} 🪙
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+
+              {/* All-complete bonus */}
+              {allComplete && (
+                <div style={{
+                  marginTop:10, padding:'10px 14px', borderRadius:14,
+                  background: bonusClaimed
+                    ? (dark ? 'rgba(78,205,196,0.06)' : 'rgba(78,205,196,0.04)')
+                    : 'linear-gradient(135deg, rgba(162,155,254,0.12), rgba(253,203,110,0.12))',
+                  border: `1px solid ${bonusClaimed ? 'rgba(78,205,196,0.2)' : 'rgba(162,155,254,0.25)'}`,
+                  display:'flex', alignItems:'center', gap:10,
+                }}>
+                  <span style={{ fontSize:20 }}>{bonusClaimed ? '🎉' : '🎁'}</span>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:12, fontWeight:700, color: bonusClaimed ? '#4ECDC4' : textMain }}>
+                      {bonusClaimed ? 'Bonus diklaim!' : 'Semua misi selesai!'}
+                    </div>
+                    <div style={{ fontSize:11, color:textMuted }}>Bonus {allCompleteBonus} coin</div>
+                  </div>
+                  {bonusAvailable && (
+                    <button onClick={() => {
+                      const reward = claimBonus()
+                      if (reward > 0) {
+                        play('levelUp')
+                        earnCoins(reward, 'Bonus: Semua misi selesai!')
+                      }
+                    }} style={{
+                      background:'linear-gradient(135deg,#A29BFE,#6C5CE7)',
+                      border:'none', borderRadius:10, padding:'6px 14px',
+                      color:'#fff', fontSize:11, fontWeight:800, cursor:'pointer',
+                      fontFamily:"'Fredoka One',cursive",
+                      boxShadow:'0 3px 10px rgba(162,155,254,0.35)',
+                    }}>
+                      Klaim!
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+            <style>{`@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}`}</style>
           </div>
 
           {/* ── Filter ── */}

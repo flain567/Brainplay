@@ -13,7 +13,7 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null)
   const [isGuest, setIsGuest] = useState(() => localStorage.getItem(GUEST_KEY) === 'true')
 
-  // Display name (can override Google name)
+  // Display name — always manually set by user, never auto-filled from Google
   const [displayName, setDisplayNameState] = useState(() =>
     localStorage.getItem(DISPLAY_NAME_KEY) || ''
   )
@@ -24,16 +24,11 @@ export function AuthProvider({ children }) {
       setUser(firebaseUser)
       setLoading(false)
       if (firebaseUser) {
-        // Sync display name from Google if no custom name set
+        // Sync nickname key if custom name already exists
         const saved = localStorage.getItem(DISPLAY_NAME_KEY)
-        if (!saved && firebaseUser.displayName) {
-          const name = firebaseUser.displayName.split(' ')[0].slice(0, 20)
-          setDisplayNameState(name)
-          localStorage.setItem(DISPLAY_NAME_KEY, name)
+        if (saved) {
+          localStorage.setItem('bp_nickname', saved)
         }
-        // Also sync to old nickname key for backward compat with leaderboard
-        const nameToUse = saved || firebaseUser.displayName?.split(' ')[0]?.slice(0, 20) || 'Pemain'
-        localStorage.setItem('bp_nickname', nameToUse)
         // Clear guest mode on successful login
         setIsGuest(false)
         localStorage.removeItem(GUEST_KEY)
@@ -50,13 +45,13 @@ export function AuthProvider({ children }) {
   const loginWithGoogle = useCallback(async () => {
     setError(null)
     try {
-      // Try popup first (works on desktop)
       await signInWithPopup(auth, googleProvider)
+      return true
     } catch (err) {
-      // If popup blocked (common on mobile), fallback to redirect
       if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
         try {
           await signInWithRedirect(auth, googleProvider)
+          return true
         } catch (redirectErr) {
           setError('Login gagal. Coba lagi nanti.')
           console.error('[Auth] Redirect failed:', redirectErr)
@@ -67,6 +62,7 @@ export function AuthProvider({ children }) {
         setError(err.message || 'Login gagal')
         console.error('[Auth] Login error:', err)
       }
+      return false
     }
   }, [])
 
@@ -100,7 +96,8 @@ export function AuthProvider({ children }) {
 
   // Computed values
   const isLoggedIn = !!user
-  const playerName = displayName || user?.displayName?.split(' ')[0] || 'Pemain'
+  const needsName = (isLoggedIn || isGuest) && !displayName
+  const playerName = displayName || 'Pemain'
   const photoURL = user?.photoURL || null
   const email = user?.email || null
   const uid = user?.uid || null
@@ -108,7 +105,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, uid, isLoggedIn, isGuest, loading, error,
-      playerName, photoURL, email, displayName,
+      playerName, photoURL, email, displayName, needsName,
       loginWithGoogle, logout, setDisplayName, continueAsGuest,
     }}>
       {children}

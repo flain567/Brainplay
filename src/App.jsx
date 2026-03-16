@@ -5,6 +5,7 @@ import { CoinProvider } from './context/CoinContext.jsx'
 import { NotifProvider } from './context/NotifContext.jsx'
 import { LeaderboardProvider } from './context/LeaderboardContext.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
+import { DailyChallengeProvider } from './context/DailyChallengeContext.jsx'
 import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
 import PageTransition from './components/PageTransition.jsx'
@@ -151,7 +152,7 @@ function AppInner() {
   const [currentGame, setCurrentGame] = useState(null)
   const [difficulty,  setDifficulty]  = useState(null)
   const [screen,      setScreen]      = useState('home')
-  const { isLoggedIn, isGuest, loading: authLoading } = useAuth()
+  const { isLoggedIn, isGuest, needsName, loading: authLoading } = useAuth()
   const { muted, musicOff } = useSettings()
 
   // Run migration once
@@ -190,8 +191,8 @@ function AppInner() {
           <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
         </div>
       )}
-      {/* Login prompt — shown if not logged in and not guest */}
-      {!authLoading && !isLoggedIn && !isGuest && (
+      {/* Login prompt — shown if not authenticated, or if authenticated but no name set */}
+      {!authLoading && ((!isLoggedIn && !isGuest) || needsName) && (
         <LoginModal onDone={() => {}} />
       )}
       {!isFullscreen && (
@@ -232,9 +233,11 @@ export default function App() {
         <ProgressProvider>
           <CoinProvider>
             <LeaderboardProvider>
-              <NotifProvider>
-                <AppInner />
-              </NotifProvider>
+              <DailyChallengeProvider>
+                <NotifProvider>
+                  <AppInner />
+                </NotifProvider>
+              </DailyChallengeProvider>
             </LeaderboardProvider>
           </CoinProvider>
         </ProgressProvider>
