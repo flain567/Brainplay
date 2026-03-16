@@ -12,6 +12,7 @@ import DifficultySelector from './components/DifficultySelector.jsx'
 import PageTransition from './components/PageTransition.jsx'
 import AchievementToast from './components/AchievementToast.jsx'
 import CoinToast from './components/CoinToast.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 import LoginModal from './components/LoginModal.jsx'
 import Home from './pages/Home.jsx'
 import Profile from './pages/Profile.jsx'
@@ -239,9 +240,11 @@ function AppInner() {
             <DifficultySelector game={currentGame} onSelect={selectDifficulty} onBack={goHome} />
           )}
           {screen === 'game' && currentGame && activeDiff && (
-            <Suspense fallback={<GameLoader />}>
-              <currentGame.component onBack={goBackToDifficulty} game={currentGame} difficulty={activeDiff} />
-            </Suspense>
+            <ErrorBoundary>
+              <Suspense fallback={<GameLoader />}>
+                <currentGame.component onBack={goBackToDifficulty} game={currentGame} difficulty={activeDiff} />
+              </Suspense>
+            </ErrorBoundary>
           )}
         </PageTransition>
       </main>

@@ -3,4 +3,33 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    // Chunk splitting — games load separately
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'firebase': ['firebase/app', 'firebase/firestore', 'firebase/auth'],
+          'react-vendor': ['react', 'react-dom'],
+        },
+      },
+    },
+    // Compression
+    target: 'es2020',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: false, // Keep console.log for debugging leaderboard
+        drop_debugger: true,
+      },
+    },
+    // Chunk size warning
+    chunkSizeWarningLimit: 500,
+    // Source maps off for production
+    sourcemap: false,
+  },
+  // Dev server
+  server: {
+    host: true,
+    port: 3000,
+  },
 })

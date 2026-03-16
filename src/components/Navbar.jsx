@@ -415,7 +415,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
                 </div>
               )}
               <div style={{ fontSize:11, color:textMuted }}>
-                BrainPlay v0.9.3 • by Dwi Agus Hidayat
+                BrainPlay v0.9.4 • by Dwi Agus Hidayat
               </div>
             </div>
           </div>

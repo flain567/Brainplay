@@ -6,20 +6,20 @@
 
     <!-- SEO Meta -->
     <title>BrainPlay 🎮 — Game Santai & Mengasah Otak</title>
-    <meta name="description" content="Kumpulan game santai dan mengasah otak — Memory Card, Slither Worm, Connect Blocks, dan masih banyak lagi! Gratis, tanpa login." />
-    <meta name="keywords" content="game online gratis, game otak, puzzle, memory card, slither, connect blocks, 2048" />
-    <meta name="author" content="BrainPlay" />
+    <meta name="description" content="Kumpulan 9+ game santai dan mengasah otak — Memory Card, Slither Worm, Space Shooter, Sudoku, dan masih banyak lagi! Login Google untuk sync skor." />
+    <meta name="keywords" content="game online gratis, game otak, puzzle, memory card, slither, space shooter, sudoku, hangman, brainplay" />
+    <meta name="author" content="Dwi Agus Hidayat" />
     <meta name="theme-color" content="#0d0b1e" />
 
     <!-- Open Graph (WhatsApp / Facebook preview) -->
     <meta property="og:title" content="BrainPlay 🎮 — Game Santai & Mengasah Otak" />
-    <meta property="og:description" content="Kumpulan game santai dan mengasah otak. Gratis, langsung main!" />
+    <meta property="og:description" content="9+ game santai dan mengasah otak. Login Google untuk sync skor di semua device!" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image" content="/og-image.svg" />
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icon-192.svg" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -32,5 +32,13 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Register service worker for PWA
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {})
+        })
+      }
+    </script>
   </body>
 </html>
