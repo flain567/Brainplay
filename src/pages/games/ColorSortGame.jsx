@@ -109,7 +109,8 @@ export default function ColorSortGame({ onBack, game, difficulty }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { reportGameResult } = useProgress()
-  const { earnCoins } = useCoins()
+  const { earnCoins, getActiveTubeTheme } = useCoins()
+  const tubeTheme = getActiveTubeTheme ? getActiveTubeTheme() : null
 
   const [tubes, setTubes] = useState(() => generatePuzzle(difficulty.id))
   const [selectedTube, setSelectedTube] = useState(null)
@@ -285,11 +286,11 @@ export default function ColorSortGame({ onBack, game, difficulty }) {
               <div style={{
                 width: config.colorCount > 6 ? 44 : 52,
                 height: config.colorCount > 6 ? 160 : 180,
-                borderRadius: '0 0 20px 20px',
-                borderLeft: `3px solid ${isSelected ? accent : (darkMode ? '#3d3561' : '#B2BEC3')}`,
-                borderRight: `3px solid ${isSelected ? accent : (darkMode ? '#3d3561' : '#B2BEC3')}`,
-                borderBottom: `3px solid ${isSelected ? accent : (darkMode ? '#3d3561' : '#B2BEC3')}`,
-                background: darkMode ? '#0f0f23' : '#F8F9FA',
+                borderRadius: tubeTheme?.shape === 'bubble' ? '12px 12px 26px 26px' : tubeTheme?.shape === 'flask' ? '4px 4px 22px 22px' : tubeTheme?.shape === 'bamboo' ? '4px 4px 12px 12px' : tubeTheme?.shape === 'crystal' ? '8px 8px 16px 16px' : '0 0 20px 20px',
+                borderLeft: `3px solid ${isSelected ? accent : tubeTheme?.border || (darkMode ? '#3d3561' : '#B2BEC3')}`,
+                borderRight: `3px solid ${isSelected ? accent : tubeTheme?.border || (darkMode ? '#3d3561' : '#B2BEC3')}`,
+                borderBottom: `3px solid ${isSelected ? accent : tubeTheme?.border || (darkMode ? '#3d3561' : '#B2BEC3')}`,
+                background: tubeTheme?.tube || (darkMode ? '#0f0f23' : '#F8F9FA'),
                 display: 'flex', flexDirection: 'column-reverse',
                 padding: 3,
                 gap: 2,

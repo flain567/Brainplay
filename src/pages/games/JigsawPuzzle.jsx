@@ -116,7 +116,8 @@ export default function JigsawPuzzle({ onBack, game, difficulty }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { reportGameResult } = useProgress()
-  const { earnCoins } = useCoins()
+  const { earnCoins, getActiveJigsawTheme } = useCoins()
+  const jigsawTheme = getActiveJigsawTheme ? getActiveJigsawTheme() : null
   const dark = darkMode
 
   const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('bp_tut_jigsaw'))
@@ -130,7 +131,25 @@ export default function JigsawPuzzle({ onBack, game, difficulty }) {
 
   const totalPieces = config.cols * config.rows
   const [patternIdx] = useState(() => Math.floor(Math.random() * PATTERNS.length))
-  const pattern = generatePuzzlePattern(config.cols, config.rows, patternIdx)
+  const pattern = (() => {
+    const base = generatePuzzlePattern(config.cols, config.rows, patternIdx)
+    // Override with shop theme colors if available
+    if (jigsawTheme?.colors && jigsawTheme.colors.length >= 4) {
+      const themeColors = jigsawTheme.colors
+      // Expand to 8 colors by mixing
+      const colors = [...themeColors]
+      while (colors.length < 8) colors.push(themeColors[colors.length % themeColors.length])
+      // Re-generate tiles with theme colors
+      const tiles = base.tiles.map(t => {
+        const c1 = colors[(t.r + t.c) % colors.length]
+        const c2 = colors[(t.r + t.c + 1) % colors.length]
+        const c3 = colors[(t.r * 2 + t.c) % colors.length]
+        return { ...t, c1, c2, c3 }
+      })
+      return { ...base, tiles, colors }
+    }
+    return base
+  })()
 
   // Game state
   const [grid, setGrid] = useState([])           // current arrangement on board (index = position, value = tile idx or null)

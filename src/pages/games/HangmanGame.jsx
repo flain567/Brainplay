@@ -244,9 +244,9 @@ const formatTime = (s) =>
 const DIFF_LABEL = { easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }
 
 // Hangman figure SVG
-function HangmanFigure({ wrongCount, maxWrong, color }) {
+function HangmanFigure({ wrongCount, maxWrong, color, headColor: hColor }) {
   const parts = []
-  const headColor = color
+  const headColor = hColor || color
   const bodyColor = color
 
   // Gallows always visible
@@ -299,7 +299,8 @@ export default function HangmanGame({ onBack, game, difficulty }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { reportGameResult } = useProgress()
-  const { earnCoins } = useCoins()
+  const { earnCoins, getActiveHangmanTheme } = useCoins()
+  const hangmanTheme = getActiveHangmanTheme ? getActiveHangmanTheme() : { stick:'#ffffff', man:'#ffffff' }
 
   const maxWrong = MAX_WRONG[difficulty.id] || 8
 
@@ -482,7 +483,7 @@ export default function HangmanGame({ onBack, game, difficulty }) {
       {/* Hangman Figure */}
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
         <div style={{ background: surface, borderRadius: 20, padding: 16, border: `2px solid ${borderCol}` }}>
-          <HangmanFigure wrongCount={wrongCount} maxWrong={maxWrong} color={lost ? '#FF6B6B' : accent} />
+          <HangmanFigure wrongCount={wrongCount} maxWrong={maxWrong} color={lost ? '#FF6B6B' : hangmanTheme.stick} headColor={lost ? '#FF6B6B' : hangmanTheme.man} />
         </div>
       </div>
 

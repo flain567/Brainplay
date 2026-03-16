@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
-import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
+import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
 
 // ─── Generic cosmetic list renderer ─────────────────────────────────────────
 function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMain, textMuted, borderCol, coins, onBuy, onEquip, buyingId, previewId, setPreviewId, renderPreview }) {
@@ -85,6 +85,10 @@ export default function Shop({ onBack }) {
     coins, ownedPacks, activePack, ownedSkins, activeSkin,
     ownedTileThemes, activeTileTheme, ownedHighlights, activeHighlight,
     ownedShips, activeShip,
+    ownedHangmanThemes, activeHangmanTheme,
+    ownedTubeThemes, activeTubeTheme,
+    ownedSudokuThemes, activeSudokuTheme,
+    ownedJigsawThemes, activeJigsawTheme,
     hints, timeFreezes, dailyStreak, isDailyClaimable,
     buyCosmetic, equipCosmetic, buyConsumable, claimDaily, transactions,
   } = useCoins()
@@ -141,6 +145,10 @@ export default function Shop({ onBack }) {
     { id:'tiles',      label:'🔗 Tiles',    },
     { id:'highlights', label:'🔍 Highlight' },
     { id:'ships',      label:'🚀 Ships'     },
+    { id:'hangman',    label:'💀 Hangman'   },
+    { id:'tubes',      label:'🧪 Tubes'     },
+    { id:'sudoku',     label:'🔢 Sudoku'    },
+    { id:'jigsaw',     label:'🧩 Jigsaw'    },
     { id:'items',      label:'💡 Items',    },
     { id:'history',    label:'📜 Riwayat',  },
   ]
@@ -495,6 +503,128 @@ export default function Shop({ onBack }) {
                   </div>
                 )
               })}
+            </div>
+          )}
+
+          {/* ── Hangman Themes ── */}
+          {tab === 'hangman' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                Ubah warna tiang dan karakter di Hangman
+              </p>
+              <CosmeticList
+                items={HANGMAN_THEMES} ownedList={ownedHangmanThemes} activeId={activeHangmanTheme} type="hangmanThemes"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('hangmanThemes', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                renderPreview={(item) => (
+                  <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:16 }}>
+                    <svg width="60" height="70" viewBox="0 0 60 70">
+                      <line x1="10" y1="65" x2="50" y2="65" stroke={item.style.stick} strokeWidth="3" strokeLinecap="round"/>
+                      <line x1="30" y1="65" x2="30" y2="10" stroke={item.style.stick} strokeWidth="2.5" strokeLinecap="round"/>
+                      <line x1="30" y1="10" x2="45" y2="10" stroke={item.style.stick} strokeWidth="2.5" strokeLinecap="round"/>
+                      <line x1="45" y1="10" x2="45" y2="18" stroke={item.style.stick} strokeWidth="1.5"/>
+                      <circle cx="45" cy="24" r="6" fill="none" stroke={item.style.man} strokeWidth="1.5"/>
+                      <line x1="45" y1="30" x2="45" y2="45" stroke={item.style.man} strokeWidth="1.5"/>
+                      <line x1="45" y1="35" x2="38" y2="40" stroke={item.style.man} strokeWidth="1.5"/>
+                      <line x1="45" y1="35" x2="52" y2="40" stroke={item.style.man} strokeWidth="1.5"/>
+                    </svg>
+                    <div style={{ fontSize:12, color:textMuted }}>Preview tema {item.name}</div>
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          {/* ── Tube Themes (Color Sort) ── */}
+          {tab === 'tubes' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                Ubah tampilan tabung di Color Sort
+              </p>
+              <CosmeticList
+                items={TUBE_THEMES} ownedList={ownedTubeThemes} activeId={activeTubeTheme} type="tubeThemes"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('tubeThemes', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                renderPreview={(item) => (
+                  <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)', display:'flex', gap:8, justifyContent:'center' }}>
+                    {['#FF6B6B','#4ECDC4','#A29BFE','#FDCB6E'].map((c, j) => (
+                      <div key={j} style={{
+                        width:28, height:56, borderRadius: item.style.shape === 'bubble' ? '50%' : item.style.shape === 'flask' ? '8px 8px 14px 14px' : 8,
+                        background:item.style.tube, border:`2px solid ${item.style.border}`,
+                        display:'flex', flexDirection:'column', justifyContent:'flex-end', overflow:'hidden',
+                      }}>
+                        <div style={{ height:'60%', background:c, opacity:0.8, borderRadius:'0 0 6px 6px' }} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          {/* ── Sudoku Themes ── */}
+          {tab === 'sudoku' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                Ubah warna grid dan angka di Sudoku
+              </p>
+              <CosmeticList
+                items={SUDOKU_THEMES} ownedList={ownedSudokuThemes} activeId={activeSudokuTheme} type="sudokuThemes"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('sudokuThemes', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                renderPreview={(item) => (
+                  <div style={{ marginTop:12, padding:14, borderRadius:12, background:item.style.bg, display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:3, maxWidth:100, margin:'0 auto' }}>
+                    {[5,null,8,null,3,null,7,null,1].map((n, j) => (
+                      <div key={j} style={{
+                        width:28, height:28, borderRadius:4,
+                        border:`1px solid ${item.style.grid}44`,
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        fontSize:13, fontWeight:700,
+                        color: n ? item.style.given : 'transparent',
+                        background: j === 4 ? item.style.selected + '33' : 'transparent',
+                      }}>
+                        {n || '·'}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          {/* ── Jigsaw Themes ── */}
+          {tab === 'jigsaw' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                Ubah warna gradien puzzle di Jigsaw Puzzle
+              </p>
+              <CosmeticList
+                items={JIGSAW_THEMES} ownedList={ownedJigsawThemes} activeId={activeJigsawTheme} type="jigsawThemes"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('jigsawThemes', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                renderPreview={(item) => (
+                  <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:4, maxWidth:180, margin:'0 auto' }}>
+                    {item.style.colors.map((c, j) => (
+                      <div key={j} style={{
+                        height:36, borderRadius:6, background:c,
+                        boxShadow:`0 2px 8px ${c}44`,
+                      }} />
+                    ))}
+                  </div>
+                )}
+              />
             </div>
           )}
 

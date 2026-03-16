@@ -149,6 +149,76 @@ export const SHIP_CATALOG = [
   },
 ]
 
+// ─── Hangman Themes (Hangman) ────────────────────────────────────────────────
+export const HANGMAN_THEMES = [
+  { id:'default', name:'Classic', desc:'Tiang gantung klasik hitam-putih', price:0, icon:'💀', color:'#E17055',
+    style:{ stick:'#ffffff', man:'#ffffff', bg:'transparent' } },
+  { id:'neon', name:'Neon Glow', desc:'Garis neon yang menyala di kegelapan', price:100, icon:'💡', color:'#00FF88',
+    style:{ stick:'#00FF88', man:'#00FFFF', bg:'transparent' } },
+  { id:'sketch', name:'Pencil Sketch', desc:'Gaya sketsa pensil yang artistik', price:100, icon:'✏️', color:'#B2BEC3',
+    style:{ stick:'#B2BEC3', man:'#DFE6E9', bg:'transparent' } },
+  { id:'fire', name:'Fire Theme', desc:'Api neraka — tiang dan orang menyala!', price:150, icon:'🔥', color:'#FF4500',
+    style:{ stick:'#FF6B6B', man:'#FF4500', bg:'transparent' } },
+  { id:'ice', name:'Ice Theme', desc:'Tema es beku yang membekukan jiwa', price:150, icon:'🧊', color:'#74B9FF',
+    style:{ stick:'#74B9FF', man:'#0984E3', bg:'transparent' } },
+  { id:'galaxy', name:'Galaxy', desc:'Warna galaksi kosmik yang misterius', price:200, icon:'🌌', color:'#A29BFE',
+    style:{ stick:'#A29BFE', man:'#6C5CE7', bg:'transparent' } },
+  { id:'gold', name:'Golden', desc:'Emas berkilau untuk yang menghargai keindahan', price:250, icon:'👑', color:'#FFD700',
+    style:{ stick:'#FFD700', man:'#DAA520', bg:'transparent' } },
+]
+
+// ─── Color Sort Themes (Color Sort) ─────────────────────────────────────────
+export const TUBE_THEMES = [
+  { id:'default', name:'Glass Tube', desc:'Tabung kaca bening klasik', price:0, icon:'🧪', color:'#6C5CE7',
+    style:{ tube:'rgba(255,255,255,0.1)', border:'rgba(255,255,255,0.25)', shape:'round' } },
+  { id:'flask', name:'Lab Flask', desc:'Labu erlenmeyer dari laboratorium sains', price:100, icon:'⚗️', color:'#00B894',
+    style:{ tube:'rgba(0,184,148,0.08)', border:'rgba(0,184,148,0.3)', shape:'flask' } },
+  { id:'bubble', name:'Bubble Jar', desc:'Toples gelembung yang lucu dan bulat', price:100, icon:'🫧', color:'#74B9FF',
+    style:{ tube:'rgba(116,185,255,0.08)', border:'rgba(116,185,255,0.3)', shape:'bubble' } },
+  { id:'neon', name:'Neon Tube', desc:'Tabung neon yang bersinar terang', price:150, icon:'💡', color:'#00FF88',
+    style:{ tube:'rgba(0,255,136,0.06)', border:'rgba(0,255,136,0.35)', shape:'round' } },
+  { id:'bamboo', name:'Bamboo', desc:'Ruas bambu alami dari hutan', price:150, icon:'🎋', color:'#55EFC4',
+    style:{ tube:'rgba(85,239,196,0.08)', border:'rgba(85,239,196,0.3)', shape:'bamboo' } },
+  { id:'crystal', name:'Crystal Vial', desc:'Botol kristal yang berkilauan', price:200, icon:'💎', color:'#A29BFE',
+    style:{ tube:'rgba(162,155,254,0.08)', border:'rgba(162,155,254,0.35)', shape:'crystal' } },
+  { id:'lava', name:'Lava Lamp', desc:'Lampu lava retro yang meleleh', price:250, icon:'🌋', color:'#FF6B6B',
+    style:{ tube:'rgba(255,107,107,0.08)', border:'rgba(255,107,107,0.35)', shape:'round' } },
+]
+
+// ─── Sudoku Themes (Sudoku) ─────────────────────────────────────────────────
+export const SUDOKU_THEMES = [
+  { id:'default', name:'Classic Blue', desc:'Tema biru klasik yang bersih', price:0, icon:'🔢', color:'#0984E3',
+    style:{ grid:'#0984E3', selected:'#74B9FF', given:'#ffffff', input:'#4ECDC4', error:'#FF6B6B', bg:'#0a1628' } },
+  { id:'paper', name:'Newspaper', desc:'Gaya koran kertas dengan angka serif', price:100, icon:'📰', color:'#636E72',
+    style:{ grid:'#636E72', selected:'#DFE6E9', given:'#2D3436', input:'#0984E3', error:'#E17055', bg:'#FFF9F0' } },
+  { id:'mint', name:'Mint Fresh', desc:'Hijau mint segar yang menyegarkan mata', price:100, icon:'🌿', color:'#00B894',
+    style:{ grid:'#00B894', selected:'#55EFC4', given:'#ffffff', input:'#00CEC9', error:'#FF6B6B', bg:'#0a2018' } },
+  { id:'sunset', name:'Sunset', desc:'Warna sunset yang hangat dan indah', price:150, icon:'🌅', color:'#E17055',
+    style:{ grid:'#E17055', selected:'#FAB1A0', given:'#ffffff', input:'#FDCB6E', error:'#FF6B6B', bg:'#1a0f0a' } },
+  { id:'purple', name:'Royal Purple', desc:'Ungu kerajaan yang megah dan mewah', price:150, icon:'👑', color:'#6C5CE7',
+    style:{ grid:'#6C5CE7', selected:'#A29BFE', given:'#ffffff', input:'#FD79A8', error:'#FF6B6B', bg:'#0d0a1e' } },
+  { id:'matrix', name:'Matrix', desc:'Hijau terminal hacker — angka berjatuhan', price:200, icon:'💻', color:'#00FF41',
+    style:{ grid:'#00FF41', selected:'#39FF14', given:'#00FF41', input:'#7CFF00', error:'#FF0040', bg:'#0a0a0a' } },
+]
+
+// ─── Jigsaw Themes (Jigsaw Puzzle) ──────────────────────────────────────────
+export const JIGSAW_THEMES = [
+  { id:'default', name:'Gradient', desc:'Gradien warna-warni yang indah', price:0, icon:'🧩', color:'#E84393',
+    style:{ type:'gradient', colors:['#FF6B6B','#A29BFE','#FDCB6E','#4ECDC4'] } },
+  { id:'ocean', name:'Ocean Blue', desc:'Gradien biru laut yang menenangkan', price:100, icon:'🌊', color:'#0984E3',
+    style:{ type:'gradient', colors:['#0984E3','#74B9FF','#00CEC9','#48DBFB'] } },
+  { id:'sunset', name:'Sunset Glow', desc:'Warna matahari terbenam yang spektakuler', price:100, icon:'🌅', color:'#E17055',
+    style:{ type:'gradient', colors:['#FF6B6B','#E17055','#FDCB6E','#FD79A8'] } },
+  { id:'forest', name:'Forest', desc:'Hijau hutan yang alami dan asri', price:150, icon:'🌲', color:'#00B894',
+    style:{ type:'gradient', colors:['#00B894','#55EFC4','#00CEC9','#1DD1A1'] } },
+  { id:'galaxy', name:'Galaxy', desc:'Warna galaksi ungu yang misterius', price:150, icon:'🌌', color:'#6C5CE7',
+    style:{ type:'gradient', colors:['#6C5CE7','#A29BFE','#FD79A8','#E84393'] } },
+  { id:'candy', name:'Candy Pop', desc:'Warna permen yang cerah dan manis', price:200, icon:'🍬', color:'#FD79A8',
+    style:{ type:'gradient', colors:['#FD79A8','#FDCB6E','#6C5CE7','#00B894'] } },
+  { id:'mono', name:'Monochrome', desc:'Hitam-putih minimalis yang elegan', price:200, icon:'⬛', color:'#636E72',
+    style:{ type:'gradient', colors:['#2D3436','#636E72','#B2BEC3','#DFE6E9'] } },
+]
+
 // ─── Consumable Items ───────────────────────────────────────────────────────
 export const CONSUMABLES = [
   { id:'extra-hints', name:'Extra Hints ×5', desc:'Tambah 5 hint di game yang mendukung hint', price:50, icon:'💡', color:'#FDCB6E', amount:5 },
@@ -174,6 +244,10 @@ function getDefaultCoinState() {
     ownedTileThemes:['default'], activeTileTheme:'default',
     ownedHighlights:['default'], activeHighlight:'default',
     ownedShips:['falcon'], activeShip:'falcon',
+    ownedHangmanThemes:['default'], activeHangmanTheme:'default',
+    ownedTubeThemes:['default'], activeTubeTheme:'default',
+    ownedSudokuThemes:['default'], activeSudokuTheme:'default',
+    ownedJigsawThemes:['default'], activeJigsawTheme:'default',
     hints:0, timeFreezes:0,
     lastDailyClaim:null, dailyStreak:0, transactions:[],
   }
@@ -214,8 +288,8 @@ export function CoinProvider({ children }) {
 
   // Generic buy cosmetic
   const buyCosmetic = useCallback(async (type, itemId) => {
-    const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS, ships:SHIP_CATALOG }
-    const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips' }
+    const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS, ships:SHIP_CATALOG, hangmanThemes:HANGMAN_THEMES, tubeThemes:TUBE_THEMES, sudokuThemes:SUDOKU_THEMES, jigsawThemes:JIGSAW_THEMES }
+    const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes' }
     const items = catalog[type]; const key = ownedKey[type]
     if (!items||!key) return { success:false, reason:'Tipe tidak valid' }
     const item = items.find(i => i.id === itemId)
@@ -230,8 +304,8 @@ export function CoinProvider({ children }) {
   const buyPack = useCallback((packId) => buyCosmetic('packs', packId), [buyCosmetic])
 
   const equipCosmetic = useCallback((type, itemId) => {
-    const ownedKey  = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips' }
-    const activeKey = { packs:'activePack', skins:'activeSkin', tileThemes:'activeTileTheme', highlights:'activeHighlight', ships:'activeShip' }
+    const ownedKey  = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes' }
+    const activeKey = { packs:'activePack', skins:'activeSkin', tileThemes:'activeTileTheme', highlights:'activeHighlight', ships:'activeShip', hangmanThemes:'activeHangmanTheme', tubeThemes:'activeTubeTheme', sudokuThemes:'activeSudokuTheme', jigsawThemes:'activeJigsawTheme' }
     const key = ownedKey[type]; const aKey = activeKey[type]
     if (!key||!aKey) return
     if (!(state[key]||[]).includes(itemId)) return
@@ -305,6 +379,26 @@ export function CoinProvider({ children }) {
     return ship || SHIP_CATALOG[0]
   }, [state.activeShip])
 
+  const getActiveHangmanTheme = useCallback(() => {
+    const t = HANGMAN_THEMES.find(h => h.id === state.activeHangmanTheme)
+    return t ? t.style : HANGMAN_THEMES[0].style
+  }, [state.activeHangmanTheme])
+
+  const getActiveTubeTheme = useCallback(() => {
+    const t = TUBE_THEMES.find(h => h.id === state.activeTubeTheme)
+    return t ? t.style : TUBE_THEMES[0].style
+  }, [state.activeTubeTheme])
+
+  const getActiveSudokuTheme = useCallback(() => {
+    const t = SUDOKU_THEMES.find(h => h.id === state.activeSudokuTheme)
+    return t ? t.style : SUDOKU_THEMES[0].style
+  }, [state.activeSudokuTheme])
+
+  const getActiveJigsawTheme = useCallback(() => {
+    const t = JIGSAW_THEMES.find(h => h.id === state.activeJigsawTheme)
+    return t ? t.style : JIGSAW_THEMES[0].style
+  }, [state.activeJigsawTheme])
+
   return (
     <CoinContext.Provider value={{
       coins:state.balance, totalEarned:state.totalEarned, totalSpent:state.totalSpent,
@@ -313,6 +407,10 @@ export function CoinProvider({ children }) {
       ownedTileThemes:state.ownedTileThemes||[], activeTileTheme:state.activeTileTheme,
       ownedHighlights:state.ownedHighlights||[], activeHighlight:state.activeHighlight,
       ownedShips:state.ownedShips||[], activeShip:state.activeShip,
+      ownedHangmanThemes:state.ownedHangmanThemes||[], activeHangmanTheme:state.activeHangmanTheme,
+      ownedTubeThemes:state.ownedTubeThemes||[], activeTubeTheme:state.activeTubeTheme,
+      ownedSudokuThemes:state.ownedSudokuThemes||[], activeSudokuTheme:state.activeSudokuTheme,
+      ownedJigsawThemes:state.ownedJigsawThemes||[], activeJigsawTheme:state.activeJigsawTheme,
       hints:state.hints||0, timeFreezes:state.timeFreezes||0,
       dailyStreak:state.dailyStreak, transactions:state.transactions||[],
       isDailyClaimable, coinAnim,
@@ -320,6 +418,7 @@ export function CoinProvider({ children }) {
       buyConsumable, useHint, useTimeFreeze,
       setActivePack, claimDaily,
       getActiveIcons, getActiveSkin, getActiveTileColors, getActiveHighlightColors, getActiveShip,
+      getActiveHangmanTheme, getActiveTubeTheme, getActiveSudokuTheme, getActiveJigsawTheme,
     }}>
       {children}
     </CoinContext.Provider>

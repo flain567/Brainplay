@@ -106,7 +106,8 @@ export default function SudokuGame({ onBack, game, difficulty }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { reportGameResult } = useProgress()
-  const { earnCoins } = useCoins()
+  const { earnCoins, getActiveSudokuTheme } = useCoins()
+  const sudokuTheme = getActiveSudokuTheme ? getActiveSudokuTheme() : null
 
   const [gameData, setGameData] = useState(() => generateSudoku(difficulty.id))
   const [board, setBoard] = useState(() => gameData.puzzle.map(r => [...r]))
@@ -310,7 +311,7 @@ export default function SudokuGame({ onBack, game, difficulty }) {
   const textMain  = darkMode ? '#e8e8f0' : '#2D3436'
   const textMuted = darkMode ? '#8892b0' : '#636E72'
   const borderCol = darkMode ? '#2d3561' : '#DFE6E9'
-  const accent    = '#0984E3'
+  const accent    = sudokuTheme?.grid || '#0984E3'
 
   const selectedNum = selectedCell ? board[selectedCell[0]][selectedCell[1]] : null
 
@@ -380,7 +381,7 @@ export default function SudokuGame({ onBack, game, difficulty }) {
             const bottomBorder = (r + 1) % 3 === 0 && r < 8
 
             let cellBg = surface
-            if (isSelected) cellBg = darkMode ? '#2a3a6e' : '#D4E6FF'
+            if (isSelected) cellBg = sudokuTheme?.selected ? `${sudokuTheme.selected}33` : (darkMode ? '#2a3a6e' : '#D4E6FF')
             else if (isError) cellBg = darkMode ? '#3a1a1a' : '#FFE0E0'
             else if (isSameNum) cellBg = darkMode ? '#1e2e5e' : '#E8F0FE'
             else if (isHighlighted) cellBg = darkMode ? '#1a2240' : '#F0F4FF'
