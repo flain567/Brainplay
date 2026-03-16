@@ -125,6 +125,16 @@ export function ProgressProvider({ children }) {
     setJSON(StorageKeys.XP, progress)
   }, [progress])
 
+  // Reload from localStorage when cloud sync completes
+  useEffect(() => {
+    const handler = () => {
+      const saved = getJSON(StorageKeys.XP)
+      if (saved) setProgress(p => ({ ...getDefaultProgress(), ...saved }))
+    }
+    window.addEventListener('bp-cloud-sync', handler)
+    return () => window.removeEventListener('bp-cloud-sync', handler)
+  }, [])
+
   // Update streak on mount
   useEffect(() => {
     setProgress(p => {

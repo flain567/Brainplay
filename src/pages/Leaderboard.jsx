@@ -157,6 +157,10 @@ service cloud.firestore {
         && request.resource.data.score > resource.data.score
         && request.resource.data.score <= 9999999;
     }
+    match /users/{userId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId;
+    }
   }
 }`}
             </div>
@@ -165,7 +169,7 @@ service cloud.firestore {
               <br/>
               <strong>6.</strong> Kembali ke sini dan klik tombol <strong>🔄 Test</strong>
               <br/><br/>
-              <span style={{ color:'#FDCB6E' }}>💡</span> Rules di atas memperbolehkan semua orang <strong>membaca</strong> leaderboard, <strong>menambah</strong> skor baru, dan <strong>update</strong> skor sendiri (hanya kalau skor baru lebih tinggi). Tidak bisa edit/hapus skor orang lain.
+              <span style={{ color:'#FDCB6E' }}>💡</span> Rules di atas memperbolehkan: leaderboard publik (baca semua, tambah/update skor), dan <strong>cloud save</strong> per user (hanya bisa akses data sendiri).
             </div>
           </div>
         )}

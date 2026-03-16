@@ -3,6 +3,7 @@ import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useProgress, ACHIEVEMENTS, getLevelInfo } from '../context/ProgressContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useCloudSave } from '../context/CloudSaveContext.jsx'
 
 const CATEGORY_META = {
   milestone: { label: 'Milestone',  icon: '🎮', color: '#4ECDC4' },
@@ -28,6 +29,7 @@ export default function Profile({ onBack, games }) {
   const { play } = useSound()
   const { progress } = useProgress()
   const { isLoggedIn, isGuest, playerName, photoURL, email, loginWithGoogle, logout } = useAuth()
+  const { syncStatus, lastSync, forceSync } = useCloudSave()
   const [achFilter, setAchFilter] = useState('all')
   const dark = darkMode
 
@@ -218,7 +220,31 @@ export default function Profile({ onBack, games }) {
               )}
             </div>
 
-            {/* XP progress bar */}
+            {/* Cloud save status */}
+            {isLoggedIn && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16,
+                padding: '8px 14px', borderRadius: 12,
+                background: dark ? 'rgba(162,155,254,0.06)' : 'rgba(162,155,254,0.04)',
+                border: `1px solid ${dark ? 'rgba(162,155,254,0.15)' : 'rgba(162,155,254,0.2)'}`,
+              }}>
+                <span style={{ fontSize: 14 }}>
+                  {syncStatus === 'syncing' ? '🔄' : syncStatus === 'synced' ? '☁️' : syncStatus === 'error' ? '⚠️' : '☁️'}
+                </span>
+                <span style={{ flex: 1, fontSize: 11, color: textMuted, fontWeight: 600 }}>
+                  {syncStatus === 'syncing' ? 'Menyinkronkan...'
+                    : syncStatus === 'synced' ? `Cloud save aktif${lastSync ? ` • ${new Date(lastSync).toLocaleTimeString('id-ID')}` : ''}`
+                    : syncStatus === 'error' ? 'Sync gagal — coba manual'
+                    : 'Cloud save'}
+                </span>
+                <button onClick={() => { play('click'); forceSync() }} style={{
+                  background: 'transparent', border: `1px solid ${borderCol}`, borderRadius: 6,
+                  padding: '3px 10px', fontSize: 10, color: textMuted, cursor: 'pointer', fontWeight: 700,
+                }}>
+                  🔄 Sync
+                </button>
+              </div>
+            )}
             <div style={{ marginBottom: 6 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                 <span style={{ fontSize: 11, fontWeight: 700, color: textMuted }}>Level {levelInfo.level}</span>

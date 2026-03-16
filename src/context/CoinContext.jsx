@@ -258,7 +258,21 @@ export function CoinProvider({ children }) {
   })
   const [coinAnim, setCoinAnim] = useState(null)
 
-  useEffect(() => { setJSON(StorageKeys.COINS, state) }, [state])
+  useEffect(() => {
+    setJSON(StorageKeys.COINS, state)
+    // Notify cloud save
+    try { window.dispatchEvent(new CustomEvent('bp-coin-change')) } catch(e) {}
+  }, [state])
+
+  // Reload from localStorage when cloud sync completes
+  useEffect(() => {
+    const handler = () => {
+      const saved = getJSON(StorageKeys.COINS)
+      if (saved) setState(s => ({ ...getDefaultCoinState(), ...saved }))
+    }
+    window.addEventListener('bp-cloud-sync', handler)
+    return () => window.removeEventListener('bp-cloud-sync', handler)
+  }, [])
 
   const earnCoins = useCallback((amount, desc='') => {
     if (amount <= 0) return

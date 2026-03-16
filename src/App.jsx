@@ -6,6 +6,7 @@ import { NotifProvider } from './context/NotifContext.jsx'
 import { LeaderboardProvider } from './context/LeaderboardContext.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { DailyChallengeProvider } from './context/DailyChallengeContext.jsx'
+import { CloudSaveProvider } from './context/CloudSaveContext.jsx'
 import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
 import PageTransition from './components/PageTransition.jsx'
@@ -249,17 +250,19 @@ export default function App() {
   return (
     <SettingsProvider>
       <AuthProvider>
-        <ProgressProvider>
-          <CoinProvider>
-            <LeaderboardProvider>
-              <DailyChallengeProvider>
-                <NotifProvider>
-                  <AppInner />
-                </NotifProvider>
-              </DailyChallengeProvider>
-            </LeaderboardProvider>
-          </CoinProvider>
-        </ProgressProvider>
+        <CloudSaveProvider>
+          <ProgressProvider>
+            <CoinProvider>
+              <LeaderboardProvider>
+                <DailyChallengeProvider>
+                  <NotifProvider>
+                    <AppInner />
+                  </NotifProvider>
+                </DailyChallengeProvider>
+              </LeaderboardProvider>
+            </CoinProvider>
+          </ProgressProvider>
+        </CloudSaveProvider>
       </AuthProvider>
     </SettingsProvider>
   )
