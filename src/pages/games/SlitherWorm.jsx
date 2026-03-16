@@ -18,17 +18,28 @@ const SEG_GAP     = 7
 const FOOD_COLORS = ['#ff6b6b','#ffd93d','#4ecdc4','#a29bfe','#fd79a8','#ff9f43','#54a0ff']
 
 const BOT_SKINS = [
-  { head: '#ff6b6b', body: '#cc4444', glow: '#ff6b6b', name: 'Ember'  },
-  { head: '#ffd93d', body: '#cca820', glow: '#ffd93d', name: 'Goldie' },
-  { head: '#fd79a8', body: '#c94d80', glow: '#fd79a8', name: 'Pinky'  },
-  { head: '#ff9f43', body: '#cc7520', glow: '#ff9f43', name: 'Blaze'  },
+  { head: '#ff6b6b', body: '#cc4444', glow: '#ff6b6b', name: 'Ember'   },
+  { head: '#ffd93d', body: '#cca820', glow: '#ffd93d', name: 'Goldie'  },
+  { head: '#fd79a8', body: '#c94d80', glow: '#fd79a8', name: 'Pinky'   },
+  { head: '#ff9f43', body: '#cc7520', glow: '#ff9f43', name: 'Blaze'   },
+  { head: '#54a0ff', body: '#2e7acc', glow: '#54a0ff', name: 'Frost'   },
+  { head: '#5f27cd', body: '#3e1a8c', glow: '#5f27cd', name: 'Shadow'  },
+  { head: '#00d2d3', body: '#00a8a8', glow: '#00d2d3', name: 'Aqua'    },
+  { head: '#f368e0', body: '#b94cc0', glow: '#f368e0', name: 'Neon'    },
+  { head: '#1dd1a1', body: '#10a67e', glow: '#1dd1a1', name: 'Viper'   },
+  { head: '#ee5a24', body: '#b8451c', glow: '#ee5a24', name: 'Magma'   },
+  { head: '#c44569', body: '#9b3654', glow: '#c44569', name: 'Rose'    },
+  { head: '#3ae374', body: '#28a358', glow: '#3ae374', name: 'Lime'    },
+  { head: '#fff200', body: '#ccbe00', glow: '#fff200', name: 'Flash'   },
+  { head: '#7158e2', body: '#5840b8', glow: '#7158e2', name: 'Mystic'  },
+  { head: '#17c0eb', body: '#1295b8', glow: '#17c0eb', name: 'Sky'     },
 ]
 const DEFAULT_PLAYER_SKIN = { head: '#4ecdc4', body: '#2eada4', glow: '#4ecdc4' }
 
 const CFG = {
-  easy:   { speed: 2.2, boostMul: 2.0, foodCount: 55, mapSize: 1800, turn: 0.14, bots: 2 },
-  medium: { speed: 2.8, boostMul: 2.1, foodCount: 42, mapSize: 2200, turn: 0.15, bots: 3 },
-  hard:   { speed: 3.4, boostMul: 2.2, foodCount: 32, mapSize: 2600, turn: 0.16, bots: 5 },
+  easy:   { speed: 2.2, boostMul: 2.0, foodCount: 120, mapSize: 2400, turn: 0.14, bots: 8  },
+  medium: { speed: 2.8, boostMul: 2.1, foodCount: 150, mapSize: 3200, turn: 0.15, bots: 12 },
+  hard:   { speed: 3.4, boostMul: 2.2, foodCount: 180, mapSize: 4000, turn: 0.16, bots: 15 },
 }
 
 const rand  = (a, b) => a + Math.random() * (b - a)
@@ -53,10 +64,11 @@ function makeWorm(x, y, angle, len = 24) {
   return { segs, angle, score: 0, alive: true, respawnTimer: 0 }
 }
 
-// ─── AI brain ─────────────────────────────────────────────────────────────────
-function botThink(bot, foods, mapSize, cfg) {
+// ─── AI brain — smarter with aggression, avoidance, and encircle ─────────────
+function botThink(bot, foods, mapSize, cfg, allWorms) {
   const head = bot.segs[0]
-  const margin = 120
+  const margin = 150
+  const myLen = bot.segs.length
 
   // Wall avoidance — highest priority
   const nearWall = head.x < margin || head.x > mapSize - margin ||
@@ -66,11 +78,67 @@ function botThink(bot, foods, mapSize, cfg) {
     let da = toCenter - bot.angle
     while (da >  Math.PI) da -= Math.PI * 2
     while (da < -Math.PI) da += Math.PI * 2
-    bot.angle += da * 0.18
+    bot.angle += da * 0.22
+    bot.wantBoost = false
     return
   }
 
-  // Seek nearest food
+  // Danger check — avoid bigger worms' bodies
+  let dangerAngle = null
+  let dangerDist = Infinity
+  for (const w of allWorms) {
+    if (w === bot || !w.alive) continue
+    // Only fear worms that are bigger
+    if (w.segs.length <= myLen * 0.8) continue
+    for (let i = 0; i < w.segs.length; i += 3) {
+      const d2 = dist2(head, w.segs[i])
+      if (d2 < 100 * 100 && d2 < dangerDist) {
+        dangerDist = d2
+        dangerAngle = Math.atan2(head.y - w.segs[i].y, head.x - w.segs[i].x)
+      }
+    }
+  }
+
+  if (dangerAngle !== null && dangerDist < 80 * 80) {
+    // Flee!
+    let da = dangerAngle - bot.angle
+    while (da >  Math.PI) da -= Math.PI * 2
+    while (da < -Math.PI) da += Math.PI * 2
+    bot.angle += da * 0.25
+    bot.wantBoost = dangerDist < 50 * 50
+    return
+  }
+
+  // Aggression — try to cut off smaller worms
+  if (myLen > 30) {
+    let prey = null, preyD = Infinity
+    for (const w of allWorms) {
+      if (w === bot || !w.alive) continue
+      if (w.segs.length >= myLen * 0.7) continue // Only hunt much smaller
+      const d2 = dist2(head, w.segs[0])
+      if (d2 < 250 * 250 && d2 < preyD) {
+        preyD = d2
+        prey = w
+      }
+    }
+    if (prey) {
+      // Aim slightly ahead of prey's direction
+      const preyHead = prey.segs[0]
+      const preyAngle = prey.angle || 0
+      const leadDist = 60
+      const targetX = preyHead.x + Math.cos(preyAngle) * leadDist
+      const targetY = preyHead.y + Math.sin(preyAngle) * leadDist
+      const target = Math.atan2(targetY - head.y, targetX - head.x)
+      let da = target - bot.angle
+      while (da >  Math.PI) da -= Math.PI * 2
+      while (da < -Math.PI) da += Math.PI * 2
+      bot.angle += da * 0.15
+      bot.wantBoost = preyD < 120 * 120
+      return
+    }
+  }
+
+  // Default: Seek nearest food (with some randomness)
   let best = null, bestD = Infinity
   for (const f of foods) {
     const d = dist2(head, f)
@@ -82,7 +150,10 @@ function botThink(bot, foods, mapSize, cfg) {
     while (da >  Math.PI) da -= Math.PI * 2
     while (da < -Math.PI) da += Math.PI * 2
     bot.angle += da * cfg.turn
+    // Occasionally add slight random wobble for natural movement
+    bot.angle += (Math.random() - 0.5) * 0.02
   }
+  bot.wantBoost = false
 }
 
 // ─── Draw Worm (no shadowBlur — offscreen glow via pre-drawn circle) ─────────
@@ -207,10 +278,17 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
   function initGame(canvas) {
     const M = cfg.mapSize
     const player = makeWorm(M / 2, M / 2, 0, 28)
-    const bots   = BOT_SKINS.slice(0, cfg.bots).map((skin, i) => ({
-      ...makeWorm(rand(200, M - 200), rand(200, M - 200), rand(0, Math.PI * 2), 22),
-      skin,
-    }))
+    const bots   = BOT_SKINS.slice(0, cfg.bots).map((skin, i) => {
+      // Variable sizes: ~30% small, ~50% medium, ~20% large
+      const sizeRoll = Math.random()
+      const len = sizeRoll < 0.3 ? Math.floor(rand(15, 22))
+                : sizeRoll < 0.8 ? Math.floor(rand(24, 38))
+                : Math.floor(rand(40, 60))
+      return {
+        ...makeWorm(rand(200, M - 200), rand(200, M - 200), rand(0, Math.PI * 2), len),
+        skin, wantBoost: false,
+      }
+    })
     const foods  = Array.from({ length: cfg.foodCount }, () => spawnFood(M))
     return {
       player, bots, foods, particles: [],
@@ -373,20 +451,27 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
       })
 
       // Bots update
+      const allWorms = [g.player, ...g.bots]
       g.bots.forEach(bot => {
         if (!bot.alive) {
           bot.respawnTimer -= 1
           if (bot.respawnTimer <= 0) {
-            const nb = makeWorm(rand(200, M - 200), rand(200, M - 200), rand(0, Math.PI * 2), 18)
+            const sizeRoll = Math.random()
+            const len = sizeRoll < 0.3 ? Math.floor(rand(15, 22))
+                      : sizeRoll < 0.8 ? Math.floor(rand(24, 38))
+                      : Math.floor(rand(40, 55))
+            const nb = makeWorm(rand(200, M - 200), rand(200, M - 200), rand(0, Math.PI * 2), len)
             bot.segs  = nb.segs
             bot.angle = nb.angle
             bot.alive = true
+            bot.wantBoost = false
           }
           return
         }
 
-        botThink(bot, g.foods, M, cfg)
-        const bspd = cfg.speed * 0.85
+        botThink(bot, g.foods, M, cfg, allWorms)
+        const botBoost = bot.wantBoost ? 1.3 : 1.0
+        const bspd = cfg.speed * 0.88 * botBoost
         const bnx  = bot.segs[0].x + Math.cos(bot.angle) * bspd
         const bny  = bot.segs[0].y + Math.sin(bot.angle) * bspd
 
@@ -457,6 +542,29 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
           return true
         })
         bot.segs.pop()
+
+        // Bot-to-bot kills — bot head hits other bot body
+        for (const other of g.bots) {
+          if (other === bot || !other.alive) continue
+          for (let si = 3; si < other.segs.length; si++) {
+            if (dist2({ x: bnx, y: bny }, other.segs[si]) < (SEG_R * 1.8) ** 2) {
+              bot.alive = false; bot.respawnTimer = 200
+              // Drop pellets from dead bot
+              const drop = Math.min(25, Math.floor(bot.segs.length / 3))
+              for (let i = 0; i < drop; i++) {
+                const bs = bot.segs[i * 3] || bot.segs[0]
+                g.foods.push({ x: bs.x + rand(-14,14), y: bs.y + rand(-14,14), color: bot.skin.head, r: rand(5,9), pulse: 0 })
+              }
+              // Other bot grows from kill
+              const ts = other.segs[other.segs.length - 1]
+              for (let i = 0; i < Math.min(8, Math.floor(bot.segs.length / 4)); i++) {
+                other.segs.push({ ...ts })
+              }
+              break
+            }
+          }
+          if (!bot.alive) break
+        }
       })
 
       // Replenish food
@@ -535,6 +643,65 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
       ctx.globalAlpha = 1
 
       ctx.shadowBlur = 0
+
+      // ── Minimap ──
+      const mmSize = 110, mmMargin = 12
+      const mmX = W - mmSize - mmMargin, mmY = H - mmSize - mmMargin
+      ctx.fillStyle = 'rgba(7,7,26,0.7)'
+      ctx.strokeStyle = 'rgba(162,155,254,0.3)'
+      ctx.lineWidth = 1
+      ctx.fillRect(mmX, mmY, mmSize, mmSize); ctx.strokeRect(mmX, mmY, mmSize, mmSize)
+      const mmScale = mmSize / g.mapSize
+      // Food dots
+      ctx.fillStyle = 'rgba(255,255,255,0.12)'
+      for (let fi = 0; fi < g.foods.length; fi += 4) {
+        const f = g.foods[fi]
+        ctx.fillRect(mmX + f.x * mmScale, mmY + f.y * mmScale, 1, 1)
+      }
+      // Bots on minimap
+      g.bots.forEach(b => {
+        if (!b.alive) return
+        ctx.fillStyle = b.skin.head + '99'
+        ctx.beginPath()
+        ctx.arc(mmX + b.segs[0].x * mmScale, mmY + b.segs[0].y * mmScale, Math.max(2, b.segs.length * 0.04), 0, Math.PI * 2)
+        ctx.fill()
+      })
+      // Player on minimap
+      const ph = g.player.segs[0]
+      ctx.fillStyle = '#4ecdc4'
+      ctx.beginPath()
+      ctx.arc(mmX + ph.x * mmScale, mmY + ph.y * mmScale, 3, 0, Math.PI * 2)
+      ctx.fill()
+      // Player view rect
+      ctx.strokeStyle = 'rgba(78,205,196,0.5)'
+      ctx.lineWidth = 0.5
+      ctx.strokeRect(mmX + cx * mmScale, mmY + cy * mmScale, W * mmScale, H * mmScale)
+
+      // ── Leaderboard HUD (top 5) ──
+      const ranking = [
+        { name: 'Kamu', len: g.player.segs.length, color: '#4ecdc4', alive: g.player.alive },
+        ...g.bots.map(b => ({ name: b.skin.name, len: b.alive ? b.segs.length : 0, color: b.skin.head, alive: b.alive }))
+      ].filter(r => r.alive).sort((a, b) => b.len - a.len).slice(0, 5)
+
+      const lbX = W - 120 - mmMargin, lbY = mmMargin
+      ctx.fillStyle = 'rgba(7,7,26,0.55)'
+      ctx.fillRect(lbX, lbY, 120, 14 + ranking.length * 18)
+      ctx.font = '700 9px Nunito,sans-serif'
+      ctx.fillStyle = 'rgba(255,255,255,0.3)'
+      ctx.textAlign = 'left'
+      ctx.fillText('TOP WORMS', lbX + 8, lbY + 11)
+      ranking.forEach((r, i) => {
+        const ry = lbY + 16 + i * 18
+        const isMe = r.name === 'Kamu'
+        ctx.fillStyle = r.color + (isMe ? '' : '88')
+        ctx.beginPath(); ctx.arc(lbX + 12, ry + 5, 3, 0, Math.PI * 2); ctx.fill()
+        ctx.fillStyle = isMe ? '#fff' : 'rgba(255,255,255,0.45)'
+        ctx.font = isMe ? '700 11px Nunito,sans-serif' : '600 10px Nunito,sans-serif'
+        ctx.fillText(r.name, lbX + 20, ry + 9)
+        ctx.textAlign = 'right'
+        ctx.fillText(r.len, lbX + 114, ry + 9)
+        ctx.textAlign = 'left'
+      })
     }
 
     function loop(ts) {
@@ -655,12 +822,17 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
           </p>
 
           {/* Bot preview */}
-          <div style={{ display:'flex', gap:10, marginBottom:20, flexWrap:'wrap', justifyContent:'center' }}>
-            {BOT_SKINS.slice(0, cfg.bots).map(b => (
-              <span key={b.name} style={{ background:`${b.glow}18`, border:`1.5px solid ${b.glow}44`, color:b.glow, borderRadius:100, padding:'4px 14px', fontSize:12, fontWeight:700, fontFamily:"'Fredoka One',cursive" }}>
+          <div style={{ display:'flex', gap:8, marginBottom:20, flexWrap:'wrap', justifyContent:'center', maxWidth:360 }}>
+            {BOT_SKINS.slice(0, Math.min(cfg.bots, 8)).map(b => (
+              <span key={b.name} style={{ background:`${b.glow}18`, border:`1.5px solid ${b.glow}44`, color:b.glow, borderRadius:100, padding:'3px 10px', fontSize:11, fontWeight:700, fontFamily:"'Fredoka One',cursive" }}>
                 🐍 {b.name}
               </span>
             ))}
+            {cfg.bots > 8 && (
+              <span style={{ background:'rgba(255,255,255,0.06)', border:'1.5px solid rgba(255,255,255,0.12)', color:'rgba(255,255,255,0.4)', borderRadius:100, padding:'3px 10px', fontSize:11, fontWeight:700, fontFamily:"'Fredoka One',cursive" }}>
+                +{cfg.bots - 8} lagi
+              </span>
+            )}
           </div>
 
           <div style={{ display:'flex', gap:18, marginBottom:28, fontSize:12, color:'rgba(255,255,255,0.35)' }}>

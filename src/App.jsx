@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { SettingsProvider, useSettings } from './context/SettingsContext.jsx'
 import { ProgressProvider } from './context/ProgressContext.jsx'
 import { CoinProvider } from './context/CoinContext.jsx'
@@ -16,17 +16,34 @@ import Home from './pages/Home.jsx'
 import Profile from './pages/Profile.jsx'
 import Shop from './pages/Shop.jsx'
 import Leaderboard from './pages/Leaderboard.jsx'
-import MemoryCardMatch from './pages/games/MemoryCardMatch.jsx'
-import SlitherWorm from './pages/games/SlitherWorm.jsx'
-import Game2048 from './pages/games/Game2048.jsx'
-import WordSearchGame from './pages/games/WordSearchGame.jsx'
-import SpaceShooter from './pages/games/SpaceShooter.jsx'
-import HangmanGame from './pages/games/HangmanGame.jsx'
-import ColorSortGame from './pages/games/ColorSortGame.jsx'
-import SudokuGame from './pages/games/SudokuGame.jsx'
-import JigsawPuzzle from './pages/games/JigsawPuzzle.jsx'
 import { migrateOldStorage } from './utils/storage.js'
 import { useMusic } from './hooks/useMusic.js'
+
+// ─── Lazy-loaded game components (split into separate chunks) ────────────────
+const MemoryCardMatch = lazy(() => import('./pages/games/MemoryCardMatch.jsx'))
+const SlitherWorm     = lazy(() => import('./pages/games/SlitherWorm.jsx'))
+const Game2048        = lazy(() => import('./pages/games/Game2048.jsx'))
+const WordSearchGame  = lazy(() => import('./pages/games/WordSearchGame.jsx'))
+const SpaceShooter    = lazy(() => import('./pages/games/SpaceShooter.jsx'))
+const HangmanGame     = lazy(() => import('./pages/games/HangmanGame.jsx'))
+const ColorSortGame   = lazy(() => import('./pages/games/ColorSortGame.jsx'))
+const SudokuGame      = lazy(() => import('./pages/games/SudokuGame.jsx'))
+const JigsawPuzzle    = lazy(() => import('./pages/games/JigsawPuzzle.jsx'))
+
+// ─── Game loading fallback ──────────────────────────────────────────────────
+function GameLoader() {
+  return (
+    <div style={{
+      width:'100%', height:'100vh', display:'flex', flexDirection:'column',
+      alignItems:'center', justifyContent:'center', gap:16,
+      background:'#07071a',
+    }}>
+      <div style={{ fontSize:48, animation:'gl-spin 1.2s linear infinite' }}>🎮</div>
+      <div style={{ fontFamily:"'Fredoka One',cursive", color:'#A29BFE', fontSize:16 }}>Memuat game...</div>
+      <style>{`@keyframes gl-spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  )
+}
 
 export const GAMES = [
   {
@@ -218,7 +235,9 @@ function AppInner() {
             <DifficultySelector game={currentGame} onSelect={selectDifficulty} onBack={goHome} />
           )}
           {screen === 'game' && currentGame && activeDiff && (
-            <currentGame.component onBack={goBackToDifficulty} game={currentGame} difficulty={activeDiff} />
+            <Suspense fallback={<GameLoader />}>
+              <currentGame.component onBack={goBackToDifficulty} game={currentGame} difficulty={activeDiff} />
+            </Suspense>
           )}
         </PageTransition>
       </main>
