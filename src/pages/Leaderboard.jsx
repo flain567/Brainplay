@@ -151,6 +151,10 @@ service cloud.firestore {
         && request.resource.data.score is number
         && request.resource.data.score >= 0
         && request.resource.data.score <= 9999999;
+      allow update: if request.resource.data.score
+        is number
+        && request.resource.data.score > resource.data.score
+        && request.resource.data.score <= 9999999;
     }
   }
 }`}
@@ -160,7 +164,7 @@ service cloud.firestore {
               <br/>
               <strong>6.</strong> Kembali ke sini dan klik tombol <strong>🔄 Test</strong>
               <br/><br/>
-              <span style={{ color:'#FDCB6E' }}>💡</span> Rules di atas memperbolehkan semua orang <strong>membaca</strong> leaderboard dan <strong>menambah</strong> skor (tapi tidak bisa edit/hapus skor orang lain). Ini aman untuk leaderboard publik.
+              <span style={{ color:'#FDCB6E' }}>💡</span> Rules di atas memperbolehkan semua orang <strong>membaca</strong> leaderboard, <strong>menambah</strong> skor baru, dan <strong>update</strong> skor sendiri (hanya kalau skor baru lebih tinggi). Tidak bisa edit/hapus skor orang lain.
             </div>
           </div>
         )}
@@ -470,7 +474,8 @@ export default function Leaderboard({ onBack, games }) {
                         )}
                       </div>
                       <div style={{ fontSize:10, color:textMuted, marginTop:1 }}>
-                        {formatDate(entry.createdAt || entry.date)}
+                        {formatDate(entry.updatedAt || entry.createdAt || entry.date)}
+                        {entry.gamesPlayed > 1 ? ` • ${entry.gamesPlayed}x main` : ''}
                         {entry.wave ? ` • Wave ${entry.wave}` : ''}
                         {entry.level ? ` • Lv${entry.level}` : ''}
                         {entry.time ? ` • ${formatTime(entry.time)}` : ''}

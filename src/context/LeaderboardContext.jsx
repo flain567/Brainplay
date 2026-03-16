@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
 import { db } from '../firebase.js'
-import { collection, addDoc, query, orderBy, limit, getDocs, where, serverTimestamp } from 'firebase/firestore'
+import { collection, doc, getDoc, setDoc, query, limit, getDocs, where, serverTimestamp } from 'firebase/firestore'
 
 const LeaderboardContext = createContext(null)
 
@@ -22,7 +22,20 @@ function getDeviceId() {
   return id
 }
 
-// ─── Local leaderboard (always works, no internet needed) ────────────────────
+// ─── Generate deterministic doc ID per player+game+diff ─────────────────────
+// Format: {gameId}_{diffId}_{sanitizedName}
+// This ensures 1 entry per player per game per difficulty
+
+function makeDocId(gameId, diffId, playerName) {
+  const safeName = (playerName || 'Pemain')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '_')
+    .slice(0, 30)
+  return `${gameId}_${diffId}_${safeName}`
+}
+
+// ─── Local leaderboard (best score per player) ──────────────────────────────
 
 function getLocalBoards() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {} } catch { return {} }
@@ -32,11 +45,26 @@ function saveLocalBoards(boards) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(boards))
 }
 
-function addLocalScore(gameId, diffId, entry) {
+function upsertLocalScore(gameId, diffId, entry) {
   const boards = getLocalBoards()
   const key = `${gameId}_${diffId}`
   if (!boards[key]) boards[key] = []
-  boards[key].push(entry)
+
+  // Find existing entry for this player name
+  const existingIdx = boards[key].findIndex(e => 
+    (e.name || '').toLowerCase() === (entry.name || '').toLowerCase()
+  )
+
+  if (existingIdx >= 0) {
+    const existing = boards[key][existingIdx]
+    // Only update if new score is higher
+    if (entry.score > existing.score) {
+      boards[key][existingIdx] = { ...existing, ...entry, date: Date.now() }
+    }
+  } else {
+    boards[key].push(entry)
+  }
+
   boards[key].sort((a, b) => b.score - a.score)
   boards[key] = boards[key].slice(0, MAX_LOCAL)
   saveLocalBoards(boards)
@@ -50,10 +78,19 @@ function getLocalScores(gameId, diffId) {
 
 function getLocalAllScores(gameId) {
   const boards = getLocalBoards()
-  const all = []
+  // Collect best per player across all difficulties
+  const playerBest = {}
   for (const key in boards) {
-    if (key.startsWith(`${gameId}_`)) all.push(...boards[key])
+    if (key.startsWith(`${gameId}_`)) {
+      for (const entry of boards[key]) {
+        const pKey = (entry.name || 'Anon').toLowerCase()
+        if (!playerBest[pKey] || entry.score > playerBest[pKey].score) {
+          playerBest[pKey] = entry
+        }
+      }
+    }
   }
+  const all = Object.values(playerBest)
   all.sort((a, b) => b.score - a.score)
   return all.slice(0, MAX_LOCAL)
 }
@@ -70,27 +107,78 @@ function savePendingScores(pending) {
 
 function addPendingScore(entry) {
   const pending = getPendingScores()
-  pending.push(entry)
+  // Deduplicate: replace existing pending for same game+diff+name
+  const existIdx = pending.findIndex(p =>
+    p.gameId === entry.gameId && p.diffId === entry.diffId &&
+    (p.name || '').toLowerCase() === (entry.name || '').toLowerCase()
+  )
+  if (existIdx >= 0) {
+    // Keep the higher score
+    if (entry.score > pending[existIdx].score) {
+      pending[existIdx] = entry
+    }
+  } else {
+    pending.push(entry)
+  }
   if (pending.length > 50) pending.splice(0, pending.length - 50)
   savePendingScores(pending)
 }
 
 // ─── Online leaderboard (Firebase Firestore) ─────────────────────────────────
+// Uses setDoc with deterministic ID → 1 entry per player per game per difficulty
+// Only updates if new score is HIGHER than existing
 
 async function submitOnlineScore(gameId, diffId, entry) {
   try {
-    await addDoc(collection(db, 'leaderboard'), {
-      gameId,
-      diffId,
-      name: entry.name || 'Pemain',
-      score: entry.score,
-      wave: entry.wave || null,
-      time: entry.time || null,
-      level: entry.level || null,
-      deviceId: getDeviceId(),
-      createdAt: serverTimestamp(),
-    })
-    console.log('[Leaderboard] ✅ Online submit OK:', gameId, entry.score)
+    const playerName = entry.name || 'Pemain'
+    const docId = makeDocId(gameId, diffId, playerName)
+    const docRef = doc(db, 'leaderboard', docId)
+
+    // Check existing score first
+    const existing = await getDoc(docRef)
+
+    if (existing.exists()) {
+      const oldData = existing.data()
+      if (entry.score <= (oldData.score || 0)) {
+        // New score is NOT higher → skip update
+        console.log('[Leaderboard] ⏭️ Score not higher, skip:', entry.score, '<=', oldData.score)
+        return { success: true, skipped: true }
+      }
+      // New score IS higher → update
+      await setDoc(docRef, {
+        gameId,
+        diffId,
+        name: playerName,
+        score: entry.score,
+        wave: entry.wave || null,
+        time: entry.time || null,
+        level: entry.level || null,
+        deviceId: getDeviceId(),
+        gamesPlayed: (oldData.gamesPlayed || 1) + 1,
+        previousBest: oldData.score || 0,
+        createdAt: oldData.createdAt || serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
+      console.log('[Leaderboard] ✅ Score UPDATED:', oldData.score, '→', entry.score)
+    } else {
+      // New entry
+      await setDoc(docRef, {
+        gameId,
+        diffId,
+        name: playerName,
+        score: entry.score,
+        wave: entry.wave || null,
+        time: entry.time || null,
+        level: entry.level || null,
+        deviceId: getDeviceId(),
+        gamesPlayed: 1,
+        previousBest: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
+      console.log('[Leaderboard] ✅ New score CREATED:', entry.score)
+    }
+
     return { success: true }
   } catch (err) {
     const msg = err.message || 'Unknown error'
@@ -211,16 +299,19 @@ export function LeaderboardProvider({ children }) {
 
       const name = localStorage.getItem(NICKNAME_KEY) || 'Pemain'
       const entry = { name, score, time: timeSec || null, date: Date.now() }
+      const diffId = difficultyId || 'easy'
 
-      addLocalScore(gameId, difficultyId || 'easy', entry)
+      // Upsert locally (best score per player)
+      upsertLocalScore(gameId, diffId, entry)
 
-      const result = await submitOnlineScore(gameId, difficultyId || 'easy', entry)
+      // Try to submit online
+      const result = await submitOnlineScore(gameId, diffId, entry)
 
       if (result.success) {
         setSubmitStatus('ok')
         fetchCooldown.current = {}
       } else {
-        addPendingScore({ gameId, diffId: difficultyId || 'easy', ...entry })
+        addPendingScore({ gameId, diffId, ...entry })
         setSubmitStatus('pending')
         setFirebaseStatus('error')
         setFirebaseMessage(result.message)
@@ -235,7 +326,7 @@ export function LeaderboardProvider({ children }) {
     const name = localStorage.getItem(NICKNAME_KEY) || 'Pemain'
     const entry = { name, score, wave: wave || null, time: time || null, level: level || null, date: Date.now() }
 
-    const localBoard = addLocalScore(gameId, diffId, entry)
+    const localBoard = upsertLocalScore(gameId, diffId, entry)
 
     const result = await submitOnlineScore(gameId, diffId, entry)
     if (!result.success) {
