@@ -38,7 +38,7 @@ function formatTime(s) {
 export default function Leaderboard({ onBack, games }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
-  const { nickname, setNickname, getOnlineScores, getLocalBoard, loading } = useLeaderboard()
+  const { nickname, setNickname, getOnlineScores, getLocalBoard, clearCache, loading } = useLeaderboard()
 
   const [gameTab, setGameTab] = useState('space-shooter')
   const [diffTab, setDiffTab] = useState(null)
@@ -46,6 +46,7 @@ export default function Leaderboard({ onBack, games }) {
   const [scores, setScores] = useState([])
   const [showNickname, setShowNickname] = useState(!nickname)
   const [nameInput, setNameInput] = useState(nickname || '')
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const dark = darkMode
   const bg = dark ? '#0d0b1e' : '#FFF9F0'
@@ -54,7 +55,7 @@ export default function Leaderboard({ onBack, games }) {
   const textMuted = dark ? '#8892b0' : '#636E72'
   const borderCol = dark ? '#2d3561' : '#DFE6E9'
 
-  // Fetch scores when tab/mode changes
+  // Fetch scores when tab/mode/refresh changes
   useEffect(() => {
     let cancelled = false
     async function load() {
@@ -68,7 +69,7 @@ export default function Leaderboard({ onBack, games }) {
     }
     load()
     return () => { cancelled = true }
-  }, [gameTab, diffTab, mode, getOnlineScores, getLocalBoard])
+  }, [gameTab, diffTab, mode, refreshKey, getOnlineScores, getLocalBoard])
 
   const saveNickname = () => {
     const n = nameInput.trim()
@@ -220,7 +221,7 @@ export default function Leaderboard({ onBack, games }) {
             ))}
           </div>
 
-          {/* Mode toggle */}
+          {/* Mode toggle + refresh */}
           <div className="lb-mode-row">
             <button className={`lb-mode-btn ${mode==='online'?'active-online':''}`}
               onClick={() => { play('click'); setMode('online'); setScores([]) }}>
@@ -229,6 +230,18 @@ export default function Leaderboard({ onBack, games }) {
             <button className={`lb-mode-btn ${mode==='local'?'active-local':''}`}
               onClick={() => { play('click'); setMode('local'); setScores([]) }}>
               📱 Lokal
+            </button>
+            <button
+              onClick={() => { play('click'); clearCache(); setScores([]); setRefreshKey(k => k+1) }}
+              style={{
+                width:44, height:44, borderRadius:14, border:`2px solid ${borderCol}`,
+                background:'transparent', fontSize:18, cursor:'pointer',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                transition:'all 0.2s', flexShrink:0,
+              }}
+              title="Refresh"
+            >
+              🔄
             </button>
           </div>
 
@@ -248,7 +261,18 @@ export default function Leaderboard({ onBack, games }) {
               <p style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, marginBottom:6 }}>
                 {mode === 'online' ? 'Belum ada skor global' : 'Belum ada skor lokal'}
               </p>
-              <p style={{ fontSize:12 }}>Mainkan game dan jadi yang pertama di leaderboard!</p>
+              <p style={{ fontSize:12, lineHeight:1.6 }}>
+                {mode === 'online'
+                  ? 'Mainkan game untuk submit skor ke leaderboard global! Skor akan muncul di semua device.'
+                  : 'Skor lokal hanya tersimpan di device ini. Main game untuk mulai!'
+                }
+              </p>
+              {mode === 'online' && (
+                <button onClick={() => { clearCache(); setRefreshKey(k => k+1) }}
+                  style={{ marginTop:14, background:dark?'rgba(78,205,196,0.1)':'rgba(78,205,196,0.08)', border:'1.5px solid #4ECDC444', borderRadius:12, padding:'8px 20px', color:'#4ECDC4', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:"'Fredoka One',cursive" }}>
+                  🔄 Coba Refresh
+                </button>
+              )}
             </div>
           )}
 

@@ -7,7 +7,7 @@ const LeaderboardContext = createContext(null)
 const STORAGE_KEY = 'bp_leaderboard'
 const NICKNAME_KEY = 'bp_nickname'
 const MAX_LOCAL = 10
-const MAX_ONLINE = 50
+const MAX_ONLINE = 100
 
 // ─── Local leaderboard (always works, no internet needed) ────────────────────
 
@@ -46,40 +46,58 @@ function getLocalAllScores(gameId) {
 }
 
 // ─── Online leaderboard (Firebase Firestore) ─────────────────────────────────
+// Uses simple single-field queries to avoid needing composite indexes
 
 async function submitOnlineScore(gameId, diffId, entry) {
   try {
     await addDoc(collection(db, 'leaderboard'), {
       gameId,
       diffId,
-      name: entry.name,
+      name: entry.name || 'Pemain',
       score: entry.score,
       wave: entry.wave || null,
       time: entry.time || null,
       level: entry.level || null,
       createdAt: serverTimestamp(),
     })
+    console.log('[Leaderboard] Online submit OK:', gameId, entry.score)
     return true
   } catch (err) {
-    console.warn('Firebase submit failed:', err.message)
+    console.error('[Leaderboard] Online submit FAILED:', err.message)
     return false
   }
 }
 
+// Fetch all scores for a gameId, then filter & sort client-side
+// This avoids composite index requirement (only needs single-field index on gameId)
 async function fetchOnlineScores(gameId, diffId = null) {
   try {
     const ref = collection(db, 'leaderboard')
-    let q
-    if (diffId) {
-      q = query(ref, where('gameId', '==', gameId), where('diffId', '==', diffId), orderBy('score', 'desc'), limit(MAX_ONLINE))
-    } else {
-      q = query(ref, where('gameId', '==', gameId), orderBy('score', 'desc'), limit(MAX_ONLINE))
-    }
+    // Simple query: only filter by gameId, sort client-side
+    const q = query(ref, where('gameId', '==', gameId), limit(MAX_ONLINE))
     const snap = await getDocs(q)
-    return snap.docs.map((doc, i) => ({ id: doc.id, rank: i + 1, ...doc.data() }))
+    let results = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+    // Client-side filter by difficulty if specified
+    if (diffId) {
+      results = results.filter(r => r.diffId === diffId)
+    }
+
+    // Client-side sort by score descending
+    results.sort((a, b) => (b.score || 0) - (a.score || 0))
+
+    // Add rank
+    results = results.slice(0, 50).map((r, i) => ({ ...r, rank: i + 1 }))
+
+    console.log('[Leaderboard] Fetched', results.length, 'scores for', gameId, diffId || 'all')
+    return results
   } catch (err) {
-    console.warn('Firebase fetch failed:', err.message)
-    return null // null means offline/error
+    console.error('[Leaderboard] Fetch FAILED:', err.message)
+    // If it's an index error, log the link
+    if (err.message && err.message.includes('index')) {
+      console.error('[Leaderboard] Firestore needs an index. Check the link in the error above.')
+    }
+    return null
   }
 }
 
@@ -100,50 +118,43 @@ export function LeaderboardProvider({ children }) {
   // Auto-submit when any game reports a result
   useEffect(() => {
     const handler = (e) => {
-      const { gameId, difficultyId, won, score, stars, timeSec } = e.detail || {}
+      const { gameId, difficultyId, score, timeSec } = e.detail || {}
       if (!gameId || !score || score <= 0) return
-      // Submit to leaderboard (both local + online)
-      const name = localStorage.getItem(NICKNAME_KEY) || 'Anon'
+
+      const name = localStorage.getItem(NICKNAME_KEY) || 'Pemain'
       const entry = { name, score, time: timeSec || null, date: Date.now() }
+
+      // Always save locally
       addLocalScore(gameId, difficultyId || 'easy', entry)
-      if (name && name !== 'Anon') {
-        submitOnlineScore(gameId, difficultyId || 'easy', entry).catch(() => {})
-      }
+
+      // Always try to submit online (even without custom nickname)
+      submitOnlineScore(gameId, difficultyId || 'easy', entry).catch(() => {})
     }
     window.addEventListener('bp-game-result', handler)
     return () => window.removeEventListener('bp-game-result', handler)
   }, [])
 
-  // Submit score (both local + online)
+  // Submit score manually (both local + online)
   const submitScore = useCallback(async ({ gameId, diffId, score, wave, time, level }) => {
-    const name = localStorage.getItem(NICKNAME_KEY) || 'Anon'
-    const entry = {
-      name,
-      score,
-      wave: wave || null,
-      time: time || null,
-      level: level || null,
-      date: Date.now(),
-    }
+    const name = localStorage.getItem(NICKNAME_KEY) || 'Pemain'
+    const entry = { name, score, wave: wave || null, time: time || null, level: level || null, date: Date.now() }
 
     // Always save locally
     const localBoard = addLocalScore(gameId, diffId, entry)
 
-    // Try submit online
-    if (name && name !== 'Anon') {
-      await submitOnlineScore(gameId, diffId, entry)
-    }
+    // Always try online
+    await submitOnlineScore(gameId, diffId, entry)
 
     return localBoard
   }, [])
 
   // Fetch online scores with caching & cooldown
-  const getOnlineScores = useCallback(async (gameId, diffId = null) => {
+  const getOnlineScores = useCallback(async (gameId, diffId = null, force = false) => {
     const cacheKey = `${gameId}_${diffId || 'all'}`
     const now = Date.now()
 
-    // Cooldown: don't refetch within 30 seconds
-    if (fetchCooldown.current[cacheKey] && now - fetchCooldown.current[cacheKey] < 30000) {
+    // Cooldown: don't refetch within 15 seconds (skip if force)
+    if (!force && fetchCooldown.current[cacheKey] && now - fetchCooldown.current[cacheKey] < 15000) {
       return onlineCache[cacheKey] || []
     }
 
@@ -157,9 +168,14 @@ export function LeaderboardProvider({ children }) {
       return scores
     }
 
-    // Return cache if available, empty array if not
     return onlineCache[cacheKey] || []
   }, [onlineCache])
+
+  // Clear all cache (used by refresh button)
+  const clearCache = useCallback(() => {
+    fetchCooldown.current = {}
+    setOnlineCache({})
+  }, [])
 
   // Get local scores
   const getLocalBoard = useCallback((gameId, diffId = null) => {
@@ -174,6 +190,7 @@ export function LeaderboardProvider({ children }) {
       submitScore,
       getOnlineScores,
       getLocalBoard,
+      clearCache,
       loading,
     }}>
       {children}
