@@ -6,8 +6,21 @@ const LeaderboardContext = createContext(null)
 
 const STORAGE_KEY = 'bp_leaderboard'
 const NICKNAME_KEY = 'bp_nickname'
+const PENDING_KEY = 'bp_pending_scores'
+const DEVICE_ID_KEY = 'bp_device_id'
 const MAX_LOCAL = 10
-const MAX_ONLINE = 100
+const MAX_ONLINE = 200
+
+// ─── Device ID (unique per browser/device) ──────────────────────────────────
+
+function getDeviceId() {
+  let id = localStorage.getItem(DEVICE_ID_KEY)
+  if (!id) {
+    id = 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8)
+    localStorage.setItem(DEVICE_ID_KEY, id)
+  }
+  return id
+}
 
 // ─── Local leaderboard (always works, no internet needed) ────────────────────
 
@@ -45,8 +58,24 @@ function getLocalAllScores(gameId) {
   return all.slice(0, MAX_LOCAL)
 }
 
+// ─── Pending queue (retry failed online submissions) ─────────────────────────
+
+function getPendingScores() {
+  try { return JSON.parse(localStorage.getItem(PENDING_KEY)) || [] } catch { return [] }
+}
+
+function savePendingScores(pending) {
+  localStorage.setItem(PENDING_KEY, JSON.stringify(pending))
+}
+
+function addPendingScore(entry) {
+  const pending = getPendingScores()
+  pending.push(entry)
+  if (pending.length > 50) pending.splice(0, pending.length - 50)
+  savePendingScores(pending)
+}
+
 // ─── Online leaderboard (Firebase Firestore) ─────────────────────────────────
-// Uses simple single-field queries to avoid needing composite indexes
 
 async function submitOnlineScore(gameId, diffId, entry) {
   try {
@@ -58,47 +87,93 @@ async function submitOnlineScore(gameId, diffId, entry) {
       wave: entry.wave || null,
       time: entry.time || null,
       level: entry.level || null,
+      deviceId: getDeviceId(),
       createdAt: serverTimestamp(),
     })
-    console.log('[Leaderboard] Online submit OK:', gameId, entry.score)
-    return true
+    console.log('[Leaderboard] ✅ Online submit OK:', gameId, entry.score)
+    return { success: true }
   } catch (err) {
-    console.error('[Leaderboard] Online submit FAILED:', err.message)
-    return false
+    const msg = err.message || 'Unknown error'
+    console.error('[Leaderboard] ❌ Online submit FAILED:', msg)
+
+    if (msg.includes('permission') || msg.includes('PERMISSION_DENIED')) {
+      return { success: false, error: 'permission', message: 'Firestore rules belum diset. Buka Firebase Console → Firestore → Rules.' }
+    }
+    if (msg.includes('index')) {
+      return { success: false, error: 'index', message: 'Firestore perlu index. Cek link di console browser (F12).' }
+    }
+    if (msg.includes('network') || msg.includes('unavailable') || msg.includes('Failed to fetch')) {
+      return { success: false, error: 'network', message: 'Tidak ada koneksi internet.' }
+    }
+    return { success: false, error: 'unknown', message: msg }
   }
 }
 
-// Fetch all scores for a gameId, then filter & sort client-side
-// This avoids composite index requirement (only needs single-field index on gameId)
+async function testFirebaseConnection() {
+  try {
+    const ref = collection(db, 'leaderboard')
+    const q = query(ref, limit(1))
+    await getDocs(q)
+    return { ok: true, message: 'Firebase terhubung!' }
+  } catch (err) {
+    const msg = err.message || ''
+    if (msg.includes('permission') || msg.includes('PERMISSION_DENIED')) {
+      return { ok: false, error: 'permission', message: 'Firestore Security Rules menolak akses. Set rules di Firebase Console.' }
+    }
+    if (msg.includes('network') || msg.includes('unavailable') || msg.includes('Failed to fetch')) {
+      return { ok: false, error: 'network', message: 'Tidak bisa konek ke Firebase. Cek koneksi internet.' }
+    }
+    return { ok: false, error: 'unknown', message: 'Error: ' + msg }
+  }
+}
+
 async function fetchOnlineScores(gameId, diffId = null) {
   try {
     const ref = collection(db, 'leaderboard')
-    // Simple query: only filter by gameId, sort client-side
     const q = query(ref, where('gameId', '==', gameId), limit(MAX_ONLINE))
     const snap = await getDocs(q)
-    let results = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    let results = snap.docs.map(d => ({ id: d.id, ...d.data() }))
 
-    // Client-side filter by difficulty if specified
     if (diffId) {
       results = results.filter(r => r.diffId === diffId)
     }
 
-    // Client-side sort by score descending
     results.sort((a, b) => (b.score || 0) - (a.score || 0))
-
-    // Add rank
     results = results.slice(0, 50).map((r, i) => ({ ...r, rank: i + 1 }))
 
-    console.log('[Leaderboard] Fetched', results.length, 'scores for', gameId, diffId || 'all')
-    return results
+    console.log('[Leaderboard] ✅ Fetched', results.length, 'scores for', gameId, diffId || 'all')
+    return { success: true, data: results }
   } catch (err) {
-    console.error('[Leaderboard] Fetch FAILED:', err.message)
-    // If it's an index error, log the link
-    if (err.message && err.message.includes('index')) {
-      console.error('[Leaderboard] Firestore needs an index. Check the link in the error above.')
+    const msg = err.message || ''
+    console.error('[Leaderboard] ❌ Fetch FAILED:', msg)
+    if (msg.includes('permission') || msg.includes('PERMISSION_DENIED')) {
+      return { success: false, error: 'permission', data: null }
     }
-    return null
+    if (msg.includes('index')) {
+      return { success: false, error: 'index', data: null }
+    }
+    return { success: false, error: 'unknown', data: null }
   }
+}
+
+async function flushPendingScores() {
+  const pending = getPendingScores()
+  if (pending.length === 0) return
+
+  console.log('[Leaderboard] Flushing', pending.length, 'pending scores...')
+  const stillPending = []
+
+  for (const item of pending) {
+    const result = await submitOnlineScore(item.gameId, item.diffId, item)
+    if (!result.success) {
+      if (result.error === 'permission') {
+        savePendingScores(pending)
+        return
+      }
+      stillPending.push(item)
+    }
+  }
+  savePendingScores(stillPending)
 }
 
 // ─── Provider ────────────────────────────────────────────────────────────────
@@ -108,6 +183,9 @@ export function LeaderboardProvider({ children }) {
   const [onlineCache, setOnlineCache] = useState({})
   const [loading, setLoading] = useState(false)
   const [lastError, setLastError] = useState(null)
+  const [firebaseStatus, setFirebaseStatus] = useState('unknown')
+  const [firebaseMessage, setFirebaseMessage] = useState('')
+  const [submitStatus, setSubmitStatus] = useState(null)
   const fetchCooldown = useRef({})
 
   const setNickname = useCallback((name) => {
@@ -116,86 +194,126 @@ export function LeaderboardProvider({ children }) {
     localStorage.setItem(NICKNAME_KEY, clean)
   }, [])
 
+  // Test Firebase on mount
+  useEffect(() => {
+    testFirebaseConnection().then(result => {
+      setFirebaseStatus(result.ok ? 'connected' : 'error')
+      setFirebaseMessage(result.message)
+      if (result.ok) flushPendingScores()
+    })
+  }, [])
+
   // Auto-submit when any game reports a result
   useEffect(() => {
-    const handler = (e) => {
+    const handler = async (e) => {
       const { gameId, difficultyId, score, timeSec } = e.detail || {}
       if (!gameId || !score || score <= 0) return
 
       const name = localStorage.getItem(NICKNAME_KEY) || 'Pemain'
       const entry = { name, score, time: timeSec || null, date: Date.now() }
 
-      // Always save locally
       addLocalScore(gameId, difficultyId || 'easy', entry)
 
-      // Always try to submit online (even without custom nickname)
-      submitOnlineScore(gameId, difficultyId || 'easy', entry).catch(() => {})
+      const result = await submitOnlineScore(gameId, difficultyId || 'easy', entry)
+
+      if (result.success) {
+        setSubmitStatus('ok')
+        fetchCooldown.current = {}
+      } else {
+        addPendingScore({ gameId, diffId: difficultyId || 'easy', ...entry })
+        setSubmitStatus('pending')
+        setFirebaseStatus('error')
+        setFirebaseMessage(result.message)
+      }
+      setTimeout(() => setSubmitStatus(null), 3000)
     }
     window.addEventListener('bp-game-result', handler)
     return () => window.removeEventListener('bp-game-result', handler)
   }, [])
 
-  // Submit score manually (both local + online)
   const submitScore = useCallback(async ({ gameId, diffId, score, wave, time, level }) => {
     const name = localStorage.getItem(NICKNAME_KEY) || 'Pemain'
     const entry = { name, score, wave: wave || null, time: time || null, level: level || null, date: Date.now() }
 
-    // Always save locally
     const localBoard = addLocalScore(gameId, diffId, entry)
 
-    // Always try online
-    await submitOnlineScore(gameId, diffId, entry)
+    const result = await submitOnlineScore(gameId, diffId, entry)
+    if (!result.success) {
+      addPendingScore({ gameId, diffId, ...entry })
+      setFirebaseStatus('error')
+      setFirebaseMessage(result.message)
+    } else {
+      setFirebaseStatus('connected')
+      fetchCooldown.current = {}
+    }
 
     return localBoard
   }, [])
 
-  // Fetch online scores with caching & cooldown
   const getOnlineScores = useCallback(async (gameId, diffId = null, force = false) => {
     const cacheKey = `${gameId}_${diffId || 'all'}`
     const now = Date.now()
 
-    // Cooldown: don't refetch within 15 seconds (skip if force)
     if (!force && fetchCooldown.current[cacheKey] && now - fetchCooldown.current[cacheKey] < 15000) {
       return onlineCache[cacheKey] || []
     }
 
     setLoading(true)
     setLastError(null)
-    const scores = await fetchOnlineScores(gameId, diffId)
+    const result = await fetchOnlineScores(gameId, diffId)
     setLoading(false)
 
-    if (scores !== null) {
+    if (result.success) {
       fetchCooldown.current[cacheKey] = now
-      setOnlineCache(prev => ({ ...prev, [cacheKey]: scores }))
-      return scores
+      setOnlineCache(prev => ({ ...prev, [cacheKey]: result.data }))
+      setFirebaseStatus('connected')
+      setFirebaseMessage('Firebase terhubung!')
+      return result.data
     }
 
-    setLastError('Gagal memuat data. Cek koneksi internet.')
+    if (result.error === 'permission') {
+      setLastError('Firestore Rules menolak akses! Buka Firebase Console → Firestore → Rules.')
+      setFirebaseStatus('error')
+      setFirebaseMessage('Firestore Rules belum diset. Lihat panduan di bawah.')
+    } else if (result.error === 'index') {
+      setLastError('Firestore butuh index. Buka Console browser (F12) untuk link.')
+      setFirebaseStatus('error')
+    } else {
+      setLastError('Gagal memuat data. Cek koneksi internet.')
+      setFirebaseStatus('error')
+    }
     return onlineCache[cacheKey] || []
   }, [onlineCache])
 
-  // Clear all cache (used by refresh button)
   const clearCache = useCallback(() => {
     fetchCooldown.current = {}
     setOnlineCache({})
   }, [])
 
-  // Get local scores
   const getLocalBoard = useCallback((gameId, diffId = null) => {
     if (diffId) return getLocalScores(gameId, diffId)
     return getLocalAllScores(gameId)
   }, [])
 
+  const retestFirebase = useCallback(async () => {
+    setFirebaseStatus('unknown')
+    setFirebaseMessage('Mengecek koneksi...')
+    const result = await testFirebaseConnection()
+    setFirebaseStatus(result.ok ? 'connected' : 'error')
+    setFirebaseMessage(result.message)
+    if (result.ok) flushPendingScores()
+    return result
+  }, [])
+
+  const pendingCount = getPendingScores().length
+
   return (
     <LeaderboardContext.Provider value={{
-      nickname,
-      setNickname,
-      submitScore,
-      getOnlineScores,
-      getLocalBoard,
-      clearCache,
-      loading,
-      lastError,
+      nickname, setNickname, submitScore,
+      getOnlineScores, getLocalBoard, clearCache,
+      loading, lastError,
+      firebaseStatus, firebaseMessage, retestFirebase,
+      submitStatus, pendingCount,
     }}>
       {children}
     </LeaderboardContext.Provider>

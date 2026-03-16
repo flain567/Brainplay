@@ -35,14 +35,150 @@ function formatTime(s) {
   return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`
 }
 
+// ─── Firebase Status Banner ──────────────────────────────────────────────────
+
+function FirebaseStatusBanner({ dark, surface, borderCol, textMain, textMuted }) {
+  const { firebaseStatus, firebaseMessage, retestFirebase, pendingCount } = useLeaderboard()
+  const [showGuide, setShowGuide] = useState(false)
+  const [testing, setTesting] = useState(false)
+
+  if (firebaseStatus === 'connected' && pendingCount === 0) {
+    return (
+      <div style={{
+        display:'flex', alignItems:'center', gap:8, padding:'8px 14px',
+        background: dark ? 'rgba(78,205,196,0.08)' : 'rgba(78,205,196,0.06)',
+        border:'1.5px solid rgba(78,205,196,0.3)', borderRadius:12,
+        marginBottom:16, fontSize:12,
+      }}>
+        <span style={{ fontSize:14 }}>🟢</span>
+        <span style={{ color:'#4ECDC4', fontWeight:700, flex:1 }}>Firebase Terhubung</span>
+        <span style={{ color:textMuted, fontSize:10 }}>Skor sync ke semua device</span>
+      </div>
+    )
+  }
+
+  if (firebaseStatus === 'unknown') {
+    return (
+      <div style={{
+        display:'flex', alignItems:'center', gap:8, padding:'8px 14px',
+        background: dark ? 'rgba(253,203,110,0.08)' : 'rgba(253,203,110,0.06)',
+        border:'1.5px solid rgba(253,203,110,0.3)', borderRadius:12,
+        marginBottom:16, fontSize:12,
+      }}>
+        <span style={{ fontSize:14, animation:'spin 1s linear infinite' }}>⏳</span>
+        <span style={{ color:'#FDCB6E', fontWeight:700 }}>{firebaseMessage || 'Mengecek Firebase...'}</span>
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    )
+  }
+
+  // Error state
+  return (
+    <div style={{ marginBottom:16 }}>
+      <div style={{
+        background: dark ? 'rgba(255,107,107,0.08)' : 'rgba(255,107,107,0.06)',
+        border:'1.5px solid rgba(255,107,107,0.3)', borderRadius:14,
+        padding:'14px 16px',
+      }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+          <span style={{ fontSize:16 }}>🔴</span>
+          <span style={{ color:'#FF6B6B', fontWeight:700, fontSize:13, flex:1 }}>Firebase Tidak Terhubung</span>
+          <button
+            onClick={async () => { setTesting(true); await retestFirebase(); setTesting(false) }}
+            disabled={testing}
+            style={{
+              background:'#FF6B6B22', border:'1px solid #FF6B6B44', borderRadius:8,
+              padding:'5px 12px', color:'#FF6B6B', fontSize:11, fontWeight:700,
+              cursor:'pointer', opacity: testing ? 0.5 : 1,
+            }}>
+            {testing ? '⏳' : '🔄'} Test
+          </button>
+        </div>
+        <div style={{ fontSize:12, color:textMuted, lineHeight:1.6, marginBottom:8 }}>
+          {firebaseMessage || 'Skor hanya tersimpan di device ini. Untuk sync antar device, Firebase harus aktif.'}
+        </div>
+
+        {pendingCount > 0 && (
+          <div style={{
+            fontSize:11, color:'#FDCB6E', fontWeight:700, marginBottom:8,
+            padding:'6px 10px', background:'rgba(253,203,110,0.08)',
+            borderRadius:8, display:'inline-block',
+          }}>
+            ⏳ {pendingCount} skor menunggu upload
+          </div>
+        )}
+
+        <button
+          onClick={() => setShowGuide(g => !g)}
+          style={{
+            background:'transparent', border:`1px solid ${borderCol}`, borderRadius:8,
+            padding:'6px 14px', color:textMuted, fontSize:11, fontWeight:700,
+            cursor:'pointer', width:'100%', textAlign:'center',
+          }}>
+          {showGuide ? '▲ Tutup Panduan' : '📖 Lihat Panduan Setup Firebase'}
+        </button>
+
+        {showGuide && (
+          <div style={{
+            marginTop:12, padding:'16px', background: dark ? '#0d0b1e' : '#f8f8f8',
+            borderRadius:12, fontSize:12, color:textMain, lineHeight:1.8,
+          }}>
+            <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:14, marginBottom:10, color:'#A29BFE' }}>
+              Setup Firestore Rules
+            </div>
+            <div style={{ marginBottom:12 }}>
+              <strong>1.</strong> Buka <span style={{ color:'#4ECDC4', fontWeight:700 }}>Firebase Console</span> → project kamu
+              <br/>
+              <strong>2.</strong> Klik <strong>Firestore Database</strong> di sidebar
+              <br/>
+              <strong>3.</strong> Klik tab <strong>Rules</strong>
+              <br/>
+              <strong>4.</strong> Ganti isinya dengan:
+            </div>
+            <div style={{
+              background: dark ? '#1a1a2e' : '#2d3436', color:'#a5f3fc',
+              padding:'14px', borderRadius:10, fontSize:11,
+              fontFamily:'monospace', whiteSpace:'pre-wrap', lineHeight:1.7,
+              overflowX:'auto', userSelect:'all', marginBottom:12,
+            }}>
+{`rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /leaderboard/{docId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys()
+        .hasAll(['gameId','score','name'])
+        && request.resource.data.score is number
+        && request.resource.data.score >= 0
+        && request.resource.data.score <= 9999999;
+    }
+  }
+}`}
+            </div>
+            <div style={{ fontSize:11, color:textMuted, lineHeight:1.6 }}>
+              <strong>5.</strong> Klik <strong>Publish</strong>
+              <br/>
+              <strong>6.</strong> Kembali ke sini dan klik tombol <strong>🔄 Test</strong>
+              <br/><br/>
+              <span style={{ color:'#FDCB6E' }}>💡</span> Rules di atas memperbolehkan semua orang <strong>membaca</strong> leaderboard dan <strong>menambah</strong> skor (tapi tidak bisa edit/hapus skor orang lain). Ini aman untuk leaderboard publik.
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Main Leaderboard Page ───────────────────────────────────────────────────
+
 export default function Leaderboard({ onBack, games }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
-  const { nickname, setNickname, getOnlineScores, getLocalBoard, clearCache, loading, lastError } = useLeaderboard()
+  const { nickname, setNickname, getOnlineScores, getLocalBoard, clearCache, loading, lastError, firebaseStatus } = useLeaderboard()
 
   const [gameTab, setGameTab] = useState('space-shooter')
   const [diffTab, setDiffTab] = useState(null)
-  const [mode, setMode] = useState('online') // 'online' | 'local'
+  const [mode, setMode] = useState('online')
   const [scores, setScores] = useState([])
   const [showNickname, setShowNickname] = useState(!nickname)
   const [nameInput, setNameInput] = useState(nickname || '')
@@ -55,7 +191,6 @@ export default function Leaderboard({ onBack, games }) {
   const textMuted = dark ? '#8892b0' : '#636E72'
   const borderCol = dark ? '#2d3561' : '#DFE6E9'
 
-  // Fetch scores when tab/mode/refresh changes
   useEffect(() => {
     let cancelled = false
     async function load() {
@@ -145,6 +280,9 @@ export default function Leaderboard({ onBack, games }) {
             <p style={{ fontSize:13, color:textMuted }}>Lihat ranking pemain terbaik di setiap game!</p>
           </div>
 
+          {/* Firebase Status Banner */}
+          <FirebaseStatusBanner dark={dark} surface={surface} borderCol={borderCol} textMain={textMain} textMuted={textMuted} />
+
           {/* Nickname */}
           {showNickname || !nickname ? (
             <div style={{
@@ -169,16 +307,15 @@ export default function Leaderboard({ onBack, games }) {
                     flex:1, padding:'10px 16px', borderRadius:12,
                     border:`2px solid ${borderCol}`, background:dark?'#0d0b1e':'#f8f8f8',
                     color:textMain, fontSize:14, fontWeight:700,
-                    fontFamily:"'Nunito',sans-serif", outline:'none',
+                    fontFamily:"'Nunito',sans-serif", outline:'none', boxSizing:'border-box',
                   }}
                 />
-                <button onClick={saveNickname} disabled={nameInput.trim().length < 2}
+                <button onClick={saveNickname}
                   style={{
-                    background: nameInput.trim().length >= 2 ? 'linear-gradient(135deg,#A29BFE,#6C5CE7)' : (dark?'#1e2a4a':'#eee'),
-                    color: nameInput.trim().length >= 2 ? '#fff' : textMuted,
-                    border:'none', borderRadius:12, padding:'10px 20px',
-                    fontFamily:"'Fredoka One',cursive", fontSize:14,
-                    cursor: nameInput.trim().length >= 2 ? 'pointer' : 'default',
+                    padding:'10px 18px', borderRadius:12,
+                    background:'linear-gradient(135deg,#A29BFE,#6C5CE7)',
+                    color:'#fff', border:'none', fontWeight:800,
+                    fontFamily:"'Fredoka One',cursive", cursor:'pointer', fontSize:13,
                   }}>
                   ✓
                 </button>
@@ -225,7 +362,7 @@ export default function Leaderboard({ onBack, games }) {
           <div className="lb-mode-row">
             <button className={`lb-mode-btn ${mode==='online'?'active-online':''}`}
               onClick={() => { play('click'); setMode('online'); setScores([]) }}>
-              🌐 Global
+              🌐 Global {firebaseStatus === 'connected' ? '' : '⚠️'}
             </button>
             <button className={`lb-mode-btn ${mode==='local'?'active-local':''}`}
               onClick={() => { play('click'); setMode('local'); setScores([]) }}>
@@ -265,7 +402,7 @@ export default function Leaderboard({ onBack, games }) {
               <span style={{ fontSize:18 }}>⚠️</span>
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:13, color:'#FF6B6B', fontWeight:700 }}>{lastError}</div>
-                <div style={{ fontSize:11, color:textMuted, marginTop:2 }}>Coba refresh atau periksa koneksi internet</div>
+                <div style={{ fontSize:11, color:textMuted, marginTop:2 }}>Scroll ke atas untuk lihat panduan setup Firebase</div>
               </div>
               <button onClick={() => { clearCache(); setScores([]); setRefreshKey(k => k+1) }}
                 style={{ background:'#FF6B6B22', border:'1px solid #FF6B6B44', borderRadius:8, padding:'6px 12px', color:'#FF6B6B', fontSize:11, fontWeight:700, cursor:'pointer' }}>
@@ -283,11 +420,13 @@ export default function Leaderboard({ onBack, games }) {
               </p>
               <p style={{ fontSize:12, lineHeight:1.6 }}>
                 {mode === 'online'
-                  ? 'Mainkan game untuk submit skor ke leaderboard global! Skor akan muncul di semua device.'
+                  ? firebaseStatus === 'error'
+                    ? 'Firebase belum terhubung. Ikuti panduan setup di atas untuk mengaktifkan leaderboard global.'
+                    : 'Mainkan game untuk submit skor ke leaderboard global! Skor akan muncul di semua device.'
                   : 'Skor lokal hanya tersimpan di device ini. Main game untuk mulai!'
                 }
               </p>
-              {mode === 'online' && (
+              {mode === 'online' && firebaseStatus === 'connected' && (
                 <button onClick={() => { clearCache(); setRefreshKey(k => k+1) }}
                   style={{ marginTop:14, background:dark?'rgba(78,205,196,0.1)':'rgba(78,205,196,0.08)', border:'1.5px solid #4ECDC444', borderRadius:12, padding:'8px 20px', color:'#4ECDC4', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:"'Fredoka One',cursive" }}>
                   🔄 Coba Refresh
