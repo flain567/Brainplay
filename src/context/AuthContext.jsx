@@ -42,6 +42,18 @@ export function AuthProvider({ children }) {
     getRedirectResult(auth).catch(() => {})
   }, [])
 
+  // Reload displayName when cloud sync restores it
+  useEffect(() => {
+    const handler = () => {
+      const saved = localStorage.getItem(DISPLAY_NAME_KEY)
+      if (saved && saved !== displayName) {
+        setDisplayNameState(saved)
+      }
+    }
+    window.addEventListener('bp-cloud-sync', handler)
+    return () => window.removeEventListener('bp-cloud-sync', handler)
+  }, [displayName])
+
   const loginWithGoogle = useCallback(async () => {
     setError(null)
     try {

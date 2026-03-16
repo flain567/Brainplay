@@ -104,6 +104,7 @@ function mergeCoins(local, cloud) {
 export function CloudSaveProvider({ children }) {
   const [syncStatus, setSyncStatus] = useState('idle') // 'idle' | 'syncing' | 'synced' | 'error'
   const [lastSync, setLastSync] = useState(null)
+  const [initialSyncDone, setInitialSyncDone] = useState(false)
   const debounceRef = useRef(null)
   const isSyncing = useRef(false)
 
@@ -121,11 +122,19 @@ export function CloudSaveProvider({ children }) {
       // Get local data
       const localProgress = getJSON(StorageKeys.XP) || {}
       const localCoins = getJSON(StorageKeys.COINS) || {}
+      const localName = localStorage.getItem('bp_display_name') || ''
 
       if (cloudData) {
         // Merge
         const mergedProgress = mergeProgress(localProgress, cloudData.progress || {})
         const mergedCoins = mergeCoins(localCoins, cloudData.coins || {})
+
+        // Restore display name from cloud if local is empty
+        const mergedName = localName || cloudData.displayName || ''
+        if (mergedName) {
+          localStorage.setItem('bp_display_name', mergedName)
+          localStorage.setItem('bp_nickname', mergedName)
+        }
 
         // Save merged to localStorage
         setJSON(StorageKeys.XP, mergedProgress)
@@ -135,6 +144,7 @@ export function CloudSaveProvider({ children }) {
         await setDoc(docRef, {
           progress: mergedProgress,
           coins: { ...mergedCoins, transactions: (mergedCoins.transactions || []).slice(0, 10) },
+          displayName: mergedName,
           updatedAt: serverTimestamp(),
         })
 
@@ -144,6 +154,7 @@ export function CloudSaveProvider({ children }) {
         await setDoc(docRef, {
           progress: localProgress,
           coins: { ...localCoins, transactions: (localCoins.transactions || []).slice(0, 10) },
+          displayName: localName,
           updatedAt: serverTimestamp(),
         })
         console.log('[CloudSave] ✅ First sync — pushed local to cloud')
@@ -151,12 +162,14 @@ export function CloudSaveProvider({ children }) {
 
       setSyncStatus('synced')
       setLastSync(Date.now())
+      setInitialSyncDone(true)
 
       // Force re-render by dispatching event
       window.dispatchEvent(new CustomEvent('bp-cloud-sync'))
     } catch (err) {
       console.error('[CloudSave] ❌ Sync failed:', err.message)
       setSyncStatus('error')
+      setInitialSyncDone(true)
     } finally {
       isSyncing.current = false
     }
@@ -170,10 +183,12 @@ export function CloudSaveProvider({ children }) {
     try {
       const progress = getJSON(StorageKeys.XP) || {}
       const coins = getJSON(StorageKeys.COINS) || {}
+      const displayName = localStorage.getItem('bp_display_name') || ''
 
       await setDoc(doc(db, 'users', user.uid), {
         progress,
         coins: { ...coins, transactions: (coins.transactions || []).slice(0, 10) },
+        displayName,
         updatedAt: serverTimestamp(),
       })
 
@@ -202,6 +217,7 @@ export function CloudSaveProvider({ children }) {
       } else {
         setSyncStatus('idle')
         setLastSync(null)
+        setInitialSyncDone(true) // No cloud sync needed for guests
       }
     })
     return () => unsub()
@@ -251,7 +267,7 @@ export function CloudSaveProvider({ children }) {
 
   return (
     <CloudSaveContext.Provider value={{
-      syncStatus, lastSync, forceSync, triggerSave,
+      syncStatus, lastSync, forceSync, triggerSave, initialSyncDone,
     }}>
       {children}
     </CloudSaveContext.Provider>

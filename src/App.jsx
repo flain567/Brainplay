@@ -6,7 +6,7 @@ import { NotifProvider } from './context/NotifContext.jsx'
 import { LeaderboardProvider } from './context/LeaderboardContext.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { DailyChallengeProvider } from './context/DailyChallengeContext.jsx'
-import { CloudSaveProvider } from './context/CloudSaveContext.jsx'
+import { CloudSaveProvider, useCloudSave } from './context/CloudSaveContext.jsx'
 import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
 import PageTransition from './components/PageTransition.jsx'
@@ -171,6 +171,7 @@ function AppInner() {
   const [difficulty,  setDifficulty]  = useState(null)
   const [screen,      setScreen]      = useState('home')
   const { isLoggedIn, isGuest, needsName, loading: authLoading } = useAuth()
+  const { initialSyncDone } = useCloudSave()
   const { muted, musicOff } = useSettings()
 
   // Run migration once
@@ -197,20 +198,22 @@ function AppInner() {
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
-      {/* Auth loading screen */}
-      {authLoading && (
+      {/* Auth loading screen — wait for auth + initial cloud sync */}
+      {(authLoading || (isLoggedIn && !initialSyncDone)) && (
         <div style={{
           position:'fixed', inset:0, zIndex:10000,
           background:'#0d0b1e', display:'flex', alignItems:'center', justifyContent:'center',
           flexDirection:'column', gap:16,
         }}>
           <div style={{ fontSize:48, animation:'spin 1.5s linear infinite' }}>🎮</div>
-          <div style={{ fontFamily:"'Fredoka One',cursive", color:'#A29BFE', fontSize:16 }}>Memuat...</div>
+          <div style={{ fontFamily:"'Fredoka One',cursive", color:'#A29BFE', fontSize:16 }}>
+            {authLoading ? 'Memuat...' : 'Menyinkronkan data...'}
+          </div>
           <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
         </div>
       )}
-      {/* Login prompt — shown if not authenticated, or if authenticated but no name set */}
-      {!authLoading && ((!isLoggedIn && !isGuest) || needsName) && (
+      {/* Login prompt — shown if not authenticated, or if authenticated but no name set (after sync) */}
+      {!authLoading && initialSyncDone && ((!isLoggedIn && !isGuest) || needsName) && (
         <LoginModal onDone={() => {}} />
       )}
       {!isFullscreen && (
