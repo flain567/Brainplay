@@ -299,7 +299,7 @@ export default function HangmanGame({ onBack, game, difficulty }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { reportGameResult } = useProgress()
-  const { earnCoins, getActiveHangmanTheme } = useCoins()
+  const { earnCoins, spendCoins, coins, getActiveHangmanTheme } = useCoins()
   const hangmanTheme = getActiveHangmanTheme ? getActiveHangmanTheme() : { stick:'#ffffff', man:'#ffffff' }
 
   const maxWrong = MAX_WRONG[difficulty.id] || 8
@@ -312,6 +312,7 @@ export default function HangmanGame({ onBack, game, difficulty }) {
   const [showConfetti, setShowConfetti] = useState(false)
   const [resetKey, setResetKey] = useState(0)
   const [hintUsed, setHintUsed] = useState(0)
+  const [paidHints, setPaidHints] = useState(0)
 
   const word = wordData.word
   const wrongLetters = [...guessed].filter(l => !word.includes(l))
@@ -342,7 +343,8 @@ export default function HangmanGame({ onBack, game, difficulty }) {
         setBestWrong(wrongCount)
       }
 
-      const stars = wrongCount <= (difficulty.id === 'hard' ? 1 : 2) ? 3 : wrongCount <= (maxWrong / 2) ? 2 : 1
+      let stars = wrongCount <= (difficulty.id === 'hard' ? 1 : 2) ? 3 : wrongCount <= (maxWrong / 2) ? 2 : 1
+      if (paidHints > 0 && stars > 2) stars = 2
       reportGameResult({
         gameId: 'hangman',
         difficultyId: difficulty.id,
@@ -388,10 +390,20 @@ export default function HangmanGame({ onBack, game, difficulty }) {
     return () => window.removeEventListener('keydown', handler)
   }, [guessLetter])
 
-  const useHintAction = () => {
-    if (hintUsed >= 3 || !isGameActive) return
+  const FREE_HINTS = 3
+  const HINT_COST = 100
+
+  const useHintAction = async () => {
+    if (!isGameActive) return
+    const isFree = hintUsed < FREE_HINTS
+    // If paid, check coins
+    if (!isFree) {
+      if (coins < HINT_COST) { play('mismatch'); return }
+      const ok = await spendCoins(HINT_COST, 'Hint Hangman')
+      if (!ok) return
+      setPaidHints(p => p + 1)
+    }
     play('click')
-    // Reveal a random unguessed letter
     const unguessedLetters = [...new Set(word.split(''))].filter(l => !guessed.has(l))
     if (unguessedLetters.length > 0) {
       const randomLetter = unguessedLetters[Math.floor(Math.random() * unguessedLetters.length)]
@@ -408,6 +420,7 @@ export default function HangmanGame({ onBack, game, difficulty }) {
     setLost(false)
     setShowConfetti(false)
     setHintUsed(0)
+    setPaidHints(0)
     setResetKey(k => k + 1)
   }
 
@@ -564,9 +577,9 @@ export default function HangmanGame({ onBack, game, difficulty }) {
           style={{ background: accent, color: '#fff', border: 'none', borderRadius: 100, padding: '12px 28px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', boxShadow: `0 4px 14px ${accent}44` }}>
           🔄 Main Lagi
         </button>
-        <button onClick={useHintAction} disabled={hintUsed >= 3 || !isGameActive}
-          style={{ background: hintUsed>=3||!isGameActive ? 'rgba(255,255,255,0.05)' : 'rgba(255,211,61,0.15)', color: hintUsed>=3||!isGameActive ? textMuted : '#FFD93D', border: `2px solid ${hintUsed>=3||!isGameActive ? borderCol : '#FFD93D44'}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: hintUsed>=3||!isGameActive ? 'default' : 'pointer' }}>
-          🔤 Buka Huruf ({3-hintUsed})
+        <button onClick={useHintAction} disabled={!isGameActive}
+          style={{ background: !isGameActive ? 'rgba(255,255,255,0.05)' : hintUsed >= FREE_HINTS ? 'rgba(162,155,254,0.15)' : 'rgba(255,211,61,0.15)', color: !isGameActive ? textMuted : hintUsed >= FREE_HINTS ? '#A29BFE' : '#FFD93D', border: `2px solid ${!isGameActive ? borderCol : hintUsed >= FREE_HINTS ? '#A29BFE44' : '#FFD93D44'}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: !isGameActive ? 'default' : 'pointer' }}>
+          🔤 {hintUsed < FREE_HINTS ? `Buka Huruf (${FREE_HINTS - hintUsed})` : `Buka Huruf (${HINT_COST}🪙)`}
         </button>
         <button onClick={() => { play('click'); onBack() }}
           style={{ background: surface, color: textMuted, border: `2px solid ${borderCol}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 700, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>
@@ -595,14 +608,16 @@ export default function HangmanGame({ onBack, game, difficulty }) {
           darkMode={darkMode}
           game={game}
           difficulty={difficulty}
+          paidHints={paidHints}
         />
       )}
     </div>
   )
 }
 
-function ResultModal({ won, word, wrongCount, maxWrong, time, diffLabel, onRestart, onBack, darkMode, game, difficulty }) {
-  const stars = won ? (wrongCount <= (difficulty.id === 'hard' ? 1 : 2) ? 3 : wrongCount <= (maxWrong / 2) ? 2 : 1) : 0
+function ResultModal({ won, word, wrongCount, maxWrong, time, diffLabel, onRestart, onBack, darkMode, game, difficulty, paidHints }) {
+  let stars = won ? (wrongCount <= (difficulty.id === 'hard' ? 1 : 2) ? 3 : wrongCount <= (maxWrong / 2) ? 2 : 1) : 0
+  if (paidHints > 0 && stars > 2) stars = 2
   const bg = darkMode ? '#1a1a2e' : '#fff'
   const textMain = darkMode ? '#e8e8f0' : '#2D3436'
   const textMuted = darkMode ? '#8892b0' : '#636E72'

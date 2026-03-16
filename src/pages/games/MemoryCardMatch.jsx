@@ -54,7 +54,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { reportGameResult } = useProgress()
-  const { getActiveIcons, earnCoins } = useCoins()
+  const { getActiveIcons, earnCoins, spendCoins, coins } = useCoins()
 
   const { pairs, cols } = difficulty
   const iconPool = getActiveIcons()
@@ -83,7 +83,8 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
         localStorage.setItem(bestKey, moves)
         setBestMoves(moves)
       }
-      const stars = moves <= (pairs * 1.5) ? 3 : moves <= (pairs * 2.5) ? 2 : 1
+      let stars = moves <= (pairs * 1.5) ? 3 : moves <= (pairs * 2.5) ? 2 : 1
+      if (paidHints > 0 && stars > 2) stars = 2
       reportGameResult({
         gameId: 'memory-card',
         difficultyId: difficulty.id,
@@ -140,10 +141,20 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
   }, [deck, selected, locked, play])
 
   // Hint system — reveal a pair for 1.5s
+  const FREE_HINTS = 3
+  const HINT_COST = 100
   const [hintUsed, setHintUsed] = useState(0)
+  const [paidHints, setPaidHints] = useState(0)
   const [hintCells, setHintCells] = useState([])
-  const useHint = () => {
-    if (locked || hintUsed >= 3 || won) return
+  const useHint = async () => {
+    if (locked || won) return
+    const isFree = hintUsed < FREE_HINTS
+    if (!isFree) {
+      if (coins < HINT_COST) { play('mismatch'); return }
+      const ok = await spendCoins(HINT_COST, 'Hint Memory Card')
+      if (!ok) return
+      setPaidHints(p => p + 1)
+    }
     play('click')
     const unmatched = deck.filter(c => !c.matched && !c.flipped)
     if (unmatched.length < 2) return
@@ -175,6 +186,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
     setWon(false)
     setShowConfetti(false)
     setHintUsed(0)
+    setPaidHints(0)
     setHintCells([])
     setResetKey(k => k + 1)
   }
@@ -240,9 +252,9 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
           style={{ background: '#FF6B6B', color: '#fff', border: 'none', borderRadius: 100, padding: '12px 28px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', boxShadow: '0 4px 14px #FF6B6B44' }}>
           🔄 Main Lagi
         </button>
-        <button onClick={useHint} disabled={hintUsed >= 3 || won}
-          style={{ background: hintUsed>=3||won ? 'rgba(255,255,255,0.05)' : 'rgba(255,211,61,0.15)', color: hintUsed>=3||won ? textMuted : '#FFD93D', border: `2px solid ${hintUsed>=3||won ? borderCol : '#FFD93D44'}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: hintUsed>=3||won ? 'default' : 'pointer' }}>
-          💡 Hint ({3-hintUsed})
+        <button onClick={useHint} disabled={won}
+          style={{ background: won ? 'rgba(255,255,255,0.05)' : hintUsed >= FREE_HINTS ? 'rgba(162,155,254,0.15)' : 'rgba(255,211,61,0.15)', color: won ? textMuted : hintUsed >= FREE_HINTS ? '#A29BFE' : '#FFD93D', border: `2px solid ${won ? borderCol : hintUsed >= FREE_HINTS ? '#A29BFE44' : '#FFD93D44'}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: won ? 'default' : 'pointer' }}>
+          💡 {hintUsed < FREE_HINTS ? `Hint (${FREE_HINTS - hintUsed})` : `Hint (${HINT_COST}🪙)`}
         </button>
         <button onClick={() => { play('click'); onBack() }}
           style={{ background: surface, color: textMuted, border: `2px solid ${borderCol}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 700, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>
@@ -267,6 +279,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
           darkMode={darkMode}
           game={game}
           pairs={pairs}
+          paidHints={paidHints}
         />
       )}
     </div>
@@ -293,8 +306,9 @@ function CardTile({ card, onClick, darkMode, small }) {
   )
 }
 
-function WinModal({ moves, time, diffLabel, onRestart, onBack, darkMode, game, pairs }) {
-  const stars   = moves <= (pairs * 1.5) ? 3 : moves <= (pairs * 2.5) ? 2 : 1
+function WinModal({ moves, time, diffLabel, onRestart, onBack, darkMode, game, pairs, paidHints }) {
+  let stars   = moves <= (pairs * 1.5) ? 3 : moves <= (pairs * 2.5) ? 2 : 1
+  if (paidHints > 0 && stars > 2) stars = 2
   const bg      = darkMode ? '#1a1a2e' : '#fff'
   const textMain  = darkMode ? '#e8e8f0' : '#2D3436'
   const textMuted = darkMode ? '#8892b0' : '#636E72'

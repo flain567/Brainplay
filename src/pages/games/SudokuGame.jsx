@@ -106,7 +106,7 @@ export default function SudokuGame({ onBack, game, difficulty }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { reportGameResult } = useProgress()
-  const { earnCoins, getActiveSudokuTheme } = useCoins()
+  const { earnCoins, spendCoins, coins, getActiveSudokuTheme } = useCoins()
   const sudokuTheme = getActiveSudokuTheme ? getActiveSudokuTheme() : null
 
   const [gameData, setGameData] = useState(() => generateSudoku(difficulty.id))
@@ -126,6 +126,7 @@ export default function SudokuGame({ onBack, game, difficulty }) {
   const [notesMode, setNotesMode] = useState(false)
   const [notes, setNotes] = useState(() => Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set())))
   const [hintUsed, setHintUsed] = useState(0)
+  const [paidHints, setPaidHints] = useState(0)
   const [started, setStarted] = useState(false)
 
   const isGameActive = !won
@@ -154,7 +155,8 @@ export default function SudokuGame({ onBack, game, difficulty }) {
           setBestTime(time)
         }
 
-        const stars = errors <= (difficulty.id === 'hard' ? 1 : difficulty.id === 'medium' ? 2 : 3) ? 3 : errors <= 5 ? 2 : 1
+        let stars = errors <= (difficulty.id === 'hard' ? 1 : difficulty.id === 'medium' ? 2 : 3) ? 3 : errors <= 5 ? 2 : 1
+        if (paidHints > 0 && stars > 2) stars = 2
         reportGameResult({
           gameId: 'sudoku',
           difficultyId: difficulty.id,
@@ -269,9 +271,19 @@ export default function SudokuGame({ onBack, game, difficulty }) {
     return () => window.removeEventListener('keydown', handler)
   }, [handleNumberInput, selectedCell])
 
-  const useHintAction = () => {
-    if (hintUsed >= 3 || won) return
+  const FREE_HINTS = 3
+  const HINT_COST = 100
+
+  const useHintAction = async () => {
+    if (won) return
     if (!started) setStarted(true)
+    const isFree = hintUsed < FREE_HINTS
+    if (!isFree) {
+      if (coins < HINT_COST) { play('mismatch'); return }
+      const ok = await spendCoins(HINT_COST, 'Hint Sudoku')
+      if (!ok) return
+      setPaidHints(p => p + 1)
+    }
     play('click')
     // Find a random empty cell and fill it
     const emptyCells = []
@@ -301,6 +313,7 @@ export default function SudokuGame({ onBack, game, difficulty }) {
     setNotesMode(false)
     setNotes(Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set())))
     setHintUsed(0)
+    setPaidHints(0)
     setStarted(false)
     setResetKey(k => k + 1)
   }
@@ -471,9 +484,9 @@ export default function SudokuGame({ onBack, game, difficulty }) {
           }}>
           ✏️ Catatan {notesMode ? 'ON' : 'OFF'}
         </button>
-        <button onClick={useHintAction} disabled={hintUsed >= 3 || won}
-          style={{ background: hintUsed>=3||won ? 'rgba(255,255,255,0.05)' : 'rgba(255,211,61,0.15)', color: hintUsed>=3||won ? textMuted : '#FFD93D', border: `2px solid ${hintUsed>=3||won ? borderCol : '#FFD93D44'}`, borderRadius: 100, padding: '10px 18px', fontSize: 13, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: hintUsed>=3||won ? 'default' : 'pointer' }}>
-          💡 Hint ({3-hintUsed})
+        <button onClick={useHintAction} disabled={won}
+          style={{ background: won ? 'rgba(255,255,255,0.05)' : hintUsed >= FREE_HINTS ? 'rgba(162,155,254,0.15)' : 'rgba(255,211,61,0.15)', color: won ? textMuted : hintUsed >= FREE_HINTS ? '#A29BFE' : '#FFD93D', border: `2px solid ${won ? borderCol : hintUsed >= FREE_HINTS ? '#A29BFE44' : '#FFD93D44'}`, borderRadius: 100, padding: '10px 18px', fontSize: 13, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: won ? 'default' : 'pointer' }}>
+          💡 {hintUsed < FREE_HINTS ? `Hint (${FREE_HINTS - hintUsed})` : `Hint (${HINT_COST}🪙)`}
         </button>
       </div>
 

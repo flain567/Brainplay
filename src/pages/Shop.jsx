@@ -149,7 +149,6 @@ export default function Shop({ onBack }) {
     { id:'tubes',      label:'🧪 Tubes'     },
     { id:'sudoku',     label:'🔢 Sudoku'    },
     { id:'jigsaw',     label:'🧩 Jigsaw'    },
-    { id:'items',      label:'💡 Items',    },
     { id:'history',    label:'📜 Riwayat',  },
   ]
 
@@ -625,68 +624,6 @@ export default function Shop({ onBack }) {
                   </div>
                 )}
               />
-            </div>
-          )}
-
-          {/* ── Consumable Items ── */}
-          {tab === 'items' && (
-            <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
-                Item sekali pakai — bisa dibeli berkali-kali
-              </p>
-
-              {/* Inventory */}
-              <div style={{
-                background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)',
-                border:`2px solid ${borderCol}`, borderRadius:16, padding:16, marginBottom:18,
-                display:'flex', gap:20, justifyContent:'center',
-              }}>
-                <div style={{ textAlign:'center' }}>
-                  <div style={{ fontSize:28 }}>💡</div>
-                  <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:20, color:'#FDCB6E' }}>{hints}</div>
-                  <div style={{ fontSize:11, color:textMuted }}>Hints</div>
-                </div>
-                <div style={{ textAlign:'center' }}>
-                  <div style={{ fontSize:28 }}>⏱️</div>
-                  <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:20, color:'#74B9FF' }}>{timeFreezes}</div>
-                  <div style={{ fontSize:11, color:textMuted }}>Time Freeze</div>
-                </div>
-              </div>
-
-              {CONSUMABLES.map((item, i) => (
-                <div key={item.id} className="shop-pack"
-                  style={{ animation:`slide-up 0.3s ${i*0.04}s ease both`, background:surface, borderColor:borderCol, cursor:'default' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-                    <div style={{
-                      width:52, height:52, borderRadius:14, flexShrink:0,
-                      background:`${item.color}18`, border:`2px solid ${item.color}33`,
-                      display:'flex', alignItems:'center', justifyContent:'center', fontSize:28,
-                    }}>
-                      {item.icon}
-                    </div>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color:textMain }}>{item.name}</div>
-                      <div style={{ fontSize:12, color:textMuted, marginTop:1 }}>{item.desc}</div>
-                    </div>
-                    <button
-                      onClick={() => handleBuyConsumable(item)}
-                      disabled={buyingId === item.id}
-                      style={{
-                        background: coins >= item.price ? 'linear-gradient(135deg,#FDCB6E,#F9A825)' : (dark?'#1e2a4a':'#eee'),
-                        color: coins >= item.price ? '#5D4037' : textMuted,
-                        border:'none', borderRadius:12, padding:'8px 16px',
-                        fontFamily:"'Fredoka One',cursive", fontSize:13,
-                        cursor: coins >= item.price ? 'pointer' : 'not-allowed',
-                        display:'flex', alignItems:'center', gap:4,
-                        opacity: buyingId === item.id ? 0.6 : 1,
-                        whiteSpace:'nowrap', flexShrink:0,
-                      }}
-                    >
-                      🪙 {item.price}
-                    </button>
-                  </div>
-                </div>
-              ))}
             </div>
           )}
 

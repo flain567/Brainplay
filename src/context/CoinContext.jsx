@@ -219,11 +219,8 @@ export const JIGSAW_THEMES = [
     style:{ type:'gradient', colors:['#2D3436','#636E72','#B2BEC3','#DFE6E9'] } },
 ]
 
-// ─── Consumable Items ───────────────────────────────────────────────────────
-export const CONSUMABLES = [
-  { id:'extra-hints', name:'Extra Hints ×5', desc:'Tambah 5 hint di game yang mendukung hint', price:50, icon:'💡', color:'#FDCB6E', amount:5 },
-  { id:'time-freeze', name:'Time Freeze +30s', desc:'Tambah 30 detik di game berbasis timer', price:40, icon:'⏱️', color:'#74B9FF', amount:30 },
-]
+// ─── Consumable Items (deprecated — hints are now in-game) ──────────────────
+export const CONSUMABLES = []
 
 // ─── Coin reward rates ──────────────────────────────────────────────────────
 export const COIN_REWARDS = {
