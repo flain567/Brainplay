@@ -2,6 +2,7 @@ import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useCoins } from '../context/CoinContext.jsx'
 import { useProgress, getComboMultiplier } from '../context/ProgressContext.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 import { useEffect, useState, useRef } from 'react'
 
 export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, currentGame }) {
@@ -9,6 +10,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
   const { play, setMuted } = useSound()
   const { coins } = useCoins()
   const { progress } = useProgress()
+  const { photoURL, playerName, isLoggedIn } = useAuth()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
@@ -261,7 +263,11 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
               <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#F9A825' }}>{coins}</span>
             </button>
             <button className="nav-btn" title="Leaderboard" onClick={() => nav(onLeaderboard)}>🏆</button>
-            <button className="nav-btn" title="Profil" onClick={() => nav(onProfile)}>👤</button>
+            <button className="nav-btn" title="Profil" onClick={() => nav(onProfile)} style={{ overflow:'hidden', padding:0 }}>
+              {photoURL ? (
+                <img src={photoURL} alt="" style={{ width:40, height:40, borderRadius:12, objectFit:'cover' }} referrerPolicy="no-referrer" />
+              ) : '👤'}
+            </button>
             <button className="nav-btn" title={musicOff ? 'Nyalakan musik' : 'Matikan musik'} onClick={() => { play('click'); toggle.musicOff() }} style={{ position:'relative' }}>
               {musicOff ? '🎵' : '🎶'}
               {musicOff && <span style={{ position:'absolute', top:6, right:6, width:14, height:2, background:'#FF6B6B', borderRadius:2, transform:'rotate(-45deg)' }} />}
@@ -344,10 +350,17 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
             </div>
 
             <div className="nav-drawer-item" onClick={() => nav(onProfile)}>
-              <div className="nav-drawer-item-icon" style={{ background:dark?'rgba(162,155,254,0.1)':'#F0EFFE' }}>👤</div>
+              <div className="nav-drawer-item-icon" style={{
+                background:dark?'rgba(162,155,254,0.1)':'#F0EFFE',
+                overflow:'hidden', padding:0,
+              }}>
+                {photoURL ? (
+                  <img src={photoURL} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} referrerPolicy="no-referrer" />
+                ) : '👤'}
+              </div>
               <div>
-                <div className="nav-drawer-item-text">Profil</div>
-                <div className="nav-drawer-item-desc">Achievement, XP, & statistik</div>
+                <div className="nav-drawer-item-text">{isLoggedIn ? playerName : 'Profil'}</div>
+                <div className="nav-drawer-item-desc">{isLoggedIn ? 'Akun Google terhubung' : 'Achievement, XP, & statistik'}</div>
               </div>
             </div>
 

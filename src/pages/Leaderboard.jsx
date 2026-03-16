@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useLeaderboard } from '../context/LeaderboardContext.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 
 const GAME_TABS = [
   { id:'memory-card',    emoji:'🃏', label:'Memory' },
@@ -179,6 +180,7 @@ export default function Leaderboard({ onBack, games }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { nickname, setNickname, getOnlineScores, getLocalBoard, clearCache, loading, lastError, firebaseStatus } = useLeaderboard()
+  const { playerName, photoURL, isLoggedIn } = useAuth()
 
   const [gameTab, setGameTab] = useState('space-shooter')
   const [diffTab, setDiffTab] = useState(null)
@@ -287,7 +289,7 @@ export default function Leaderboard({ onBack, games }) {
           {/* Firebase Status Banner */}
           <FirebaseStatusBanner dark={dark} surface={surface} borderCol={borderCol} textMain={textMain} textMuted={textMuted} />
 
-          {/* Nickname */}
+          {/* Player Card */}
           {showNickname || !nickname ? (
             <div style={{
               background:surface, border:`2px solid #A29BFE44`, borderRadius:20,
@@ -331,9 +333,18 @@ export default function Leaderboard({ onBack, games }) {
               background:surface, border:`1.5px solid ${borderCol}`, borderRadius:14,
               padding:'10px 16px', marginBottom:20, animation:'slideUp 0.4s 0.05s ease both',
             }}>
-              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <span style={{ fontSize:18 }}>👤</span>
-                <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:15, color:'#A29BFE' }}>{nickname}</span>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                {photoURL ? (
+                  <img src={photoURL} alt="" style={{ width:32, height:32, borderRadius:10, objectFit:'cover' }} referrerPolicy="no-referrer" />
+                ) : (
+                  <span style={{ fontSize:18 }}>👤</span>
+                )}
+                <div>
+                  <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:15, color:'#A29BFE' }}>{nickname}</span>
+                  {isLoggedIn && (
+                    <div style={{ fontSize:10, color:textMuted }}>Google Account</div>
+                  )}
+                </div>
               </div>
               <button onClick={() => setShowNickname(true)}
                 style={{ background:'transparent', border:`1.5px solid ${borderCol}`, borderRadius:8, padding:'5px 12px', fontSize:11, color:textMuted, cursor:'pointer', fontWeight:700 }}>
@@ -462,15 +473,24 @@ export default function Leaderboard({ onBack, games }) {
                     }}>
                       {isTop3 ? MEDALS[rank-1] : rank}
                     </div>
-                    {/* Name + date */}
+                    {/* Name + photo + date */}
+                    {entry.photoURL && (
+                      <img src={entry.photoURL} alt="" style={{
+                        width:28, height:28, borderRadius:8, objectFit:'cover', flexShrink:0,
+                      }} referrerPolicy="no-referrer" />
+                    )}
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{
                         fontFamily:"'Fredoka One',cursive", fontSize:14, color:textMain,
                         overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                        display:'flex', alignItems:'center', gap:4,
                       }}>
                         {entry.name || 'Anon'}
+                        {entry.uid && (
+                          <span style={{ fontSize:9, color:'#4ECDC4', opacity:0.7 }} title="Verified account">✓</span>
+                        )}
                         {entry.name === nickname && (
-                          <span style={{ fontSize:10, color:'#A29BFE', marginLeft:6 }}>← Kamu</span>
+                          <span style={{ fontSize:10, color:'#A29BFE', marginLeft:4 }}>← Kamu</span>
                         )}
                       </div>
                       <div style={{ fontSize:10, color:textMuted, marginTop:1 }}>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useProgress, ACHIEVEMENTS, getLevelInfo } from '../context/ProgressContext.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 
 const CATEGORY_META = {
   milestone: { label: 'Milestone',  icon: '🎮', color: '#4ECDC4' },
@@ -26,6 +27,7 @@ export default function Profile({ onBack, games }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { progress } = useProgress()
+  const { isLoggedIn, isGuest, playerName, photoURL, email, loginWithGoogle, logout } = useAuth()
   const [achFilter, setAchFilter] = useState('all')
   const dark = darkMode
 
@@ -160,24 +162,60 @@ export default function Profile({ onBack, games }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20 }}>
               <div style={{
                 width: 72, height: 72, borderRadius: 20,
-                background: 'linear-gradient(135deg, #A29BFE22, #FDCB6E22)',
+                background: photoURL ? 'transparent' : 'linear-gradient(135deg, #A29BFE22, #FDCB6E22)',
                 border: '2px solid #A29BFE33',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 36, flexShrink: 0,
+                fontSize: 36, flexShrink: 0, overflow: 'hidden',
               }}>
-                {levelInfo.level < 5 ? '🌱' : levelInfo.level < 10 ? '⚔️' : levelInfo.level < 15 ? '👑' : '🌟'}
+                {photoURL ? (
+                  <img src={photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                ) : (
+                  levelInfo.level < 5 ? '🌱' : levelInfo.level < 10 ? '⚔️' : levelInfo.level < 15 ? '👑' : '🌟'
+                )}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 13, color: '#A29BFE', letterSpacing: '0.5px', marginBottom: 2 }}>
                   LEVEL {levelInfo.level}
                 </div>
                 <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: textMain, lineHeight: 1.1 }}>
-                  {levelInfo.title}
+                  {playerName || levelInfo.title}
                 </div>
                 <div style={{ fontSize: 12, color: textMuted, marginTop: 4 }}>
-                  {levelInfo.xp.toLocaleString()} XP total
+                  {isLoggedIn ? `${email}` : isGuest ? 'Mode Tamu' : ''} • {levelInfo.xp.toLocaleString()} XP
                 </div>
               </div>
+            </div>
+
+            {/* Auth status bar */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16,
+              padding: '10px 14px', borderRadius: 14,
+              background: isLoggedIn
+                ? (dark ? 'rgba(78,205,196,0.08)' : 'rgba(78,205,196,0.06)')
+                : (dark ? 'rgba(253,203,110,0.08)' : 'rgba(253,203,110,0.06)'),
+              border: `1.5px solid ${isLoggedIn ? 'rgba(78,205,196,0.3)' : 'rgba(253,203,110,0.3)'}`,
+            }}>
+              <span style={{ fontSize: 14 }}>{isLoggedIn ? '🟢' : '🟡'}</span>
+              <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: isLoggedIn ? '#4ECDC4' : '#F9A825' }}>
+                {isLoggedIn ? 'Google Account terhubung' : 'Mode Tamu — skor hanya di device ini'}
+              </span>
+              {isLoggedIn ? (
+                <button onClick={() => { play('click'); logout() }} style={{
+                  background: 'transparent', border: `1.5px solid ${borderCol}`, borderRadius: 8,
+                  padding: '5px 12px', fontSize: 11, color: textMuted, cursor: 'pointer', fontWeight: 700,
+                }}>
+                  Logout
+                </button>
+              ) : (
+                <button onClick={() => { play('click'); loginWithGoogle() }} style={{
+                  background: 'linear-gradient(135deg,#4285F4,#356AC3)',
+                  border: 'none', borderRadius: 8,
+                  padding: '6px 14px', fontSize: 11, color: '#fff', cursor: 'pointer', fontWeight: 700,
+                  boxShadow: '0 2px 8px rgba(66,133,244,0.3)',
+                }}>
+                  Login Google
+                </button>
+              )}
             </div>
 
             {/* XP progress bar */}

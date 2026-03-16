@@ -4,12 +4,13 @@ import { ProgressProvider } from './context/ProgressContext.jsx'
 import { CoinProvider } from './context/CoinContext.jsx'
 import { NotifProvider } from './context/NotifContext.jsx'
 import { LeaderboardProvider } from './context/LeaderboardContext.jsx'
+import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
 import PageTransition from './components/PageTransition.jsx'
 import AchievementToast from './components/AchievementToast.jsx'
 import CoinToast from './components/CoinToast.jsx'
-import NicknameModal from './components/NicknameModal.jsx'
+import LoginModal from './components/LoginModal.jsx'
 import Home from './pages/Home.jsx'
 import Profile from './pages/Profile.jsx'
 import Shop from './pages/Shop.jsx'
@@ -150,7 +151,7 @@ function AppInner() {
   const [currentGame, setCurrentGame] = useState(null)
   const [difficulty,  setDifficulty]  = useState(null)
   const [screen,      setScreen]      = useState('home')
-  const [hasNickname, setHasNickname] = useState(() => !!localStorage.getItem('bp_nickname'))
+  const { isLoggedIn, isGuest, loading: authLoading } = useAuth()
   const { muted, musicOff } = useSettings()
 
   // Run migration once
@@ -177,9 +178,21 @@ function AppInner() {
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
-      {/* Nickname prompt — shown once on first visit */}
-      {!hasNickname && (
-        <NicknameModal onDone={(name) => setHasNickname(true)} />
+      {/* Auth loading screen */}
+      {authLoading && (
+        <div style={{
+          position:'fixed', inset:0, zIndex:10000,
+          background:'#0d0b1e', display:'flex', alignItems:'center', justifyContent:'center',
+          flexDirection:'column', gap:16,
+        }}>
+          <div style={{ fontSize:48, animation:'spin 1.5s linear infinite' }}>🎮</div>
+          <div style={{ fontFamily:"'Fredoka One',cursive", color:'#A29BFE', fontSize:16 }}>Memuat...</div>
+          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+        </div>
+      )}
+      {/* Login prompt — shown if not logged in and not guest */}
+      {!authLoading && !isLoggedIn && !isGuest && (
+        <LoginModal onDone={() => {}} />
       )}
       {!isFullscreen && (
         <Navbar onHome={goHome} onProfile={goProfile} onShop={goShop} onLeaderboard={goLeaderboard} currentGame={screen === 'game' ? currentGame : null} />
@@ -215,15 +228,17 @@ function AppInner() {
 export default function App() {
   return (
     <SettingsProvider>
-      <ProgressProvider>
-        <CoinProvider>
-          <LeaderboardProvider>
-            <NotifProvider>
-              <AppInner />
-            </NotifProvider>
-          </LeaderboardProvider>
-        </CoinProvider>
-      </ProgressProvider>
+      <AuthProvider>
+        <ProgressProvider>
+          <CoinProvider>
+            <LeaderboardProvider>
+              <NotifProvider>
+                <AppInner />
+              </NotifProvider>
+            </LeaderboardProvider>
+          </CoinProvider>
+        </ProgressProvider>
+      </AuthProvider>
     </SettingsProvider>
   )
 }

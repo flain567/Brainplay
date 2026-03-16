@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
-import { db } from '../firebase.js'
+import { db, auth } from '../firebase.js'
 import { collection, doc, getDoc, setDoc, query, limit, getDocs, where, serverTimestamp } from 'firebase/firestore'
 
 const LeaderboardContext = createContext(null)
@@ -11,7 +11,7 @@ const DEVICE_ID_KEY = 'bp_device_id'
 const MAX_LOCAL = 10
 const MAX_ONLINE = 200
 
-// ─── Device ID (unique per browser/device) ──────────────────────────────────
+// ─── Device ID (unique per browser/device, fallback for guests) ─────────────
 
 function getDeviceId() {
   let id = localStorage.getItem(DEVICE_ID_KEY)
@@ -22,17 +22,12 @@ function getDeviceId() {
   return id
 }
 
-// ─── Generate deterministic doc ID per player+game+diff ─────────────────────
-// Format: {gameId}_{diffId}_{sanitizedName}
-// This ensures 1 entry per player per game per difficulty
+// ─── Generate doc ID — uses auth UID if logged in, deviceId if guest ────────
 
-function makeDocId(gameId, diffId, playerName) {
-  const safeName = (playerName || 'Pemain')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '_')
-    .slice(0, 30)
-  return `${gameId}_${diffId}_${safeName}`
+function makeDocId(gameId, diffId) {
+  const user = auth.currentUser
+  const playerId = user ? user.uid : getDeviceId()
+  return `${gameId}_${diffId}_${playerId}`
 }
 
 // ─── Local leaderboard (best score per player) ──────────────────────────────
@@ -50,14 +45,12 @@ function upsertLocalScore(gameId, diffId, entry) {
   const key = `${gameId}_${diffId}`
   if (!boards[key]) boards[key] = []
 
-  // Find existing entry for this player name
-  const existingIdx = boards[key].findIndex(e => 
+  const existingIdx = boards[key].findIndex(e =>
     (e.name || '').toLowerCase() === (entry.name || '').toLowerCase()
   )
 
   if (existingIdx >= 0) {
     const existing = boards[key][existingIdx]
-    // Only update if new score is higher
     if (entry.score > existing.score) {
       boards[key][existingIdx] = { ...existing, ...entry, date: Date.now() }
     }
@@ -78,7 +71,6 @@ function getLocalScores(gameId, diffId) {
 
 function getLocalAllScores(gameId) {
   const boards = getLocalBoards()
-  // Collect best per player across all difficulties
   const playerBest = {}
   for (const key in boards) {
     if (key.startsWith(`${gameId}_`)) {
@@ -95,7 +87,7 @@ function getLocalAllScores(gameId) {
   return all.slice(0, MAX_LOCAL)
 }
 
-// ─── Pending queue (retry failed online submissions) ─────────────────────────
+// ─── Pending queue ─────────────────────────────────────────────────────────
 
 function getPendingScores() {
   try { return JSON.parse(localStorage.getItem(PENDING_KEY)) || [] } catch { return [] }
@@ -107,13 +99,11 @@ function savePendingScores(pending) {
 
 function addPendingScore(entry) {
   const pending = getPendingScores()
-  // Deduplicate: replace existing pending for same game+diff+name
   const existIdx = pending.findIndex(p =>
     p.gameId === entry.gameId && p.diffId === entry.diffId &&
     (p.name || '').toLowerCase() === (entry.name || '').toLowerCase()
   )
   if (existIdx >= 0) {
-    // Keep the higher score
     if (entry.score > pending[existIdx].score) {
       pending[existIdx] = entry
     }
@@ -125,34 +115,31 @@ function addPendingScore(entry) {
 }
 
 // ─── Online leaderboard (Firebase Firestore) ─────────────────────────────────
-// Uses setDoc with deterministic ID → 1 entry per player per game per difficulty
-// Only updates if new score is HIGHER than existing
 
 async function submitOnlineScore(gameId, diffId, entry) {
   try {
-    const playerName = entry.name || 'Pemain'
-    const docId = makeDocId(gameId, diffId, playerName)
+    const user = auth.currentUser
+    const docId = makeDocId(gameId, diffId)
     const docRef = doc(db, 'leaderboard', docId)
 
-    // Check existing score first
     const existing = await getDoc(docRef)
 
     if (existing.exists()) {
       const oldData = existing.data()
       if (entry.score <= (oldData.score || 0)) {
-        // New score is NOT higher → skip update
         console.log('[Leaderboard] ⏭️ Score not higher, skip:', entry.score, '<=', oldData.score)
         return { success: true, skipped: true }
       }
-      // New score IS higher → update
       await setDoc(docRef, {
         gameId,
         diffId,
-        name: playerName,
+        name: entry.name || 'Pemain',
         score: entry.score,
         wave: entry.wave || null,
         time: entry.time || null,
         level: entry.level || null,
+        uid: user?.uid || null,
+        photoURL: user?.photoURL || null,
         deviceId: getDeviceId(),
         gamesPlayed: (oldData.gamesPlayed || 1) + 1,
         previousBest: oldData.score || 0,
@@ -161,15 +148,16 @@ async function submitOnlineScore(gameId, diffId, entry) {
       })
       console.log('[Leaderboard] ✅ Score UPDATED:', oldData.score, '→', entry.score)
     } else {
-      // New entry
       await setDoc(docRef, {
         gameId,
         diffId,
-        name: playerName,
+        name: entry.name || 'Pemain',
         score: entry.score,
         wave: entry.wave || null,
         time: entry.time || null,
         level: entry.level || null,
+        uid: user?.uid || null,
+        photoURL: user?.photoURL || null,
         deviceId: getDeviceId(),
         gamesPlayed: 1,
         previousBest: 0,
@@ -183,12 +171,8 @@ async function submitOnlineScore(gameId, diffId, entry) {
   } catch (err) {
     const msg = err.message || 'Unknown error'
     console.error('[Leaderboard] ❌ Online submit FAILED:', msg)
-
     if (msg.includes('permission') || msg.includes('PERMISSION_DENIED')) {
-      return { success: false, error: 'permission', message: 'Firestore rules belum diset. Buka Firebase Console → Firestore → Rules.' }
-    }
-    if (msg.includes('index')) {
-      return { success: false, error: 'index', message: 'Firestore perlu index. Cek link di console browser (F12).' }
+      return { success: false, error: 'permission', message: 'Firestore rules belum diset.' }
     }
     if (msg.includes('network') || msg.includes('unavailable') || msg.includes('Failed to fetch')) {
       return { success: false, error: 'network', message: 'Tidak ada koneksi internet.' }
@@ -206,10 +190,7 @@ async function testFirebaseConnection() {
   } catch (err) {
     const msg = err.message || ''
     if (msg.includes('permission') || msg.includes('PERMISSION_DENIED')) {
-      return { ok: false, error: 'permission', message: 'Firestore Security Rules menolak akses. Set rules di Firebase Console.' }
-    }
-    if (msg.includes('network') || msg.includes('unavailable') || msg.includes('Failed to fetch')) {
-      return { ok: false, error: 'network', message: 'Tidak bisa konek ke Firebase. Cek koneksi internet.' }
+      return { ok: false, error: 'permission', message: 'Firestore Security Rules menolak akses.' }
     }
     return { ok: false, error: 'unknown', message: 'Error: ' + msg }
   }
@@ -229,16 +210,12 @@ async function fetchOnlineScores(gameId, diffId = null) {
     results.sort((a, b) => (b.score || 0) - (a.score || 0))
     results = results.slice(0, 50).map((r, i) => ({ ...r, rank: i + 1 }))
 
-    console.log('[Leaderboard] ✅ Fetched', results.length, 'scores for', gameId, diffId || 'all')
     return { success: true, data: results }
   } catch (err) {
     const msg = err.message || ''
     console.error('[Leaderboard] ❌ Fetch FAILED:', msg)
     if (msg.includes('permission') || msg.includes('PERMISSION_DENIED')) {
       return { success: false, error: 'permission', data: null }
-    }
-    if (msg.includes('index')) {
-      return { success: false, error: 'index', data: null }
     }
     return { success: false, error: 'unknown', data: null }
   }
@@ -247,17 +224,11 @@ async function fetchOnlineScores(gameId, diffId = null) {
 async function flushPendingScores() {
   const pending = getPendingScores()
   if (pending.length === 0) return
-
-  console.log('[Leaderboard] Flushing', pending.length, 'pending scores...')
   const stillPending = []
-
   for (const item of pending) {
     const result = await submitOnlineScore(item.gameId, item.diffId, item)
     if (!result.success) {
-      if (result.error === 'permission') {
-        savePendingScores(pending)
-        return
-      }
+      if (result.error === 'permission') { savePendingScores(pending); return }
       stillPending.push(item)
     }
   }
@@ -282,7 +253,6 @@ export function LeaderboardProvider({ children }) {
     localStorage.setItem(NICKNAME_KEY, clean)
   }, [])
 
-  // Test Firebase on mount
   useEffect(() => {
     testFirebaseConnection().then(result => {
       setFirebaseStatus(result.ok ? 'connected' : 'error')
@@ -291,7 +261,6 @@ export function LeaderboardProvider({ children }) {
     })
   }, [])
 
-  // Auto-submit when any game reports a result
   useEffect(() => {
     const handler = async (e) => {
       const { gameId, difficultyId, score, timeSec } = e.detail || {}
@@ -301,12 +270,9 @@ export function LeaderboardProvider({ children }) {
       const entry = { name, score, time: timeSec || null, date: Date.now() }
       const diffId = difficultyId || 'easy'
 
-      // Upsert locally (best score per player)
       upsertLocalScore(gameId, diffId, entry)
 
-      // Try to submit online
       const result = await submitOnlineScore(gameId, diffId, entry)
-
       if (result.success) {
         setSubmitStatus('ok')
         fetchCooldown.current = {}
@@ -325,9 +291,7 @@ export function LeaderboardProvider({ children }) {
   const submitScore = useCallback(async ({ gameId, diffId, score, wave, time, level }) => {
     const name = localStorage.getItem(NICKNAME_KEY) || 'Pemain'
     const entry = { name, score, wave: wave || null, time: time || null, level: level || null, date: Date.now() }
-
     const localBoard = upsertLocalScore(gameId, diffId, entry)
-
     const result = await submitOnlineScore(gameId, diffId, entry)
     if (!result.success) {
       addPendingScore({ gameId, diffId, ...entry })
@@ -337,14 +301,12 @@ export function LeaderboardProvider({ children }) {
       setFirebaseStatus('connected')
       fetchCooldown.current = {}
     }
-
     return localBoard
   }, [])
 
   const getOnlineScores = useCallback(async (gameId, diffId = null, force = false) => {
     const cacheKey = `${gameId}_${diffId || 'all'}`
     const now = Date.now()
-
     if (!force && fetchCooldown.current[cacheKey] && now - fetchCooldown.current[cacheKey] < 15000) {
       return onlineCache[cacheKey] || []
     }
@@ -363,12 +325,9 @@ export function LeaderboardProvider({ children }) {
     }
 
     if (result.error === 'permission') {
-      setLastError('Firestore Rules menolak akses! Buka Firebase Console → Firestore → Rules.')
+      setLastError('Firestore Rules menolak akses!')
       setFirebaseStatus('error')
-      setFirebaseMessage('Firestore Rules belum diset. Lihat panduan di bawah.')
-    } else if (result.error === 'index') {
-      setLastError('Firestore butuh index. Buka Console browser (F12) untuk link.')
-      setFirebaseStatus('error')
+      setFirebaseMessage('Firestore Rules belum diset.')
     } else {
       setLastError('Gagal memuat data. Cek koneksi internet.')
       setFirebaseStatus('error')
@@ -376,11 +335,7 @@ export function LeaderboardProvider({ children }) {
     return onlineCache[cacheKey] || []
   }, [onlineCache])
 
-  const clearCache = useCallback(() => {
-    fetchCooldown.current = {}
-    setOnlineCache({})
-  }, [])
-
+  const clearCache = useCallback(() => { fetchCooldown.current = {}; setOnlineCache({}) }, [])
   const getLocalBoard = useCallback((gameId, diffId = null) => {
     if (diffId) return getLocalScores(gameId, diffId)
     return getLocalAllScores(gameId)
