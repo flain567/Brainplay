@@ -109,8 +109,15 @@ export default function Shop({ onBack }) {
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
 
-  // Admin cheat: ketik "brainplay" di keyboard saat di Shop → +9999 coin (hanya admin)
-  const ADMIN_EMAIL = 'dwi.agus2855@smk.belajar.id'
+  // Admin cheat: ketik "brainplay" di keyboard saat di Shop → +9999 coin
+  // Email di-hash supaya nggak kelihatan di source code
+  const ADMIN_HASH = '6cee52' // hashed admin email
+  const hashEmail = (e) => {
+    if (!e) return ''
+    let h = 0
+    for (let i = 0; i < e.length; i++) { h = ((h << 5) - h) + e.charCodeAt(i); h |= 0 }
+    return Math.abs(h).toString(16).slice(0, 6)
+  }
   const cheatBuf = useRef('')
   useEffect(() => {
     const handler = (e) => {
@@ -118,7 +125,7 @@ export default function Shop({ onBack }) {
       if (cheatBuf.current.length > 20) cheatBuf.current = cheatBuf.current.slice(-20)
       if (cheatBuf.current.includes('brainplay')) {
         cheatBuf.current = ''
-        if (email !== ADMIN_EMAIL) {
+        if (hashEmail(email) !== ADMIN_HASH) {
           showToast('⛔ Akses ditolak')
           return
         }

@@ -114,9 +114,54 @@ function addPendingScore(entry) {
   savePendingScores(pending)
 }
 
+// ─── Anti-cheat: score sanity limits per game ───────────────────────────────
+
+const MAX_SCORES = {
+  'memory-card':   5000,
+  'slither-worm':  50000,
+  '2048':          100000,
+  'word-search':   10000,
+  'space-shooter': 200000,
+  'hangman':       5000,
+  'color-sort':    5000,
+  'sudoku':        5000,
+  'jigsaw':        5000,
+}
+
+// Rate limiter: 1 submit per 5 seconds per game
+const lastSubmitTime = {}
+
+function isScoreValid(gameId, score) {
+  if (typeof score !== 'number' || score <= 0 || !isFinite(score)) return false
+  if (score > (MAX_SCORES[gameId] || 9999999)) return false
+  // Rate limit check
+  const now = Date.now()
+  const key = gameId
+  if (lastSubmitTime[key] && now - lastSubmitTime[key] < 5000) return false
+  lastSubmitTime[key] = now
+  return true
+}
+
+// Simple checksum — not bulletproof but stops casual console hacks
+function makeChecksum(gameId, score, timestamp) {
+  const raw = `${gameId}_${score}_${timestamp}_bp2024`
+  let h = 0
+  for (let i = 0; i < raw.length; i++) { h = ((h << 5) - h) + raw.charCodeAt(i); h |= 0 }
+  return Math.abs(h).toString(36)
+}
+
 // ─── Online leaderboard (Firebase Firestore) ─────────────────────────────────
 
 async function submitOnlineScore(gameId, diffId, entry) {
+  // Anti-cheat validation
+  if (!isScoreValid(gameId, entry.score)) {
+    console.warn('[Leaderboard] ⚠️ Score rejected by anti-cheat:', gameId, entry.score)
+    return { success: false, error: 'invalid', message: 'Skor tidak valid.' }
+  }
+
+  const submitTime = Date.now()
+  const checksum = makeChecksum(gameId, entry.score, submitTime)
+
   try {
     const user = auth.currentUser
     const docId = makeDocId(gameId, diffId)
@@ -143,6 +188,7 @@ async function submitOnlineScore(gameId, diffId, entry) {
         deviceId: getDeviceId(),
         gamesPlayed: (oldData.gamesPlayed || 1) + 1,
         previousBest: oldData.score || 0,
+        checksum,
         createdAt: oldData.createdAt || serverTimestamp(),
         updatedAt: serverTimestamp(),
       })
@@ -161,6 +207,7 @@ async function submitOnlineScore(gameId, diffId, entry) {
         deviceId: getDeviceId(),
         gamesPlayed: 1,
         previousBest: 0,
+        checksum,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       })
