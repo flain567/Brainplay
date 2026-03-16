@@ -107,6 +107,7 @@ export function LeaderboardProvider({ children }) {
   const [nickname, setNicknameState] = useState(() => localStorage.getItem(NICKNAME_KEY) || '')
   const [onlineCache, setOnlineCache] = useState({})
   const [loading, setLoading] = useState(false)
+  const [lastError, setLastError] = useState(null)
   const fetchCooldown = useRef({})
 
   const setNickname = useCallback((name) => {
@@ -159,6 +160,7 @@ export function LeaderboardProvider({ children }) {
     }
 
     setLoading(true)
+    setLastError(null)
     const scores = await fetchOnlineScores(gameId, diffId)
     setLoading(false)
 
@@ -168,6 +170,7 @@ export function LeaderboardProvider({ children }) {
       return scores
     }
 
+    setLastError('Gagal memuat data. Cek koneksi internet.')
     return onlineCache[cacheKey] || []
   }, [onlineCache])
 
@@ -192,6 +195,7 @@ export function LeaderboardProvider({ children }) {
       getLocalBoard,
       clearCache,
       loading,
+      lastError,
     }}>
       {children}
     </LeaderboardContext.Provider>

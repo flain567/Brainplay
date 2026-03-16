@@ -38,7 +38,7 @@ function formatTime(s) {
 export default function Leaderboard({ onBack, games }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
-  const { nickname, setNickname, getOnlineScores, getLocalBoard, clearCache, loading } = useLeaderboard()
+  const { nickname, setNickname, getOnlineScores, getLocalBoard, clearCache, loading, lastError } = useLeaderboard()
 
   const [gameTab, setGameTab] = useState('space-shooter')
   const [diffTab, setDiffTab] = useState(null)
@@ -251,6 +251,26 @@ export default function Leaderboard({ onBack, games }) {
               <div style={{ fontSize:32, marginBottom:8, animation:'spin 1s linear infinite' }}>⏳</div>
               <p style={{ fontFamily:"'Fredoka One',cursive", fontSize:14 }}>Memuat skor...</p>
               <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+            </div>
+          )}
+
+          {/* Error banner */}
+          {!loading && lastError && mode === 'online' && (
+            <div style={{
+              background:dark?'rgba(255,107,107,0.08)':'rgba(255,107,107,0.06)',
+              border:'1.5px solid #FF6B6B44', borderRadius:14,
+              padding:'12px 16px', marginBottom:14,
+              display:'flex', alignItems:'center', gap:10,
+            }}>
+              <span style={{ fontSize:18 }}>⚠️</span>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:13, color:'#FF6B6B', fontWeight:700 }}>{lastError}</div>
+                <div style={{ fontSize:11, color:textMuted, marginTop:2 }}>Coba refresh atau periksa koneksi internet</div>
+              </div>
+              <button onClick={() => { clearCache(); setScores([]); setRefreshKey(k => k+1) }}
+                style={{ background:'#FF6B6B22', border:'1px solid #FF6B6B44', borderRadius:8, padding:'6px 12px', color:'#FF6B6B', fontSize:11, fontWeight:700, cursor:'pointer' }}>
+                🔄
+              </button>
             </div>
           )}
 

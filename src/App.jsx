@@ -9,6 +9,7 @@ import DifficultySelector from './components/DifficultySelector.jsx'
 import PageTransition from './components/PageTransition.jsx'
 import AchievementToast from './components/AchievementToast.jsx'
 import CoinToast from './components/CoinToast.jsx'
+import NicknameModal from './components/NicknameModal.jsx'
 import Home from './pages/Home.jsx'
 import Profile from './pages/Profile.jsx'
 import Shop from './pages/Shop.jsx'
@@ -149,6 +150,7 @@ function AppInner() {
   const [currentGame, setCurrentGame] = useState(null)
   const [difficulty,  setDifficulty]  = useState(null)
   const [screen,      setScreen]      = useState('home')
+  const [hasNickname, setHasNickname] = useState(() => !!localStorage.getItem('bp_nickname'))
   const { muted, musicOff } = useSettings()
 
   // Run migration once
@@ -175,6 +177,10 @@ function AppInner() {
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
+      {/* Nickname prompt — shown once on first visit */}
+      {!hasNickname && (
+        <NicknameModal onDone={(name) => setHasNickname(true)} />
+      )}
       {!isFullscreen && (
         <Navbar onHome={goHome} onProfile={goProfile} onShop={goShop} onLeaderboard={goLeaderboard} currentGame={screen === 'game' ? currentGame : null} />
       )}
