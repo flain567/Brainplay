@@ -54,6 +54,37 @@ export function setNum(key, value) {
   localStorage.setItem(key, String(value))
 }
 
+// ─── Clear all game data (used on logout/account switch) ────────────────────
+// Preserves settings (dark mode, muted, music) but clears all game progress
+export function clearGameData() {
+  const preserve = ['brainplay-dark', 'brainplay-muted', 'brainplay-music-off', 'bp_device_id']
+  const saved = {}
+  preserve.forEach(key => {
+    const val = localStorage.getItem(key)
+    if (val !== null) saved[key] = val
+  })
+
+  // Remove all bp_ keys and brainplay- keys
+  const toRemove = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key && (key.startsWith('bp_') || key.startsWith('brainplay-')) && !preserve.includes(key)) {
+      toRemove.push(key)
+    }
+  }
+  // Also remove game-specific keys
+  toRemove.forEach(key => localStorage.removeItem(key))
+
+  // Also remove known non-prefixed keys
+  const extras = ['slither-best-easy', 'slither-best-medium', 'slither-best-hard']
+  extras.forEach(key => localStorage.removeItem(key))
+
+  // Restore preserved settings
+  Object.entries(saved).forEach(([key, val]) => localStorage.setItem(key, val))
+
+  console.log('[Storage] 🧹 Game data cleared')
+}
+
 // ─── Migration from old keys ─────────────────────────────────────────────────
 // Run once on app start to move old localStorage keys to new format
 export function migrateOldStorage() {

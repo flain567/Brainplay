@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef } f
 import { db, auth } from '../firebase.js'
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
-import { getJSON, setJSON, StorageKeys } from '../utils/storage.js'
+import { getJSON, setJSON, StorageKeys, clearGameData } from '../utils/storage.js'
 
 const CloudSaveContext = createContext(null)
 
@@ -107,6 +107,7 @@ export function CloudSaveProvider({ children }) {
   const [initialSyncDone, setInitialSyncDone] = useState(false)
   const debounceRef = useRef(null)
   const isSyncing = useRef(false)
+  const lastUid = useRef(localStorage.getItem('bp_last_synced_uid') || '')
 
   // ─── Load from cloud and merge ────────────────────────────────────────────
   const loadAndMerge = useCallback(async (uid) => {
@@ -115,11 +116,22 @@ export function CloudSaveProvider({ children }) {
     setSyncStatus('syncing')
 
     try {
+      // If different user than last time, clear local data first
+      const previousUid = lastUid.current
+      if (previousUid && previousUid !== uid) {
+        console.log('[CloudSave] 🔄 Different user detected, clearing local data')
+        clearGameData()
+        localStorage.removeItem('bp_display_name')
+        localStorage.removeItem('bp_nickname')
+      }
+      lastUid.current = uid
+      localStorage.setItem('bp_last_synced_uid', uid)
+
       const docRef = doc(db, 'users', uid)
       const snap = await getDoc(docRef)
       const cloudData = snap.exists() ? snap.data() : null
 
-      // Get local data
+      // Get local data (will be empty if we just cleared it)
       const localProgress = getJSON(StorageKeys.XP) || {}
       const localCoins = getJSON(StorageKeys.COINS) || {}
       const localName = localStorage.getItem('bp_display_name') || ''
@@ -212,16 +224,25 @@ export function CloudSaveProvider({ children }) {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // User logged in — load and merge cloud data
         loadAndMerge(user.uid)
       } else {
+        // Logged out — clear tracked uid
+        lastUid.current = ''
+        localStorage.removeItem('bp_last_synced_uid')
         setSyncStatus('idle')
         setLastSync(null)
-        setInitialSyncDone(true) // No cloud sync needed for guests
+        setInitialSyncDone(true)
       }
     })
     return () => unsub()
   }, [loadAndMerge])
+
+  // ─── Force save (triggered by logout) ────────────────────────────────────
+  useEffect(() => {
+    const handler = () => saveToCloud()
+    window.addEventListener('bp-force-save', handler)
+    return () => window.removeEventListener('bp-force-save', handler)
+  }, [saveToCloud])
 
   // ─── Listen to localStorage changes (save to cloud on data change) ────────
   useEffect(() => {
