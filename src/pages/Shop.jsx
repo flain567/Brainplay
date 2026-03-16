@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
+import { useAuth } from '../context/AuthContext.jsx'
 import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
 
 // ─── Generic cosmetic list renderer ─────────────────────────────────────────
@@ -81,6 +82,7 @@ function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMai
 export default function Shop({ onBack }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
+  const { email } = useAuth()
   const {
     coins, ownedPacks, activePack, ownedSkins, activeSkin,
     ownedTileThemes, activeTileTheme, ownedHighlights, activeHighlight,
@@ -90,7 +92,7 @@ export default function Shop({ onBack }) {
     ownedSudokuThemes, activeSudokuTheme,
     ownedJigsawThemes, activeJigsawTheme,
     hints, timeFreezes, dailyStreak, isDailyClaimable,
-    buyCosmetic, equipCosmetic, buyConsumable, claimDaily, transactions,
+    buyCosmetic, equipCosmetic, buyConsumable, claimDaily, transactions, earnCoins,
   } = useCoins()
 
   const [tab, setTab] = useState('packs')
@@ -106,6 +108,28 @@ export default function Shop({ onBack }) {
   const borderCol = dark ? '#2d3561' : '#DFE6E9'
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
+
+  // Admin cheat: ketik "brainplay" di keyboard saat di Shop → +9999 coin (hanya admin)
+  const ADMIN_EMAIL = 'dwi.agus2855@smk.belajar.id'
+  const cheatBuf = useRef('')
+  useEffect(() => {
+    const handler = (e) => {
+      cheatBuf.current += e.key.toLowerCase()
+      if (cheatBuf.current.length > 20) cheatBuf.current = cheatBuf.current.slice(-20)
+      if (cheatBuf.current.includes('brainplay')) {
+        cheatBuf.current = ''
+        if (email !== ADMIN_EMAIL) {
+          showToast('⛔ Akses ditolak')
+          return
+        }
+        earnCoins(9999, 'Admin bonus 🔑')
+        showToast('🔑 Admin: +9,999 coin!')
+        play('levelUp')
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [email])
 
   const handleBuyCosmetic = async (type, item) => {
     if (coins < item.price) { play('mismatch'); showToast('Coin tidak cukup! 😅'); return }
