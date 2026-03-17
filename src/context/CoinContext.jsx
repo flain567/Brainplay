@@ -219,6 +219,146 @@ export const JIGSAW_THEMES = [
     style:{ type:'gradient', colors:['#2D3436','#636E72','#B2BEC3','#DFE6E9'] } },
 ]
 
+// ─── App Themes (Global UI Theme) ───────────────────────────────────────────
+export const APP_THEMES = [
+  {
+    id: 'default', name: 'Classic Light', desc: 'Tema default yang cerah dan ramah mata', price: 0, icon: '☀️', color: '#FDCB6E',
+    preview: ['#FFF9F0', '#FFFFFF', '#FDCB6E', '#4ECDC4'],
+    vars: {
+      '--theme-bg':        '#FFF9F0',
+      '--theme-surface':   '#FFFFFF',
+      '--theme-primary':   '#FDCB6E',
+      '--theme-secondary': '#4ECDC4',
+      '--theme-accent':    '#FF6B6B',
+      '--theme-text':      '#2D3436',
+      '--theme-muted':     '#636E72',
+      '--theme-border':    '#DFE6E9',
+      '--theme-navbar-bg': 'rgba(255,249,240,0.95)',
+      '--theme-card-bg':   '#FFFFFF',
+      '--theme-glow':      '253,203,110',
+    }
+  },
+  {
+    id: 'midnight', name: 'Midnight Galaxy', desc: 'Tema gelap ungu kosmik yang memukau', price: 200, icon: '🌌', color: '#A29BFE',
+    preview: ['#0d0b1e', '#16213e', '#A29BFE', '#FD79A8'],
+    vars: {
+      '--theme-bg':        '#0d0b1e',
+      '--theme-surface':   '#16213e',
+      '--theme-primary':   '#A29BFE',
+      '--theme-secondary': '#FD79A8',
+      '--theme-accent':    '#74B9FF',
+      '--theme-text':      '#e8e8f0',
+      '--theme-muted':     '#8892b0',
+      '--theme-border':    '#2d3561',
+      '--theme-navbar-bg': 'rgba(13,11,30,0.97)',
+      '--theme-card-bg':   '#16213e',
+      '--theme-glow':      '162,155,254',
+    }
+  },
+  {
+    id: 'ocean-breeze', name: 'Ocean Breeze', desc: 'Biru laut yang segar dan menenangkan', price: 180, icon: '🌊', color: '#0984E3',
+    preview: ['#E8F4FD', '#FFFFFF', '#0984E3', '#00CEC9'],
+    vars: {
+      '--theme-bg':        '#EAF6FF',
+      '--theme-surface':   '#FFFFFF',
+      '--theme-primary':   '#0984E3',
+      '--theme-secondary': '#00CEC9',
+      '--theme-accent':    '#74B9FF',
+      '--theme-text':      '#1A3A52',
+      '--theme-muted':     '#5A8CAA',
+      '--theme-border':    '#B3D9F0',
+      '--theme-navbar-bg': 'rgba(234,246,255,0.97)',
+      '--theme-card-bg':   '#FFFFFF',
+      '--theme-glow':      '9,132,227',
+    }
+  },
+  {
+    id: 'sakura', name: 'Sakura Pink', desc: 'Tema merah muda lembut seperti bunga sakura', price: 180, icon: '🌸', color: '#FD79A8',
+    preview: ['#FFF0F8', '#FFFFFF', '#FD79A8', '#FDCB6E'],
+    vars: {
+      '--theme-bg':        '#FFF0F8',
+      '--theme-surface':   '#FFFFFF',
+      '--theme-primary':   '#FD79A8',
+      '--theme-secondary': '#E17055',
+      '--theme-accent':    '#FDCB6E',
+      '--theme-text':      '#3D1A28',
+      '--theme-muted':     '#9E5E78',
+      '--theme-border':    '#F8C8E0',
+      '--theme-navbar-bg': 'rgba(255,240,248,0.97)',
+      '--theme-card-bg':   '#FFFFFF',
+      '--theme-glow':      '253,121,168',
+    }
+  },
+  {
+    id: 'forest', name: 'Forest Green', desc: 'Hijau alam yang menyegarkan dan natural', price: 200, icon: '🌿', color: '#00B894',
+    preview: ['#F0FFF8', '#FFFFFF', '#00B894', '#55EFC4'],
+    vars: {
+      '--theme-bg':        '#F0FFF8',
+      '--theme-surface':   '#FFFFFF',
+      '--theme-primary':   '#00B894',
+      '--theme-secondary': '#55EFC4',
+      '--theme-accent':    '#FDCB6E',
+      '--theme-text':      '#1A3D2E',
+      '--theme-muted':     '#4A8070',
+      '--theme-border':    '#B3E8D4',
+      '--theme-navbar-bg': 'rgba(240,255,248,0.97)',
+      '--theme-card-bg':   '#FFFFFF',
+      '--theme-glow':      '0,184,148',
+    }
+  },
+  {
+    id: 'volcanic', name: 'Volcanic Fire', desc: 'Merah lava yang membara penuh semangat', price: 250, icon: '🌋', color: '#FF4757',
+    preview: ['#1A0505', '#2D0A0A', '#FF4757', '#FDCB6E'],
+    vars: {
+      '--theme-bg':        '#1C0A0A',
+      '--theme-surface':   '#2D1010',
+      '--theme-primary':   '#FF4757',
+      '--theme-secondary': '#FF6B35',
+      '--theme-accent':    '#FDCB6E',
+      '--theme-text':      '#FFE0DC',
+      '--theme-muted':     '#C07070',
+      '--theme-border':    '#4D1A1A',
+      '--theme-navbar-bg': 'rgba(28,10,10,0.97)',
+      '--theme-card-bg':   '#2D1010',
+      '--theme-glow':      '255,71,87',
+    }
+  },
+  {
+    id: 'neon-city', name: 'Neon City', desc: 'Cyberpunk gelap dengan aksen neon terang', price: 300, icon: '🏙️', color: '#00FF88',
+    preview: ['#060d14', '#0d1a24', '#00FF88', '#FF00FF'],
+    vars: {
+      '--theme-bg':        '#060d14',
+      '--theme-surface':   '#0d1a24',
+      '--theme-primary':   '#00FF88',
+      '--theme-secondary': '#FF00FF',
+      '--theme-accent':    '#00FFFF',
+      '--theme-text':      '#D0FFE0',
+      '--theme-muted':     '#4A8870',
+      '--theme-border':    '#0F3020',
+      '--theme-navbar-bg': 'rgba(6,13,20,0.97)',
+      '--theme-card-bg':   '#0d1a24',
+      '--theme-glow':      '0,255,136',
+    }
+  },
+  {
+    id: 'royal-gold', name: 'Royal Gold', desc: 'Emas mewah kerajaan — hanya untuk yang terbaik', price: 350, icon: '👑', color: '#FFD700',
+    preview: ['#1A1400', '#2D2400', '#FFD700', '#FF8C00'],
+    vars: {
+      '--theme-bg':        '#1A1400',
+      '--theme-surface':   '#2D2400',
+      '--theme-primary':   '#FFD700',
+      '--theme-secondary': '#FF8C00',
+      '--theme-accent':    '#FFF8DC',
+      '--theme-text':      '#FFF8DC',
+      '--theme-muted':     '#B8960C',
+      '--theme-border':    '#4D3800',
+      '--theme-navbar-bg': 'rgba(26,20,0,0.97)',
+      '--theme-card-bg':   '#2D2400',
+      '--theme-glow':      '255,215,0',
+    }
+  },
+]
+
 // ─── Consumable Items (deprecated — hints are now in-game) ──────────────────
 export const CONSUMABLES = []
 
@@ -245,6 +385,7 @@ function getDefaultCoinState() {
     ownedTubeThemes:['default'], activeTubeTheme:'default',
     ownedSudokuThemes:['default'], activeSudokuTheme:'default',
     ownedJigsawThemes:['default'], activeJigsawTheme:'default',
+    ownedAppThemes:['default'], activeAppTheme:'default',
     hints:0, timeFreezes:0,
     lastDailyClaim:null, dailyStreak:0, transactions:[],
   }
@@ -299,8 +440,8 @@ export function CoinProvider({ children }) {
 
   // Generic buy cosmetic
   const buyCosmetic = useCallback(async (type, itemId) => {
-    const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS, ships:SHIP_CATALOG, hangmanThemes:HANGMAN_THEMES, tubeThemes:TUBE_THEMES, sudokuThemes:SUDOKU_THEMES, jigsawThemes:JIGSAW_THEMES }
-    const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes' }
+    const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS, ships:SHIP_CATALOG, hangmanThemes:HANGMAN_THEMES, tubeThemes:TUBE_THEMES, sudokuThemes:SUDOKU_THEMES, jigsawThemes:JIGSAW_THEMES, appThemes:APP_THEMES }
+    const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', appThemes:'ownedAppThemes' }
     const items = catalog[type]; const key = ownedKey[type]
     if (!items||!key) return { success:false, reason:'Tipe tidak valid' }
     const item = items.find(i => i.id === itemId)
@@ -315,8 +456,8 @@ export function CoinProvider({ children }) {
   const buyPack = useCallback((packId) => buyCosmetic('packs', packId), [buyCosmetic])
 
   const equipCosmetic = useCallback((type, itemId) => {
-    const ownedKey  = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes' }
-    const activeKey = { packs:'activePack', skins:'activeSkin', tileThemes:'activeTileTheme', highlights:'activeHighlight', ships:'activeShip', hangmanThemes:'activeHangmanTheme', tubeThemes:'activeTubeTheme', sudokuThemes:'activeSudokuTheme', jigsawThemes:'activeJigsawTheme' }
+    const ownedKey  = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', appThemes:'ownedAppThemes' }
+    const activeKey = { packs:'activePack', skins:'activeSkin', tileThemes:'activeTileTheme', highlights:'activeHighlight', ships:'activeShip', hangmanThemes:'activeHangmanTheme', tubeThemes:'activeTubeTheme', sudokuThemes:'activeSudokuTheme', jigsawThemes:'activeJigsawTheme', appThemes:'activeAppTheme' }
     const key = ownedKey[type]; const aKey = activeKey[type]
     if (!key||!aKey) return
     if (!(state[key]||[]).includes(itemId)) return
@@ -360,6 +501,12 @@ export function CoinProvider({ children }) {
     const reward = COIN_REWARDS.dailyLogin[Math.min(newStreak-1, COIN_REWARDS.dailyLogin.length-1)]
     setState(s => ({ ...s, lastDailyClaim:today, dailyStreak:newStreak }))
     earnCoins(reward, `Login harian (hari ke-${newStreak})`)
+    // Dispatch milestone for push notification
+    try {
+      if (newStreak >= 3) {
+        window.dispatchEvent(new CustomEvent('bp-milestone', { detail: { streak: newStreak } }))
+      }
+    } catch(e) {}
     return { success:true, amount:reward, streak:newStreak }
   }, [state.lastDailyClaim, state.dailyStreak, earnCoins])
 
@@ -410,6 +557,10 @@ export function CoinProvider({ children }) {
     return t ? t.style : JIGSAW_THEMES[0].style
   }, [state.activeJigsawTheme])
 
+  const getActiveAppTheme = useCallback(() => {
+    return APP_THEMES.find(t => t.id === state.activeAppTheme) || APP_THEMES[0]
+  }, [state.activeAppTheme])
+
   return (
     <CoinContext.Provider value={{
       coins:state.balance, totalEarned:state.totalEarned, totalSpent:state.totalSpent,
@@ -422,6 +573,7 @@ export function CoinProvider({ children }) {
       ownedTubeThemes:state.ownedTubeThemes||[], activeTubeTheme:state.activeTubeTheme,
       ownedSudokuThemes:state.ownedSudokuThemes||[], activeSudokuTheme:state.activeSudokuTheme,
       ownedJigsawThemes:state.ownedJigsawThemes||[], activeJigsawTheme:state.activeJigsawTheme,
+      ownedAppThemes:state.ownedAppThemes||[], activeAppTheme:state.activeAppTheme,
       hints:state.hints||0, timeFreezes:state.timeFreezes||0,
       dailyStreak:state.dailyStreak, transactions:state.transactions||[],
       isDailyClaimable, coinAnim,
@@ -430,6 +582,7 @@ export function CoinProvider({ children }) {
       setActivePack, claimDaily,
       getActiveIcons, getActiveSkin, getActiveTileColors, getActiveHighlightColors, getActiveShip,
       getActiveHangmanTheme, getActiveTubeTheme, getActiveSudokuTheme, getActiveJigsawTheme,
+      getActiveAppTheme,
     }}>
       {children}
     </CoinContext.Provider>

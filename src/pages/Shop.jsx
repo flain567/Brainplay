@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useAuth } from '../context/AuthContext.jsx'
-import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
+import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, CONSUMABLES, COIN_REWARDS, APP_THEMES } from '../context/CoinContext.jsx'
 
 // ─── Generic cosmetic list renderer ─────────────────────────────────────────
 function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMain, textMuted, borderCol, coins, onBuy, onEquip, buyingId, previewId, setPreviewId, renderPreview }) {
@@ -91,6 +91,7 @@ export default function Shop({ onBack }) {
     ownedTubeThemes, activeTubeTheme,
     ownedSudokuThemes, activeSudokuTheme,
     ownedJigsawThemes, activeJigsawTheme,
+    ownedAppThemes, activeAppTheme,
     hints, timeFreezes, dailyStreak, isDailyClaimable,
     buyCosmetic, equipCosmetic, buyConsumable, claimDaily, transactions, earnCoins,
   } = useCoins()
@@ -171,6 +172,7 @@ export default function Shop({ onBack }) {
   }
 
   const TABS = [
+    { id:'themes',     label:'🎨 Themes',   },
     { id:'packs',      label:'🃏 Cards',    },
     { id:'skins',      label:'🐍 Skins',    },
     { id:'tiles',      label:'🔗 Tiles',    },
@@ -324,6 +326,111 @@ export default function Shop({ onBack }) {
               </button>
             ))}
           </div>
+
+          {/* ── App Themes ── */}
+          {tab === 'themes' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                🎨 Tema mengubah warna seluruh tampilan app. Berlaku di semua halaman!
+              </p>
+              {APP_THEMES.map((item, i) => {
+                const owned = (ownedAppThemes||[]).includes(item.id)
+                const isActive = activeAppTheme === item.id
+                const expanded = previewId === item.id
+                return (
+                  <div
+                    key={item.id}
+                    className={`shop-pack ${owned?'owned':''} ${isActive?'active':''}`}
+                    style={{ animation:`slide-up 0.3s ${i*0.04}s ease both`, background:surface, borderColor: isActive ? item.vars['--theme-primary'] : owned ? (dark?`${item.vars['--theme-primary']}44`:`${item.vars['--theme-primary']}88`) : borderCol }}
+                    onClick={() => setPreviewId(expanded ? null : item.id)}
+                  >
+                    {isActive && (
+                      <div style={{ position:'absolute', top:12, right:12, background:item.vars['--theme-primary'], color:'#fff', fontSize:10, fontWeight:800, padding:'3px 10px', borderRadius:100, fontFamily:"'Fredoka One',cursive" }}>
+                        AKTIF
+                      </div>
+                    )}
+                    <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+                      {/* Color swatch preview */}
+                      <div style={{ width:52, height:52, borderRadius:14, flexShrink:0, overflow:'hidden', border:`2px solid ${item.vars['--theme-primary']}33`, display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr 1fr' }}>
+                        {item.preview.map((c, j) => (
+                          <div key={j} style={{ background:c }} />
+                        ))}
+                      </div>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color:textMain }}>{item.name}</div>
+                        <div style={{ fontSize:12, color:textMuted, marginTop:1 }}>{item.desc}</div>
+                      </div>
+                      {!owned ? (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleBuyCosmetic('appThemes', item) }}
+                          disabled={buyingId === item.id}
+                          style={{
+                            background: coins >= item.price ? 'linear-gradient(135deg,#FDCB6E,#F9A825)' : (dark?'#1e2a4a':'#eee'),
+                            color: coins >= item.price ? '#5D4037' : textMuted,
+                            border:'none', borderRadius:12, padding:'8px 16px',
+                            fontFamily:"'Fredoka One',cursive", fontSize:13,
+                            cursor: coins >= item.price ? 'pointer' : 'not-allowed',
+                            display:'flex', alignItems:'center', gap:4,
+                            opacity: buyingId === item.id ? 0.6 : 1,
+                            whiteSpace:'nowrap', flexShrink:0,
+                          }}
+                        >
+                          🪙 {item.price}
+                        </button>
+                      ) : !isActive ? (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleEquip('appThemes', item.id) }}
+                          style={{
+                            background:`${item.vars['--theme-primary']}18`, color:item.vars['--theme-primary'],
+                            border:`1.5px solid ${item.vars['--theme-primary']}44`,
+                            borderRadius:12, padding:'8px 16px',
+                            fontFamily:"'Fredoka One',cursive", fontSize:13,
+                            cursor:'pointer', whiteSpace:'nowrap', flexShrink:0,
+                          }}
+                        >
+                          Pakai
+                        </button>
+                      ) : (
+                        <span style={{ fontSize:20, flexShrink:0 }}>✅</span>
+                      )}
+                    </div>
+
+                    {/* Expanded color palette preview */}
+                    {expanded && (
+                      <div style={{ marginTop:14, padding:14, borderRadius:14, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)', overflow:'hidden' }}>
+                        {/* Simulated UI mockup using theme vars */}
+                        <div style={{ borderRadius:12, overflow:'hidden', border:`2px solid ${item.vars['--theme-border']}` }}>
+                          {/* Navbar mock */}
+                          <div style={{ background:item.vars['--theme-navbar-bg'], padding:'10px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:`1px solid ${item.vars['--theme-border']}` }}>
+                            <div style={{ fontFamily:"'Fredoka One',cursive", color:item.vars['--theme-primary'], fontSize:14 }}>🎮 BrainPlay</div>
+                            <div style={{ display:'flex', gap:6 }}>
+                              {['🏠','👤','🏪'].map((ic, j) => (
+                                <div key={j} style={{ width:28, height:28, borderRadius:8, background:`${item.vars['--theme-primary']}18`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>{ic}</div>
+                              ))}
+                            </div>
+                          </div>
+                          {/* Card mock */}
+                          <div style={{ background:item.vars['--theme-bg'], padding:12, display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                            {[['🃏','Card'],['🐍','Snake'],['🔗','Blocks'],['🚀','Space']].map(([e, l], j) => (
+                              <div key={j} style={{ background:item.vars['--theme-card-bg'], borderRadius:10, padding:'10px 8px', textAlign:'center', border:`1.5px solid ${item.vars['--theme-border']}` }}>
+                                <div style={{ fontSize:18 }}>{e}</div>
+                                <div style={{ fontSize:10, fontFamily:"'Fredoka One',cursive", color:item.vars['--theme-text'], marginTop:2 }}>{l}</div>
+                              </div>
+                            ))}
+                          </div>
+                          {/* Button mock */}
+                          <div style={{ background:item.vars['--theme-bg'], padding:'8px 12px 12px', display:'flex', gap:8 }}>
+                            <div style={{ flex:1, padding:'8px', borderRadius:10, background:item.vars['--theme-primary'], textAlign:'center', fontFamily:"'Fredoka One',cursive", color:'#fff', fontSize:12 }}>Main</div>
+                            <div style={{ flex:1, padding:'8px', borderRadius:10, background:item.vars['--theme-secondary'], textAlign:'center', fontFamily:"'Fredoka One',cursive", color:'#fff', fontSize:12 }}>Shop</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
 
           {/* ── Card Icon Packs ── */}
           {tab === 'packs' && (
