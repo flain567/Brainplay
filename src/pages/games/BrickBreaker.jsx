@@ -35,6 +35,19 @@ const POWERUP_TYPES = [
 const rand = (a, b) => a + Math.random() * (b - a)
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
 
+// ─── roundRect polyfill ─────────────────────────────────────────────────────
+function drawRoundRect(ctx, x, y, w, h, radius) {
+  const r = typeof radius === 'number' ? radius : (Array.isArray(radius) ? radius[0] : 0)
+  if (r <= 0) { ctx.rect(x, y, w, h); return }
+  const rr = Math.min(r, w / 2, h / 2)
+  ctx.moveTo(x + rr, y)
+  ctx.arcTo(x + w, y, x + w, y + h, rr)
+  ctx.arcTo(x + w, y + h, x, y + h, rr)
+  ctx.arcTo(x, y + h, x, y, rr)
+  ctx.arcTo(x, y, x + w, y, rr)
+  ctx.closePath()
+}
+
 export default function BrickBreaker({ onBack, game, difficulty }) {
   const canvasRef = useRef(null)
   const gameRef   = useRef(null)
@@ -544,21 +557,21 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
         ctx.shadowBlur = brick.gold ? 12 : 4
         const r = 4
         ctx.beginPath()
-        ctx.roundRect(brick.x, brick.y, brick.w, brick.h, r)
+        drawRoundRect(ctx, brick.x, brick.y, brick.w, brick.h, r)
         ctx.fill()
         ctx.shadowBlur = 0
 
         if (brick.gold) {
           ctx.fillStyle = 'rgba(255,255,255,0.3)'
           ctx.beginPath()
-          ctx.roundRect(brick.x + 2, brick.y + 2, brick.w - 4, brick.h / 2 - 2, [r, r, 0, 0])
+          drawRoundRect(ctx, brick.x + 2, brick.y + 2, brick.w - 4, brick.h / 2 - 2, [r, r, 0, 0])
           ctx.fill()
         }
         if (brick.steel && brick.hp > 1) {
           ctx.strokeStyle = 'rgba(255,255,255,0.4)'
           ctx.lineWidth = 1.5
           ctx.beginPath()
-          ctx.roundRect(brick.x + 1, brick.y + 1, brick.w - 2, brick.h - 2, r)
+          drawRoundRect(ctx, brick.x + 1, brick.y + 1, brick.w - 2, brick.h - 2, r)
           ctx.stroke()
         }
       }
@@ -571,7 +584,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
         ctx.shadowColor = '#FF4757'
         ctx.shadowBlur = 15 + Math.sin(Date.now() / 200) * 5
         ctx.beginPath()
-        ctx.roundRect(b.x, b.y, b.w, b.h, 8)
+        drawRoundRect(ctx, b.x, b.y, b.w, b.h, 8)
         ctx.fill()
         ctx.shadowBlur = 0
 
@@ -632,7 +645,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
       ctx.shadowColor = '#A29BFE'
       ctx.shadowBlur = 10
       ctx.beginPath()
-      ctx.roundRect(px, py, pw, g.paddle.h, 6)
+      drawRoundRect(ctx, px, py, pw, g.paddle.h, 6)
       ctx.fill()
       ctx.shadowBlur = 0
 

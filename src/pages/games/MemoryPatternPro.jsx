@@ -52,6 +52,19 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
 const lerp  = (a, b, t) => a + (b - a) * t
 const PI2   = Math.PI * 2
 
+// ─── roundRect polyfill for older browsers ──────────────────────────────────
+function drawRoundRect(ctx, x, y, w, h, radius) {
+  const r = typeof radius === 'number' ? radius : (Array.isArray(radius) ? radius[0] : 0)
+  if (r <= 0) { ctx.rect(x, y, w, h); return }
+  const rr = Math.min(r, w / 2, h / 2)
+  ctx.moveTo(x + rr, y)
+  ctx.arcTo(x + w, y, x + w, y + h, rr)
+  ctx.arcTo(x + w, y + h, x, y + h, rr)
+  ctx.arcTo(x, y + h, x, y, rr)
+  ctx.arcTo(x, y, x + w, y, rr)
+  ctx.closePath()
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -671,14 +684,14 @@ export default function MemoryPatternPro({ onBack, game, difficulty }) {
         ctx.strokeStyle = CELL_BORDER
         ctx.lineWidth = 2
         ctx.beginPath()
-        ctx.roundRect(cell.x, cell.y, cell.w, cell.h, r)
+        drawRoundRect(ctx, cell.x, cell.y, cell.w, cell.h, r)
         ctx.fill()
         ctx.stroke()
 
         // Idle glow (breathing)
         ctx.fillStyle = `rgba(162,155,254,${cell.glowAlpha})`
         ctx.beginPath()
-        ctx.roundRect(cell.x, cell.y, cell.w, cell.h, r)
+        drawRoundRect(ctx, cell.x, cell.y, cell.w, cell.h, r)
         ctx.fill()
 
         // Highlight (pattern showing or tap feedback)
@@ -689,7 +702,7 @@ export default function MemoryPatternPro({ onBack, game, difficulty }) {
           ctx.fillStyle = cell.highlightColor
           ctx.globalAlpha = cell.highlightAlpha * 0.8
           ctx.beginPath()
-          ctx.roundRect(cell.x + 2, cell.y + 2, cell.w - 4, cell.h - 4, r - 1)
+          drawRoundRect(ctx, cell.x + 2, cell.y + 2, cell.w - 4, cell.h - 4, r - 1)
           ctx.fill()
           ctx.shadowBlur = 0
           ctx.globalAlpha = 1
@@ -697,7 +710,7 @@ export default function MemoryPatternPro({ onBack, game, difficulty }) {
           // Inner bright highlight
           ctx.fillStyle = `rgba(255,255,255,${cell.highlightAlpha * 0.4})`
           ctx.beginPath()
-          ctx.roundRect(cell.x + cell.w * 0.15, cell.y + cell.h * 0.1, cell.w * 0.7, cell.h * 0.35, r * 0.5)
+          drawRoundRect(ctx, cell.x + cell.w * 0.15, cell.y + cell.h * 0.1, cell.w * 0.7, cell.h * 0.35, r * 0.5)
           ctx.fill()
         }
 
@@ -708,7 +721,7 @@ export default function MemoryPatternPro({ onBack, game, difficulty }) {
           ctx.shadowColor = NEON_GREEN
           ctx.shadowBlur = 20
           ctx.beginPath()
-          ctx.roundRect(cell.x, cell.y, cell.w, cell.h, r)
+          drawRoundRect(ctx, cell.x, cell.y, cell.w, cell.h, r)
           ctx.fill()
           ctx.shadowBlur = 0
           ctx.globalAlpha = 1
@@ -721,7 +734,7 @@ export default function MemoryPatternPro({ onBack, game, difficulty }) {
           ctx.shadowColor = NEON_RED
           ctx.shadowBlur = 25
           ctx.beginPath()
-          ctx.roundRect(cell.x, cell.y, cell.w, cell.h, r)
+          drawRoundRect(ctx, cell.x, cell.y, cell.w, cell.h, r)
           ctx.fill()
           ctx.shadowBlur = 0
           ctx.globalAlpha = 1
@@ -778,7 +791,7 @@ export default function MemoryPatternPro({ onBack, game, difficulty }) {
         ctx.strokeStyle = usedFree ? 'rgba(162,155,254,0.5)' : 'rgba(255,107,107,0.4)'
         ctx.lineWidth = 1.5
         ctx.beginPath()
-        ctx.roundRect(btn.x, btn.y, btn.w, btn.h, 18)
+        drawRoundRect(ctx, btn.x, btn.y, btn.w, btn.h, 18)
         ctx.fill()
         ctx.stroke()
         ctx.fillStyle = '#fff'
