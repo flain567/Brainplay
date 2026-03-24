@@ -124,21 +124,18 @@ function buildLv(cmds,baseGndBlocks,canvasH){
         for(let i=0;i<3;i++) items.push({t:'ground',x:x+i*BLK,y:gndPx(),w:BLK,h:gndH*BLK})
         x+=pw; break
       }
-      case 'W':{ // Wave wall — gap in middle area
-        // cmd[1] = gap center as % of flyable height (20=top, 50=middle, 80=bottom)
+      case 'W':{ // Wave wall — SIMPLE: offset from center + gap size
+        // cmd[1] = offset from screen center in pixels (-60 to +60, negative=higher)
         // cmd[2] = gap height in pixels (bigger = easier)
         const groundTop=gndPx()
-        const flyArea=groundTop-30 // from y=30 to ground
-        const pct=Math.max(20,Math.min(80,cmd[1]||50))/100
-        const gapH=Math.max(45,cmd[2]||55) // minimum 45px gap
-        const gapCenter=30+flyArea*pct
-        const gapTop=Math.max(15,gapCenter-gapH/2)
-        const gapBot=gapTop+gapH
-        // Top wall: from screen top to gap top
-        if(gapTop>5) items.push({t:'wtop',x,y:0,w:20,h:gapTop})
-        // Bottom wall: from gap bottom to ground (NOT below ground)
-        if(gapBot<groundTop-5) items.push({t:'wbot',x,y:gapBot,w:20,h:groundTop-gapBot})
-        // Ground underneath
+        const centerY=groundTop*0.5 // middle of playable area
+        const offset=cmd[1]||0 // -60 to +60
+        const gapH=Math.max(50,cmd[2]||60) // minimum 50px gap!
+        const gapCenter=Math.max(gapH/2+10, Math.min(groundTop-gapH/2-10, centerY+offset))
+        const gapTop=gapCenter-gapH/2
+        const gapBot=gapCenter+gapH/2
+        if(gapTop>8) items.push({t:'wtop',x,y:0,w:20,h:gapTop})
+        if(gapBot<groundTop-8) items.push({t:'wbot',x,y:gapBot,w:20,h:groundTop-gapBot})
         items.push({t:'ground',x,y:gndPx(),w:BLK,h:gndH*BLK})
         x+=BLK*2; break
       }
@@ -180,8 +177,8 @@ const LVS=[
   // Lv4: Taller blocks + gaps
   [['F',4],['S'],['F',2],['B',1,2],['DI'],['F',3],['S'],['S'],['F',2],['U',2],['F',2],['DI'],['D',2],['F',2],['G',2],['F',3],['S'],['F',2],['B',1,1],['F',3],['DI'],['F',3]],
 
-  // Lv5: Wave intro + steps (gaps are generous, wave section is forgiving)
-  [['F',4],['S'],['F',2],['U',1],['F',2],['DI'],['D',1],['S'],['F',3],['P','wave'],['W',50,65],['W',40,65],['DI'],['W',60,65],['W',45,65],['P','cube'],['F',3],['S'],['F',2],['B',1,1],['DI'],['F',4]],
+  // Lv5: Wave intro (generous gaps, gentle offsets, buffer before walls)
+  [['F',4],['S'],['F',2],['U',1],['F',2],['DI'],['D',1],['S'],['F',3],['P','wave'],['F',3],['W',0,80],['W',-20,75],['DI'],['W',20,75],['W',-10,75],['P','cube'],['F',3],['S'],['F',2],['B',1,1],['DI'],['F',4]],
 
   // Lv6: Staircase challenge (more spacing between obstacles)
   [['F',4],['S'],['F',2],['U',1],['F',1],['S'],['F',1],['U',1],['F',2],['DI'],['F',2],['D',1],['F',1],['S'],['F',1],['D',1],['F',3],['S'],['F',2],['S'],['F',3],['U',2],['F',2],['DI'],['S'],['F',1],['D',2],['F',3],['B',2,2],['F',3],['DI'],['F',4]],
@@ -189,20 +186,20 @@ const LVS=[
   // Lv7: Pillar + gap combo
   [['F',3],['S'],['S'],['F',2],['PL',3],['DI'],['F',2],['G',2],['F',2],['S'],['F',1],['U',2],['F',2],['DI'],['D',2],['F',1],['PL',2],['F',2],['S'],['S'],['F',2],['B',1,2],['DI'],['F',3]],
 
-  // Lv8: Long wave section (gaps 55-60px, positions vary 35-65%)
-  [['F',3],['S'],['F',2],['U',1],['DI'],['D',1],['F',2],['P','wave'],['W',45,58],['W',60,58],['W',35,55],['DI'],['W',55,55],['W',40,55],['W',65,55],['DI'],['P','cube'],['F',3],['S'],['S'],['F',2],['U',1],['F',2],['D',1],['DI'],['F',3]],
+  // Lv8: Long wave section (offset-based, 60-70px gaps)
+  [['F',3],['S'],['F',2],['U',1],['DI'],['D',1],['F',2],['P','wave'],['F',2],['W',0,70],['W',-25,65],['W',30,65],['DI'],['W',-15,65],['W',25,60],['W',-30,60],['DI'],['P','cube'],['F',3],['S'],['S'],['F',2],['U',1],['F',2],['D',1],['DI'],['F',3]],
 
-  // Lv9: Mixed hard (wave gaps 50-55px)
-  [['F',3],['S'],['F',1],['B',1,2],['DI'],['F',2],['U',1],['S'],['U',1],['F',2],['DI'],['D',2],['G',2],['F',2],['PL',3],['F',1],['S'],['S'],['F',2],['P','wave'],['W',40,55],['W',60,52],['W',35,52],['DI'],['W',55,50],['P','cube'],['F',2],['S'],['F',3]],
+  // Lv9: Mixed hard (wave gaps 55-60px)
+  [['F',3],['S'],['F',1],['B',1,2],['DI'],['F',2],['U',1],['S'],['U',1],['F',2],['DI'],['D',2],['G',2],['F',2],['PL',3],['F',1],['S'],['S'],['F',2],['P','wave'],['F',2],['W',0,60],['W',-30,58],['W',25,58],['DI'],['W',-20,55],['P','cube'],['F',2],['S'],['F',3]],
 
-  // Lv10: Intense (wave gaps 48-52px)
-  [['F',2],['S'],['S'],['F',1],['U',1],['S'],['U',1],['DI'],['F',1],['D',1],['D',1],['S'],['F',1],['B',2,3],['F',2],['G',2],['F',1],['DI'],['U',2],['S'],['F',2],['D',2],['F',1],['PL',4],['S'],['S'],['F',2],['DI'],['F',2],['P','wave'],['W',45,52],['W',65,50],['W',35,50],['W',55,48],['DI'],['P','cube'],['F',3]],
+  // Lv10: Intense (wave gaps 55px)
+  [['F',2],['S'],['S'],['F',1],['U',1],['S'],['U',1],['DI'],['F',1],['D',1],['D',1],['S'],['F',1],['B',2,3],['F',2],['G',2],['F',1],['DI'],['U',2],['S'],['F',2],['D',2],['F',1],['PL',4],['S'],['S'],['F',2],['DI'],['F',2],['P','wave'],['F',2],['W',0,58],['W',-35,55],['W',30,55],['W',-20,55],['DI'],['P','cube'],['F',3]],
 
-  // Lv11-14: Progressively harder (wave gaps tighten but stay >=45)
-  [['F',2],['S'],['S'],['S'],['F',1],['U',2],['DI'],['S'],['D',1],['D',1],['F',1],['B',1,3],['G',2],['F',2],['U',1],['S'],['U',1],['S'],['DI'],['D',2],['F',1],['PL',3],['S'],['F',2],['P','wave'],['W',40,50],['W',60,50],['W',30,48],['DI'],['W',55,48],['P','cube'],['S'],['S'],['F',3]],
-  [['F',2],['S'],['S'],['U',1],['S'],['U',1],['U',1],['DI'],['D',1],['S'],['D',1],['D',1],['B',2,3],['G',2],['F',1],['S'],['U',2],['F',1],['DI'],['S'],['D',2],['PL',4],['S'],['P','wave'],['W',45,48],['W',65,48],['W',30,46],['W',55,46],['DI'],['W',40,46],['P','cube'],['S'],['S'],['S'],['F',3]],
-  [['F',1],['S'],['S'],['S'],['U',1],['S'],['U',1],['S'],['U',1],['DI'],['D',1],['D',1],['S'],['D',1],['B',1,3],['G',2],['F',1],['U',2],['S'],['S'],['DI'],['D',2],['PL',4],['G',2],['F',1],['P','wave'],['W',35,46],['W',60,46],['W',25,45],['W',50,45],['DI'],['W',40,45],['P','cube'],['S'],['S'],['S'],['S'],['F',3]],
-  [['S'],['S'],['S'],['U',1],['S'],['U',1],['S'],['U',1],['S'],['DI'],['D',1],['S'],['D',1],['S'],['D',1],['B',2,4],['G',3],['F',1],['U',3],['S'],['S'],['DI'],['D',3],['PL',5],['G',2],['P','wave'],['W',30,45],['W',55,45],['W',25,45],['W',50,45],['W',35,45],['DI'],['W',60,45],['P','cube'],['S'],['S'],['S'],['S'],['S'],['F',3]],
+  // Lv11-14: Progressively harder (wave gaps tighten 55→50)
+  [['F',2],['S'],['S'],['S'],['F',1],['U',2],['DI'],['S'],['D',1],['D',1],['F',1],['B',1,3],['G',2],['F',2],['U',1],['S'],['U',1],['S'],['DI'],['D',2],['F',1],['PL',3],['S'],['F',2],['P','wave'],['F',2],['W',0,55],['W',-30,55],['W',35,52],['DI'],['W',-25,52],['P','cube'],['S'],['S'],['F',3]],
+  [['F',2],['S'],['S'],['U',1],['S'],['U',1],['U',1],['DI'],['D',1],['S'],['D',1],['D',1],['B',2,3],['G',2],['F',1],['S'],['U',2],['F',1],['DI'],['S'],['D',2],['PL',4],['S'],['P','wave'],['F',2],['W',0,55],['W',-35,52],['W',30,52],['W',-20,50],['DI'],['W',25,50],['P','cube'],['S'],['S'],['S'],['F',3]],
+  [['F',1],['S'],['S'],['S'],['U',1],['S'],['U',1],['S'],['U',1],['DI'],['D',1],['D',1],['S'],['D',1],['B',1,3],['G',2],['F',1],['U',2],['S'],['S'],['DI'],['D',2],['PL',4],['G',2],['F',1],['P','wave'],['F',2],['W',0,52],['W',-35,50],['W',30,50],['W',-25,50],['DI'],['W',35,50],['P','cube'],['S'],['S'],['S'],['S'],['F',3]],
+  [['S'],['S'],['S'],['U',1],['S'],['U',1],['S'],['U',1],['S'],['DI'],['D',1],['S'],['D',1],['S'],['D',1],['B',2,4],['G',3],['F',1],['U',3],['S'],['S'],['DI'],['D',3],['PL',5],['G',2],['P','wave'],['F',2],['W',0,52],['W',-40,50],['W',35,50],['W',-30,50],['W',30,50],['DI'],['W',-35,50],['P','cube'],['S'],['S'],['S'],['S'],['S'],['F',3]],
 ]
 
 // ═════════════════════════════════════════════════════════════
@@ -406,7 +403,11 @@ export default function NeonDash({onBack,game,difficulty}){
             if(it.t==='portal'&&!it.triggered&&wx>=it.x&&wx<=it.x+it.w+20&&g.mode!==it.mode){
               it.triggered=true
               g.mode=it.mode;g.rings.push({x:g.px+PS/2,y:g.py+PS/2,r:4,mr:60,a:0.8,c:CL.ptl,lw:3})
-              if(it.mode==='wave'){g.vy=0;g.gnd=false}
+              if(it.mode==='wave'){
+                // TELEPORT player to center of flyable area so wave walls are reachable!
+                g.py=g.gY*0.5-PS/2
+                g.vy=0;g.gnd=false
+              }
               try{play('flip')}catch(e){}
             }
             if(it.t==='end'&&wx>=it.x){doWin();break}
