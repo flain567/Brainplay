@@ -219,143 +219,106 @@ export const JIGSAW_THEMES = [
     style:{ type:'gradient', colors:['#2D3436','#636E72','#B2BEC3','#DFE6E9'] } },
 ]
 
-// ─── App Themes (Global UI Theme) ───────────────────────────────────────────
-export const APP_THEMES = [
-  {
-    id: 'default', name: 'Classic Light', desc: 'Tema default yang cerah dan ramah mata', price: 0, icon: '☀️', color: '#FDCB6E',
-    preview: ['#FFF9F0', '#FFFFFF', '#FDCB6E', '#4ECDC4'],
-    vars: {
-      '--theme-bg':        '#FFF9F0',
-      '--theme-surface':   '#FFFFFF',
-      '--theme-primary':   '#FDCB6E',
-      '--theme-secondary': '#4ECDC4',
-      '--theme-accent':    '#FF6B6B',
-      '--theme-text':      '#2D3436',
-      '--theme-muted':     '#636E72',
-      '--theme-border':    '#DFE6E9',
-      '--theme-navbar-bg': 'rgba(255,249,240,0.95)',
-      '--theme-card-bg':   '#FFFFFF',
-      '--theme-glow':      '253,203,110',
-    }
+// ─── Website Themes (global app themes) ────────────────────────────────────
+export const WEBSITE_THEMES = [
+  { id:'default', name:'BrainPlay Classic', desc:'Tema default — warm cream & lavender',
+    price:0, icon:'🎮', color:'#A29BFE',
+    light:{
+      bg:'#FFF9F0', surface:'#FFFFFF', text:'#2D3436', muted:'#636E72', border:'#DFE6E9',
+      accent:'#A29BFE', accentAlt:'#FD79A8', navBg:'rgba(255,252,245,0.82)', navScrolled:'rgba(255,252,245,0.98)',
+    },
+    dark:{
+      bg:'#1a1a2e', surface:'#16213e', text:'#e8e8f0', muted:'#8892b0', border:'#2d3561',
+      accent:'#A29BFE', accentAlt:'#FD79A8', navBg:'rgba(16,10,40,0.85)', navScrolled:'rgba(16,10,40,0.97)',
+    },
   },
-  {
-    id: 'midnight', name: 'Midnight Galaxy', desc: 'Tema gelap ungu kosmik yang memukau', price: 200, icon: '🌌', color: '#A29BFE',
-    preview: ['#0d0b1e', '#16213e', '#A29BFE', '#FD79A8'],
-    vars: {
-      '--theme-bg':        '#0d0b1e',
-      '--theme-surface':   '#16213e',
-      '--theme-primary':   '#A29BFE',
-      '--theme-secondary': '#FD79A8',
-      '--theme-accent':    '#74B9FF',
-      '--theme-text':      '#e8e8f0',
-      '--theme-muted':     '#8892b0',
-      '--theme-border':    '#2d3561',
-      '--theme-navbar-bg': 'rgba(13,11,30,0.97)',
-      '--theme-card-bg':   '#16213e',
-      '--theme-glow':      '162,155,254',
-    }
+  { id:'sakura', name:'Sakura Bloom', desc:'Pink bunga sakura yang lembut dan romantis',
+    price:200, icon:'🌸', color:'#F8A4C8',
+    light:{
+      bg:'#FFF5F9', surface:'#FFFFFF', text:'#4A2040', muted:'#9C6B8A', border:'#F8D7E8',
+      accent:'#E84393', accentAlt:'#FD79A8', navBg:'rgba(255,245,249,0.82)', navScrolled:'rgba(255,245,249,0.98)',
+    },
+    dark:{
+      bg:'#1E0A18', surface:'#2A1025', text:'#F8D7E8', muted:'#B87DA0', border:'#4A1A38',
+      accent:'#E84393', accentAlt:'#FD79A8', navBg:'rgba(30,10,24,0.85)', navScrolled:'rgba(30,10,24,0.97)',
+    },
   },
-  {
-    id: 'ocean-breeze', name: 'Ocean Breeze', desc: 'Biru laut yang segar dan menenangkan', price: 180, icon: '🌊', color: '#0984E3',
-    preview: ['#E8F4FD', '#FFFFFF', '#0984E3', '#00CEC9'],
-    vars: {
-      '--theme-bg':        '#EAF6FF',
-      '--theme-surface':   '#FFFFFF',
-      '--theme-primary':   '#0984E3',
-      '--theme-secondary': '#00CEC9',
-      '--theme-accent':    '#74B9FF',
-      '--theme-text':      '#1A3A52',
-      '--theme-muted':     '#5A8CAA',
-      '--theme-border':    '#B3D9F0',
-      '--theme-navbar-bg': 'rgba(234,246,255,0.97)',
-      '--theme-card-bg':   '#FFFFFF',
-      '--theme-glow':      '9,132,227',
-    }
+  { id:'ocean', name:'Deep Ocean', desc:'Biru laut dalam yang misterius dan tenang',
+    price:200, icon:'🌊', color:'#0984E3',
+    light:{
+      bg:'#F0F8FF', surface:'#FFFFFF', text:'#1B3A5C', muted:'#5A7DA0', border:'#C8E0F4',
+      accent:'#0984E3', accentAlt:'#00CEC9', navBg:'rgba(240,248,255,0.82)', navScrolled:'rgba(240,248,255,0.98)',
+    },
+    dark:{
+      bg:'#0A1628', surface:'#0F2038', text:'#C8E0F4', muted:'#5A8AB5', border:'#1A3050',
+      accent:'#0984E3', accentAlt:'#00CEC9', navBg:'rgba(10,22,40,0.85)', navScrolled:'rgba(10,22,40,0.97)',
+    },
   },
-  {
-    id: 'sakura', name: 'Sakura Pink', desc: 'Tema merah muda lembut seperti bunga sakura', price: 180, icon: '🌸', color: '#FD79A8',
-    preview: ['#FFF0F8', '#FFFFFF', '#FD79A8', '#FDCB6E'],
-    vars: {
-      '--theme-bg':        '#FFF0F8',
-      '--theme-surface':   '#FFFFFF',
-      '--theme-primary':   '#FD79A8',
-      '--theme-secondary': '#E17055',
-      '--theme-accent':    '#FDCB6E',
-      '--theme-text':      '#3D1A28',
-      '--theme-muted':     '#9E5E78',
-      '--theme-border':    '#F8C8E0',
-      '--theme-navbar-bg': 'rgba(255,240,248,0.97)',
-      '--theme-card-bg':   '#FFFFFF',
-      '--theme-glow':      '253,121,168',
-    }
+  { id:'forest', name:'Enchanted Forest', desc:'Hijau hutan ajaib yang menyegarkan mata',
+    price:200, icon:'🌿', color:'#00B894',
+    light:{
+      bg:'#F0FFF5', surface:'#FFFFFF', text:'#1A3C2A', muted:'#5A8A6A', border:'#C8F0D8',
+      accent:'#00B894', accentAlt:'#55EFC4', navBg:'rgba(240,255,245,0.82)', navScrolled:'rgba(240,255,245,0.98)',
+    },
+    dark:{
+      bg:'#0A1E14', surface:'#0F2A1C', text:'#C8F0D8', muted:'#5AAF7A', border:'#1A4030',
+      accent:'#00B894', accentAlt:'#55EFC4', navBg:'rgba(10,30,20,0.85)', navScrolled:'rgba(10,30,20,0.97)',
+    },
   },
-  {
-    id: 'forest', name: 'Forest Green', desc: 'Hijau alam yang menyegarkan dan natural', price: 200, icon: '🌿', color: '#00B894',
-    preview: ['#F0FFF8', '#FFFFFF', '#00B894', '#55EFC4'],
-    vars: {
-      '--theme-bg':        '#F0FFF8',
-      '--theme-surface':   '#FFFFFF',
-      '--theme-primary':   '#00B894',
-      '--theme-secondary': '#55EFC4',
-      '--theme-accent':    '#FDCB6E',
-      '--theme-text':      '#1A3D2E',
-      '--theme-muted':     '#4A8070',
-      '--theme-border':    '#B3E8D4',
-      '--theme-navbar-bg': 'rgba(240,255,248,0.97)',
-      '--theme-card-bg':   '#FFFFFF',
-      '--theme-glow':      '0,184,148',
-    }
+  { id:'sunset', name:'Golden Sunset', desc:'Sunset emas hangat yang menenangkan jiwa',
+    price:250, icon:'🌅', color:'#F39C12',
+    light:{
+      bg:'#FFFBF0', surface:'#FFFFFF', text:'#5D3A00', muted:'#A07A40', border:'#F0E0C0',
+      accent:'#F39C12', accentAlt:'#E17055', navBg:'rgba(255,251,240,0.82)', navScrolled:'rgba(255,251,240,0.98)',
+    },
+    dark:{
+      bg:'#1E1400', surface:'#2A1E08', text:'#F0E0C0', muted:'#B89050', border:'#4A3818',
+      accent:'#F39C12', accentAlt:'#E17055', navBg:'rgba(30,20,0,0.85)', navScrolled:'rgba(30,20,0,0.97)',
+    },
   },
-  {
-    id: 'volcanic', name: 'Volcanic Fire', desc: 'Merah lava yang membara penuh semangat', price: 250, icon: '🌋', color: '#FF4757',
-    preview: ['#1A0505', '#2D0A0A', '#FF4757', '#FDCB6E'],
-    vars: {
-      '--theme-bg':        '#1C0A0A',
-      '--theme-surface':   '#2D1010',
-      '--theme-primary':   '#FF4757',
-      '--theme-secondary': '#FF6B35',
-      '--theme-accent':    '#FDCB6E',
-      '--theme-text':      '#FFE0DC',
-      '--theme-muted':     '#C07070',
-      '--theme-border':    '#4D1A1A',
-      '--theme-navbar-bg': 'rgba(28,10,10,0.97)',
-      '--theme-card-bg':   '#2D1010',
-      '--theme-glow':      '255,71,87',
-    }
+  { id:'cyberpunk', name:'Cyberpunk Neon', desc:'Neon futuristik ala kota cyberpunk',
+    price:350, icon:'🏙️', color:'#00FF88',
+    light:{
+      bg:'#F0FFF5', surface:'#FFFFFF', text:'#0A2A15', muted:'#3A7A4A', border:'#B8F0C8',
+      accent:'#00D975', accentAlt:'#FF0066', navBg:'rgba(240,255,245,0.82)', navScrolled:'rgba(240,255,245,0.98)',
+    },
+    dark:{
+      bg:'#0A0A1A', surface:'#12122A', text:'#00FF88', muted:'#00CC6E', border:'#1A1A3A',
+      accent:'#00FF88', accentAlt:'#FF0066', navBg:'rgba(10,10,26,0.9)', navScrolled:'rgba(10,10,26,0.97)',
+    },
   },
-  {
-    id: 'neon-city', name: 'Neon City', desc: 'Cyberpunk gelap dengan aksen neon terang', price: 300, icon: '🏙️', color: '#00FF88',
-    preview: ['#060d14', '#0d1a24', '#00FF88', '#FF00FF'],
-    vars: {
-      '--theme-bg':        '#060d14',
-      '--theme-surface':   '#0d1a24',
-      '--theme-primary':   '#00FF88',
-      '--theme-secondary': '#FF00FF',
-      '--theme-accent':    '#00FFFF',
-      '--theme-text':      '#D0FFE0',
-      '--theme-muted':     '#4A8870',
-      '--theme-border':    '#0F3020',
-      '--theme-navbar-bg': 'rgba(6,13,20,0.97)',
-      '--theme-card-bg':   '#0d1a24',
-      '--theme-glow':      '0,255,136',
-    }
+  { id:'lavaglow', name:'Lava Glow', desc:'Merah lava membara dari kedalaman bumi',
+    price:300, icon:'🌋', color:'#FF4757',
+    light:{
+      bg:'#FFF5F5', surface:'#FFFFFF', text:'#4A0A0A', muted:'#A04040', border:'#F0C8C8',
+      accent:'#FF4757', accentAlt:'#FF8C00', navBg:'rgba(255,245,245,0.82)', navScrolled:'rgba(255,245,245,0.98)',
+    },
+    dark:{
+      bg:'#1A0808', surface:'#2A1010', text:'#F0C8C8', muted:'#B06060', border:'#4A1818',
+      accent:'#FF4757', accentAlt:'#FF8C00', navBg:'rgba(26,8,8,0.85)', navScrolled:'rgba(26,8,8,0.97)',
+    },
   },
-  {
-    id: 'royal-gold', name: 'Royal Gold', desc: 'Emas mewah kerajaan — hanya untuk yang terbaik', price: 350, icon: '👑', color: '#FFD700',
-    preview: ['#1A1400', '#2D2400', '#FFD700', '#FF8C00'],
-    vars: {
-      '--theme-bg':        '#1A1400',
-      '--theme-surface':   '#2D2400',
-      '--theme-primary':   '#FFD700',
-      '--theme-secondary': '#FF8C00',
-      '--theme-accent':    '#FFF8DC',
-      '--theme-text':      '#FFF8DC',
-      '--theme-muted':     '#B8960C',
-      '--theme-border':    '#4D3800',
-      '--theme-navbar-bg': 'rgba(26,20,0,0.97)',
-      '--theme-card-bg':   '#2D2400',
-      '--theme-glow':      '255,215,0',
-    }
+  { id:'arctic', name:'Arctic Frost', desc:'Putih es arktik yang bersih dan premium',
+    price:300, icon:'❄️', color:'#74B9FF',
+    light:{
+      bg:'#F8FCFF', surface:'#FFFFFF', text:'#1A2E40', muted:'#5A7A9A', border:'#D0E8F8',
+      accent:'#3498DB', accentAlt:'#74B9FF', navBg:'rgba(248,252,255,0.85)', navScrolled:'rgba(248,252,255,0.98)',
+    },
+    dark:{
+      bg:'#0C1820', surface:'#10202E', text:'#D0E8F8', muted:'#5A90B8', border:'#1A3448',
+      accent:'#3498DB', accentAlt:'#74B9FF', navBg:'rgba(12,24,32,0.85)', navScrolled:'rgba(12,24,32,0.97)',
+    },
+  },
+  { id:'royal', name:'Royal Velvet', desc:'Ungu kerajaan yang mewah dan megah',
+    price:400, icon:'👑', color:'#6C5CE7',
+    light:{
+      bg:'#F8F5FF', surface:'#FFFFFF', text:'#2A1E50', muted:'#7A68B0', border:'#D8D0F0',
+      accent:'#6C5CE7', accentAlt:'#A29BFE', navBg:'rgba(248,245,255,0.82)', navScrolled:'rgba(248,245,255,0.98)',
+    },
+    dark:{
+      bg:'#0E0A20', surface:'#16103A', text:'#D8D0F0', muted:'#8A7CC0', border:'#2A2058',
+      accent:'#6C5CE7', accentAlt:'#A29BFE', navBg:'rgba(14,10,32,0.85)', navScrolled:'rgba(14,10,32,0.97)',
+    },
   },
 ]
 
@@ -385,7 +348,7 @@ function getDefaultCoinState() {
     ownedTubeThemes:['default'], activeTubeTheme:'default',
     ownedSudokuThemes:['default'], activeSudokuTheme:'default',
     ownedJigsawThemes:['default'], activeJigsawTheme:'default',
-    ownedAppThemes:['default'], activeAppTheme:'default',
+    ownedWebThemes:['default'], activeWebTheme:'default',
     hints:0, timeFreezes:0,
     lastDailyClaim:null, dailyStreak:0, transactions:[],
   }
@@ -440,8 +403,8 @@ export function CoinProvider({ children }) {
 
   // Generic buy cosmetic
   const buyCosmetic = useCallback(async (type, itemId) => {
-    const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS, ships:SHIP_CATALOG, hangmanThemes:HANGMAN_THEMES, tubeThemes:TUBE_THEMES, sudokuThemes:SUDOKU_THEMES, jigsawThemes:JIGSAW_THEMES, appThemes:APP_THEMES }
-    const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', appThemes:'ownedAppThemes' }
+    const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS, ships:SHIP_CATALOG, hangmanThemes:HANGMAN_THEMES, tubeThemes:TUBE_THEMES, sudokuThemes:SUDOKU_THEMES, jigsawThemes:JIGSAW_THEMES, webThemes:WEBSITE_THEMES }
+    const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', webThemes:'ownedWebThemes' }
     const items = catalog[type]; const key = ownedKey[type]
     if (!items||!key) return { success:false, reason:'Tipe tidak valid' }
     const item = items.find(i => i.id === itemId)
@@ -456,8 +419,8 @@ export function CoinProvider({ children }) {
   const buyPack = useCallback((packId) => buyCosmetic('packs', packId), [buyCosmetic])
 
   const equipCosmetic = useCallback((type, itemId) => {
-    const ownedKey  = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', appThemes:'ownedAppThemes' }
-    const activeKey = { packs:'activePack', skins:'activeSkin', tileThemes:'activeTileTheme', highlights:'activeHighlight', ships:'activeShip', hangmanThemes:'activeHangmanTheme', tubeThemes:'activeTubeTheme', sudokuThemes:'activeSudokuTheme', jigsawThemes:'activeJigsawTheme', appThemes:'activeAppTheme' }
+    const ownedKey  = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', webThemes:'ownedWebThemes' }
+    const activeKey = { packs:'activePack', skins:'activeSkin', tileThemes:'activeTileTheme', highlights:'activeHighlight', ships:'activeShip', hangmanThemes:'activeHangmanTheme', tubeThemes:'activeTubeTheme', sudokuThemes:'activeSudokuTheme', jigsawThemes:'activeJigsawTheme', webThemes:'activeWebTheme' }
     const key = ownedKey[type]; const aKey = activeKey[type]
     if (!key||!aKey) return
     if (!(state[key]||[]).includes(itemId)) return
@@ -501,12 +464,6 @@ export function CoinProvider({ children }) {
     const reward = COIN_REWARDS.dailyLogin[Math.min(newStreak-1, COIN_REWARDS.dailyLogin.length-1)]
     setState(s => ({ ...s, lastDailyClaim:today, dailyStreak:newStreak }))
     earnCoins(reward, `Login harian (hari ke-${newStreak})`)
-    // Dispatch milestone for push notification
-    try {
-      if (newStreak >= 3) {
-        window.dispatchEvent(new CustomEvent('bp-milestone', { detail: { streak: newStreak } }))
-      }
-    } catch(e) {}
     return { success:true, amount:reward, streak:newStreak }
   }, [state.lastDailyClaim, state.dailyStreak, earnCoins])
 
@@ -557,9 +514,10 @@ export function CoinProvider({ children }) {
     return t ? t.style : JIGSAW_THEMES[0].style
   }, [state.activeJigsawTheme])
 
-  const getActiveAppTheme = useCallback(() => {
-    return APP_THEMES.find(t => t.id === state.activeAppTheme) || APP_THEMES[0]
-  }, [state.activeAppTheme])
+  const getActiveWebTheme = useCallback(() => {
+    const t = WEBSITE_THEMES.find(h => h.id === state.activeWebTheme)
+    return t || WEBSITE_THEMES[0]
+  }, [state.activeWebTheme])
 
   return (
     <CoinContext.Provider value={{
@@ -573,7 +531,7 @@ export function CoinProvider({ children }) {
       ownedTubeThemes:state.ownedTubeThemes||[], activeTubeTheme:state.activeTubeTheme,
       ownedSudokuThemes:state.ownedSudokuThemes||[], activeSudokuTheme:state.activeSudokuTheme,
       ownedJigsawThemes:state.ownedJigsawThemes||[], activeJigsawTheme:state.activeJigsawTheme,
-      ownedAppThemes:state.ownedAppThemes||[], activeAppTheme:state.activeAppTheme,
+      ownedWebThemes:state.ownedWebThemes||[], activeWebTheme:state.activeWebTheme,
       hints:state.hints||0, timeFreezes:state.timeFreezes||0,
       dailyStreak:state.dailyStreak, transactions:state.transactions||[],
       isDailyClaimable, coinAnim,
@@ -582,7 +540,7 @@ export function CoinProvider({ children }) {
       setActivePack, claimDaily,
       getActiveIcons, getActiveSkin, getActiveTileColors, getActiveHighlightColors, getActiveShip,
       getActiveHangmanTheme, getActiveTubeTheme, getActiveSudokuTheme, getActiveJigsawTheme,
-      getActiveAppTheme,
+      getActiveWebTheme,
     }}>
       {children}
     </CoinContext.Provider>

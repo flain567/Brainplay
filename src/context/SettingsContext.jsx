@@ -12,8 +12,11 @@ export function SettingsProvider({ children }) {
   const [musicOff, setMusicOff] = useState(
     () => localStorage.getItem('brainplay-music-off') === 'true'
   )
+  const [notifEnabled, setNotifEnabled] = useState(
+    () => localStorage.getItem('brainplay-notif') === 'true'
+  )
 
-  // Apply dark mode class + body background (ThemeApplier handles CSS vars)
+  // Dark mode class toggle + persist (CSS vars now handled by ThemeApplicator)
   useEffect(() => {
     if (darkMode) {
       document.body.classList.add('dark-mode')
@@ -31,14 +34,19 @@ export function SettingsProvider({ children }) {
     localStorage.setItem('brainplay-music-off', musicOff)
   }, [musicOff])
 
+  useEffect(() => {
+    localStorage.setItem('brainplay-notif', notifEnabled)
+  }, [notifEnabled])
+
   const toggle = {
     darkMode: () => setDarkMode(v => !v),
     muted:    () => setMuted(v => !v),
     musicOff: () => setMusicOff(v => !v),
+    notif:    () => setNotifEnabled(v => !v),
   }
 
   return (
-    <SettingsContext.Provider value={{ darkMode, muted, musicOff, toggle }}>
+    <SettingsContext.Provider value={{ darkMode, muted, musicOff, notifEnabled, toggle }}>
       {children}
     </SettingsContext.Provider>
   )

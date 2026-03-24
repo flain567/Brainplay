@@ -74,6 +74,7 @@ function mergeCoins(local, cloud) {
     ownedTubeThemes: mergeArrayUnion(local.ownedTubeThemes, cloud.ownedTubeThemes),
     ownedSudokuThemes: mergeArrayUnion(local.ownedSudokuThemes, cloud.ownedSudokuThemes),
     ownedJigsawThemes: mergeArrayUnion(local.ownedJigsawThemes, cloud.ownedJigsawThemes),
+    ownedWebThemes: mergeArrayUnion(local.ownedWebThemes, cloud.ownedWebThemes),
     // Take higher balance
     balance: mergeMax(local.balance, cloud.balance),
     totalEarned: mergeMax(local.totalEarned, cloud.totalEarned),
@@ -88,6 +89,7 @@ function mergeCoins(local, cloud) {
     activeTubeTheme: local.activeTubeTheme || cloud.activeTubeTheme,
     activeSudokuTheme: local.activeSudokuTheme || cloud.activeSudokuTheme,
     activeJigsawTheme: local.activeJigsawTheme || cloud.activeJigsawTheme,
+    activeWebTheme: local.activeWebTheme || cloud.activeWebTheme,
     // Keep streak/daily from whichever is more recent
     dailyStreak: mergeMax(local.dailyStreak, cloud.dailyStreak),
     lastDailyClaim: (local.lastDailyClaim || '') > (cloud.lastDailyClaim || '') ? local.lastDailyClaim : cloud.lastDailyClaim,

@@ -4,9 +4,10 @@ import { useCoins } from '../context/CoinContext.jsx'
 import { useProgress, getComboMultiplier } from '../context/ProgressContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useEffect, useState, useRef } from 'react'
+import { NotificationBell, useNotifications, requestNotifPermission } from './NotificationManager.jsx'
 
 export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, currentGame }) {
-  const { darkMode, muted, musicOff, toggle } = useSettings()
+  const { darkMode, muted, musicOff, notifEnabled, toggle } = useSettings()
   const { play, setMuted } = useSound()
   const { coins } = useCoins()
   const { progress } = useProgress()
@@ -16,6 +17,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
   const menuRef = useRef(null)
   const streak = progress.currentStreak || 0
   const combo = getComboMultiplier(streak)
+  const notifState = useNotifications()
 
   useEffect(() => { setMuted(muted) }, [muted, setMuted])
   useEffect(() => {
@@ -262,6 +264,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
               <span style={{ fontSize:14 }}>🪙</span>
               <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#F9A825' }}>{coins}</span>
             </button>
+            <NotificationBell {...notifState} dark={dark} />
             <button className="nav-btn" title="Leaderboard" onClick={() => nav(onLeaderboard)}>🏆</button>
             <button className="nav-btn" title="Profil" onClick={() => nav(onProfile)} style={{ overflow:'hidden', padding:0 }}>
               {photoURL ? (
@@ -300,6 +303,8 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
                 <span style={{ color:'#FF6B6B' }}>{streak}</span>
               </div>
             )}
+            {/* Notification bell on mobile */}
+            <NotificationBell {...notifState} dark={dark} />
             {/* Hamburger button */}
             <button className={`nav-hamburger ${menuOpen ? 'open' : ''}`} onClick={() => { play('click'); setMenuOpen(!menuOpen) }}>
               <span className="nav-hamburger-line" />
@@ -399,6 +404,23 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
               </button>
             </div>
 
+            <div className="nav-drawer-toggle-row">
+              <div className="nav-drawer-toggle-label">
+                <span>🔔</span>
+                <span>Notifikasi</span>
+              </div>
+              <button className={`nav-toggle-switch ${notifEnabled ? 'on' : 'off'}`} onClick={async () => {
+                play('click')
+                if (!notifEnabled) {
+                  const perm = await requestNotifPermission()
+                  if (perm === 'denied') return
+                }
+                toggle.notif()
+              }}>
+                <div className="nav-toggle-knob" />
+              </button>
+            </div>
+
             {/* Footer info */}
             <div style={{ marginTop:'auto', paddingTop:20, textAlign:'center' }}>
               {streak > 0 && (
@@ -415,7 +437,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
                 </div>
               )}
               <div style={{ fontSize:11, color:textMuted }}>
-                BrainPlay v0.9.4 • by Dwi Agus Hidayat
+                BrainPlay v0.9.5 • by Dwi Agus Hidayat
               </div>
             </div>
           </div>

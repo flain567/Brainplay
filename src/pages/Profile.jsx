@@ -4,8 +4,6 @@ import { useSound } from '../hooks/useSound.js'
 import { useProgress, ACHIEVEMENTS, getLevelInfo } from '../context/ProgressContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCloudSave } from '../context/CloudSaveContext.jsx'
-import { usePushNotif } from '../context/PushNotifContext.jsx'
-import NotificationSettingsModal from '../components/NotificationSettingsModal.jsx'
 
 const CATEGORY_META = {
   milestone: { label: 'Milestone',  icon: '🎮', color: '#4ECDC4' },
@@ -32,9 +30,7 @@ export default function Profile({ onBack, games }) {
   const { progress } = useProgress()
   const { isLoggedIn, isGuest, playerName, photoURL, email, loginWithGoogle, logout } = useAuth()
   const { syncStatus, lastSync, forceSync } = useCloudSave()
-  const { permission, settings: pushSettings } = usePushNotif()
   const [achFilter, setAchFilter] = useState('all')
-  const [showNotifModal, setShowNotifModal] = useState(false)
   const dark = darkMode
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
@@ -288,48 +284,6 @@ export default function Profile({ onBack, games }) {
               </div>
             ))}
           </div>
-
-          {/* ── Notification Settings ── */}
-          <div
-            onClick={() => { play('click'); setShowNotifModal(true) }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 14,
-              background: surface, border: `2px solid ${
-                permission === 'granted' && pushSettings.dailyChallengeEnabled
-                  ? 'rgba(162,155,254,0.5)' : borderCol
-              }`,
-              borderRadius: 18, padding: '14px 18px', marginBottom: 16,
-              cursor: 'pointer', transition: 'all 0.2s',
-              boxShadow: permission === 'granted' && pushSettings.dailyChallengeEnabled
-                ? '0 4px 16px rgba(162,155,254,0.15)' : 'none',
-            }}
-          >
-            <div style={{
-              width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-              background: permission === 'granted' ? 'linear-gradient(135deg,#A29BFE22,#FD79A822)' : `${borderCol}44`,
-              border: `2px solid ${permission === 'granted' ? 'rgba(162,155,254,0.4)' : borderCol}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
-            }}>
-              {permission === 'granted' ? '🔔' : '🔕'}
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 15, color: textMain }}>
-                Push Notifikasi
-              </div>
-              <div style={{ fontSize: 12, color: textMuted, marginTop: 1 }}>
-                {permission === 'granted'
-                  ? pushSettings.dailyChallengeEnabled
-                    ? `✅ Daily reminder aktif • ${['07:00','09:00','12:00','18:00','20:00'][['7','9','12','18','20'].indexOf(pushSettings.reminderHour)] || '20:00'}`
-                    : 'Izin diberikan — reminder belum aktif'
-                  : permission === 'denied'
-                  ? '⚠️ Ditolak — ubah di pengaturan browser'
-                  : 'Aktifkan pengingat daily challenge & streak'}
-              </div>
-            </div>
-            <span style={{ fontSize: 18, color: textMuted }}>›</span>
-          </div>
-
-          {showNotifModal && <NotificationSettingsModal onClose={() => setShowNotifModal(false)} />}
 
           {/* ── Per-game breakdown ── */}
           {games && games.length > 0 && (

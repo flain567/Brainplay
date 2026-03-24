@@ -7,8 +7,6 @@ import { LeaderboardProvider } from './context/LeaderboardContext.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { DailyChallengeProvider } from './context/DailyChallengeContext.jsx'
 import { CloudSaveProvider, useCloudSave } from './context/CloudSaveContext.jsx'
-import { PushNotifProvider, usePushNotif } from './context/PushNotifContext.jsx'
-import ThemeApplier from './components/ThemeApplier.jsx'
 import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
 import PageTransition from './components/PageTransition.jsx'
@@ -16,6 +14,7 @@ import AchievementToast from './components/AchievementToast.jsx'
 import CoinToast from './components/CoinToast.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import LoginModal from './components/LoginModal.jsx'
+import ThemeApplicator from './components/ThemeApplicator.jsx'
 import Home from './pages/Home.jsx'
 import Profile from './pages/Profile.jsx'
 import Shop from './pages/Shop.jsx'
@@ -176,7 +175,6 @@ function AppInner() {
   const { isLoggedIn, isGuest, needsName, loading: authLoading } = useAuth()
   const { initialSyncDone } = useCloudSave()
   const { muted, musicOff } = useSettings()
-  const { sendStreakAlert, sendMilestoneNotif } = usePushNotif()
 
   // Run migration once
   useEffect(() => { migrateOldStorage() }, [])
@@ -184,17 +182,6 @@ function AppInner() {
   // Music plays on lobby screens, stops during game
   const isLobby = screen === 'home' || screen === 'profile' || screen === 'difficulty' || screen === 'shop' || screen === 'leaderboard'
   useMusic(isLobby, muted || musicOff)
-
-  // Listen for streak milestones to trigger push notifications
-  useEffect(() => {
-    const handler = (e) => {
-      const { streak, type, value } = e.detail || {}
-      if (streak) sendStreakAlert(streak)
-      if (type)   sendMilestoneNotif({ type, value })
-    }
-    window.addEventListener('bp-milestone', handler)
-    return () => window.removeEventListener('bp-milestone', handler)
-  }, [sendStreakAlert, sendMilestoneNotif])
 
   const openGame = (gameId) => {
     setCurrentGame(GAMES.find(g => g.id === gameId))
@@ -213,7 +200,6 @@ function AppInner() {
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
-      <ThemeApplier />
       {/* Auth loading screen — wait for auth + initial cloud sync */}
       {(authLoading || (isLoggedIn && !initialSyncDone)) && (
         <div style={{
@@ -277,9 +263,8 @@ export default function App() {
               <LeaderboardProvider>
                 <DailyChallengeProvider>
                   <NotifProvider>
-                    <PushNotifProvider>
-                      <AppInner />
-                    </PushNotifProvider>
+                    <ThemeApplicator />
+                    <AppInner />
                   </NotifProvider>
                 </DailyChallengeProvider>
               </LeaderboardProvider>

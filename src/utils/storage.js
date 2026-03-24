@@ -57,7 +57,7 @@ export function setNum(key, value) {
 // ─── Clear all game data (used on logout/account switch) ────────────────────
 // Preserves settings (dark mode, muted, music) but clears all game progress
 export function clearGameData() {
-  const preserve = ['brainplay-dark', 'brainplay-muted', 'brainplay-music-off', 'bp_device_id']
+  const preserve = ['brainplay-dark', 'brainplay-muted', 'brainplay-music-off', 'brainplay-notif', 'bp_device_id']
   const saved = {}
   preserve.forEach(key => {
     const val = localStorage.getItem(key)

@@ -1,4 +1,4 @@
-# 🎮 BrainPlay v0.9.2
+# 🎮 BrainPlay v0.9.5
 
 **Platform Web Game 30 Hari — Santai & Mengasah Otak**
 
@@ -11,6 +11,7 @@ Dibuat oleh **Dwi Agus Hidayat**
 - Pure CSS animations (no external UI lib)
 - Canvas-based games (Slither Worm, Space Shooter)
 - localStorage persistence
+- Push Notifications API (browser)
 - Deploy: Vercel
 
 ## Game Aktif (9 Game)
@@ -28,62 +29,42 @@ Dibuat oleh **Dwi Agus Hidayat**
 
 ## Fitur
 - 9 game dengan 3 level kesulitan masing-masing
-- Coin system + Shop (icon packs, snake skins, tile themes, highlights, consumables)
+- Coin system + Shop (icon packs, snake skins, tile themes, highlights, ships, hangman/tube/sudoku/jigsaw themes, **website themes**)
 - 26 achievements dengan progress tracking
 - XP dan level progression system
 - Streak combo multiplier (1.2x 3hari, 1.5x 7hari, 2.0x 14hari)
 - Daily login reward (7-day streak)
+- **Push notification system** — daily challenge reminder, streak at risk alert, milestone celebrations
+- **Website themes** — 9 tema global app (Sakura, Ocean, Forest, Sunset, Cyberpunk, Lava, Arctic, Royal) purchasable di Shop
 - Dark mode + responsive mobile design
 - Sound effects + background music
 - Interactive particle background
 - Notification toast system
 
-## Changelog v0.9.2
+## Changelog v0.9.5
 
-### Gameplay Polish (4 game prioritas)
+### Notification System
+- **NotificationManager** — new component with in-app notification bell + panel dropdown
+- **Browser push notifications** — daily challenge reminder, hadiah harian, streak at risk alert
+- **Streak milestone alerts** — celebrations at 3, 7, 14, 21, 30 day streaks
+- **Daily challenge evening reminder** — prompt at 8pm if challenges uncompleted
+- **Notification toggle** — enable/disable in mobile drawer settings
+- **Auto permission request** — asks browser permission when user enables notifications
+- **Notification bell badge** — unread count indicator with pulse animation
+- **Notification panel** — dropdown with timestamp, read/unread state, clear all
 
-**Slither Worm**
-- Turn rate increased (0.10 → 0.14) + dynamic stick-magnitude scaling
-- Camera follow sped up (0.09 → 0.12 lerp) — less laggy
-- Joystick enlarged 112→130px, knob 44→52px for mobile
-- Boost button enlarged 74→86px for easier tapping
-- Eat particles — sparkle burst when consuming food
-- Kill particles — explosion effect when killing bots
-- Death cause tracking — "menabrak bot musuh" vs "menabrak tembok"
-- Snappier steering — push joystick further = turn faster
+### Website Themes (Global App Themes)
+- **9 purchasable website themes** — change entire app color scheme (light + dark mode)
+- Themes: BrainPlay Classic (free), Sakura Bloom, Deep Ocean, Enchanted Forest, Golden Sunset, Cyberpunk Neon, Lava Glow, Arctic Frost, Royal Velvet
+- **ThemeApplicator** — component applies CSS variables from active theme in real-time
+- **Shop "Tema" tab** — browse, preview (light/dark), buy, and equip website themes
+- Each theme defines: bg, surface, text, muted, border, accent, accentAlt, navBg, navScrolled
+- Themes persist via localStorage coin state
 
-**Connect Blocks**
-- Removed confusing red flash on single-tap
-- Cell sizing improved — smarter formula with 44px minimum
-- Chain indicator — bigger glowing badge with pop animation
-
-**Hangman**
-- Keyboard buttons — responsive sizing with clamp() (was fixed 34px)
-- Word letters — dynamic sizing based on word length (Hard mode fits)
-- Visual hearts — replaced numeric lives with heart icons + pulse on low HP
-- Letter reveal animation — popLetter keyframe on correct guess
-
-**Space Shooter**
-- Touch movement — smooth 35% lerp (was hard speed cap) — buttery feel
-- Screen shake — intensity scales with timer for decaying effect
-
-### UI/UX Improvements
-- Interactive Particle Background on Home page
-- GameCard ripple effect + win count badge per game
-- Scroll-to-top button di Home page
-- Streak combo badge di Navbar dan Home banner
-
-### Sistem Baru
-- Streak Combo Multiplier — XP bonus berdasarkan streak harian
-- NotifContext — toast notification system (info, success, error, reward, levelup)
-- GameLayout components — reusable GameHeader, StatsBar, WinModal, LoseModal
-- Participation coins — game yang kalah dapat 5 coin
-
-### Bug Fixes
-- MemoryCardMatch WinModal star calculation (hardcoded → pairs)
-- MemoryCardMatch hint stale closure + board lock saat hint
-- Tutorial storage keys di semua 9 game ke centralized bp_tut prefix
-- Storage migration untuk old tutorial keys
+### Architecture
+- SettingsContext refactored — CSS var application moved to ThemeApplicator
+- notifEnabled state added to SettingsContext
+- CoinContext extended with webThemes catalog, state, and getActiveWebTheme()
 
 ## Development
 
