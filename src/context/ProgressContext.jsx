@@ -93,7 +93,7 @@ export const ACHIEVEMENTS = [
   { id: 'pattern_pro',    icon: '🧠', title: 'Pattern Master',     desc: 'Menangkan Memory Pattern Pro 3x', category: 'game',  check: (s) => (s.gameWins['memory-pattern'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['memory-pattern'] || 0, 3), max: 3 }) },
   { id: 'brick_master',   icon: '🧱', title: 'Master Penghancur',  desc: 'Menangkan Brick Breaker 3 kali',  category: 'game',  check: (s) => (s.gameWins['brick-breaker'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['brick-breaker'] || 0, 3), max: 3 }) },
   { id: 'reflex_king',    icon: '⚡', title: 'Raja Refleks',       desc: 'Menangkan Reaction Test 5 kali',  category: 'game',  check: (s) => (s.gameWins['reaction-test'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['reaction-test'] || 0, 5), max: 5 }) },
-  { id: 'ttt_champion',   icon: '❌', title: 'Juara TTT',          desc: 'Menangkan Tic Tac Toe 5 kali',    category: 'game',  check: (s) => (s.gameWins['tic-tac-toe'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['tic-tac-toe'] || 0, 5), max: 5 }) },
+  { id: 'neon_runner',     icon: '💎', title: 'Pelari Neon',       desc: 'Menangkan Neon Dash 5 kali',      category: 'game',  check: (s) => (s.gameWins['neon-dash'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['neon-dash'] || 0, 5), max: 5 }) },
 ]
 
 // ─── Default state ───────────────────────────────────────────────────────────

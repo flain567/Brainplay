@@ -34,7 +34,7 @@ const SudokuGame      = lazy(() => import('./pages/games/SudokuGame.jsx'))
 const JigsawPuzzle    = lazy(() => import('./pages/games/JigsawPuzzle.jsx'))
 const BrickBreaker    = lazy(() => import('./pages/games/BrickBreaker.jsx'))
 const ReactionTest    = lazy(() => import('./pages/games/ReactionTest.jsx'))
-const TicTacToe       = lazy(() => import('./pages/games/TicTacToe.jsx'))
+const NeonDash        = lazy(() => import('./pages/games/NeonDash.jsx'))
 const MemoryPatternPro = lazy(() => import('./pages/games/MemoryPatternPro.jsx'))
 
 // ─── Game loading fallback ──────────────────────────────────────────────────
@@ -197,16 +197,16 @@ export const GAMES = [
     ],
   },
   {
-    id: 'tic-tac-toe',
-    title: 'Tic Tac Toe',
-    emoji: '❌',
-    description: 'Klasik Tic Tac Toe melawan AI! Tiga level AI: Random, Smart, dan Minimax sempurna!',
-    color: '#E17055', bg: '#FFF3F0', tag: 'Logika',
-    component: TicTacToe, day: 12,
+    id: 'neon-dash',
+    title: 'Neon Dash',
+    emoji: '💎',
+    description: 'Berlari melewati rintangan neon! Lompat, hindari spike & gap, kumpulkan diamond. Geometry dash style!',
+    color: '#00CEC9', bg: '#E0FFFE', tag: 'Action',
+    component: NeonDash, day: 12,
     difficulties: [
-      { id:'easy',   description:'AI Random — mudah dikalahkan, cocok untuk pemula',      stats:['5 ronde','🤖 Random'] },
-      { id:'medium', description:'AI Smart — bisa blok & ambil peluang menang!',          stats:['5 ronde','🧠 Smart'] },
-      { id:'hard',   description:'AI Minimax — sempurna, tidak mungkin kalah!',           stats:['5 ronde','💀 Minimax'] },
+      { id:'easy',   description:'Kecepatan santai, 8 level — cocok untuk pemula',         stats:['8 level','Lambat','Double Jump'] },
+      { id:'medium', description:'Lebih cepat, 12 level, gap muncul — butuh refleks!',     stats:['12 level','Sedang','Gap + Platform'] },
+      { id:'hard',   description:'Kecepatan tinggi, 16 level, obstacle padat — extreme!',  stats:['16 level','Cepat','Brutal'] },
     ],
   },
   {
@@ -252,7 +252,7 @@ function AppInner() {
   const goLeaderboard     = () => { setScreen('leaderboard'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
 
   const activeDiff   = currentGame?.difficulties?.find(d => d.id === difficulty)
-  const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter' || currentGame?.id === 'brick-breaker' || currentGame?.id === 'memory-pattern')
+  const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter' || currentGame?.id === 'brick-breaker' || currentGame?.id === 'memory-pattern' || currentGame?.id === 'neon-dash')
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>

@@ -18,7 +18,7 @@ const GAME_META = [
   { id: 'jigsaw',         name: 'Jigsaw Puzzle',     emoji: '🧩' },
   { id: 'memory-pattern', name: 'Memory Pattern Pro', emoji: '🧠' },
   { id: 'reaction-test',  name: 'Reaction Test',     emoji: '⚡' },
-  { id: 'tic-tac-toe',   name: 'Tic Tac Toe',    emoji: '❌' },
+  { id: 'neon-dash',     name: 'Neon Dash',       emoji: '💎' },
   { id: 'brick-breaker', name: 'Brick Breaker',  emoji: '🧱' },
 ]
 
