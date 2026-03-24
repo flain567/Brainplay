@@ -155,14 +155,18 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const dpr = window.devicePixelRatio || 1
-    const rect = canvas.getBoundingClientRect()
-    const W = rect.width
-    const H = rect.height
+    const parent = canvas.parentElement
+    if (!parent) return
+    const rect = parent.getBoundingClientRect()
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const W = Math.floor(rect.width) || window.innerWidth
+    const H = Math.floor(rect.height) || window.innerHeight
     canvas.width = W * dpr
     canvas.height = H * dpr
+    canvas.style.width = W + 'px'
+    canvas.style.height = H + 'px'
     const ctx = canvas.getContext('2d')
-    ctx.scale(dpr, dpr)
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 
     gameRef.current = initGame(W, H, 1)
     setScore(0)
@@ -710,8 +714,10 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
   const restart = () => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const W = canvas.getBoundingClientRect().width
-    const H = canvas.getBoundingClientRect().height
+    const parent = canvas.parentElement
+    const rect = parent ? parent.getBoundingClientRect() : canvas.getBoundingClientRect()
+    const W = Math.floor(rect.width) || window.innerWidth
+    const H = Math.floor(rect.height) || window.innerHeight
     gameRef.current = initGame(W, H, 1)
     gameRef.current.lives = cfg.lives
     gameRef.current.score = 0
@@ -740,8 +746,8 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, background: '#0a0a2e',
-      display: 'flex', flexDirection: 'column',
+      width: '100%', height: typeof CSS !== 'undefined' && CSS.supports('height','100dvh') ? '100dvh' : '100vh',
+      background: '#0a0a2e', position: 'relative', overflow: 'hidden', userSelect: 'none',
       fontFamily: "'Fredoka One', cursive",
     }}>
       {showTutorial && (
@@ -789,7 +795,9 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
         </div>
       )}
 
-      <canvas ref={canvasRef} style={{ flex: 1, width: '100%', height: '100%', display: 'block', touchAction: 'none' }} />
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
+        <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }} />
+      </div>
 
       {/* Win/Lose modals */}
       {(phase === 'won' || phase === 'lost') && (
