@@ -118,14 +118,29 @@ function buildLv(cmds,baseGndBlocks,canvasH){
         items.push({t:'ground',x,y:gndPx(),w:BLK,h:gndH*BLK})
         x+=BLK; break
       }
-      case 'P':{ // Portal + ground
-        items.push({t:'portal',x,y:gndPx()-BLK*2,w:BLK,h:BLK*2,mode:cmd[1]})
-        items.push({t:'ground',x,y:gndPx(),w:BLK,h:gndH*BLK})
-        x+=BLK; break
+      case 'P':{ // Portal — 3 blocks wide for reliable triggering
+        const pw=BLK*3
+        items.push({t:'portal',x,y:gndPx()-BLK*2.5,w:pw,h:BLK*2.5,mode:cmd[1],triggered:false})
+        for(let i=0;i<3;i++) items.push({t:'ground',x:x+i*BLK,y:gndPx(),w:BLK,h:gndH*BLK})
+        x+=pw; break
       }
-      case 'W':{ // Wave wall
-        items.push({t:'wtop',x,y:0,w:18,h:cmd[1]},{t:'wbot',x,y:cmd[1]+cmd[2],w:18,h:400})
-        x+=BLK*1.5; break
+      case 'W':{ // Wave wall — gap in middle area
+        // cmd[1] = gap center as % of flyable height (20=top, 50=middle, 80=bottom)
+        // cmd[2] = gap height in pixels (bigger = easier)
+        const groundTop=gndPx()
+        const flyArea=groundTop-30 // from y=30 to ground
+        const pct=Math.max(20,Math.min(80,cmd[1]||50))/100
+        const gapH=Math.max(45,cmd[2]||55) // minimum 45px gap
+        const gapCenter=30+flyArea*pct
+        const gapTop=Math.max(15,gapCenter-gapH/2)
+        const gapBot=gapTop+gapH
+        // Top wall: from screen top to gap top
+        if(gapTop>5) items.push({t:'wtop',x,y:0,w:20,h:gapTop})
+        // Bottom wall: from gap bottom to ground (NOT below ground)
+        if(gapBot<groundTop-5) items.push({t:'wbot',x,y:gapBot,w:20,h:groundTop-gapBot})
+        // Ground underneath
+        items.push({t:'ground',x,y:gndPx(),w:BLK,h:gndH*BLK})
+        x+=BLK*2; break
       }
       case 'PAD':{ // Jump pad (auto jump)
         items.push({t:'pad',x,y:gndPx(),w:BLK,h:8})
@@ -165,29 +180,29 @@ const LVS=[
   // Lv4: Taller blocks + gaps
   [['F',4],['S'],['F',2],['B',1,2],['DI'],['F',3],['S'],['S'],['F',2],['U',2],['F',2],['DI'],['D',2],['F',2],['G',2],['F',3],['S'],['F',2],['B',1,1],['F',3],['DI'],['F',3]],
 
-  // Lv5: Wave intro + steps
-  [['F',4],['S'],['F',2],['U',1],['F',2],['DI'],['D',1],['S'],['F',3],['P','wave'],['W',80,55],['W',100,55],['DI'],['W',70,55],['W',95,55],['P','cube'],['F',3],['S'],['F',2],['B',1,1],['DI'],['F',4]],
+  // Lv5: Wave intro + steps (gaps are generous, wave section is forgiving)
+  [['F',4],['S'],['F',2],['U',1],['F',2],['DI'],['D',1],['S'],['F',3],['P','wave'],['W',50,65],['W',40,65],['DI'],['W',60,65],['W',45,65],['P','cube'],['F',3],['S'],['F',2],['B',1,1],['DI'],['F',4]],
 
-  // Lv6: Staircase challenge
-  [['F',3],['S'],['F',1],['U',1],['S'],['U',1],['F',1],['U',1],['DI'],['F',2],['D',1],['S'],['D',1],['D',1],['F',2],['S'],['S'],['F',2],['U',2],['F',1],['DI'],['S'],['D',2],['F',2],['B',2,2],['F',3],['DI'],['F',3]],
+  // Lv6: Staircase challenge (more spacing between obstacles)
+  [['F',4],['S'],['F',2],['U',1],['F',1],['S'],['F',1],['U',1],['F',2],['DI'],['F',2],['D',1],['F',1],['S'],['F',1],['D',1],['F',3],['S'],['F',2],['S'],['F',3],['U',2],['F',2],['DI'],['S'],['F',1],['D',2],['F',3],['B',2,2],['F',3],['DI'],['F',4]],
 
   // Lv7: Pillar + gap combo
   [['F',3],['S'],['S'],['F',2],['PL',3],['DI'],['F',2],['G',2],['F',2],['S'],['F',1],['U',2],['F',2],['DI'],['D',2],['F',1],['PL',2],['F',2],['S'],['S'],['F',2],['B',1,2],['DI'],['F',3]],
 
-  // Lv8: Long wave section
-  [['F',3],['S'],['F',2],['U',1],['DI'],['D',1],['F',2],['P','wave'],['W',85,50],['W',60,50],['W',95,48],['DI'],['W',55,48],['W',80,48],['W',70,45],['DI'],['P','cube'],['F',3],['S'],['S'],['F',2],['U',1],['F',2],['D',1],['DI'],['F',3]],
+  // Lv8: Long wave section (gaps 55-60px, positions vary 35-65%)
+  [['F',3],['S'],['F',2],['U',1],['DI'],['D',1],['F',2],['P','wave'],['W',45,58],['W',60,58],['W',35,55],['DI'],['W',55,55],['W',40,55],['W',65,55],['DI'],['P','cube'],['F',3],['S'],['S'],['F',2],['U',1],['F',2],['D',1],['DI'],['F',3]],
 
-  // Lv9: Mixed hard
-  [['F',3],['S'],['F',1],['B',1,2],['DI'],['F',2],['U',1],['S'],['U',1],['F',2],['DI'],['D',2],['G',2],['F',2],['PL',3],['F',1],['S'],['S'],['F',2],['P','wave'],['W',75,42],['W',55,42],['W',90,42],['DI'],['W',60,42],['P','cube'],['F',2],['S'],['F',3]],
+  // Lv9: Mixed hard (wave gaps 50-55px)
+  [['F',3],['S'],['F',1],['B',1,2],['DI'],['F',2],['U',1],['S'],['U',1],['F',2],['DI'],['D',2],['G',2],['F',2],['PL',3],['F',1],['S'],['S'],['F',2],['P','wave'],['W',40,55],['W',60,52],['W',35,52],['DI'],['W',55,50],['P','cube'],['F',2],['S'],['F',3]],
 
-  // Lv10: Intense
-  [['F',2],['S'],['S'],['F',1],['U',1],['S'],['U',1],['DI'],['F',1],['D',1],['D',1],['S'],['F',1],['B',2,3],['F',2],['G',2],['F',1],['DI'],['U',2],['S'],['F',2],['D',2],['F',1],['PL',4],['S'],['S'],['F',2],['DI'],['F',2],['P','wave'],['W',70,38],['W',90,38],['W',50,38],['W',80,36],['DI'],['P','cube'],['F',3]],
+  // Lv10: Intense (wave gaps 48-52px)
+  [['F',2],['S'],['S'],['F',1],['U',1],['S'],['U',1],['DI'],['F',1],['D',1],['D',1],['S'],['F',1],['B',2,3],['F',2],['G',2],['F',1],['DI'],['U',2],['S'],['F',2],['D',2],['F',1],['PL',4],['S'],['S'],['F',2],['DI'],['F',2],['P','wave'],['W',45,52],['W',65,50],['W',35,50],['W',55,48],['DI'],['P','cube'],['F',3]],
 
-  // Lv11-14: Progressively harder
-  [['F',2],['S'],['S'],['S'],['F',1],['U',2],['DI'],['S'],['D',1],['D',1],['F',1],['B',1,3],['G',2],['F',2],['U',1],['S'],['U',1],['S'],['DI'],['D',2],['F',1],['PL',3],['S'],['F',2],['P','wave'],['W',65,36],['W',85,36],['W',50,36],['DI'],['W',75,34],['P','cube'],['S'],['S'],['F',3]],
-  [['F',2],['S'],['S'],['U',1],['S'],['U',1],['U',1],['DI'],['D',1],['S'],['D',1],['D',1],['B',2,3],['G',2],['F',1],['S'],['U',2],['F',1],['DI'],['S'],['D',2],['PL',4],['S'],['P','wave'],['W',60,34],['W',80,34],['W',45,32],['W',70,32],['DI'],['W',55,32],['P','cube'],['S'],['S'],['S'],['F',3]],
-  [['F',1],['S'],['S'],['S'],['U',1],['S'],['U',1],['S'],['U',1],['DI'],['D',1],['D',1],['S'],['D',1],['B',1,3],['G',2],['F',1],['U',2],['S'],['S'],['DI'],['D',2],['PL',4],['G',2],['F',1],['P','wave'],['W',55,30],['W',75,30],['W',42,28],['W',65,28],['DI'],['W',50,28],['P','cube'],['S'],['S'],['S'],['S'],['F',3]],
-  [['S'],['S'],['S'],['U',1],['S'],['U',1],['S'],['U',1],['S'],['DI'],['D',1],['S'],['D',1],['S'],['D',1],['B',2,4],['G',3],['F',1],['U',3],['S'],['S'],['DI'],['D',3],['PL',5],['G',2],['P','wave'],['W',50,28],['W',70,28],['W',40,26],['W',60,26],['W',45,26],['DI'],['W',65,24],['P','cube'],['S'],['S'],['S'],['S'],['S'],['F',3]],
+  // Lv11-14: Progressively harder (wave gaps tighten but stay >=45)
+  [['F',2],['S'],['S'],['S'],['F',1],['U',2],['DI'],['S'],['D',1],['D',1],['F',1],['B',1,3],['G',2],['F',2],['U',1],['S'],['U',1],['S'],['DI'],['D',2],['F',1],['PL',3],['S'],['F',2],['P','wave'],['W',40,50],['W',60,50],['W',30,48],['DI'],['W',55,48],['P','cube'],['S'],['S'],['F',3]],
+  [['F',2],['S'],['S'],['U',1],['S'],['U',1],['U',1],['DI'],['D',1],['S'],['D',1],['D',1],['B',2,3],['G',2],['F',1],['S'],['U',2],['F',1],['DI'],['S'],['D',2],['PL',4],['S'],['P','wave'],['W',45,48],['W',65,48],['W',30,46],['W',55,46],['DI'],['W',40,46],['P','cube'],['S'],['S'],['S'],['F',3]],
+  [['F',1],['S'],['S'],['S'],['U',1],['S'],['U',1],['S'],['U',1],['DI'],['D',1],['D',1],['S'],['D',1],['B',1,3],['G',2],['F',1],['U',2],['S'],['S'],['DI'],['D',2],['PL',4],['G',2],['F',1],['P','wave'],['W',35,46],['W',60,46],['W',25,45],['W',50,45],['DI'],['W',40,45],['P','cube'],['S'],['S'],['S'],['S'],['F',3]],
+  [['S'],['S'],['S'],['U',1],['S'],['U',1],['S'],['U',1],['S'],['DI'],['D',1],['S'],['D',1],['S'],['D',1],['B',2,4],['G',3],['F',1],['U',3],['S'],['S'],['DI'],['D',3],['PL',5],['G',2],['P','wave'],['W',30,45],['W',55,45],['W',25,45],['W',50,45],['W',35,45],['DI'],['W',60,45],['P','cube'],['S'],['S'],['S'],['S'],['S'],['F',3]],
 ]
 
 // ═════════════════════════════════════════════════════════════
@@ -270,7 +285,7 @@ export default function NeonDash({onBack,game,difficulty}){
     }
     function retry(){
       g.att++;sAt(g.att)
-      for(const it of g.lvD.items)if(it.t==='dia')it.col=false
+      for(const it of g.lvD.items){if(it.t==='dia')it.col=false;if(it.t==='portal')it.triggered=false}
       g.cam=0;g.cd=0;g.px=70;g.py=H-g.baseBlk*BLK-PS;g.vy=0;g.gnd=true
       g.mode='cube';g.rot=0;g.hold=false;g.dieT=0;g.winT=0
       g.trail=[];g.pts=[];g.rings=[]
@@ -388,9 +403,11 @@ export default function NeonDash({onBack,game,difficulty}){
                 try{play('match')}catch(e){}
               }
             }
-            if(it.t==='portal'&&wx>it.x&&wx<it.x+it.w+5&&g.mode!==it.mode){
-              g.mode=it.mode;g.rings.push({x:g.px+PS/2,y:g.py+PS/2,r:4,mr:50,a:0.7,c:CL.ptl,lw:2})
+            if(it.t==='portal'&&!it.triggered&&wx>=it.x&&wx<=it.x+it.w+20&&g.mode!==it.mode){
+              it.triggered=true
+              g.mode=it.mode;g.rings.push({x:g.px+PS/2,y:g.py+PS/2,r:4,mr:60,a:0.8,c:CL.ptl,lw:3})
               if(it.mode==='wave'){g.vy=0;g.gnd=false}
+              try{play('flip')}catch(e){}
             }
             if(it.t==='end'&&wx>=it.x){doWin();break}
           }
@@ -464,7 +481,7 @@ export default function NeonDash({onBack,game,difficulty}){
           ctx.strokeRect(sx,it.y,it.w,it.h);ctx.shadowBlur=0
           for(let gy=it.y+BLK;gy<it.y+it.h;gy+=BLK){ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=0.5;ctx.beginPath();ctx.moveTo(sx,gy);ctx.lineTo(sx+it.w,gy);ctx.stroke()}
         }
-        if(it.t==='portal'){const pc=it.mode==='wave'?CL.wav:CL.ptl;ctx.strokeStyle=pc;ctx.lineWidth=3;ctx.shadowColor=pc;ctx.shadowBlur=14;ctx.strokeRect(sx,it.y,it.w,it.h);ctx.fillStyle=pc+'22';ctx.fillRect(sx,it.y,it.w,it.h);ctx.shadowBlur=0;ctx.fillStyle='#fff';ctx.font="bold 14px sans-serif";ctx.textAlign='center';ctx.fillText(it.mode==='wave'?'~':'□',sx+it.w/2,it.y+it.h/2+5)}
+        if(it.t==='portal'){const pc=it.mode==='wave'?CL.wav:CL.ptl;const pulse=0.7+Math.sin(ts/200)*0.3;ctx.strokeStyle=pc;ctx.lineWidth=3;ctx.shadowColor=pc;ctx.shadowBlur=20*pulse;ctx.strokeRect(sx+4,it.y+4,it.w-8,it.h-8);ctx.fillStyle=pc+'33';ctx.fillRect(sx,it.y,it.w,it.h);ctx.shadowBlur=0;ctx.fillStyle='#fff';ctx.font="bold 16px 'Fredoka One',sans-serif";ctx.textAlign='center';ctx.fillText(it.mode==='wave'?'🌊':'🟦',sx+it.w/2,it.y+it.h/2+6);ctx.font="bold 9px 'Fredoka One',sans-serif";ctx.fillText(it.mode==='wave'?'WAVE':'CUBE',sx+it.w/2,it.y+it.h/2+20)}
         if(it.t==='wtop'||it.t==='wbot'){ctx.fillStyle='rgba(255,107,157,0.3)';ctx.strokeStyle=CL.spk;ctx.lineWidth=1.5;ctx.shadowColor='#fff';ctx.shadowBlur=4;ctx.fillRect(sx,it.y,it.w,Math.min(it.h,H));ctx.strokeRect(sx,it.y,it.w,Math.min(it.h,H));ctx.shadowBlur=0}
         if(it.t==='pad'){ctx.fillStyle=CL.ptl;ctx.shadowColor=CL.ptl;ctx.shadowBlur=8;ctx.beginPath();ctx.moveTo(sx,it.y);ctx.lineTo(sx+it.w/2,it.y-8);ctx.lineTo(sx+it.w,it.y);ctx.closePath();ctx.fill();ctx.shadowBlur=0}
         if(it.t==='dia'&&!it.col){const dy=it.y+Math.sin(ts/350+it.x*0.01)*3;ctx.fillStyle='#fff';ctx.shadowColor='#fff';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(sx+10,dy+10,6,0,P2);ctx.fill();ctx.shadowBlur=0}
