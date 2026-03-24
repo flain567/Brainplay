@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useProgress } from '../context/ProgressContext.jsx'
+import { useThemeColors } from '../hooks/useThemeColors.js'
 
 export default function GameCard({ game, onPlay }) {
   const [hovered, setHovered] = useState(false)
@@ -9,7 +10,8 @@ export default function GameCard({ game, onPlay }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { progress } = useProgress()
-  const dark = darkMode
+  const tc = useThemeColors()
+  const dark = tc.dark
   const cardRef = useRef(null)
 
   // Game progress info
@@ -174,12 +176,12 @@ export default function GameCard({ game, onPlay }) {
         </div>
 
         {/* Title */}
-        <h3 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 22, color: dark ? '#e8e8f0' : '#2D3436', marginBottom: 8, lineHeight: 1.2 }}>
+        <h3 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 22, color: tc.textMain, marginBottom: 8, lineHeight: 1.2 }}>
           {game.title}
         </h3>
 
         {/* Description */}
-        <p style={{ fontSize: 13, color: dark ? '#8892b0' : '#636E72', lineHeight: 1.6, marginBottom: 20 }}>
+        <p style={{ fontSize: 13, color: tc.textMuted, lineHeight: 1.6, marginBottom: 20 }}>
           {game.description}
         </p>
 

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
 import { useProgress } from '../context/ProgressContext.jsx'
+import { useThemeColors } from '../hooks/useThemeColors.js'
 
 const NOTIF_STORAGE_KEY = 'bp_notifications'
 const NOTIF_LAST_REMINDER = 'bp_last_reminder'
@@ -214,10 +215,11 @@ export function NotificationBell({ notifications, unreadCount, showPanel, setSho
     return () => { document.removeEventListener('mousedown', fn); document.removeEventListener('touchstart', fn) }
   }, [showPanel])
 
-  const textMain = dark ? '#e8e8f0' : '#2D3436'
-  const textMuted = dark ? '#8892b0' : '#636E72'
-  const surface = dark ? '#16213e' : '#fff'
-  const borderCol = dark ? '#2d3561' : '#DFE6E9'
+  const tc = useThemeColors()
+  const textMain = tc.textMain
+  const textMuted = tc.textMuted
+  const surface = tc.surface
+  const borderCol = tc.borderCol
 
   const formatTime = (ts) => {
     const diff = Date.now() - ts
@@ -258,7 +260,7 @@ export function NotificationBell({ notifications, unreadCount, showPanel, setSho
             fontFamily: "'Fredoka One',cursive",
             boxShadow: '0 2px 8px rgba(255,107,107,0.4)',
             animation: 'notifBadgePop 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-            border: `2px solid ${dark ? '#0d0b1e' : '#FFFCF5'}`,
+            border: `2px solid ${tc.bg}`,
           }}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </div>

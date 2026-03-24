@@ -3,6 +3,7 @@ import { useSound } from '../hooks/useSound.js'
 import { useCoins } from '../context/CoinContext.jsx'
 import { useProgress, getComboMultiplier } from '../context/ProgressContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useThemeColors } from '../hooks/useThemeColors.js'
 import { useEffect, useState, useRef } from 'react'
 import { NotificationBell, useNotifications, requestNotifPermission } from './NotificationManager.jsx'
 
@@ -12,6 +13,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
   const { coins } = useCoins()
   const { progress } = useProgress()
   const { photoURL, playerName, isLoggedIn } = useAuth()
+  const tc = useThemeColors()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
@@ -44,15 +46,13 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
     action()
   }
 
-  const dark = darkMode
-  const navBg = dark
-    ? scrolled ? 'rgba(16,10,40,0.97)' : 'rgba(16,10,40,0.85)'
-    : scrolled ? 'rgba(255,252,245,0.98)' : 'rgba(255,252,245,0.82)'
-  const surface = dark ? '#16213e' : '#fff'
-  const textMain = dark ? '#e8e8f0' : '#2D3436'
-  const textMuted = dark ? '#8892b0' : '#636E72'
-  const borderCol = dark ? '#2d3561' : '#DFE6E9'
-  const drawerBg = dark ? '#0d0b1e' : '#FFFCF5'
+  const dark = tc.dark
+  const navBg = scrolled ? tc.navScrolled : tc.navBg
+  const surface = tc.surface
+  const textMain = tc.textMain
+  const textMuted = tc.textMuted
+  const borderCol = tc.borderCol
+  const drawerBg = tc.bg
 
   return (
     <>
@@ -95,7 +95,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
           transition: background 0.15s, color 0.15s;
         }
         .nav-crumb-home:hover { background: ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'}; color: ${textMain}; }
-        .nav-crumb-sep { color: ${dark ? '#3d3561' : '#DFE6E9'}; font-size: 16px; }
+        .nav-crumb-sep { color: ${borderCol}; font-size: 16px; }
         .nav-badge-game {
           background: linear-gradient(135deg,#A29BFE,#FD79A8); color: #fff;
           padding: 5px 16px; border-radius: 100px; font-weight: 700; font-size: 13px;

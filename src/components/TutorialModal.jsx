@@ -1,20 +1,22 @@
 import { useState, useRef } from 'react'
 import { useSound } from '../hooks/useSound.js'
 import { useSettings } from '../context/SettingsContext.jsx'
+import { useThemeColors } from '../hooks/useThemeColors.js'
 
 export default function TutorialModal({ steps, onClose, color = '#A29BFE' }) {
   const [page, setPage]   = useState(0)
   const { play }          = useSound()
   const { darkMode }      = useSettings()
+  const tc = useThemeColors()
   const firedRef          = useRef(false)
 
   const step    = steps[page]
   const isLast  = page === steps.length - 1
-  const dark    = darkMode
+  const dark    = tc.dark
 
-  const bg      = dark ? '#0d0b1e' : '#fff'
-  const textMain  = dark ? '#e8e8f0' : '#2D3436'
-  const textMuted = dark ? '#8892b0' : '#636E72'
+  const bg      = tc.surface
+  const textMain  = tc.textMain
+  const textMuted = tc.textMuted
 
   // Debounce to prevent double fire from onClick + onTouchEnd
   const fire = (fn) => {

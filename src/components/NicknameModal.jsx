@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useLeaderboard } from '../context/LeaderboardContext.jsx'
+import { useThemeColors } from '../hooks/useThemeColors.js'
 
 export default function NicknameModal({ onDone }) {
   const { darkMode } = useSettings()
@@ -8,11 +9,12 @@ export default function NicknameModal({ onDone }) {
   const [name, setName] = useState('')
   const [error, setError] = useState('')
 
-  const dark = darkMode
-  const surface = dark ? '#16213e' : '#fff'
-  const textMain = dark ? '#e8e8f0' : '#2D3436'
-  const textMuted = dark ? '#8892b0' : '#636E72'
-  const borderCol = dark ? '#2d3561' : '#DFE6E9'
+  const tc = useThemeColors()
+  const dark = tc.dark
+  const surface = tc.surface
+  const textMain = tc.textMain
+  const textMuted = tc.textMuted
+  const borderCol = tc.borderCol
 
   const handleSubmit = () => {
     const clean = name.trim()
@@ -67,7 +69,7 @@ export default function NicknameModal({ onDone }) {
             style={{
               width:'100%', padding:'14px 18px', borderRadius:16,
               border:`2px solid ${error ? '#FF6B6B' : borderCol}`,
-              background: dark ? '#0d0b1e' : '#f8f8f8',
+              background: tc.bg,
               color: textMain, fontSize:16, fontWeight:700,
               fontFamily:"'Nunito',sans-serif", outline:'none',
               transition:'border-color 0.2s',

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useThemeColors } from '../hooks/useThemeColors.js'
 
 export default function LoginModal({ onDone }) {
   const { darkMode } = useSettings()
@@ -12,11 +13,12 @@ export default function LoginModal({ onDone }) {
   const [nameError, setNameError] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
 
-  const dark = darkMode
-  const surface = dark ? '#16213e' : '#fff'
-  const textMain = dark ? '#e8e8f0' : '#2D3436'
-  const textMuted = dark ? '#8892b0' : '#636E72'
-  const borderCol = dark ? '#2d3561' : '#DFE6E9'
+  const tc = useThemeColors()
+  const dark = tc.dark
+  const surface = tc.surface
+  const textMain = tc.textMain
+  const textMuted = tc.textMuted
+  const borderCol = tc.borderCol
 
   // If already logged in but needs name (e.g. redirect flow), go straight to name step
   useEffect(() => {
@@ -197,7 +199,7 @@ export default function LoginModal({ onDone }) {
                 style={{
                   width:'100%', padding:'14px 60px 14px 18px', borderRadius:16,
                   border:`2px solid ${nameError ? '#FF6B6B' : borderCol}`,
-                  background:dark ? '#0d0b1e' : '#f8f8f8',
+                  background:tc.bg,
                   color:textMain, fontSize:16, fontWeight:700,
                   fontFamily:"'Nunito',sans-serif", outline:'none',
                   transition:'border-color 0.2s', boxSizing:'border-box',

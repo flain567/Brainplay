@@ -3,6 +3,7 @@ import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useLeaderboard } from '../context/LeaderboardContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useThemeColors } from '../hooks/useThemeColors.js'
 
 const GAME_TABS = [
   { id:'memory-card',    emoji:'🃏', label:'Memory' },
@@ -185,6 +186,7 @@ export default function Leaderboard({ onBack, games }) {
   const { play } = useSound()
   const { nickname, setNickname, getOnlineScores, getLocalBoard, clearCache, loading, lastError, firebaseStatus } = useLeaderboard()
   const { playerName, photoURL, isLoggedIn } = useAuth()
+  const tc = useThemeColors()
 
   const [gameTab, setGameTab] = useState('space-shooter')
   const [diffTab, setDiffTab] = useState(null)
@@ -194,12 +196,12 @@ export default function Leaderboard({ onBack, games }) {
   const [nameInput, setNameInput] = useState(nickname || '')
   const [refreshKey, setRefreshKey] = useState(0)
 
-  const dark = darkMode
-  const bg = dark ? '#0d0b1e' : '#FFF9F0'
-  const surface = dark ? '#16213e' : '#fff'
-  const textMain = dark ? '#e8e8f0' : '#2D3436'
-  const textMuted = dark ? '#8892b0' : '#636E72'
-  const borderCol = dark ? '#2d3561' : '#DFE6E9'
+  const dark = tc.dark
+  const bg = tc.bg
+  const surface = tc.surface
+  const textMain = tc.textMain
+  const textMuted = tc.textMuted
+  const borderCol = tc.borderCol
 
   useEffect(() => {
     let cancelled = false

@@ -3,6 +3,7 @@ import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
+import { useThemeColors } from '../hooks/useThemeColors.js'
 
 // ─── Generic cosmetic list renderer ─────────────────────────────────────────
 function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMain, textMuted, borderCol, coins, onBuy, onEquip, buyingId, previewId, setPreviewId, renderPreview }) {
@@ -95,18 +96,19 @@ export default function Shop({ onBack }) {
     hints, timeFreezes, dailyStreak, isDailyClaimable,
     buyCosmetic, equipCosmetic, buyConsumable, claimDaily, transactions, earnCoins,
   } = useCoins()
+  const tc = useThemeColors()
 
   const [tab, setTab] = useState('packs')
   const [toast, setToast] = useState('')
   const [buyingId, setBuyingId] = useState(null)
   const [previewId, setPreviewId] = useState(null)
 
-  const dark = darkMode
-  const bg = dark ? '#0d0b1e' : '#FFF9F0'
-  const surface = dark ? '#16213e' : '#fff'
-  const textMain = dark ? '#e8e8f0' : '#2D3436'
-  const textMuted = dark ? '#8892b0' : '#636E72'
-  const borderCol = dark ? '#2d3561' : '#DFE6E9'
+  const dark = tc.dark
+  const bg = tc.bg
+  const surface = tc.surface
+  const textMain = tc.textMain
+  const textMuted = tc.textMuted
+  const borderCol = tc.borderCol
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
 

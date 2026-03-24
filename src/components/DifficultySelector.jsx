@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
+import { useThemeColors } from '../hooks/useThemeColors.js'
 
 const DIFF_CONFIG = {
   easy:   { icon: '🟢', label: 'Mudah',  gradient: 'linear-gradient(135deg,#00b894,#55efc4)', glow: '#00b89444' },
@@ -11,14 +12,15 @@ const DIFF_CONFIG = {
 export default function DifficultySelector({ game, onSelect, onBack }) {
   const { darkMode } = useSettings()
   const { play }     = useSound()
+  const tc = useThemeColors()
   const [hovered, setHovered] = useState(null)
-  const dark = darkMode
+  const dark = tc.dark
 
-  const bg      = dark ? '#0d0b1e' : '#FFF9F0'
-  const surface = dark ? '#16213e' : '#fff'
-  const textMain  = dark ? '#e8e8f0' : '#2D3436'
-  const textMuted = dark ? '#8892b0' : '#636E72'
-  const borderCol = dark ? '#2d3561' : '#DFE6E9'
+  const bg      = tc.bg
+  const surface = tc.surface
+  const textMain  = tc.textMain
+  const textMuted = tc.textMuted
+  const borderCol = tc.borderCol
 
   return (
     <>

@@ -6,6 +6,7 @@ import { useSound } from '../hooks/useSound.js'
 import { useProgress, getLevelInfo } from '../context/ProgressContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
 import { useDailyChallenge } from '../context/DailyChallengeContext.jsx'
+import { useThemeColors } from '../hooks/useThemeColors.js'
 
 const COMING_SOON = [
   { day: 10, emoji: '🧱', title: 'Brick Breaker',    tag: 'Casual',   color: '#45B7D1' },
@@ -45,12 +46,13 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
     isChallengeClaimed, claimChallenge, claimBonus,
     completedCount, allComplete, bonusAvailable, bonusClaimed, allCompleteBonus,
   } = useDailyChallenge()
+  const tc = useThemeColors()
   const [activeTag, setActiveTag] = useState('Semua')
   const [scrollTop, setScrollTop] = useState(false)
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
   const streak = progress.currentStreak || 0
-  const dark = darkMode
+  const dark = tc.dark
 
   useEffect(() => {
     const fn = () => setScrollTop(window.scrollY > 400)
@@ -58,10 +60,10 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
     return () => window.removeEventListener('scroll', fn)
   }, [])
 
-  const textMain  = dark ? '#e8e8f0' : '#2D3436'
-  const textMuted = dark ? '#8892b0' : '#636E72'
-  const borderCol = dark ? '#2d3561' : '#DFE6E9'
-  const surfaceCol = dark ? '#16213e' : '#fff'
+  const textMain  = tc.textMain
+  const textMuted = tc.textMuted
+  const borderCol = tc.borderCol
+  const surfaceCol = tc.surface
 
   const filteredAvailable = activeTag === 'Semua' ? games        : games.filter(g => g.tag === activeTag)
   const filteredComing    = activeTag === 'Semua' ? COMING_SOON  : COMING_SOON.filter(g => g.tag === activeTag)
@@ -275,7 +277,7 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
         }
       `}</style>
 
-      <div className="home-root" style={{ background: dark ? '#0d0b1e' : '#FFF9F0' }}>
+      <div className="home-root" style={{ background: tc.bg }}>
 
         {/* Interactive particle background */}
         <ParticleBackground dark={dark} />

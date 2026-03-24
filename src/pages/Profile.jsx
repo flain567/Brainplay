@@ -4,6 +4,7 @@ import { useSound } from '../hooks/useSound.js'
 import { useProgress, ACHIEVEMENTS, getLevelInfo } from '../context/ProgressContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCloudSave } from '../context/CloudSaveContext.jsx'
+import { useThemeColors } from '../hooks/useThemeColors.js'
 
 const CATEGORY_META = {
   milestone: { label: 'Milestone',  icon: '🎮', color: '#4ECDC4' },
@@ -30,8 +31,9 @@ export default function Profile({ onBack, games }) {
   const { progress } = useProgress()
   const { isLoggedIn, isGuest, playerName, photoURL, email, loginWithGoogle, logout } = useAuth()
   const { syncStatus, lastSync, forceSync } = useCloudSave()
+  const tc = useThemeColors()
   const [achFilter, setAchFilter] = useState('all')
-  const dark = darkMode
+  const dark = tc.dark
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
   const unlockedSet = new Set(progress.unlockedAchievements || [])
@@ -43,11 +45,11 @@ export default function Profile({ onBack, games }) {
     ? ACHIEVEMENTS
     : ACHIEVEMENTS.filter(a => a.category === achFilter)
 
-  const bg       = dark ? '#0d0b1e' : '#FFF9F0'
-  const surface  = dark ? '#16213e' : '#fff'
-  const textMain = dark ? '#e8e8f0' : '#2D3436'
-  const textMuted= dark ? '#8892b0' : '#636E72'
-  const borderCol= dark ? '#2d3561' : '#DFE6E9'
+  const bg       = tc.bg
+  const surface  = tc.surface
+  const textMain = tc.textMain
+  const textMuted= tc.textMuted
+  const borderCol= tc.borderCol
 
   return (
     <>

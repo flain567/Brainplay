@@ -3,6 +3,7 @@ import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useProgress } from '../context/ProgressContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
+import { useThemeColors } from '../hooks/useThemeColors.js'
 import Confetti from './Confetti.jsx'
 import TutorialModal from './TutorialModal.jsx'
 
@@ -48,10 +49,11 @@ export function DiffBadge({ diffId, dark }) {
 // ─── Game Header ─────────────────────────────────────────────────────────────
 export function GameHeader({ emoji, title, subtitle, diffId, onBack, dark }) {
   const { play } = useSound()
-  const textMain = dark ? '#e8e8f0' : '#2D3436'
-  const textMuted = dark ? '#8892b0' : '#636E72'
-  const surface = dark ? '#16213e' : '#fff'
-  const borderCol = dark ? '#2d3561' : '#DFE6E9'
+  const tc = useThemeColors()
+  const textMain = tc.textMain
+  const textMuted = tc.textMuted
+  const surface = tc.surface
+  const borderCol = tc.borderCol
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
@@ -80,8 +82,9 @@ export function GameHeader({ emoji, title, subtitle, diffId, onBack, dark }) {
 
 // ─── Stats bar ───────────────────────────────────────────────────────────────
 export function StatsBar({ stats, dark }) {
-  const surface = dark ? '#16213e' : '#fff'
-  const textMuted = dark ? '#8892b0' : '#636E72'
+  const tc = useThemeColors()
+  const surface = tc.surface
+  const textMuted = tc.textMuted
   return (
     <div style={{
       display: 'grid', gridTemplateColumns: `repeat(${Math.min(stats.length, 4)},1fr)`,
@@ -107,9 +110,10 @@ export function StatsBar({ stats, dark }) {
 // ─── Action Buttons row ──────────────────────────────────────────────────────
 export function ActionButtons({ buttons, dark }) {
   const { play } = useSound()
-  const textMuted = dark ? '#8892b0' : '#636E72'
-  const surface = dark ? '#16213e' : '#fff'
-  const borderCol = dark ? '#2d3561' : '#DFE6E9'
+  const tc = useThemeColors()
+  const textMuted = tc.textMuted
+  const surface = tc.surface
+  const borderCol = tc.borderCol
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
@@ -151,12 +155,13 @@ export function ActionButtons({ buttons, dark }) {
 
 // ─── Best Record bar ─────────────────────────────────────────────────────────
 export function BestRecord({ label, value, dark, color = '#FF6B6B' }) {
-  const textMuted = dark ? '#8892b0' : '#636E72'
+  const tc = useThemeColors()
+  const textMuted = tc.textMuted
   return (
     <div style={{
       marginTop: 20,
-      background: dark ? '#1f1f3e' : '#FFF9F0',
-      border: `2px solid ${dark ? '#3d3561' : '#FFE66D'}`,
+      background: tc.bg,
+      border: `2px solid ${tc.borderCol}`,
       borderRadius: 16, padding: '12px 20px',
       textAlign: 'center', fontSize: 14, color: textMuted, fontWeight: 600,
     }}>
@@ -180,9 +185,10 @@ export function WinModal({
   gameColor = '#FF6B6B',
   backLabel = '🎯 Ganti Level',
 }) {
-  const bg = dark ? '#1a1a2e' : '#fff'
-  const textMain = dark ? '#e8e8f0' : '#2D3436'
-  const textMuted = dark ? '#8892b0' : '#636E72'
+  const tc = useThemeColors()
+  const bg = tc.dark ? tc.surface : '#fff'
+  const textMain = tc.textMain
+  const textMuted = tc.textMuted
 
   return (
     <div style={{
@@ -286,7 +292,7 @@ export function WinModal({
           </button>
           <button onClick={onBack} style={{
             flex: 1, background: dark ? '#1e2a4a' : '#F8F9FA',
-            color: textMuted, border: `2px solid ${dark ? '#2d3561' : '#DFE6E9'}`,
+            color: textMuted, border: `2px solid ${tc.borderCol}`,
             borderRadius: 100, padding: '13px 18px',
             fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive",
             cursor: 'pointer', transition: 'transform 0.15s',
