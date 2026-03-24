@@ -15,13 +15,7 @@ export default defineConfig({
     },
     // Compression
     target: 'es2020',
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: false, // Keep console.log for debugging leaderboard
-        drop_debugger: true,
-      },
-    },
+    minify: 'esbuild',
     // Chunk size warning
     chunkSizeWarningLimit: 500,
     // Source maps off for production
