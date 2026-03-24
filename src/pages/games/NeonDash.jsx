@@ -35,8 +35,14 @@ const P2=Math.PI*2,PS=20,BLK=30 // player size, block size in pixels
 // Ground height tracked as block units from bottom
 // ═════════════════════════════════════════════════════════════
 function buildLv(cmds,baseGndBlocks,canvasH){
-  const items=[]; let x=300, gndH=baseGndBlocks // ground height in blocks
+  const items=[]; let x=0, gndH=baseGndBlocks // ground height in blocks
   const gndPx=()=>canvasH-gndH*BLK // ground Y in pixels
+
+  // Starting runway — flat ground from x=0 to where obstacles begin
+  for(let i=0;i<12;i++){
+    items.push({t:'ground',x:i*BLK,y:gndPx(),w:BLK,h:gndH*BLK})
+  }
+  x=12*BLK // obstacles start after runway
 
   for(const cmd of cmds){
     const c=cmd[0]
@@ -66,13 +72,16 @@ function buildLv(cmds,baseGndBlocks,canvasH){
         }
         break
       }
-      case 'S':{ // Spike on current ground
+      case 'S':{ // Spike on current ground + ground block
         items.push({t:'spike',x,y:gndPx(),w:BLK,h:BLK})
+        items.push({t:'ground',x,y:gndPx(),w:BLK,h:gndH*BLK})
         x+=BLK; break
       }
-      case 'SS':{ // Double spike
+      case 'SS':{ // Double spike + ground
         items.push({t:'spike',x,y:gndPx(),w:BLK,h:BLK})
+        items.push({t:'ground',x,y:gndPx(),w:BLK,h:gndH*BLK})
         items.push({t:'spike',x:x+BLK,y:gndPx(),w:BLK,h:BLK})
+        items.push({t:'ground',x:x+BLK,y:gndPx(),w:BLK,h:gndH*BLK})
         x+=BLK*2; break
       }
       case 'B':{ // Block obstacle (w,h in block units)
@@ -99,16 +108,19 @@ function buildLv(cmds,baseGndBlocks,canvasH){
         const n=cmd[1]||2
         x+=n*BLK; break
       }
-      case 'DI':{ // Diamond
+      case 'DI':{ // Diamond + ground
         items.push({t:'dia',x,y:gndPx()-BLK*2,col:false})
+        items.push({t:'ground',x,y:gndPx(),w:BLK,h:gndH*BLK})
         x+=BLK; break
       }
-      case 'ORB':{ // Orb (collectible circle)
+      case 'ORB':{ // Orb + ground
         items.push({t:'orb',x,y:gndPx()-BLK*1.5})
+        items.push({t:'ground',x,y:gndPx(),w:BLK,h:gndH*BLK})
         x+=BLK; break
       }
-      case 'P':{ // Portal
+      case 'P':{ // Portal + ground
         items.push({t:'portal',x,y:gndPx()-BLK*2,w:BLK,h:BLK*2,mode:cmd[1]})
+        items.push({t:'ground',x,y:gndPx(),w:BLK,h:gndH*BLK})
         x+=BLK; break
       }
       case 'W':{ // Wave wall
