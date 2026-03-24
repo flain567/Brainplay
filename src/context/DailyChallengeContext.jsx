@@ -20,6 +20,7 @@ const GAME_META = [
   { id: 'reaction-test',  name: 'Reaction Test',     emoji: '⚡' },
   { id: 'neon-dash',     name: 'Neon Dash',       emoji: '💎' },
   { id: 'brick-breaker', name: 'Brick Breaker',  emoji: '🧱' },
+  { id: 'voxel-racer',  name: 'Voxel Racer',    emoji: '🚗' },
 ]
 
 // ─── Challenge templates ────────────────────────────────────────────────────

@@ -19,6 +19,7 @@ const GAME_TABS = [
   { id:'reaction-test',   emoji:'⚡', label:'Reaction' },
   { id:'neon-dash',       emoji:'💎', label:'Neon' },
   { id:'brick-breaker',   emoji:'🧱', label:'Brick' },
+  { id:'voxel-racer',    emoji:'🚗', label:'Voxel' },
 ]
 
 const DIFF_TABS = [

@@ -307,6 +307,7 @@ export default function Profile({ onBack, games }) {
                   : g.id === 'memory-pattern' ? `${best} poin`
                   : g.id === 'reaction-test' ? `${best} poin`
                   : g.id === 'neon-dash' ? `${best} poin`
+                  : g.id === 'voxel-racer' ? `${best} poin`
                   : best.toLocaleString()
                 return (
                   <div key={g.id} style={{

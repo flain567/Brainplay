@@ -56,7 +56,7 @@ export const ACHIEVEMENTS = [
 
   // Variety - different games
   { id: 'explorer_2',     icon: '🧭', title: 'Penjelajah',         desc: 'Mainkan 2 game berbeda',       category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 2, progress: (s) => ({ cur: Math.min(s.uniqueGamesPlayed || 0, 2), max: 2 }) },
-  { id: 'explorer_4',     icon: '🌍', title: 'Petualang Dunia',    desc: 'Mainkan semua 13 game',        category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 13, progress: (s) => ({ cur: Math.min(s.uniqueGamesPlayed || 0, 13), max: 13 }) },
+  { id: 'explorer_4',     icon: '🌍', title: 'Petualang Dunia',    desc: 'Mainkan semua 14 game',        category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 14, progress: (s) => ({ cur: Math.min(s.uniqueGamesPlayed || 0, 14), max: 14 }) },
 
   // Difficulty - hard mode
   { id: 'brave',          icon: '🦁', title: 'Pemberani',          desc: 'Selesaikan 1 game di mode Sulit', category: 'skill',  check: (s) => s.hardGamesWon >= 1, progress: (s) => ({ cur: Math.min(s.hardGamesWon || 0, 1), max: 1 }) },
@@ -94,6 +94,7 @@ export const ACHIEVEMENTS = [
   { id: 'brick_master',   icon: '🧱', title: 'Master Penghancur',  desc: 'Menangkan Brick Breaker 3 kali',  category: 'game',  check: (s) => (s.gameWins['brick-breaker'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['brick-breaker'] || 0, 3), max: 3 }) },
   { id: 'reflex_king',    icon: '⚡', title: 'Raja Refleks',       desc: 'Menangkan Reaction Test 5 kali',  category: 'game',  check: (s) => (s.gameWins['reaction-test'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['reaction-test'] || 0, 5), max: 5 }) },
   { id: 'neon_runner',     icon: '💎', title: 'Pelari Neon',       desc: 'Menangkan Neon Dash 5 kali',      category: 'game',  check: (s) => (s.gameWins['neon-dash'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['neon-dash'] || 0, 5), max: 5 }) },
+  { id: 'voxel_racer',    icon: '🚗', title: 'Pembalap Voxel',    desc: 'Menangkan Voxel Racer 3 kali',    category: 'game',  check: (s) => (s.gameWins['voxel-racer'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['voxel-racer'] || 0, 3), max: 3 }) },
 ]
 
 // ─── Default state ───────────────────────────────────────────────────────────

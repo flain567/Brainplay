@@ -36,6 +36,7 @@ const BrickBreaker    = lazy(() => import('./pages/games/BrickBreaker.jsx'))
 const ReactionTest    = lazy(() => import('./pages/games/ReactionTest.jsx'))
 const NeonDash        = lazy(() => import('./pages/games/NeonDash.jsx'))
 const MemoryPatternPro = lazy(() => import('./pages/games/MemoryPatternPro.jsx'))
+const VoxelRacer      = lazy(() => import('./pages/games/VoxelRacer.jsx'))
 
 // ─── Game loading fallback ──────────────────────────────────────────────────
 function GameLoader() {
@@ -222,6 +223,19 @@ export const GAMES = [
       { id:'hard',   description:'Bola cepat, paddle kecil, 3 nyawa — master breaker only!',   stats:['20 level','3 nyawa','Boss tiap 5 lv'] },
     ],
   },
+  {
+    id: 'voxel-racer',
+    title: 'Voxel Racer',
+    emoji: '🚗',
+    description: 'Balapan mobil 3D voxel! Hindari rintangan, kumpulkan koin, dan lompat melewati obstacle. Full 3D!',
+    color: '#FFD93D', bg: '#FFF9E0', tag: 'Action',
+    component: VoxelRacer, day: 15,
+    difficulties: [
+      { id:'easy',   description:'Kecepatan santai, 6 level — cocok pemula 3D!',        stats:['6 level','Lambat','3 jalur'] },
+      { id:'medium', description:'Lebih cepat, 10 level — butuh refleks!',              stats:['10 level','Sedang','Rintangan++'] },
+      { id:'hard',   description:'Kecepatan tinggi, 14 level, rintangan padat!',        stats:['14 level','Cepat','Brutal'] },
+    ],
+  },
 ]
 
 function AppInner() {
@@ -252,7 +266,7 @@ function AppInner() {
   const goLeaderboard     = () => { setScreen('leaderboard'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
 
   const activeDiff   = currentGame?.difficulties?.find(d => d.id === difficulty)
-  const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter' || currentGame?.id === 'brick-breaker' || currentGame?.id === 'memory-pattern' || currentGame?.id === 'neon-dash')
+  const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter' || currentGame?.id === 'brick-breaker' || currentGame?.id === 'memory-pattern' || currentGame?.id === 'neon-dash' || currentGame?.id === 'voxel-racer')
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
