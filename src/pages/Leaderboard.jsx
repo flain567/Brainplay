@@ -15,6 +15,9 @@ const GAME_TABS = [
   { id:'color-sort',     emoji:'🧪', label:'Colors' },
   { id:'sudoku',         emoji:'🔢', label:'Sudoku' },
   { id:'jigsaw',         emoji:'🧩', label:'Jigsaw' },
+  { id:'brick-breaker',  emoji:'🧱', label:'Brick' },
+  { id:'reaction-test',  emoji:'⚡', label:'Reaction' },
+  { id:'tic-tac-toe',    emoji:'❌', label:'TTT' },
 ]
 
 const DIFF_TABS = [

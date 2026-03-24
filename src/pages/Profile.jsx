@@ -303,6 +303,9 @@ export default function Profile({ onBack, games }) {
                   : g.id === 'color-sort' ? `${best} langkah`
                   : g.id === 'slither-worm' ? `${best} poin`
                   : g.id === 'space-shooter' ? `${best} poin`
+                  : g.id === 'brick-breaker' ? `${best} poin`
+                  : g.id === 'reaction-test' ? `${best} poin`
+                  : g.id === 'tic-tac-toe' ? `${best} poin`
                   : best.toLocaleString()
                 return (
                   <div key={g.id} style={{

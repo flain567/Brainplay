@@ -32,6 +32,9 @@ const HangmanGame     = lazy(() => import('./pages/games/HangmanGame.jsx'))
 const ColorSortGame   = lazy(() => import('./pages/games/ColorSortGame.jsx'))
 const SudokuGame      = lazy(() => import('./pages/games/SudokuGame.jsx'))
 const JigsawPuzzle    = lazy(() => import('./pages/games/JigsawPuzzle.jsx'))
+const BrickBreaker    = lazy(() => import('./pages/games/BrickBreaker.jsx'))
+const ReactionTest    = lazy(() => import('./pages/games/ReactionTest.jsx'))
+const TicTacToe       = lazy(() => import('./pages/games/TicTacToe.jsx'))
 
 // ─── Game loading fallback ──────────────────────────────────────────────────
 function GameLoader() {
@@ -166,6 +169,45 @@ export const GAMES = [
       { id:'hard',   description:'Grid 5×5, 25 keping — tantangan otak tingkat tinggi!', stats:['5×5 grid','25 keping'] },
     ],
   },
+  {
+    id: 'brick-breaker',
+    title: 'Brick Breaker',
+    emoji: '🧱',
+    description: 'Hancurkan semua bata dengan bola pantul! Power-up, level progression, dan boss tiap 5 level!',
+    color: '#45B7D1', bg: '#E8F8FF', tag: 'Action',
+    component: BrickBreaker, day: 10,
+    difficulties: [
+      { id:'easy',   description:'Bola lambat, paddle lebar, 5 nyawa — santai untuk pemula',   stats:['10 level','5 nyawa','Boss tiap 5 lv'] },
+      { id:'medium', description:'Kecepatan sedang, 4 nyawa — butuh refleks yang baik!',       stats:['15 level','4 nyawa','Boss tiap 5 lv'] },
+      { id:'hard',   description:'Bola cepat, paddle kecil, 3 nyawa — master breaker only!',   stats:['20 level','3 nyawa','Boss tiap 5 lv'] },
+    ],
+  },
+  {
+    id: 'reaction-test',
+    title: 'Reaction Test',
+    emoji: '⚡',
+    description: 'Uji kecepatan reaksimu! Tiga mode: Tap timing, Color recognition, dan Sequence memory.',
+    color: '#F39C12', bg: '#FFF8E1', tag: 'Action',
+    component: ReactionTest, day: 11,
+    difficulties: [
+      { id:'easy',   description:'5 ronde, sekuens pendek — pemanasan refleks',           stats:['5 ronde','3 warna'] },
+      { id:'medium', description:'7 ronde, lebih banyak pilihan — uji fokusmu!',          stats:['7 ronde','4 warna'] },
+      { id:'hard',   description:'10 ronde, Stroop effect, sekuens panjang — extreme!',   stats:['10 ronde','Stroop'] },
+    ],
+  },
+  {
+    id: 'tic-tac-toe',
+    title: 'Tic Tac Toe',
+    emoji: '❌',
+    description: 'Klasik Tic Tac Toe melawan AI! Tiga level AI: Random, Smart, dan Minimax sempurna!',
+    color: '#E17055', bg: '#FFF3F0', tag: 'Logika',
+    component: TicTacToe, day: 12,
+    difficulties: [
+      { id:'easy',   description:'AI Random — mudah dikalahkan, cocok untuk pemula',      stats:['5 ronde','🤖 Random'] },
+      { id:'medium', description:'AI Smart — bisa blok & ambil peluang menang!',          stats:['5 ronde','🧠 Smart'] },
+      { id:'hard',   description:'AI Minimax — sempurna, tidak mungkin kalah!',           stats:['5 ronde','💀 Minimax'] },
+    ],
+  },
 ]
 
 function AppInner() {
@@ -196,7 +238,7 @@ function AppInner() {
   const goLeaderboard     = () => { setScreen('leaderboard'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
 
   const activeDiff   = currentGame?.difficulties?.find(d => d.id === difficulty)
-  const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter')
+  const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter' || currentGame?.id === 'brick-breaker')
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
