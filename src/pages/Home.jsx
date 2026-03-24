@@ -9,17 +9,16 @@ import { useDailyChallenge } from '../context/DailyChallengeContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 
 const COMING_SOON = [
-  { day: 13, emoji: '💬', title: 'Wordle Indonesia',  tag: 'Kata',     color: '#55EFC4' },
-  { day: 14, emoji: '⌨️', title: 'Typing Speed',     tag: 'Kata',     color: '#FD79A8' },
-  { day: 15, emoji: '💣', title: 'Minesweeper',      tag: 'Logika',   color: '#45B7D1' },
-  { day: 16, emoji: '🔀', title: 'Anagram',          tag: 'Kata',     color: '#FDCB6E' },
-  { day: 17, emoji: '🗼', title: 'Tower of Hanoi',   tag: 'Logika',   color: '#A29BFE' },
-  { day: 18, emoji: '📐', title: 'Nonogram',         tag: 'Puzzle',   color: '#FF6B6B' },
-  { day: 19, emoji: '➕', title: 'Math Quiz',        tag: 'Logika',   color: '#4ECDC4' },
-  { day: 20, emoji: '♠️', title: 'Solitaire',        tag: 'Casual',   color: '#FD79A8' },
-  { day: 21, emoji: '🀄', title: 'Mahjong',          tag: 'Casual',   color: '#FDCB6E' },
-  { day: 22, emoji: '🧮', title: 'Logic Grid',       tag: 'Logika',   color: '#45B7D1' },
-  { day: 23, emoji: '🔗', title: 'Word Chain',       tag: 'Kata',     color: '#A29BFE' },
+  { day: 14, emoji: '💬', title: 'Wordle Indonesia',  tag: 'Kata',     color: '#55EFC4' },
+  { day: 15, emoji: '⌨️', title: 'Typing Speed',     tag: 'Kata',     color: '#FD79A8' },
+  { day: 16, emoji: '💣', title: 'Minesweeper',      tag: 'Logika',   color: '#45B7D1' },
+  { day: 17, emoji: '🔀', title: 'Anagram',          tag: 'Kata',     color: '#FDCB6E' },
+  { day: 18, emoji: '🗼', title: 'Tower of Hanoi',   tag: 'Logika',   color: '#A29BFE' },
+  { day: 19, emoji: '📐', title: 'Nonogram',         tag: 'Puzzle',   color: '#FF6B6B' },
+  { day: 20, emoji: '➕', title: 'Math Quiz',        tag: 'Logika',   color: '#4ECDC4' },
+  { day: 21, emoji: '♠️', title: 'Solitaire',        tag: 'Casual',   color: '#FD79A8' },
+  { day: 22, emoji: '🀄', title: 'Mahjong',          tag: 'Casual',   color: '#FDCB6E' },
+  { day: 23, emoji: '🧮', title: 'Logic Grid',       tag: 'Logika',   color: '#45B7D1' },
   { day: 24, emoji: '♟️', title: 'Chess Puzzle',     tag: 'Logika',   color: '#FF6B6B' },
   { day: 25, emoji: '🎲', title: '??? Surprise',     tag: 'Surprise', color: '#FD79A8' },
 ]

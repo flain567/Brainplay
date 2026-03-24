@@ -15,10 +15,11 @@ const GAME_META = [
   { id: 'hangman',       name: 'Hangman',        emoji: '💀' },
   { id: 'color-sort',    name: 'Color Sort',     emoji: '🧪' },
   { id: 'sudoku',        name: 'Sudoku',         emoji: '🔢' },
-  { id: 'jigsaw',        name: 'Jigsaw Puzzle',  emoji: '🧩' },
-  { id: 'brick-breaker', name: 'Brick Breaker',  emoji: '🧱' },
-  { id: 'reaction-test', name: 'Reaction Test',  emoji: '⚡' },
+  { id: 'jigsaw',         name: 'Jigsaw Puzzle',     emoji: '🧩' },
+  { id: 'memory-pattern', name: 'Memory Pattern Pro', emoji: '🧠' },
+  { id: 'reaction-test',  name: 'Reaction Test',     emoji: '⚡' },
   { id: 'tic-tac-toe',   name: 'Tic Tac Toe',    emoji: '❌' },
+  { id: 'brick-breaker', name: 'Brick Breaker',  emoji: '🧱' },
 ]
 
 // ─── Challenge templates ────────────────────────────────────────────────────

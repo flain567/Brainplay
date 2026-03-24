@@ -304,6 +304,7 @@ export default function Profile({ onBack, games }) {
                   : g.id === 'slither-worm' ? `${best} poin`
                   : g.id === 'space-shooter' ? `${best} poin`
                   : g.id === 'brick-breaker' ? `${best} poin`
+                  : g.id === 'memory-pattern' ? `${best} poin`
                   : g.id === 'reaction-test' ? `${best} poin`
                   : g.id === 'tic-tac-toe' ? `${best} poin`
                   : best.toLocaleString()

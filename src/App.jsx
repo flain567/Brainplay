@@ -35,6 +35,7 @@ const JigsawPuzzle    = lazy(() => import('./pages/games/JigsawPuzzle.jsx'))
 const BrickBreaker    = lazy(() => import('./pages/games/BrickBreaker.jsx'))
 const ReactionTest    = lazy(() => import('./pages/games/ReactionTest.jsx'))
 const TicTacToe       = lazy(() => import('./pages/games/TicTacToe.jsx'))
+const MemoryPatternPro = lazy(() => import('./pages/games/MemoryPatternPro.jsx'))
 
 // ─── Game loading fallback ──────────────────────────────────────────────────
 function GameLoader() {
@@ -170,16 +171,16 @@ export const GAMES = [
     ],
   },
   {
-    id: 'brick-breaker',
-    title: 'Brick Breaker',
-    emoji: '🧱',
-    description: 'Hancurkan semua bata dengan bola pantul! Power-up, level progression, dan boss tiap 5 level!',
-    color: '#45B7D1', bg: '#E8F8FF', tag: 'Action',
-    component: BrickBreaker, day: 10,
+    id: 'memory-pattern',
+    title: 'Memory Pattern Pro',
+    emoji: '🧠',
+    description: 'Game premium flagship! Ingat pola sel yang menyala, ulangi urutannya. Boss level, combo system, efek visual spektakuler!',
+    color: '#00CEC9', bg: '#E0FFFE', tag: 'Puzzle',
+    component: MemoryPatternPro, day: 10,
     difficulties: [
-      { id:'easy',   description:'Bola lambat, paddle lebar, 5 nyawa — santai untuk pemula',   stats:['10 level','5 nyawa','Boss tiap 5 lv'] },
-      { id:'medium', description:'Kecepatan sedang, 4 nyawa — butuh refleks yang baik!',       stats:['15 level','4 nyawa','Boss tiap 5 lv'] },
-      { id:'hard',   description:'Bola cepat, paddle kecil, 3 nyawa — master breaker only!',   stats:['20 level','3 nyawa','Boss tiap 5 lv'] },
+      { id:'easy',   description:'15 level, pola lambat, 4 nyawa — pemanasan otak',          stats:['15 level','4 nyawa','Boss tiap 5 lv'] },
+      { id:'medium', description:'20 level, pola sedang, 3 nyawa — uji konsentrasimu!',      stats:['20 level','3 nyawa','Boss tiap 5 lv'] },
+      { id:'hard',   description:'25 level, pola cepat, 2 nyawa — hanya master memori!',     stats:['25 level','2 nyawa','Boss tiap 5 lv'] },
     ],
   },
   {
@@ -206,6 +207,19 @@ export const GAMES = [
       { id:'easy',   description:'AI Random — mudah dikalahkan, cocok untuk pemula',      stats:['5 ronde','🤖 Random'] },
       { id:'medium', description:'AI Smart — bisa blok & ambil peluang menang!',          stats:['5 ronde','🧠 Smart'] },
       { id:'hard',   description:'AI Minimax — sempurna, tidak mungkin kalah!',           stats:['5 ronde','💀 Minimax'] },
+    ],
+  },
+  {
+    id: 'brick-breaker',
+    title: 'Brick Breaker',
+    emoji: '🧱',
+    description: 'Hancurkan semua bata dengan bola pantul! Power-up, level progression, dan boss tiap 5 level!',
+    color: '#45B7D1', bg: '#E8F8FF', tag: 'Action',
+    component: BrickBreaker, day: 13,
+    difficulties: [
+      { id:'easy',   description:'Bola lambat, paddle lebar, 5 nyawa — santai untuk pemula',   stats:['10 level','5 nyawa','Boss tiap 5 lv'] },
+      { id:'medium', description:'Kecepatan sedang, 4 nyawa — butuh refleks yang baik!',       stats:['15 level','4 nyawa','Boss tiap 5 lv'] },
+      { id:'hard',   description:'Bola cepat, paddle kecil, 3 nyawa — master breaker only!',   stats:['20 level','3 nyawa','Boss tiap 5 lv'] },
     ],
   },
 ]
@@ -238,7 +252,7 @@ function AppInner() {
   const goLeaderboard     = () => { setScreen('leaderboard'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
 
   const activeDiff   = currentGame?.difficulties?.find(d => d.id === difficulty)
-  const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter' || currentGame?.id === 'brick-breaker')
+  const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter' || currentGame?.id === 'brick-breaker' || currentGame?.id === 'memory-pattern')
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
