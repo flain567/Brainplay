@@ -3,7 +3,7 @@ import { useSound } from '../hooks/useSound.js'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 
-export default function TutorialModal({ steps, onClose, color = '#A29BFE' }) {
+export default function TutorialModal({ steps, onClose, color = '#A29BFE', storageKey }) {
   const [page, setPage]   = useState(0)
   const { play }          = useSound()
   const { darkMode }      = useSettings()
@@ -26,45 +26,50 @@ export default function TutorialModal({ steps, onClose, color = '#A29BFE' }) {
     setTimeout(() => { firedRef.current = false }, 300)
   }
 
+  const dismiss = () => {
+    if (storageKey) try { localStorage.setItem(storageKey, '1') } catch(e) {}
+    onClose()
+  }
+
   const next = () => fire(() => {
     play('click')
-    if (isLast) { onClose(); return }
+    if (isLast) { dismiss(); return }
     setPage(p => p + 1)
   })
 
   const prev = () => fire(() => { play('click'); setPage(p => p - 1) })
 
-  const skip = () => fire(() => { play('click'); onClose() })
+  const skip = () => fire(() => { play('click'); dismiss() })
 
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.65)', backdropFilter:'blur(8px)', zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:24, animation:'fadeInTut 0.3s ease' }}>
-      <div style={{ background:bg, borderRadius:28, padding:'32px 28px', maxWidth:360, width:'100%', boxShadow:`0 24px 80px ${color}33`, border:`2px solid ${color}33`, animation:'popInTut 0.4s cubic-bezier(0.34,1.56,0.64,1)' }}>
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.65)', backdropFilter:'blur(8px)', zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:'16px 20px', animation:'fadeInTut 0.3s ease', overflow:'auto' }}>
+      <div style={{ background:bg, borderRadius:28, padding:'28px 24px', maxWidth:360, width:'100%', maxHeight:'calc(100vh - 32px)', overflowY:'auto', boxShadow:`0 24px 80px ${color}33`, border:`2px solid ${color}33`, animation:'popInTut 0.4s cubic-bezier(0.34,1.56,0.64,1)', margin:'auto' }}>
 
         {/* Step dots */}
-        <div style={{ display:'flex', gap:6, justifyContent:'center', marginBottom:24 }}>
+        <div style={{ display:'flex', gap:6, justifyContent:'center', marginBottom:16 }}>
           {steps.map((_, i) => (
             <div key={i} style={{ width: i===page?20:7, height:7, borderRadius:100, background: i===page?color:'rgba(0,0,0,0.12)', transition:'all 0.25s ease' }} />
           ))}
         </div>
 
         {/* Emoji */}
-        <div style={{ fontSize:64, textAlign:'center', marginBottom:16, lineHeight:1, animation:'bounceTut 0.5s ease' }}>
+        <div style={{ fontSize:52, textAlign:'center', marginBottom:12, lineHeight:1, animation:'bounceTut 0.5s ease' }}>
           {step.emoji}
         </div>
 
         {/* Title */}
-        <h3 style={{ fontFamily:"'Fredoka One',cursive", fontSize:24, color:textMain, textAlign:'center', marginBottom:10 }}>
+        <h3 style={{ fontFamily:"'Fredoka One',cursive", fontSize:22, color:textMain, textAlign:'center', marginBottom:8 }}>
           {step.title}
         </h3>
 
         {/* Description */}
-        <p style={{ fontSize:15, color:textMuted, textAlign:'center', lineHeight:1.7, marginBottom:28 }}>
+        <p style={{ fontSize:14, color:textMuted, textAlign:'center', lineHeight:1.6, marginBottom:20 }}>
           {step.desc}
         </p>
 
         {/* Tip box */}
         {step.tip && (
-          <div style={{ background:`${color}12`, border:`1.5px solid ${color}33`, borderRadius:14, padding:'10px 14px', marginBottom:24, fontSize:13, color:textMuted, lineHeight:1.5 }}>
+          <div style={{ background:`${color}12`, border:`1.5px solid ${color}33`, borderRadius:14, padding:'10px 14px', marginBottom:20, fontSize:13, color:textMuted, lineHeight:1.5 }}>
             💡 {step.tip}
           </div>
         )}
