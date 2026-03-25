@@ -2,6 +2,7 @@ import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSettings } from '../../context/SettingsContext.jsx'
+import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
@@ -113,12 +114,12 @@ function PuzzleTile({ tile, size, showNumber, dimmed, glow, onClick, selected, c
 
 // ─── Main component ──────────────────────────────────────────────────────────
 export default function JigsawPuzzle({ onBack, game, difficulty }) {
-  const { darkMode } = useSettings()
+  const tc = useThemeColors()
+  const dark = tc.dark
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins, getActiveJigsawTheme } = useCoins()
   const jigsawTheme = getActiveJigsawTheme ? getActiveJigsawTheme() : null
-  const dark = darkMode
 
   const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('bp_tut_jigsaw'))
 
@@ -338,11 +339,11 @@ export default function JigsawPuzzle({ onBack, game, difficulty }) {
 
   // Colors
   const accent = game?.color || '#FDCB6E'
-  const bg = dark ? '#0d0b1e' : '#FFF9F0'
-  const surface = dark ? '#16213e' : '#fff'
-  const textMain = dark ? '#e8e8f0' : '#2D3436'
-  const textMuted = dark ? '#8892b0' : '#636E72'
-  const borderCol = dark ? '#2d3561' : '#DFE6E9'
+  const bg = tc.bg
+  const surface = tc.surface
+  const textMain = tc.textMain
+  const textMuted = tc.textMuted
+  const borderCol = tc.borderCol
 
   // Responsive tile size
   const containerRef = useRef(null)

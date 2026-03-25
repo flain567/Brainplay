@@ -11,6 +11,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useSettings } from '../../context/SettingsContext.jsx'
+import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useCoins } from '../../context/CoinContext.jsx'
 
 const TILE_VALUES = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
@@ -64,11 +65,11 @@ export default function Game2048({ onBack, game, difficulty }) {
   const CN   = cfg.cols, RN = cfg.rows
   const { play } = useSound()
   const { reportGameResult } = useProgress()
-  const { darkMode } = useSettings()
+  const tc = useThemeColors()
+  const dark = tc.dark
   const { earnCoins, getActiveTileColors } = useCoins()
   const TILE_COLOR = (getActiveTileColors ? getActiveTileColors() : null) || DEFAULT_TILE_COLOR
   const getColor = v => TILE_COLOR[v] || { bg:'#607D8B', dark:'#37474F', text:'#fff' }
-  const dark = darkMode
 
   const [level,   setLevel]   = useState(1)
   const [maxIdx,  setMaxIdx]  = useState(cfg.startMax)

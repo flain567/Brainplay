@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useSound } from '../../hooks/useSound.js'
 import { useSettings } from '../../context/SettingsContext.jsx'
+import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
 import TutorialModal from '../../components/TutorialModal.jsx'
@@ -203,11 +204,11 @@ function saveStats(diffId, s) {
 export default function WordSearchGame({ onBack, game, difficulty }) {
   const cfg = DIFF_CFG[difficulty.id]
   const { play } = useSound()
-  const { darkMode } = useSettings()
+  const tc = useThemeColors()
+  const dark = tc.dark
   const { reportGameResult } = useProgress()
   const { earnCoins, getActiveHighlightColors } = useCoins()
   const WORD_COLORS = (getActiveHighlightColors ? getActiveHighlightColors() : null) || DEFAULT_WORD_COLORS
-  const dark = darkMode
 
   // ── State ──
   const [category, setCategory] = useState(() => pickCategory())
@@ -477,11 +478,11 @@ export default function WordSearchGame({ onBack, game, difficulty }) {
   }
 
   // ── Colors ──
-  const bg = dark ? '#0d0b1e' : '#FFF9F0'
-  const surface = dark ? '#16213e' : '#fff'
-  const textMain = dark ? '#e8e8f0' : '#2D3436'
-  const textMuted = dark ? '#8892b0' : '#636E72'
-  const borderCol = dark ? '#2d3561' : '#DFE6E9'
+  const bg = tc.bg
+  const surface = tc.surface
+  const textMain = tc.textMain
+  const textMuted = tc.textMuted
+  const borderCol = tc.borderCol
   const accent = game?.color || '#4ECDC4'
   const gridBg = dark ? '#1a1f3e' : '#FFFFFF'
   const cellBg = dark ? '#16213e' : '#F8F9FA'
