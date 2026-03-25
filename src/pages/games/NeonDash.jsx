@@ -150,7 +150,18 @@ export default function NeonDash({onBack,game,difficulty}){
   const[showTut,setShowTut]=useState(()=>!localStorage.getItem('bp_tut_neon-dash'))
   const[showConf,setShowConf]=useState(false)
   const[uSc,sSc]=useState(0),[uLv,sLv]=useState(1),[uPr,sPr]=useState(0),[uDi,sDi]=useState('0/0'),[uAt,sAt]=useState(1)
+  const[rzKey,setRzKey]=useState(0)
   const sp=p=>{phR.current=p;_sp(p)}
+
+  // Resize handler
+  useEffect(()=>{
+    let t=null
+    const onRz=()=>{clearTimeout(t);t=setTimeout(()=>setRzKey(k=>k+1),250)}
+    window.addEventListener('resize',onRz)
+    const onOr=()=>setTimeout(onRz,200)
+    window.addEventListener('orientationchange',onOr)
+    return()=>{clearTimeout(t);window.removeEventListener('resize',onRz);window.removeEventListener('orientationchange',onOr)}
+  },[])
 
   function szC(){
     const c=cRef.current;if(!c)return{w:300,h:500}
@@ -425,7 +436,7 @@ export default function NeonDash({onBack,game,difficulty}){
       aRef.current=requestAnimationFrame(loop)}
     aRef.current=requestAnimationFrame(loop)
     return()=>{cancelAnimationFrame(aRef.current);c.removeEventListener('mousedown',onDown);c.removeEventListener('mouseup',onUp);c.removeEventListener('touchstart',onTouchStart);c.removeEventListener('touchend',onTouchEnd);window.removeEventListener('keydown',kd);window.removeEventListener('keyup',ku)}
-  },[difficulty.id])
+  },[difficulty.id,rzKey])
 
   const restart=()=>{const{w,h}=szC();gR.current=mkG(w,h);sp('idle');sSc(0);sLv(1);sPr(0);sDi('0/0');sAt(1);setShowConf(false)}
   const coinR=phase==='won'?({easy:20,medium:40,hard:65}[difficulty.id]||20)+Math.floor(uSc/150)+30:0

@@ -35,7 +35,18 @@ export default function MemoryPatternPro({onBack,game,difficulty}){
   const[uLv,setULv]=useState(1)
   const[uLi,setULi]=useState(cfg.lives)
   const[uCo,setUCo]=useState(0)
+  const[rzKey,setRzKey]=useState(0)
   const sP=p=>{phR.current=p;_sP(p)}
+
+  // Resize handler
+  useEffect(()=>{
+    let t=null
+    const onRz=()=>{clearTimeout(t);t=setTimeout(()=>setRzKey(k=>k+1),250)}
+    window.addEventListener('resize',onRz)
+    const onOr=()=>setTimeout(onRz,200)
+    window.addEventListener('orientationchange',onOr)
+    return()=>{clearTimeout(t);window.removeEventListener('resize',onRz);window.removeEventListener('orientationchange',onOr)}
+  },[])
 
   // Canvas sizing — EXACT SpaceShooter pattern
   function szCvs(){
@@ -239,7 +250,7 @@ export default function MemoryPatternPro({onBack,game,difficulty}){
     }
     aRef.current=requestAnimationFrame(loop)
     return()=>{cancelAnimationFrame(aRef.current);c.removeEventListener('click',oM);c.removeEventListener('touchstart',oT)}
-  },[difficulty.id])
+  },[difficulty.id,rzKey])
 
   const restart=()=>{const{w:W,h:H}=szCvs();gR.current=mkGame(W,H);sP('idle');setUS(0);setULi(cfg.lives);setULv(1);setUCo(0);setShowConf(false)}
   const stars=phase==='won'?(uLi>=cfg.lives?3:uLi>=cfg.lives-1?2:1):0

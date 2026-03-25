@@ -93,6 +93,17 @@ export default function VoxelRacer({onBack,game,difficulty}){
   const[showTut,setShowTut]=useState(()=>!localStorage.getItem('bp_tut_voxel-racer'))
   const[showConf,setShowConf]=useState(false)
   const[uSc,sSc]=useState(0),[uLv,sLv]=useState(1),[uPr,sPr]=useState(0),[uAt,sAt]=useState(1)
+  const[rzKey,setRzKey]=useState(0)
+
+  // Resize handler
+  useEffect(()=>{
+    let t=null
+    const onRz=()=>{clearTimeout(t);t=setTimeout(()=>setRzKey(k=>k+1),250)}
+    window.addEventListener('resize',onRz)
+    const onOr=()=>setTimeout(onRz,200)
+    window.addEventListener('orientationchange',onOr)
+    return()=>{clearTimeout(t);window.removeEventListener('resize',onRz);window.removeEventListener('orientationchange',onOr)}
+  },[])
   const[uFuel,sFuel]=useState(100),[uDist,sDist]=useState(0),[uCoins,sCoins]=useState(0)
   const sp=p=>{phR.current=p;_sp(p)}
 
@@ -566,7 +577,7 @@ export default function VoxelRacer({onBack,game,difficulty}){
       aRef.current=requestAnimationFrame(loop)}
     aRef.current=requestAnimationFrame(loop)
     return()=>{cancelAnimationFrame(aRef.current);c.removeEventListener('mousedown',onDown);c.removeEventListener('mouseup',onUp);c.removeEventListener('touchstart',onTouchStart);c.removeEventListener('touchend',onTouchEnd);window.removeEventListener('keydown',onKey);window.removeEventListener('keyup',onKey)}
-  },[difficulty.id])
+  },[difficulty.id,rzKey])
 
   const restart=()=>{const{w,h}=szC();gR.current=mkG(w,h);sp('idle');sSc(0);sLv(1);sPr(0);sAt(1);sFuel(100);sDist(0);sCoins(0);setShowConf(false)}
   const coinR=phase==='won'?({easy:25,medium:50,hard:75}[difficulty.id]||25)+Math.floor(uSc/150)+35:0

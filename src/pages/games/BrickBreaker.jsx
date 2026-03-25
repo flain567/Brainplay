@@ -69,8 +69,19 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
   const [combo, setCombo]               = useState(0)
   const [bossHP, setBossHP]             = useState(0)
   const [bossMaxHP, setBossMaxHP]       = useState(0)
+  const [rzKey, setRzKey]               = useState(0)
 
   const setPhase = (p) => { phaseRef.current = p; _setPhase(p) }
+
+  // Resize handler
+  useEffect(() => {
+    let t = null
+    const onRz = () => { clearTimeout(t); t = setTimeout(() => setRzKey(k => k + 1), 250) }
+    window.addEventListener('resize', onRz)
+    const onOr = () => setTimeout(onRz, 200)
+    window.addEventListener('orientationchange', onOr)
+    return () => { clearTimeout(t); window.removeEventListener('resize', onRz); window.removeEventListener('orientationchange', onOr) }
+  }, [])
 
   // ── Generate bricks for a level ──
   function generateBricks(W, H, lvl) {
@@ -767,7 +778,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
       canvas.removeEventListener('touchend', onTouchEnd)
       canvas.removeEventListener('click', onClick)
     }
-  }, [difficulty.id])
+  }, [difficulty.id, rzKey])
 
   const restart = () => {
     const canvas = canvasRef.current
