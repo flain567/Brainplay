@@ -171,9 +171,13 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
   const [won, setWon] = useState(false)
   const [shake, setShake] = useState(false)
   const [revealRow, setRevealRow] = useState(-1)
+  const [bounceRow, setBounceRow] = useState(-1)
+  const [popCol, setPopCol] = useState(-1)
   const [hintsUsed, setHintsUsed] = useState(0)
   const [message, setMessage] = useState('')
   const [resetKey, setResetKey] = useState(0)
+  const [showStats, setShowStats] = useState(false)
+  const [copied, setCopied] = useState(false)
   const msgTimeout = useRef(null)
 
   // Keyboard letter states
@@ -185,11 +189,39 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
     try { return parseInt(localStorage.getItem(storageKey)) || 0 } catch { return 0 }
   })
 
+  // Stats persistence
+  const statsKey = `bp_wordle_stats_${difficulty.id}`
+  const [stats, setStats] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(statsKey))
+      return saved || { played: 0, won: 0, dist: [0,0,0,0,0,0,0], curStreak: 0, maxStreak: 0 }
+    } catch { return { played: 0, won: 0, dist: [0,0,0,0,0,0,0], curStreak: 0, maxStreak: 0 } }
+  })
+
   const showMsg = useCallback((msg, duration = 1500) => {
     setMessage(msg)
     if (msgTimeout.current) clearTimeout(msgTimeout.current)
     msgTimeout.current = setTimeout(() => setMessage(''), duration)
   }, [])
+
+  // Hard mode validation
+  const validateHardMode = useCallback((guess) => {
+    if (difficulty.id !== 'hard' || guesses.length === 0) return null
+    const lastGuess = guesses[guesses.length - 1]
+    for (let i = 0; i < 5; i++) {
+      if (lastGuess.result[i] === 'correct' && guess[i] !== lastGuess.word[i]) {
+        return `Posisi ${i+1} harus "${lastGuess.word[i]}" (hijau)`
+      }
+    }
+    for (let i = 0; i < 5; i++) {
+      if (lastGuess.result[i] === 'present') {
+        if (!guess.includes(lastGuess.word[i])) {
+          return `Harus mengandung "${lastGuess.word[i]}" (kuning)`
+        }
+      }
+    }
+    return null
+  }, [guesses, difficulty.id])
 
   // Handle keyboard input
   const handleKey = useCallback((key) => {
@@ -209,6 +241,16 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
         play('error')
         return
       }
+      // Hard mode check
+      const hardErr = validateHardMode(currentGuess)
+      if (hardErr) {
+        showMsg(hardErr)
+        setShake(true)
+        setTimeout(() => setShake(false), 500)
+        play('error')
+        return
+      }
+
       const result = evaluateGuess(currentGuess, answer)
       const newGuess = { word: currentGuess, result }
       const newGuesses = [...guesses, newGuess]
@@ -223,7 +265,6 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
         for (let i = 0; i < 5; i++) {
           const letter = currentGuess[i]
           const state = result[i]
-          // Priority: correct > present > absent
           if (state === 'correct') next[letter] = 'correct'
           else if (state === 'present' && next[letter] !== 'correct') next[letter] = 'present'
           else if (!next[letter]) next[letter] = 'absent'
@@ -240,10 +281,15 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
       if (isWin) {
         play('win')
         setShowConfetti(true)
+        // Bounce winning row after flip
+        setTimeout(() => {
+          setBounceRow(newGuesses.length - 1)
+          setTimeout(() => setBounceRow(-1), 800)
+        }, 600)
         setTimeout(() => {
           setGameOver(true)
           setWon(true)
-        }, 700)
+        }, 1200)
       } else if (isLose) {
         play('lose')
         setTimeout(() => {
@@ -260,10 +306,16 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
       return
     }
     if (/^[A-Z]$/.test(key) && currentGuess.length < 5) {
-      setCurrentGuess(prev => prev + key)
+      setCurrentGuess(prev => {
+        const next = prev + key
+        // Pop animation
+        setPopCol(next.length - 1)
+        setTimeout(() => setPopCol(-1), 150)
+        return next
+      })
       play('click')
     }
-  }, [gameOver, currentGuess, guesses, answer, cfg.maxGuesses, play, showMsg])
+  }, [gameOver, currentGuess, guesses, answer, cfg.maxGuesses, play, showMsg, validateHardMode])
 
   // Physical keyboard listener
   useEffect(() => {
@@ -278,25 +330,37 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
     return () => window.removeEventListener('keydown', handler)
   }, [handleKey])
 
-  // Hint: reveal one correct letter
+  // Hint
   const useHint = () => {
     if (hintsUsed >= cfg.hintLimit || gameOver) return
-    // Find unrevealed positions
     const known = new Set()
     guesses.forEach(g => {
       g.result.forEach((r, i) => { if (r === 'correct') known.add(i) })
     })
     const unknowns = [0,1,2,3,4].filter(i => !known.has(i))
     if (unknowns.length === 0) return
-
     const pos = unknowns[Math.floor(Math.random() * unknowns.length)]
-    const hintLetter = answer[pos]
-    showMsg(`Posisi ${pos + 1}: huruf "${hintLetter}"`, 2500)
+    showMsg(`Posisi ${pos + 1}: huruf "${answer[pos]}"`, 2500)
     setHintsUsed(h => h + 1)
     play('hint')
   }
 
-  // Report result
+  // Share results
+  const shareResults = () => {
+    const emojiMap = { correct: '🟩', present: '🟨', absent: '⬛' }
+    const grid = guesses.map(g => g.result.map(r => emojiMap[r]).join('')).join('\n')
+    const text = `BrainPlay Wordle 🇮🇩\n${won ? guesses.length : 'X'}/${cfg.maxGuesses} (${difficulty.id})\n\n${grid}`
+    try {
+      navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+      showMsg('Hasil disalin! 📋', 2000)
+    } catch {
+      showMsg(text, 4000)
+    }
+  }
+
+  // Report result + update stats
   useEffect(() => {
     if (!gameOver) return
     const attempts = guesses.length
@@ -313,16 +377,33 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
 
     earnCoins(coinAmt, `Wordle Indonesia (${difficulty.id})`)
     reportGameResult({
-      gameId: 'wordle',
-      difficultyId: difficulty.id,
+      gameId: 'wordle', difficultyId: difficulty.id,
       won, score: won ? (cfg.maxGuesses - attempts + 1) * 100 + (3 - hintsUsed) * 50 : 0,
       stars, timeSec: attempts * 10,
     })
 
+    // Update stats
+    setStats(prev => {
+      const next = { ...prev, played: prev.played + 1 }
+      if (won) {
+        next.won = prev.won + 1
+        next.dist = [...prev.dist]
+        next.dist[attempts - 1] = (next.dist[attempts - 1] || 0) + 1
+        next.curStreak = prev.curStreak + 1
+        next.maxStreak = Math.max(prev.maxStreak, next.curStreak)
+      } else {
+        next.curStreak = 0
+      }
+      localStorage.setItem(statsKey, JSON.stringify(next))
+      return next
+    })
+
     if (won) {
-      const newStreak = bestStreak + 1
-      setBestStreak(newStreak)
-      localStorage.setItem(storageKey, String(newStreak))
+      setBestStreak(s => {
+        const ns = s + 1
+        localStorage.setItem(storageKey, String(ns))
+        return ns
+      })
     } else {
       setBestStreak(0)
       localStorage.setItem(storageKey, '0')
@@ -338,11 +419,15 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
     setWon(false)
     setShake(false)
     setRevealRow(-1)
+    setBounceRow(-1)
+    setPopCol(-1)
     setHintsUsed(0)
     setMessage('')
     setLetterStates({})
     setResetKey(k => k + 1)
     setShowConfetti(false)
+    setShowStats(false)
+    setCopied(false)
   }
 
   // ─── Colors ──────────────────────────────────────────────────────────────
@@ -365,6 +450,7 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
       const isCurrentRow = r === guesses.length && !gameOver
       const guessData = guesses[r]
       const isRevealing = r === revealRow
+      const isBouncing = r === bounceRow
 
       const cells = []
       for (let c = 0; c < 5; c++) {
@@ -374,6 +460,7 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
         let textColor = dark ? '#FFF' : '#1A1A2E'
         let scale = 1
         let delay = c * 0.1
+        let isPop = isCurrentRow && c === popCol
 
         if (guessData) {
           letter = guessData.word[c]
@@ -384,7 +471,6 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
         } else if (isCurrentRow && c < currentGuess.length) {
           letter = currentGuess[c]
           borderColor = dark ? '#888' : '#878A8C'
-          scale = 1.05
         }
 
         cells.push(
@@ -397,9 +483,14 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
             border: `2px solid ${borderColor}`,
             borderRadius: 10,
             color: textColor,
-            transform: `scale(${scale})`,
             transition: 'all 0.15s ease',
-            animation: isRevealing ? `wordleFlip 0.5s ease ${delay}s both` : 'none',
+            animation: isRevealing
+              ? `wordleFlip 0.5s ease ${delay}s both`
+              : isBouncing
+                ? `wordleBounce 0.4s ease ${c * 0.08}s both`
+                : isPop
+                  ? 'wordlePop 0.15s ease both'
+                  : 'none',
           }}>
             {letter}
           </div>
@@ -435,22 +526,16 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
           else if (state === 'absent') { bg = colors.absent; textCol = '#FFF' }
 
           return (
-            <button
-              key={key}
-              onClick={() => handleKey(key)}
+            <button key={key} onClick={() => handleKey(key)}
               style={{
-                minWidth: isWide ? 56 : 32,
-                height: 46,
-                borderRadius: 8,
-                border: 'none',
-                background: bg,
-                color: textCol,
-                fontSize: isWide ? 12 : 16,
-                fontWeight: 700,
+                minWidth: isWide ? 56 : 32, height: 46,
+                borderRadius: 8, border: 'none',
+                background: bg, color: textCol,
+                fontSize: isWide ? 12 : 16, fontWeight: 700,
                 fontFamily: "'Fredoka One',cursive",
                 cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 0.1s ease',
+                transition: 'all 0.15s ease',
                 WebkitTapHighlightColor: 'transparent',
                 padding: isWide ? '0 8px' : 0,
               }}
@@ -461,6 +546,84 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
         })}
       </div>
     ))
+  }
+
+  // ─── Stats Modal ─────────────────────────────────────────────────────────
+  const renderStatsModal = () => {
+    const winPct = stats.played > 0 ? Math.round(stats.won / stats.played * 100) : 0
+    const maxDist = Math.max(...stats.dist, 1)
+
+    return (
+      <div style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 998, padding: 24, animation: 'winFadeIn 0.3s ease',
+      }} onClick={() => setShowStats(false)}>
+        <div onClick={e => e.stopPropagation()} style={{
+          background: dark ? '#1E1E2E' : '#FFF', borderRadius: 20,
+          padding: '28px 24px', maxWidth: 360, width: '100%',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.3)',
+          animation: 'winPopIn 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+        }}>
+          <h3 style={{ textAlign: 'center', fontFamily: "'Fredoka One',cursive",
+            fontSize: 18, color: dark ? '#FFF' : '#1A1A2E', marginBottom: 16 }}>
+            📊 Statistik
+          </h3>
+
+          {/* Summary */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 20 }}>
+            {[
+              { v: stats.played, l: 'Main' },
+              { v: winPct, l: 'Win %' },
+              { v: stats.curStreak, l: 'Streak' },
+              { v: stats.maxStreak, l: 'Maks' },
+            ].map(s => (
+              <div key={s.l} style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 24, fontWeight: 800, fontFamily: "'Fredoka One',cursive",
+                  color: dark ? '#FFF' : '#1A1A2E' }}>{s.v}</div>
+                <div style={{ fontSize: 10, color: dark ? '#888' : '#999' }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Distribution */}
+          <div style={{ fontSize: 12, fontWeight: 700, color: dark ? '#AAA' : '#666', marginBottom: 8 }}>
+            Distribusi Tebakan
+          </div>
+          {stats.dist.slice(0, cfg.maxGuesses).map((count, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <span style={{ width: 14, fontSize: 12, fontWeight: 700, color: dark ? '#AAA' : '#666' }}>{i+1}</span>
+              <div style={{
+                minWidth: 20, width: `${Math.max(8, count / maxDist * 100)}%`,
+                background: (gameOver && won && guesses.length === i + 1) ? colors.correct : (dark ? '#444' : '#DDD'),
+                color: '#FFF', padding: '2px 8px', borderRadius: 4,
+                fontSize: 12, fontWeight: 700, textAlign: 'right',
+              }}>{count}</div>
+            </div>
+          ))}
+
+          {gameOver && (
+            <button onClick={shareResults} style={{
+              width: '100%', marginTop: 16, padding: '12px',
+              background: GAME_COLOR, color: '#1A1A2E', border: 'none',
+              borderRadius: 100, fontSize: 14, fontWeight: 800,
+              fontFamily: "'Fredoka One',cursive", cursor: 'pointer',
+            }}>
+              {copied ? '✅ Disalin!' : '📤 Bagikan Hasil'}
+            </button>
+          )}
+
+          <button onClick={() => setShowStats(false)} style={{
+            width: '100%', marginTop: 8, padding: '10px',
+            background: 'transparent', color: dark ? '#888' : '#999',
+            border: `1px solid ${dark ? '#444' : '#DDD'}`,
+            borderRadius: 100, fontSize: 13, fontWeight: 700,
+            fontFamily: "'Fredoka One',cursive", cursor: 'pointer',
+          }}>Tutup</button>
+        </div>
+      </div>
+    )
   }
 
   // ─── Stats for modals ────────────────────────────────────────────────────
@@ -535,53 +698,67 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
         {!gameOver && (
           <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
             {hintsUsed < cfg.hintLimit && (
-              <button
-                onClick={useHint}
-                style={{
-                  padding: '8px 18px', borderRadius: 12, border: 'none',
-                  background: `${GAME_COLOR}22`, color: GAME_COLOR,
-                  fontWeight: 700, fontSize: 13, cursor: 'pointer',
-                  fontFamily: "'Fredoka One',cursive",
-                }}
-              >
+              <button onClick={useHint} style={{
+                padding: '8px 18px', borderRadius: 12, border: 'none',
+                background: `${GAME_COLOR}22`, color: GAME_COLOR,
+                fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                fontFamily: "'Fredoka One',cursive",
+              }}>
                 💡 Hint ({cfg.hintLimit - hintsUsed})
               </button>
             )}
-            <button
-              onClick={() => setShowTutorial(true)}
-              style={{
-                padding: '8px 18px', borderRadius: 12, border: 'none',
-                background: dark ? '#333' : '#F0F0F0',
-                color: dark ? '#AAA' : '#666',
-                fontWeight: 700, fontSize: 13, cursor: 'pointer',
-                fontFamily: "'Fredoka One',cursive",
-              }}
-            >
-              ❓ Cara Main
+            <button onClick={() => setShowStats(true)} style={{
+              padding: '8px 18px', borderRadius: 12, border: 'none',
+              background: dark ? '#333' : '#F0F0F0',
+              color: dark ? '#AAA' : '#666',
+              fontWeight: 700, fontSize: 13, cursor: 'pointer',
+              fontFamily: "'Fredoka One',cursive",
+            }}>
+              📊 Stats
+            </button>
+            <button onClick={() => setShowTutorial(true)} style={{
+              padding: '8px 18px', borderRadius: 12, border: 'none',
+              background: dark ? '#333' : '#F0F0F0',
+              color: dark ? '#AAA' : '#666',
+              fontWeight: 700, fontSize: 13, cursor: 'pointer',
+              fontFamily: "'Fredoka One',cursive",
+            }}>
+              ❓
             </button>
           </div>
         )}
 
+        {/* Hard mode indicator */}
+        {difficulty.id === 'hard' && !gameOver && guesses.length > 0 && (
+          <div style={{
+            textAlign: 'center', fontSize: 11, color: '#E17055',
+            fontWeight: 700, marginBottom: 8,
+            fontFamily: "'Fredoka One',cursive",
+          }}>
+            🔒 Hard Mode — huruf hijau & kuning wajib dipakai
+          </div>
+        )}
+
         {/* Keyboard */}
-        <div style={{
-          maxWidth: 420, margin: '0 auto',
-          padding: '8px 4px',
-        }}>
+        <div style={{ maxWidth: 420, margin: '0 auto', padding: '8px 4px' }}>
           {renderKeyboard()}
         </div>
 
         <BestRecord label="Win Streak Terbaik" value={bestStreak} dark={dark} color={GAME_COLOR} />
 
+        {/* Stats Modal */}
+        {showStats && renderStatsModal()}
+
         {/* Win Modal */}
         {gameOver && won && (
           <WinModal
             emoji="🎉"
-            title="Hebat!"
-            subtitle={`Kamu berhasil menebak "${answer}" dalam ${attempts} percobaan!`}
-            diffLabel={difficulty.id.toUpperCase()}
+            title={attempts <= 2 ? 'LUAR BIASA!' : attempts <= 4 ? 'Hebat!' : 'Berhasil!'}
+            subtitle={`"${answer}" dalam ${attempts} percobaan!`}
+            diffLabel={difficulty.id === 'hard' ? '🔒 HARD' : difficulty.id.toUpperCase()}
             stats={[
               { label: 'Percobaan', value: attempts },
-              { label: 'Hint Dipakai', value: hintsUsed },
+              { label: 'Hint', value: hintsUsed },
               { label: 'Skor', value: finalScore },
             ]}
             stars={finalStars}
@@ -592,6 +769,33 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
             gameColor={GAME_COLOR}
           />
         )}
+        {/* Share + Stats buttons after win/lose */}
+        {gameOver && (
+          <div style={{
+            position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)',
+            display: 'flex', gap: 8, zIndex: 1000,
+          }}>
+            <button onClick={shareResults} style={{
+              padding: '10px 20px', borderRadius: 100, border: 'none',
+              background: GAME_COLOR, color: '#1A1A2E',
+              fontWeight: 800, fontSize: 13, cursor: 'pointer',
+              fontFamily: "'Fredoka One',cursive",
+              boxShadow: '0 4px 16px rgba(85,239,196,0.4)',
+            }}>
+              {copied ? '✅ Disalin!' : '📤 Share'}
+            </button>
+            <button onClick={() => setShowStats(true)} style={{
+              padding: '10px 20px', borderRadius: 100,
+              border: '1.5px solid rgba(255,255,255,0.2)',
+              background: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+              color: dark ? '#FFF' : '#1A1A2E',
+              fontWeight: 800, fontSize: 13, cursor: 'pointer',
+              fontFamily: "'Fredoka One',cursive",
+            }}>
+              📊 Stats
+            </button>
+          </div>
+        )}
 
         {/* Lose Modal */}
         {gameOver && !won && (
@@ -601,7 +805,7 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
             subtitle={`Jawabannya: "${answer}"`}
             stats={[
               { label: 'Percobaan', value: attempts },
-              { label: 'Hint Dipakai', value: hintsUsed },
+              { label: 'Hint', value: hintsUsed },
             ]}
             coinReward={coinAmt}
             onRestart={restart}
@@ -624,6 +828,25 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
           40% { transform: translateX(6px); }
           60% { transform: translateX(-4px); }
           80% { transform: translateX(4px); }
+        }
+        @keyframes wordleBounce {
+          0% { transform: translateY(0); }
+          30% { transform: translateY(-10px); }
+          50% { transform: translateY(0); }
+          70% { transform: translateY(-4px); }
+          100% { transform: translateY(0); }
+        }
+        @keyframes wordlePop {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.15); }
+          100% { transform: scale(1); }
+        }
+        @keyframes winFadeIn {
+          from { opacity: 0; } to { opacity: 1; }
+        }
+        @keyframes winPopIn {
+          from { transform: scale(0.7); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
         }
       `}</style>
     </>

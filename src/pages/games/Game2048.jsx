@@ -211,14 +211,6 @@ export default function Game2048({ onBack, game, difficulty }) {
       setLevel(nLevel); setGoal(nGoal); setMaxIdx(nMax)
       setBestMerge(0) // Reset for new level
 
-      // Report to global progress on every level up
-      const currentScore = score + sum
-      reportGameResult({
-        gameId: '2048', difficultyId: difficulty.id, won: true,
-        score: currentScore,
-        stars: nLevel >= 4 ? 3 : nLevel >= 2 ? 2 : 1,
-        timeSec: 0,
-      })
       earnCoins(30, `Level Up! (Lv.${nLevel})`)
     }
     setChain([])

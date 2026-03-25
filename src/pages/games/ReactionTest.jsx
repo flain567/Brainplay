@@ -106,7 +106,8 @@ export default function ReactionTest({ onBack, game, difficulty }) {
     if (tapPhase === 'go') {
       const reactionTime = Date.now() - goTimeRef.current
       try { play('match') } catch(e) {}
-      setResults(r => [...r, { type: 'tap', time: reactionTime, label: `${reactionTime}ms` }])
+      const rating = reactionTime < 150 ? '⚡ Lightning!' : reactionTime < 250 ? '🔥 Fast!' : reactionTime < 350 ? '👍 Good' : reactionTime < 500 ? '😐 Slow...' : '🐢 Too slow!'
+      setResults(r => [...r, { type: 'tap', time: reactionTime, label: `${reactionTime}ms`, rating }])
       setTapPhase('result')
       setTimeout(() => {
         setRound(r => r + 1)
@@ -373,6 +374,12 @@ export default function ReactionTest({ onBack, game, difficulty }) {
             {round + 1}/{cfg.rounds}
           </span>
         </div>
+        {/* Round progress bar */}
+        <div style={{ position: 'absolute', top: 52, left: 16, right: 16 }}>
+          <div style={{ height: 4, background: 'rgba(255,255,255,0.15)', borderRadius: 100, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${(round / cfg.rounds) * 100}%`, background: 'rgba(255,255,255,0.6)', borderRadius: 100, transition: 'width 0.4s ease' }} />
+          </div>
+        </div>
 
         <div style={{ fontSize: 60, marginBottom: 16 }}>
           {tapPhase === 'waiting' ? '🔴' : tapPhase === 'go' ? '🟢' : tapPhase === 'early' ? '❌' : '⚡'}
@@ -381,8 +388,13 @@ export default function ReactionTest({ onBack, game, difficulty }) {
           {tapText}
         </div>
         {tapPhase === 'result' && results.length > 0 && (
-          <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, marginTop: 8 }}>
-            Rata-rata: {Math.round(validResults.reduce((s,r)=>s+r.time,0) / Math.max(1, validResults.length))}ms
+          <div>
+            <div style={{ color: '#FFD700', fontSize: 18, fontWeight: 800, fontFamily: "'Fredoka One',cursive", marginTop: 6, animation: 'winFadeIn 0.3s ease' }}>
+              {results[results.length - 1]?.rating || ''}
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, marginTop: 8 }}>
+              Rata-rata: {Math.round(validResults.reduce((s,r)=>s+r.time,0) / Math.max(1, validResults.length))}ms
+            </div>
           </div>
         )}
 
@@ -565,9 +577,51 @@ export default function ReactionTest({ onBack, game, difficulty }) {
   }
 
   // ═══════ DONE SCREEN ═══════
+  const maxTime = Math.max(...results.map(r => r.time > 0 ? r.time : 0), 1)
+
   return (
     <div style={{ minHeight: '100dvh', background: bg, padding: '24px 16px 80px' }}>
       {showConfetti && <Confetti />}
+
+      {/* Results chart behind modal */}
+      {mode === 'tap' && results.length > 0 && (
+        <div style={{
+          maxWidth: 380, margin: '0 auto 16px', padding: '16px',
+          background: dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+          borderRadius: 16,
+        }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: tc.textMuted, marginBottom: 12,
+            fontFamily: "'Fredoka One',cursive", textAlign: 'center' }}>
+            ⚡ Waktu Reaksi per Round
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 100, justifyContent: 'center' }}>
+            {results.map((r, i) => {
+              const pct = r.time > 0 ? Math.max(10, (r.time / maxTime) * 100) : 100
+              const col = r.time < 0 ? '#FF6B6B' : r.time < 200 ? '#00B894' : r.time < 350 ? '#FDCB6E' : '#E17055'
+              return (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
+                  <div style={{ fontSize: 9, color: tc.textMuted, marginBottom: 4, fontWeight: 700 }}>
+                    {r.time > 0 ? `${r.time}` : '✗'}
+                  </div>
+                  <div style={{
+                    width: '100%', maxWidth: 32, height: `${pct}%`, minHeight: 8,
+                    background: col, borderRadius: '6px 6px 2px 2px',
+                    transition: 'height 0.5s ease',
+                    animation: `barGrow 0.5s ${i * 0.1}s ease both`,
+                  }} />
+                  <div style={{ fontSize: 9, color: tc.textMuted, marginTop: 3 }}>R{i+1}</div>
+                </div>
+              )
+            })}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 10, fontSize: 10, color: tc.textMuted }}>
+            <span><span style={{ color: '#00B894' }}>●</span> &lt;200ms</span>
+            <span><span style={{ color: '#FDCB6E' }}>●</span> 200-350ms</span>
+            <span><span style={{ color: '#E17055' }}>●</span> &gt;350ms</span>
+          </div>
+        </div>
+      )}
+
       <WinModal
         emoji={accuracy >= 70 ? '🏆' : '⚡'}
         title={accuracy >= 70 ? 'Luar Biasa!' : 'Selesai!'}
@@ -585,6 +639,13 @@ export default function ReactionTest({ onBack, game, difficulty }) {
         dark={dark}
         gameColor="#A29BFE"
       />
+
+      <style>{`
+        @keyframes barGrow {
+          from { transform: scaleY(0); transform-origin: bottom; }
+          to { transform: scaleY(1); transform-origin: bottom; }
+        }
+      `}</style>
     </div>
   )
 }

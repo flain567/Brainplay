@@ -167,7 +167,7 @@ export default function NeonDash({onBack,game,difficulty}){
     const bH=Math.max(2,Math.floor(H*0.2/BK))
     return{W,H,lv:1,sc:0,att:1,bH,lvD:buildLv(LVS[0],bH,H),
       px:70,py:H-bH*BK-PS,vy:0,gnd:true,mode:'cube',rot:0,hold:false,
-      cam:0,spd:dc.spd,cd:0,dieT:0,winT:0,
+      cam:0,spd:dc.spd,cd:0,dieT:0,winT:0,deathFlash:0,
       pts:[],rings:[],trail:[],shk:0,gOff:0,bgR:mkBgR(W,H)}
   }
 
@@ -211,11 +211,12 @@ export default function NeonDash({onBack,game,difficulty}){
       g.trail=[];g.pts=[];g.rings=[];sp('play')
     }
     function die(){
-      sp('dying');g.dieT=35;g.shk=14
+      sp('dying');g.dieT=40;g.shk=18;g.deathFlash=1.0
       const cx=g.px+PS/2,cy=g.py+PS/2
-      for(let i=0;i<14;i++){const a=P2*Math.random(),s=1.5+Math.random()*5
-        g.pts.push({x:cx,y:cy,dx:Math.cos(a)*s,dy:Math.sin(a)*s,l:20+Math.random()*20,ml:40,r:2+Math.random()*3,c:CL.ply})}
-      g.rings.push({x:cx,y:cy,r:5,mr:80,a:1,c:'#fff',lw:3})
+      for(let i=0;i<25;i++){const a=P2*Math.random(),s=1.5+Math.random()*6
+        g.pts.push({x:cx,y:cy,dx:Math.cos(a)*s,dy:Math.sin(a)*s-1,l:25+Math.random()*25,ml:50,r:2+Math.random()*4,c:i<12?CL.ply:i<18?'#FF6B6B':'#fff'})}
+      g.rings.push({x:cx,y:cy,r:5,mr:100,a:1,c:'#fff',lw:3})
+      g.rings.push({x:cx,y:cy,r:10,mr:60,a:0.6,c:'#FF6B6B',lw:2})
       try{play('mismatch')}catch(e){}
     }
     function win(){
@@ -250,6 +251,7 @@ export default function NeonDash({onBack,game,difficulty}){
       while(g.trail.length>80)g.trail.shift()
       for(let i=g.trail.length-1;i>=0;i--){g.trail[i].a-=0.02*dt;if(g.trail[i].a<=0)g.trail.splice(i,1)}
       if(g.shk>0){g.shk*=0.9;if(g.shk<0.3)g.shk=0}
+      if(g.deathFlash>0){g.deathFlash*=0.88;if(g.deathFlash<0.02)g.deathFlash=0}
 
       // State transitions (frame-based, no setTimeout!)
       if(p==='dying'){g.dieT-=dt;if(g.dieT<=0)sp('dead')}
@@ -410,6 +412,9 @@ export default function NeonDash({onBack,game,difficulty}){
       ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font="bold 9px 'Fredoka One',sans-serif";ctx.textAlign='center';ctx.fillText(`${uPr}%`,bx+bw/2,by+bh+10)
       ctx.textAlign='left';ctx.fillStyle=g.mode==='wave'?CL.wav:CL.ply;ctx.font="bold 10px 'Fredoka One',sans-serif";ctx.fillText(g.mode==='wave'?'~ WAVE':'□ CUBE',10,26)
       ctx.textAlign='right';ctx.font="bold 11px 'Fredoka One',sans-serif";ctx.fillStyle='#fff';ctx.fillText(`💎 ${uDi}`,W-10,14);ctx.fillStyle=CL.gndL;ctx.fillText(`Lv${g.lv} ×${g.att}`,W-10,28)
+
+      // Death flash overlay
+      if(g.deathFlash>0.01){ctx.fillStyle=`rgba(255,80,80,${g.deathFlash*0.4})`;ctx.fillRect(0,0,W,H)}
 
       // Overlays
       if(ph==='idle'){ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(0,0,W,H);const sc=0.92+Math.sin(ts/400)*0.08;ctx.save();ctx.translate(W/2,H*0.42);ctx.scale(sc,sc);ctx.fillStyle='#fff';ctx.shadowColor=CL.gndL;ctx.shadowBlur=16;ctx.font="bold 22px 'Fredoka One',sans-serif";ctx.textAlign='center';ctx.fillText('TAP UNTUK MULAI',0,0);ctx.shadowBlur=4;ctx.fillStyle=CL.gndL;ctx.font="13px 'Fredoka One',sans-serif";ctx.fillText('💎 Neon Dash',0,26);ctx.shadowBlur=0;ctx.restore()}
