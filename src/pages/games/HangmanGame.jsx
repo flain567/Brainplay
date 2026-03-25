@@ -2,6 +2,7 @@ import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
 import { useState, useEffect, useCallback } from 'react'
 import { useSettings } from '../../context/SettingsContext.jsx'
+import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
@@ -296,7 +297,8 @@ function HangmanFigure({ wrongCount, maxWrong, color, headColor: hColor }) {
 }
 
 export default function HangmanGame({ onBack, game, difficulty }) {
-  const { darkMode } = useSettings()
+  const tc = useThemeColors()
+  const dark = tc.dark
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins, spendCoins, coins, getActiveHangmanTheme } = useCoins()
@@ -425,11 +427,11 @@ export default function HangmanGame({ onBack, game, difficulty }) {
   }
 
   // Theme
-  const bg        = darkMode ? '#1a1a2e' : '#FFF9F0'
-  const surface   = darkMode ? '#16213e' : '#fff'
-  const textMain  = darkMode ? '#e8e8f0' : '#2D3436'
-  const textMuted = darkMode ? '#8892b0' : '#636E72'
-  const borderCol = darkMode ? '#2d3561' : '#DFE6E9'
+  const bg        = tc.bg
+  const surface   = tc.surface
+  const textMain  = tc.textMain
+  const textMuted = tc.textMuted
+  const borderCol = tc.borderCol
   const accent    = '#E17055'
 
   const revealedWord = word.split('').map((letter, i) => ({
@@ -501,7 +503,7 @@ export default function HangmanGame({ onBack, game, difficulty }) {
       </div>
 
       {/* Hint — always visible as clue */}
-      <div style={{ background: darkMode ? '#2d2d1e' : '#FFFDE7', border: `2px solid #FFD93D44`, borderRadius: 14, padding: '10px 16px', textAlign: 'center', marginBottom: 16, fontSize: 14, color: textMuted }}>
+      <div style={{ background: dark ? '#2d2d1e' : '#FFFDE7', border: `2px solid #FFD93D44`, borderRadius: 14, padding: '10px 16px', textAlign: 'center', marginBottom: 16, fontSize: 14, color: textMuted }}>
         💡 <strong style={{ color: '#FFD93D' }}>Petunjuk:</strong> {wordData.hint}
       </div>
 
@@ -512,7 +514,7 @@ export default function HangmanGame({ onBack, game, difficulty }) {
             width: word.length > 10 ? 30 : word.length > 7 ? 36 : 42,
             height: word.length > 10 ? 38 : word.length > 7 ? 44 : 50,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            borderBottom: `3px solid ${item.revealed ? (lost && !guessed.has(item.letter) ? '#FF6B6B' : accent) : (darkMode ? '#4a4a6a' : '#B2BEC3')}`,
+            borderBottom: `3px solid ${item.revealed ? (lost && !guessed.has(item.letter) ? '#FF6B6B' : accent) : (dark ? '#4a4a6a' : '#B2BEC3')}`,
             fontFamily: "'Fredoka One',cursive",
             fontSize: word.length > 10 ? 20 : word.length > 7 ? 24 : 28,
             color: lost && !guessed.has(item.letter) ? '#FF6B6B' : textMain,
@@ -531,7 +533,7 @@ export default function HangmanGame({ onBack, game, difficulty }) {
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <span style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>Salah: </span>
           {wrongLetters.map(l => (
-            <span key={l} style={{ display: 'inline-block', margin: '0 3px', padding: '2px 8px', background: darkMode ? '#3a1a1a' : '#FFF0F0', color: '#FF6B6B', borderRadius: 6, fontSize: 14, fontWeight: 700, fontFamily: "'Fredoka One',cursive" }}>{l}</span>
+            <span key={l} style={{ display: 'inline-block', margin: '0 3px', padding: '2px 8px', background: dark ? '#3a1a1a' : '#FFF0F0', color: '#FF6B6B', borderRadius: 6, fontSize: 14, fontWeight: 700, fontFamily: "'Fredoka One',cursive" }}>{l}</span>
           ))}
         </div>
       )}
@@ -555,12 +557,12 @@ export default function HangmanGame({ onBack, game, difficulty }) {
                     fontWeight: 800,
                     fontFamily: "'Fredoka One',cursive",
                     cursor: (isGuessed || !isGameActive) ? 'default' : 'pointer',
-                    background: isCorrect ? '#00b894' : isWrong ? '#FF6B6B' : (darkMode ? '#2d3561' : '#F1F3F5'),
+                    background: isCorrect ? '#00b894' : isWrong ? '#FF6B6B' : (dark ? '#2d3561' : '#F1F3F5'),
                     color: isGuessed ? '#fff' : textMain,
                     opacity: isGuessed ? 0.7 : 1,
                     transition: 'all 0.15s cubic-bezier(0.34,1.56,0.64,1)',
                     transform: isGuessed ? 'scale(0.88)' : 'scale(1)',
-                    boxShadow: isGuessed ? 'none' : `0 3px 8px ${darkMode ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.1)'}`,
+                    boxShadow: isGuessed ? 'none' : `0 3px 8px ${dark ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.1)'}`,
                     WebkitTapHighlightColor: 'transparent',
                   }}>
                   {letter}
@@ -589,7 +591,7 @@ export default function HangmanGame({ onBack, game, difficulty }) {
 
       {/* Best record */}
       {bestWrong >= 0 && (
-        <div style={{ marginTop: 20, background: darkMode ? '#1f1f3e' : '#FFF9F0', border: `2px solid ${darkMode ? '#3d3561' : '#FFE66D'}`, borderRadius: 16, padding: '12px 20px', textAlign: 'center', fontSize: 14, color: textMuted, fontWeight: 600 }}>
+        <div style={{ marginTop: 20, background: dark ? '#1f1f3e' : '#FFF9F0', border: `2px solid ${dark ? '#3d3561' : '#FFE66D'}`, borderRadius: 16, padding: '12px 20px', textAlign: 'center', fontSize: 14, color: textMuted, fontWeight: 600 }}>
           🏆 Rekor {DIFF_LABEL[difficulty.id]}: <span style={{ color: accent, fontFamily: "'Fredoka One',cursive", fontSize: 16 }}>{bestWrong} salah</span>
         </div>
       )}
@@ -605,7 +607,7 @@ export default function HangmanGame({ onBack, game, difficulty }) {
           diffLabel={DIFF_LABEL[difficulty.id]}
           onRestart={restart}
           onBack={onBack}
-          darkMode={darkMode}
+          darkMode={dark}
           game={game}
           difficulty={difficulty}
           paidHints={paidHints}
@@ -650,7 +652,7 @@ function ResultModal({ won, word, wrongCount, maxWrong, time, diffLabel, onResta
 
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={onRestart} style={{ flex: 1, background: '#E17055', color: '#fff', border: 'none', borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', boxShadow: '0 4px 14px #E1705544' }}>🔄 Main Lagi</button>
-          <button onClick={onBack} style={{ flex: 1, background: darkMode ? '#1e2a4a' : '#F8F9FA', color: textMuted, border: `2px solid ${darkMode ? '#2d3561' : '#DFE6E9'}`, borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>🎯 Ganti Level</button>
+          <button onClick={onBack} style={{ flex: 1, background: darkMode ? '#1e2a4a' : '#F8F9FA', color: textMuted, border: `2px solid ${dark ? '#2d3561' : '#DFE6E9'}`, borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>🎯 Ganti Level</button>
         </div>
       </div>
       <style>{`

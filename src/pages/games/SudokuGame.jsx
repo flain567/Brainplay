@@ -2,6 +2,7 @@ import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
 import { useState, useEffect, useCallback } from 'react'
 import { useSettings } from '../../context/SettingsContext.jsx'
+import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
@@ -103,7 +104,8 @@ const formatTime = (s) =>
   `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`
 
 export default function SudokuGame({ onBack, game, difficulty }) {
-  const { darkMode } = useSettings()
+  const tc = useThemeColors()
+  const dark = tc.dark
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins, spendCoins, coins, getActiveSudokuTheme } = useCoins()
@@ -319,11 +321,11 @@ export default function SudokuGame({ onBack, game, difficulty }) {
   }
 
   // Theme
-  const bg        = darkMode ? '#1a1a2e' : '#FFF9F0'
-  const surface   = darkMode ? '#16213e' : '#fff'
-  const textMain  = darkMode ? '#e8e8f0' : '#2D3436'
-  const textMuted = darkMode ? '#8892b0' : '#636E72'
-  const borderCol = darkMode ? '#2d3561' : '#DFE6E9'
+  const bg        = tc.bg
+  const surface   = tc.surface
+  const textMain  = tc.textMain
+  const textMuted = tc.textMuted
+  const borderCol = tc.borderCol
   const accent    = sudokuTheme?.grid || '#0984E3'
 
   const selectedNum = selectedCell ? board[selectedCell[0]][selectedCell[1]] : null
@@ -372,7 +374,7 @@ export default function SudokuGame({ onBack, game, difficulty }) {
           display: 'grid',
           gridTemplateColumns: 'repeat(9, 1fr)',
           gap: 0,
-          border: `3px solid ${darkMode ? '#4a4a6a' : '#2D3436'}`,
+          border: `3px solid ${dark ? '#4a4a6a' : '#2D3436'}`,
           borderRadius: 12,
           overflow: 'hidden',
           width: '100%',
@@ -394,10 +396,10 @@ export default function SudokuGame({ onBack, game, difficulty }) {
             const bottomBorder = (r + 1) % 3 === 0 && r < 8
 
             let cellBg = surface
-            if (isSelected) cellBg = sudokuTheme?.selected ? `${sudokuTheme.selected}33` : (darkMode ? '#2a3a6e' : '#D4E6FF')
-            else if (isError) cellBg = darkMode ? '#3a1a1a' : '#FFE0E0'
-            else if (isSameNum) cellBg = darkMode ? '#1e2e5e' : '#E8F0FE'
-            else if (isHighlighted) cellBg = darkMode ? '#1a2240' : '#F0F4FF'
+            if (isSelected) cellBg = sudokuTheme?.selected ? `${sudokuTheme.selected}33` : (dark ? '#2a3a6e' : '#D4E6FF')
+            else if (isError) cellBg = dark ? '#3a1a1a' : '#FFE0E0'
+            else if (isSameNum) cellBg = dark ? '#1e2e5e' : '#E8F0FE'
+            else if (isHighlighted) cellBg = dark ? '#1a2240' : '#F0F4FF'
 
             return (
               <div key={`${r}-${c}`}
@@ -405,8 +407,8 @@ export default function SudokuGame({ onBack, game, difficulty }) {
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: cellBg,
-                  borderRight: rightBorder ? `2px solid ${darkMode ? '#4a4a6a' : '#2D3436'}` : `1px solid ${darkMode ? '#2a2a4a' : '#DFE6E9'}`,
-                  borderBottom: bottomBorder ? `2px solid ${darkMode ? '#4a4a6a' : '#2D3436'}` : `1px solid ${darkMode ? '#2a2a4a' : '#DFE6E9'}`,
+                  borderRight: rightBorder ? `2px solid ${dark ? '#4a4a6a' : '#2D3436'}` : `1px solid ${dark ? '#2a2a4a' : '#DFE6E9'}`,
+                  borderBottom: bottomBorder ? `2px solid ${dark ? '#4a4a6a' : '#2D3436'}` : `1px solid ${dark ? '#2a2a4a' : '#DFE6E9'}`,
                   cursor: won ? 'default' : 'pointer',
                   transition: 'background 0.15s',
                   position: 'relative',
@@ -455,7 +457,7 @@ export default function SudokuGame({ onBack, game, difficulty }) {
                 fontSize: 20, fontWeight: 800,
                 fontFamily: "'Fredoka One',cursive",
                 cursor: isFull || won ? 'default' : 'pointer',
-                background: isFull ? (darkMode ? '#1a1a2e' : '#F1F3F5') : (notesMode ? (darkMode ? '#1a2e3e' : '#E8F4FD') : surface),
+                background: isFull ? (dark ? '#1a1a2e' : '#F1F3F5') : (notesMode ? (dark ? '#1a2e3e' : '#E8F4FD') : surface),
                 color: isFull ? textMuted : accent,
                 opacity: isFull ? 0.4 : 1,
                 transition: 'all 0.2s',
@@ -476,7 +478,7 @@ export default function SudokuGame({ onBack, game, difficulty }) {
       <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
         <button onClick={() => { play('toggle'); setNotesMode(m => !m) }}
           style={{
-            background: notesMode ? accent : (darkMode ? '#2d3561' : '#F1F3F5'),
+            background: notesMode ? accent : (dark ? '#2d3561' : '#F1F3F5'),
             color: notesMode ? '#fff' : textMuted,
             border: `2px solid ${notesMode ? accent : borderCol}`,
             borderRadius: 100, padding: '10px 18px', fontSize: 13, fontWeight: 800,
@@ -504,7 +506,7 @@ export default function SudokuGame({ onBack, game, difficulty }) {
 
       {/* Best record */}
       {bestTime > 0 && (
-        <div style={{ marginTop: 20, background: darkMode ? '#1f1f3e' : '#FFF9F0', border: `2px solid ${darkMode ? '#3d3561' : '#FFE66D'}`, borderRadius: 16, padding: '12px 20px', textAlign: 'center', fontSize: 14, color: textMuted, fontWeight: 600 }}>
+        <div style={{ marginTop: 20, background: dark ? '#1f1f3e' : '#FFF9F0', border: `2px solid ${dark ? '#3d3561' : '#FFE66D'}`, borderRadius: 16, padding: '12px 20px', textAlign: 'center', fontSize: 14, color: textMuted, fontWeight: 600 }}>
           🏆 Rekor {DIFF_LABEL[difficulty.id]}: <span style={{ color: accent, fontFamily: "'Fredoka One',cursive", fontSize: 16 }}>{formatTime(bestTime)}</span>
         </div>
       )}
@@ -516,7 +518,7 @@ export default function SudokuGame({ onBack, game, difficulty }) {
           diffLabel={DIFF_LABEL[difficulty.id]}
           onRestart={restart}
           onBack={onBack}
-          darkMode={darkMode}
+          darkMode={dark}
           game={game}
           difficulty={difficulty}
         />
@@ -535,7 +537,7 @@ export default function SudokuGame({ onBack, game, difficulty }) {
 
 function WinModal({ errors, time, diffLabel, onRestart, onBack, darkMode, game, difficulty }) {
   const stars = errors <= (difficulty.id === 'hard' ? 1 : difficulty.id === 'medium' ? 2 : 3) ? 3 : errors <= 5 ? 2 : 1
-  const bg = darkMode ? '#1a1a2e' : '#fff'
+  const bg = dark ? '#1a1a2e' : '#fff'
   const textMain = darkMode ? '#e8e8f0' : '#2D3436'
   const textMuted = darkMode ? '#8892b0' : '#636E72'
 
@@ -562,7 +564,7 @@ function WinModal({ errors, time, diffLabel, onRestart, onBack, darkMode, game, 
 
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={onRestart} style={{ flex: 1, background: '#0984E3', color: '#fff', border: 'none', borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', boxShadow: '0 4px 14px #0984E344' }}>🔄 Main Lagi</button>
-          <button onClick={onBack} style={{ flex: 1, background: darkMode ? '#1e2a4a' : '#F8F9FA', color: textMuted, border: `2px solid ${darkMode ? '#2d3561' : '#DFE6E9'}`, borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>🎯 Ganti Level</button>
+          <button onClick={onBack} style={{ flex: 1, background: dark ? '#1e2a4a' : '#F8F9FA', color: textMuted, border: `2px solid ${dark ? '#2d3561' : '#DFE6E9'}`, borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>🎯 Ganti Level</button>
         </div>
       </div>
       <style>{`

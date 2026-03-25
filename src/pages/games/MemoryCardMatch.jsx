@@ -12,6 +12,7 @@ import { useSettings } from '../../context/SettingsContext.jsx'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
+import { useThemeColors } from '../../hooks/useThemeColors.js'
 
 // Pool emoji — diganti dari active icon pack
 const DEFAULT_POOL = ['🐶','🐱','🦊','🐻','🦁','🐯','🐸','🐧','🦄','🐼','🦋','🐙']
@@ -51,7 +52,8 @@ const formatTime = (s) =>
 const DIFF_LABEL = { easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }
 
 export default function MemoryCardMatch({ onBack, game, difficulty }) {
-  const { darkMode } = useSettings()
+  const tc = useThemeColors()
+  const dark = tc.dark
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { getActiveIcons, earnCoins, spendCoins, coins } = useCoins()
@@ -207,11 +209,11 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
   const matchedCount = deck.filter(c => c.matched).length / 2
 
   // Theme
-  const bg        = darkMode ? '#1a1a2e' : '#FFF9F0'
-  const surface   = darkMode ? '#16213e' : '#fff'
-  const textMain  = darkMode ? '#e8e8f0' : '#2D3436'
-  const textMuted = darkMode ? '#8892b0' : '#636E72'
-  const borderCol = darkMode ? '#2d3561' : '#DFE6E9'
+  const bg        = tc.bg
+  const surface   = tc.surface
+  const textMain  = tc.textMain
+  const textMuted = tc.textMuted
+  const borderCol = tc.borderCol
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100dvh', transition: 'background 0.3s' }}>
@@ -255,7 +257,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
       {/* Board — columns dinamis sesuai difficulty */}
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: cols >= 4 ? 10 : 12, marginBottom: 24 }}>
         {deck.map(card => (
-          <CardTile key={card.id} card={card} onClick={() => flipCard(card.id)} darkMode={darkMode} small={cols >= 5} />
+          <CardTile key={card.id} card={card} onClick={() => flipCard(card.id)} darkMode={dark} small={cols >= 5} />
         ))}
       </div>
 
@@ -277,7 +279,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
 
       {/* Best record */}
       {bestMoves > 0 && (
-        <div style={{ marginTop: 20, background: darkMode ? '#1f1f3e' : '#FFF9F0', border: `2px solid ${darkMode ? '#3d3561' : '#FFE66D'}`, borderRadius: 16, padding: '12px 20px', textAlign: 'center', fontSize: 14, color: textMuted, fontWeight: 600 }}>
+        <div style={{ marginTop: 20, background: dark ? '#1f1f3e' : '#FFF9F0', border: `2px solid ${dark ? '#3d3561' : '#FFE66D'}`, borderRadius: 16, padding: '12px 20px', textAlign: 'center', fontSize: 14, color: textMuted, fontWeight: 600 }}>
           🏆 Rekor {DIFF_LABEL[difficulty.id]}: <span style={{ color: '#FF6B6B', fontFamily: "'Fredoka One',cursive", fontSize: 16 }}>{bestMoves} gerakan</span>
         </div>
       )}
@@ -289,7 +291,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
           diffLabel={DIFF_LABEL[difficulty.id]}
           onRestart={restart}
           onBack={onBack}
-          darkMode={darkMode}
+          darkMode={dark}
           game={game}
           pairs={pairs}
           paidHints={paidHints}

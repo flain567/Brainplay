@@ -2,6 +2,7 @@ import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSettings } from '../../context/SettingsContext.jsx'
+import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
@@ -106,7 +107,8 @@ const formatTime = (s) =>
 const DIFF_LABEL = { easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }
 
 export default function ColorSortGame({ onBack, game, difficulty }) {
-  const { darkMode } = useSettings()
+  const tc = useThemeColors()
+  const dark = tc.dark
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins, getActiveTubeTheme } = useCoins()
@@ -217,11 +219,11 @@ export default function ColorSortGame({ onBack, game, difficulty }) {
   }
 
   // Theme
-  const bg        = darkMode ? '#1a1a2e' : '#FFF9F0'
-  const surface   = darkMode ? '#16213e' : '#fff'
-  const textMain  = darkMode ? '#e8e8f0' : '#2D3436'
-  const textMuted = darkMode ? '#8892b0' : '#636E72'
-  const borderCol = darkMode ? '#2d3561' : '#DFE6E9'
+  const bg        = tc.bg
+  const surface   = tc.surface
+  const textMain  = tc.textMain
+  const textMuted = tc.textMuted
+  const borderCol = tc.borderCol
   const accent    = '#6C5CE7'
 
   const config = DIFF_CONFIG[difficulty.id] || DIFF_CONFIG.easy
@@ -287,10 +289,10 @@ export default function ColorSortGame({ onBack, game, difficulty }) {
                 width: config.colorCount > 6 ? 44 : 52,
                 height: config.colorCount > 6 ? 160 : 180,
                 borderRadius: tubeTheme?.shape === 'bubble' ? '12px 12px 26px 26px' : tubeTheme?.shape === 'flask' ? '4px 4px 22px 22px' : tubeTheme?.shape === 'bamboo' ? '4px 4px 12px 12px' : tubeTheme?.shape === 'crystal' ? '8px 8px 16px 16px' : '0 0 20px 20px',
-                borderLeft: `3px solid ${isSelected ? accent : tubeTheme?.border || (darkMode ? '#3d3561' : '#B2BEC3')}`,
-                borderRight: `3px solid ${isSelected ? accent : tubeTheme?.border || (darkMode ? '#3d3561' : '#B2BEC3')}`,
-                borderBottom: `3px solid ${isSelected ? accent : tubeTheme?.border || (darkMode ? '#3d3561' : '#B2BEC3')}`,
-                background: tubeTheme?.tube || (darkMode ? '#0f0f23' : '#F8F9FA'),
+                borderLeft: `3px solid ${isSelected ? accent : tubeTheme?.border || (dark ? '#3d3561' : '#B2BEC3')}`,
+                borderRight: `3px solid ${isSelected ? accent : tubeTheme?.border || (dark ? '#3d3561' : '#B2BEC3')}`,
+                borderBottom: `3px solid ${isSelected ? accent : tubeTheme?.border || (dark ? '#3d3561' : '#B2BEC3')}`,
+                background: tubeTheme?.tube || (dark ? '#0f0f23' : '#F8F9FA'),
                 display: 'flex', flexDirection: 'column-reverse',
                 padding: 3,
                 gap: 2,
@@ -347,7 +349,7 @@ export default function ColorSortGame({ onBack, game, difficulty }) {
 
       {/* Best record */}
       {bestMoves > 0 && (
-        <div style={{ marginTop: 20, background: darkMode ? '#1f1f3e' : '#FFF9F0', border: `2px solid ${darkMode ? '#3d3561' : '#FFE66D'}`, borderRadius: 16, padding: '12px 20px', textAlign: 'center', fontSize: 14, color: textMuted, fontWeight: 600 }}>
+        <div style={{ marginTop: 20, background: dark ? '#1f1f3e' : '#FFF9F0', border: `2px solid ${dark ? '#3d3561' : '#FFE66D'}`, borderRadius: 16, padding: '12px 20px', textAlign: 'center', fontSize: 14, color: textMuted, fontWeight: 600 }}>
           🏆 Rekor {DIFF_LABEL[difficulty.id]}: <span style={{ color: accent, fontFamily: "'Fredoka One',cursive", fontSize: 16 }}>{bestMoves} langkah</span>
         </div>
       )}
@@ -359,7 +361,7 @@ export default function ColorSortGame({ onBack, game, difficulty }) {
           diffLabel={DIFF_LABEL[difficulty.id]}
           onRestart={restart}
           onBack={onBack}
-          darkMode={darkMode}
+          darkMode={dark}
           game={game}
           difficulty={difficulty}
         />

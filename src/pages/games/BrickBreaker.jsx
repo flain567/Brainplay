@@ -92,10 +92,12 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
           h: brickH,
           color: isGold ? '#FFD700' : isSteel ? '#95A5A6' : BRICK_COLORS[(r + lvl) % BRICK_COLORS.length],
           hp: isSteel ? 2 : 1,
+          maxHp: isSteel ? 2 : 1,
           gold: isGold,
           steel: isSteel,
           points: isGold ? 30 : isSteel ? 20 : 10,
           alive: true,
+          shakeT: 0,
         })
       }
     }
@@ -320,6 +322,15 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
               }
             } else {
               brick.color = '#BDC3C7' // steel hit visual
+              brick.shakeT = 10 // shake animation
+              // Spark particles on non-lethal hit
+              for (let i = 0; i < 4; i++) {
+                g.particles.push({
+                  x: brick.x + brick.w / 2, y: brick.y + brick.h / 2,
+                  dx: rand(-2, 2), dy: rand(-2, 1),
+                  life: 15, color: '#fff', r: rand(1, 3),
+                })
+              }
             }
 
             if (!ball.fireball) {
@@ -430,6 +441,11 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
       // Combo timer
       g.comboTimer++
       if (g.comboTimer > 120) g.combo = 0
+
+      // Brick shake decay
+      for (const brick of g.bricks) {
+        if (brick.shakeT > 0) brick.shakeT -= dt
+      }
 
       // All balls lost
       if (g.balls.length === 0) {
@@ -556,26 +572,42 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
       // Bricks
       for (const brick of g.bricks) {
         if (!brick.alive) continue
+        const shakeOff = brick.shakeT > 0 ? (Math.sin(brick.shakeT * 8) * brick.shakeT * 0.4) : 0
+        const bx = brick.x + shakeOff
         ctx.fillStyle = brick.color
         ctx.shadowColor = brick.color
         ctx.shadowBlur = brick.gold ? 12 : 4
         const r = 4
         ctx.beginPath()
-        drawRoundRect(ctx, brick.x, brick.y, brick.w, brick.h, r)
+        drawRoundRect(ctx, bx, brick.y, brick.w, brick.h, r)
         ctx.fill()
         ctx.shadowBlur = 0
 
         if (brick.gold) {
           ctx.fillStyle = 'rgba(255,255,255,0.3)'
           ctx.beginPath()
-          drawRoundRect(ctx, brick.x + 2, brick.y + 2, brick.w - 4, brick.h / 2 - 2, [r, r, 0, 0])
+          drawRoundRect(ctx, bx + 2, brick.y + 2, brick.w - 4, brick.h / 2 - 2, [r, r, 0, 0])
           ctx.fill()
+        }
+        // Crack lines on damaged steel bricks
+        if (brick.steel && brick.hp < brick.maxHp) {
+          ctx.strokeStyle = 'rgba(0,0,0,0.5)'
+          ctx.lineWidth = 1.5
+          ctx.beginPath()
+          ctx.moveTo(bx + brick.w * 0.3, brick.y + 2)
+          ctx.lineTo(bx + brick.w * 0.5, brick.y + brick.h * 0.6)
+          ctx.lineTo(bx + brick.w * 0.65, brick.y + brick.h - 2)
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.moveTo(bx + brick.w * 0.5, brick.y + brick.h * 0.6)
+          ctx.lineTo(bx + brick.w * 0.75, brick.y + brick.h * 0.4)
+          ctx.stroke()
         }
         if (brick.steel && brick.hp > 1) {
           ctx.strokeStyle = 'rgba(255,255,255,0.4)'
           ctx.lineWidth = 1.5
           ctx.beginPath()
-          drawRoundRect(ctx, brick.x + 1, brick.y + 1, brick.w - 2, brick.h - 2, r)
+          drawRoundRect(ctx, bx + 1, brick.y + 1, brick.w - 2, brick.h - 2, r)
           ctx.stroke()
         }
       }
@@ -687,6 +719,32 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
       ctx.fillText(`Lv ${g.level}`, 10, H - 10)
       ctx.textAlign = 'right'
       ctx.fillText(`${g.score}`, W - 10, H - 10)
+
+      // Power-up timer bars
+      const now = Date.now()
+      const activeEffects = []
+      if (g.effects.fireball > now) activeEffects.push({ emoji: '🔥', color: '#FF4500', pct: (g.effects.fireball - now) / 8000 })
+      if (g.effects.wide > now) activeEffects.push({ emoji: '📏', color: '#00CEC9', pct: (g.effects.wide - now) / 10000 })
+      if (g.effects.magnet > now) activeEffects.push({ emoji: '🧲', color: '#FDCB6E', pct: (g.effects.magnet - now) / 8000 })
+      if (activeEffects.length > 0) {
+        const barW = 60, barH = 6, barY = H - 28
+        const startX = (W - activeEffects.length * (barW + 24)) / 2
+        for (let i = 0; i < activeEffects.length; i++) {
+          const eff = activeEffects[i]
+          const x = startX + i * (barW + 24)
+          ctx.font = '11px serif'
+          ctx.textAlign = 'left'
+          ctx.fillText(eff.emoji, x, barY + 5)
+          ctx.fillStyle = 'rgba(255,255,255,0.15)'
+          ctx.fillRect(x + 16, barY, barW, barH)
+          ctx.fillStyle = eff.color
+          ctx.shadowColor = eff.color
+          ctx.shadowBlur = 4
+          ctx.fillRect(x + 16, barY, barW * Math.min(eff.pct, 1), barH)
+          ctx.shadowBlur = 0
+          ctx.fillStyle = '#fff'
+        }
+      }
 
       // Idle text
       if (phaseRef.current === 'idle') {
