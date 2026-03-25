@@ -214,128 +214,102 @@ export default function VoxelRacer({onBack,game,difficulty}){
         sFuel(Math.round(g.fuel))
 
         // ═══════════════════════════════════════════════════
-        // PHYSICS ENGINE v2 — Suspension-based, smooth
+        // PHYSICS ENGINE v3 — Correct order, no projection bug
+        // Order: gravity → drive → move → ground collision
         // ═══════════════════════════════════════════════════
 
-        // Terrain query at wheel positions
-        const cosA=Math.cos(g.angle),sinA=Math.sin(g.angle)
-        const rearWX=g.cx-cosA*WHL_BASE/2
-        const frontWX=g.cx+cosA*WHL_BASE/2
-        const terrAtRear=getTerrainY(tPts,rearWX)
-        const terrAtFront=getTerrainY(tPts,frontWX)
-        const terrAtCenter=getTerrainY(tPts,g.cx)
         const terrAngle=getTerrainAngle(tPts,g.cx)
+        const surfCos=Math.cos(terrAngle),surfSin=Math.sin(terrAngle)
 
-        // Wheel ground heights (car-relative, positive = wheel pushed up)
-        const rearWheelY=g.cy+sinA*(-WHL_BASE/2)+CAR_H/2+WHL_R
-        const frontWheelY=g.cy+sinA*(WHL_BASE/2)+CAR_H/2+WHL_R
-        const rearPen=rearWheelY-terrAtRear   // positive = wheel below ground
-        const frontPen=frontWheelY-terrAtFront
+        // 1) GRAVITY — always applies
+        g.vy+=dc.grav*dt
 
-        // Determine ground contact
-        const rearTouch=rearPen>-3
-        const frontTouch=frontPen>-3
-        const anyTouch=rearTouch||frontTouch
-        const wasAir=g.air
-        g.air=!anyTouch
-
-        // ── GROUND PHYSICS ──
-        if(anyTouch){
-          // Suspension spring force (pushes car up when wheels penetrate ground)
-          const springK=0.4    // spring stiffness
-          const dampK=0.6      // damping (prevents oscillation)
-
-          if(rearTouch&&rearPen>0){
-            const springF=rearPen*springK-g.vy*dampK
-            g.vy-=springF*dt
-            g.cy-=rearPen*0.4*dt // push car up gently
-          }
-          if(frontTouch&&frontPen>0){
-            const springF=frontPen*springK-g.vy*dampK
-            g.vy-=springF*dt
-            g.cy-=frontPen*0.4*dt
-          }
-
-          // Hard clamp: never go below ground
-          const avgGround=(terrAtRear+terrAtFront)/2
-          const carBottom=g.cy+CAR_H/2+WHL_R
-          if(carBottom>avgGround){
-            g.cy=avgGround-CAR_H/2-WHL_R
-          }
-
-          // Smooth angle matching — FAST on ground (no jitter)
-          const angleDiff=terrAngle-g.angle
-          // Normalize angle diff to [-PI, PI]
-          const normDiff=((angleDiff+PI)%(PI*2))-PI
-          g.angle+=normDiff*0.3*dt  // fast tracking
-          g.angVel*=(1-0.15*dt)     // dampen angular velocity on ground
-
-          // Landing impact absorption
-          if(wasAir&&g.vy>3){
-            g.shk=Math.min(g.vy*0.4,6)
-            g.vy*=0.15 // absorb most impact (suspension!)
-          }else if(wasAir){
-            g.vy*=0.3 // soft landing
-          }
-
-          // ── Drive force — along terrain surface ──
-          const surfCos=Math.cos(terrAngle),surfSin=Math.sin(terrAngle)
-
+        // 2) DRIVE FORCE — along terrain surface when grounded, along car angle in air
+        if(!g.air){
           if(g.gas&&g.fuel>0){
-            // Uphill boost: more power when going uphill (like HCR motor torque)
-            const slopeBoost=terrAngle<-0.05?1.6:1.0 // 60% extra power uphill
-            const power=dc.power*slopeBoost
-            g.vx+=surfCos*power*dt
-            g.vy+=surfSin*power*dt
+            const slopeBoost=terrAngle<-0.05?1.8:1.0 // 80% extra uphill
+            g.vx+=surfCos*dc.power*slopeBoost*dt
+            g.vy+=surfSin*dc.power*slopeBoost*dt
           }
           if(g.brk){
             g.vx-=surfCos*dc.power*0.8*dt
             g.vy-=surfSin*dc.power*0.8*dt
           }
-
-          // Ground friction (rolling resistance)
-          const spd=Math.sqrt(g.vx*g.vx+g.vy*g.vy)
-          const friction=0.012
-          g.vx*=(1-friction*dt)
-          g.vy*=(1-friction*dt)
-
-          // Project velocity onto terrain surface (prevents "floating")
-          // Only apply when not bouncing
-          if(Math.abs(g.vy)<2){
-            const dot=g.vx*surfCos+g.vy*surfSin
-            g.vx=dot*surfCos
-            g.vy=dot*surfSin
-          }
-
+          // Rolling friction
+          g.vx*=(1-0.01*dt)
           // Speed limit
+          const spd=Math.sqrt(g.vx*g.vx+g.vy*g.vy)
           if(spd>dc.maxSpd){const f=dc.maxSpd/spd;g.vx*=f;g.vy*=f}
-
         }else{
-          // ── AIR PHYSICS ──
-          // Air control (lean forward/backward)
-          if(g.gas)g.angVel+=0.005*dt    // lean forward (stronger)
-          if(g.brk)g.angVel-=0.005*dt    // lean backward
+          // Air: lean control
+          if(g.gas)g.angVel+=0.005*dt
+          if(g.brk)g.angVel-=0.005*dt
           g.angle+=g.angVel*dt
-          g.angVel*=(1-0.003*dt)          // minimal air drag on rotation
-
-          // Minimal air resistance on velocity
+          g.angVel*=(1-0.003*dt)
+          // Minimal air drag
           g.vx*=(1-0.001*dt)
         }
 
-        // Gravity (always)
-        g.vy+=dc.grav*dt
-
-        // Move car
+        // 3) MOVE
         g.cx+=g.vx*dt
         g.cy+=g.vy*dt
+
+        // 4) GROUND COLLISION — after movement
+        const cosA=Math.cos(g.angle)
+        const rearWX=g.cx-cosA*WHL_BASE/2
+        const frontWX=g.cx+cosA*WHL_BASE/2
+        const terrAtRear=getTerrainY(tPts,rearWX)
+        const terrAtFront=getTerrainY(tPts,frontWX)
+        const terrAtCenter=getTerrainY(tPts,g.cx)
+        const avgGround=(terrAtRear+terrAtFront)/2
+        const surfaceY=avgGround-CAR_H/2-WHL_R
+
+        const wasAir=g.air
+        const pen=g.cy-surfaceY // positive = car below surface
+
+        if(pen>-2){ // touching or below ground
+          g.air=false
+
+          // Push car onto surface
+          if(pen>0) g.cy=surfaceY
+
+          // Cancel perpendicular velocity (normal force)
+          // Normal to surface = (-surfSin, surfCos)
+          const vNorm=g.vx*(-surfSin)+g.vy*surfCos
+          if(vNorm>0){ // only cancel if moving INTO ground
+            g.vx-=(-surfSin)*vNorm
+            g.vy-=surfCos*vNorm
+
+            // Landing shock
+            if(wasAir&&vNorm>2){
+              g.shk=Math.min(vNorm*0.5,6)
+              // Partial bounce for big impacts
+              if(vNorm>5){g.vy-=vNorm*0.1}
+            }
+          }
+
+          // Match terrain angle smoothly
+          const angleDiff=terrAngle-g.angle
+          const normDiff=((angleDiff+PI)%(PI*2))-PI
+          g.angle+=normDiff*0.25*dt
+          g.angVel*=(1-0.12*dt)
+
+          // Downhill gravity boost: on downhill, add speed along surface
+          if(terrAngle>0.03){ // going downhill
+            const gravAlongSurface=dc.grav*surfSin*0.5*dt
+            g.vx+=surfCos*gravAlongSurface
+            g.vy+=surfSin*gravAlongSurface
+          }
+
+        }else{
+          g.air=true
+        }
 
         // Wheel rotation visual
         g.whlRot+=g.vx*0.12*dt
 
-        // ── Death conditions ──
-        // Flip: only die if VERY tilted and touching ground
+        // Death
         if(!g.air&&Math.abs(g.angle)>PI*0.45){die('flip')}
-        // Fall off map
         if(g.cy>terrAtCenter+250){die('fall')}
 
         // Collect items
