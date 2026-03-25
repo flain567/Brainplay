@@ -1,505 +1,620 @@
 import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
 const TUT=[
-  {emoji:'🚗',title:'Voxel Racer',desc:'Balapan mobil 3D voxel! Hindari rintangan, kumpulkan koin, dan capai garis finish!',tip:'Game flagship ke-3 BrainPlay!'},
-  {emoji:'🕹️',title:'Kontrol',desc:'GESER KIRI/KANAN atau panah untuk pindah jalur. TAP/SPASI untuk lompat!',tip:'Ada 3 jalur — pindah tepat waktu!'},
-  {emoji:'💰',title:'Koin & Skor',desc:'Kumpulkan koin emas di jalan. Semakin jauh, semakin cepat & semakin banyak poin!',tip:'Lompat untuk hindari rintangan rendah dan ambil koin tinggi!'},
+  {emoji:'🚗',title:'Voxel Racer',desc:'Hill Climb Racing style! Gas untuk maju, rem untuk mundur. Jangan kehabisan bensin!',tip:'Kumpulkan jeriken 🛢️ dan koin 🪙!'},
+  {emoji:'🕹️',title:'Kontrol',desc:'KANAN / TAP KANAN = Gas maju. KIRI / TAP KIRI = Rem/mundur. Jaga keseimbangan!',tip:'Di udara: gas = lean forward, rem = lean backward.'},
+  {emoji:'⛽',title:'Bensin & Koin',desc:'Bensin terus berkurang! Kumpulkan 🛢️ jeriken untuk refuel. 🪙 koin = bonus skor.',tip:'Terbalik atau bensin habis = Game Over!'},
 ]
-import{useEffect,useRef,useState,useCallback}from'react'
+import{useEffect,useRef,useState}from'react'
 import{useSound}from'../../hooks/useSound.js'
 import{useProgress}from'../../context/ProgressContext.jsx'
 import{useCoins}from'../../context/CoinContext.jsx'
-import*as THREE from'three'
 
 const DC={
-  easy:  {spd:0.25,si:0.008,ml:6, obstRate:0.025,coinRate:0.04},
-  medium:{spd:0.32,si:0.012,ml:10,obstRate:0.035,coinRate:0.035},
-  hard:  {spd:0.40,si:0.018,ml:14,obstRate:0.05, coinRate:0.03},
+  easy:  {power:0.13,maxSpd:6.5,grav:0.32,fuelDrain:0.06,fuelCan:35,ml:6},
+  medium:{power:0.16,maxSpd:7.5,grav:0.35,fuelDrain:0.10,fuelCan:28,ml:10},
+  hard:  {power:0.20,maxSpd:8.5,grav:0.38,fuelDrain:0.15,fuelCan:22,ml:14},
 }
-const LANE_W=2.2, LANES=[-LANE_W,0,LANE_W]
-const ROAD_W=LANE_W*3+1.5, ROAD_LEN=200
-const COLORS={
-  sky:0x87CEEB, grass:0x4CAF50, road:0x37474F, roadLine:0xFFFFFF,
-  car:0xFFD93D, carDark:0xE6A817, carWindow:0x29B6F6, carWheel:0x212121,
-  obst:[0xE53935,0x7B1FA2,0x1565C0,0xEF6C00,0x2E7D32],
-  coin:0xFFD700, coinGlow:0xFFF176,
-  build:[0xFFCDD2,0xC5CAE9,0xB2DFDB,0xFFF9C4,0xF8BBD0,0xD1C4E9],
-  ramp:0x66BB6A,
-}
-const V3=THREE.Vector3
+const P2=Math.PI*2,PI=Math.PI
+const CAR_W=48,CAR_H=22,WHL_R=9,WHL_BASE=34
 
+// ═══════════════════════════════════════════════════════════
+// TERRAIN — smooth sine-based hills (HCR style)
+// ═══════════════════════════════════════════════════════════
+function buildTerrain(lvl, seed){
+  // Generate smooth terrain using layered sine waves
+  const pts=[]
+  const len=800+lvl*200 // longer per level
+  const step=5 // point every 5px for smooth curves
+  const s=seed||lvl*137
+  for(let x=-100;x<len;x+=step){
+    let y=0
+    // Layer 1: big hills (HCR-like amplitude)
+    y+=Math.sin(x*0.005+s)*80*(1+lvl*0.2)
+    // Layer 2: medium bumps
+    y+=Math.sin(x*0.015+s*2.3)*40*(1+lvl*0.15)
+    // Layer 3: small bumps (more at higher levels)
+    y+=Math.sin(x*0.04+s*4.7)*15*Math.min(lvl*0.3,3)
+    // Flat start (longer like HCR)
+    if(x<200)y*=Math.max(0,(x-20)/180)
+    // Keep y negative (up) for hills, positive for valleys
+    pts.push({x,y})
+  }
+  return{pts,len,finishX:len-150}
+}
+
+function getTerrainY(pts,x){
+  // Binary search for segment, then lerp
+  let lo=0,hi=pts.length-1
+  while(lo<hi-1){const m=(lo+hi)>>1;if(pts[m].x<=x)lo=m;else hi=m}
+  const a=pts[lo],b=pts[hi]
+  if(b.x===a.x)return a.y
+  const t=(x-a.x)/(b.x-a.x)
+  return a.y+(b.y-a.y)*t
+}
+
+function getTerrainAngle(pts,x){
+  const dx=3
+  const y1=getTerrainY(pts,x-dx),y2=getTerrainY(pts,x+dx)
+  return Math.atan2(y2-y1,dx*2)
+}
+
+// ═══════════════════════════════════════════════════════════
+// COLLECTIBLES — coins and fuel cans along terrain
+// ═══════════════════════════════════════════════════════════
+function spawnCollectibles(terrain,lvl){
+  const items=[]
+  const pts=terrain.pts
+  for(let x=150;x<terrain.len-200;x+=40+Math.random()*60){
+    const ty=getTerrainY(pts,x)
+    if(Math.random()<0.7){
+      // Coin
+      items.push({type:'coin',x,y:ty-25-Math.random()*20,collected:false})
+    }
+    if(Math.random()<0.15){
+      // Fuel can
+      items.push({type:'fuel',x,y:ty-22,collected:false})
+    }
+  }
+  return items
+}
+
+// ═══════════════════════════════════════════════════════════
+// COMPONENT
+// ═══════════════════════════════════════════════════════════
 export default function VoxelRacer({onBack,game,difficulty}){
-  const mountRef=useRef(null),aRef=useRef(null),gR=useRef(null),phR=useRef('idle')
-  const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins}=useCoins()
+  const cRef=useRef(null),aRef=useRef(null),gR=useRef(null),phR=useRef('idle')
+  const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins:earnC}=useCoins()
   const dc=DC[difficulty.id]
   const[phase,_sp]=useState('idle')
   const[showTut,setShowTut]=useState(()=>!localStorage.getItem('bp_tut_voxel-racer'))
   const[showConf,setShowConf]=useState(false)
-  const[uSc,sSc]=useState(0),[uLv,sLv]=useState(1),[uCo,sCo]=useState(0),[uDist,sDist]=useState(0)
+  const[uSc,sSc]=useState(0),[uLv,sLv]=useState(1),[uPr,sPr]=useState(0),[uAt,sAt]=useState(1)
+  const[uFuel,sFuel]=useState(100),[uDist,sDist]=useState(0),[uCoins,sCoins]=useState(0)
   const sp=p=>{phR.current=p;_sp(p)}
 
+  function szC(){
+    const c=cRef.current;if(!c)return{w:300,h:500}
+    const p=c.parentElement;if(!p)return{w:300,h:500}
+    const r=p.getBoundingClientRect()
+    const d=Math.min(window.devicePixelRatio||1,2)
+    const w=Math.floor(r.width)||window.innerWidth,h=Math.floor(r.height)||window.innerHeight
+    c.width=w*d;c.height=h*d;c.style.width=w+'px';c.style.height=h+'px'
+    c.getContext('2d').setTransform(d,0,0,d,0,0)
+    return{w,h}
+  }
+
+  function mkG(W,H){
+    const terr=buildTerrain(1,1)
+    return{W,H,lv:1,sc:0,att:1,coins:0,
+      terr,items:spawnCollectibles(terr,1),
+      // Car
+      cx:80,cy:0,vx:0,vy:0,angle:0,angVel:0,
+      air:false,gas:false,brk:false,whlRot:0,
+      fuel:100,maxFuel:100,
+      // Camera
+      camX:0,camY:0,
+      // State
+      dead:false,dieT:0,winT:0,
+      baseY:H*0.75,
+      pts:[],shk:0,bestDist:0,
+    }
+  }
+
   useEffect(()=>{
-    const mount=mountRef.current;if(!mount)return
-    const W=mount.clientWidth||window.innerWidth, H=mount.clientHeight||window.innerHeight
+    const{w:W,h:H}=szC()
+    const c=cRef.current;if(!c)return
+    const ctx=c.getContext('2d')
+    let g=mkG(W,H);gR.current=g
+    sSc(0);sLv(1);sPr(0);sAt(1);sFuel(100);sDist(0);sCoins(0)
 
-    // ═══ THREE.JS SETUP ═══
-    const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false})
-    renderer.setSize(W,H);renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-    renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap
-    mount.appendChild(renderer.domElement)
-    renderer.domElement.style.touchAction='none'
-
-    const scene=new THREE.Scene()
-    scene.background=new THREE.Color(COLORS.sky)
-    scene.fog=new THREE.Fog(COLORS.sky,40,120)
-
-    const camera=new THREE.PerspectiveCamera(65,W/H,0.5,150)
-    camera.position.set(0,5,-7);camera.lookAt(0,1,10)
-
-    // Lighting
-    const amb=new THREE.AmbientLight(0xffffff,0.6);scene.add(amb)
-    const sun=new THREE.DirectionalLight(0xffffff,0.8)
-    sun.position.set(10,20,10);sun.castShadow=true
-    sun.shadow.camera.left=-30;sun.shadow.camera.right=30;sun.shadow.camera.top=30;sun.shadow.camera.bottom=-30
-    sun.shadow.mapSize.set(1024,1024);scene.add(sun)
-
-    // ═══ WORLD ═══
-    // Ground
-    const groundGeo=new THREE.PlaneGeometry(100,ROAD_LEN*2)
-    const groundMat=new THREE.MeshLambertMaterial({color:COLORS.grass})
-    const ground=new THREE.Mesh(groundGeo,groundMat);ground.rotation.x=-Math.PI/2;ground.position.y=-0.01
-    ground.receiveShadow=true;scene.add(ground)
-
-    // Road
-    const roadGeo=new THREE.PlaneGeometry(ROAD_W,ROAD_LEN*2)
-    const roadMat=new THREE.MeshLambertMaterial({color:COLORS.road})
-    const road=new THREE.Mesh(roadGeo,roadMat);road.rotation.x=-Math.PI/2;road.position.y=0.01
-    road.receiveShadow=true;scene.add(road)
-
-    // Road lane lines
-    for(let i=-1;i<=1;i++){
-      const lineGeo=new THREE.PlaneGeometry(0.08,ROAD_LEN*2)
-      const lineMat=new THREE.MeshBasicMaterial({color:COLORS.roadLine,transparent:true,opacity:0.4})
-      const line=new THREE.Mesh(lineGeo,lineMat)
-      line.rotation.x=-Math.PI/2;line.position.set(i*LANE_W,0.02,0);scene.add(line)
-    }
-    // Road edges
-    for(const side of[-1,1]){
-      const edgeGeo=new THREE.PlaneGeometry(0.15,ROAD_LEN*2)
-      const edgeMat=new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.6})
-      const edge=new THREE.Mesh(edgeGeo,edgeMat)
-      edge.rotation.x=-Math.PI/2;edge.position.set(side*(ROAD_W/2),0.02,0);scene.add(edge)
-    }
-
-    // ═══ CAR (voxel style) ═══
-    const carGroup=new THREE.Group()
-    // Body
-    const bodyGeo=new THREE.BoxGeometry(1.4,0.6,2.2)
-    const bodyMat=new THREE.MeshLambertMaterial({color:COLORS.car})
-    const body=new THREE.Mesh(bodyGeo,bodyMat);body.position.y=0.5;body.castShadow=true
-    carGroup.add(body)
-    // Roof/cabin
-    const roofGeo=new THREE.BoxGeometry(1.2,0.5,1.0)
-    const roofMat=new THREE.MeshLambertMaterial({color:COLORS.carDark})
-    const roof=new THREE.Mesh(roofGeo,roofMat);roof.position.set(0,0.95,-0.2);roof.castShadow=true
-    carGroup.add(roof)
-    // Windshield
-    const winGeo=new THREE.BoxGeometry(1.1,0.4,0.05)
-    const winMat=new THREE.MeshLambertMaterial({color:COLORS.carWindow,transparent:true,opacity:0.7})
-    const windshield=new THREE.Mesh(winGeo,winMat);windshield.position.set(0,0.9,0.32)
-    carGroup.add(windshield)
-    // Wheels
-    const wheelGeo=new THREE.BoxGeometry(0.3,0.3,0.3)
-    const wheelMat=new THREE.MeshLambertMaterial({color:COLORS.carWheel})
-    const wheelPositions=[[-0.7,0.2,0.65],[0.7,0.2,0.65],[-0.7,0.2,-0.65],[0.7,0.2,-0.65]]
-    wheelPositions.forEach(p=>{const w=new THREE.Mesh(wheelGeo,wheelMat);w.position.set(...p);carGroup.add(w)})
-    // Headlights
-    const hlGeo=new THREE.BoxGeometry(0.2,0.15,0.05)
-    const hlMat=new THREE.MeshBasicMaterial({color:0xFFFFFF})
-    ;[[-0.45,0.5,1.13],[0.45,0.5,1.13]].forEach(p=>{const h=new THREE.Mesh(hlGeo,hlMat);h.position.set(...p);carGroup.add(h)})
-
-    carGroup.position.set(0,0,0);scene.add(carGroup)
-
-    // ═══ BUILDINGS (scenery) ═══
-    const buildings=[]
-    function addBuilding(x,z){
-      const w=1.5+Math.random()*3, h=2+Math.random()*6, d=1.5+Math.random()*2
-      const geo=new THREE.BoxGeometry(w,h,d)
-      const mat=new THREE.MeshLambertMaterial({color:COLORS.build[Math.floor(Math.random()*COLORS.build.length)]})
-      const mesh=new THREE.Mesh(geo,mat);mesh.position.set(x,h/2,z);mesh.castShadow=true
-      scene.add(mesh);buildings.push(mesh)
-    }
-    for(let z=-20;z<ROAD_LEN;z+=6+Math.random()*8){
-      addBuilding(-ROAD_W/2-2-Math.random()*5,z)
-      addBuilding(ROAD_W/2+2+Math.random()*5,z)
-    }
-
-    // Clouds
-    for(let i=0;i<15;i++){
-      const cg=new THREE.BoxGeometry(3+Math.random()*4,0.8+Math.random()*0.5,1.5+Math.random()*2)
-      const cm=new THREE.MeshLambertMaterial({color:0xffffff,transparent:true,opacity:0.8})
-      const cloud=new THREE.Mesh(cg,cm)
-      cloud.position.set(-25+Math.random()*50,12+Math.random()*8,Math.random()*ROAD_LEN)
-      scene.add(cloud);buildings.push(cloud)
-    }
-
-    // ═══ GAME STATE ═══
-    const g={
-      lane:1, targetLane:1, // 0,1,2 (left,center,right)
-      carY:0, carVY:0, onGround:true,
-      dist:0, spd:dc.spd, lv:1, sc:0, coins:0, att:1,
-      obstacles:[], coinMeshes:[],
-      dead:false, dieT:0, winT:0,
-      lvLen:80+dc.ml*10, // level length in distance
-      nextObst:15, nextCoin:8,
-    }
-    gR.current=g
-
-    // ═══ OBSTACLE/COIN MANAGEMENT ═══
-    const obstGroup=new THREE.Group();scene.add(obstGroup)
-    const coinGroup=new THREE.Group();scene.add(coinGroup)
-
-    function spawnObstacle(z){
-      const lane=Math.floor(Math.random()*3)
-      const types=['block','tall','wide','ramp']
-      const type=types[Math.floor(Math.random()*types.length)]
-      let mesh,hitbox
-
-      const color=COLORS.obst[Math.floor(Math.random()*COLORS.obst.length)]
-      if(type==='block'){
-        const geo=new THREE.BoxGeometry(1.2,1.2,1.2)
-        const mat=new THREE.MeshLambertMaterial({color})
-        mesh=new THREE.Mesh(geo,mat);mesh.position.set(LANES[lane],0.6,z)
-        hitbox={w:1.0,h:1.0,d:1.0}
-      }else if(type==='tall'){
-        const geo=new THREE.BoxGeometry(1.0,2.5,0.8)
-        const mat=new THREE.MeshLambertMaterial({color})
-        mesh=new THREE.Mesh(geo,mat);mesh.position.set(LANES[lane],1.25,z)
-        hitbox={w:0.8,h:2.3,d:0.6}
-      }else if(type==='wide'){
-        // Spans 2 lanes
-        const lane2=lane===0?1:lane===2?1:Math.random()>0.5?0:2
-        const cx=(LANES[lane]+LANES[lane2])/2
-        const geo=new THREE.BoxGeometry(LANE_W+1,1.0,1.0)
-        const mat=new THREE.MeshLambertMaterial({color})
-        mesh=new THREE.Mesh(geo,mat);mesh.position.set(cx,0.5,z)
-        hitbox={w:LANE_W+0.8,h:0.8,d:0.8,cx}
-      }else{ // ramp
-        const geo=new THREE.BoxGeometry(1.8,0.4,2.0)
-        const mat=new THREE.MeshLambertMaterial({color:COLORS.ramp})
-        mesh=new THREE.Mesh(geo,mat);mesh.position.set(LANES[lane],0.2,z)
-        mesh.rotation.x=-0.15
-        hitbox={w:1.6,h:0.3,d:1.8,isRamp:true}
-      }
-      mesh.castShadow=true
-      // Add grid lines effect
-      const edges=new THREE.EdgesGeometry(mesh.geometry)
-      const edgeMat=new THREE.LineBasicMaterial({color:0x000000,transparent:true,opacity:0.15})
-      const wireframe=new THREE.LineSegments(edges,edgeMat)
-      mesh.add(wireframe)
-
-      obstGroup.add(mesh)
-      g.obstacles.push({mesh,lane,type,hitbox,z})
-    }
-
-    function spawnCoin(z){
-      const lane=Math.floor(Math.random()*3)
-      const yOff=Math.random()>0.6?2.0:0.8 // some coins high (need jump)
-      const geo=new THREE.BoxGeometry(0.5,0.5,0.5)
-      const mat=new THREE.MeshLambertMaterial({color:COLORS.coin,emissive:COLORS.coinGlow,emissiveIntensity:0.3})
-      const mesh=new THREE.Mesh(geo,mat);mesh.position.set(LANES[lane],yOff,z)
-      mesh.rotation.y=Math.PI/4
-      coinGroup.add(mesh)
-      g.coinMeshes.push({mesh,lane,z,y:yOff,collected:false})
-    }
-
-    function clearAll(){
-      g.obstacles.forEach(o=>obstGroup.remove(o.mesh))
-      g.coinMeshes.forEach(c=>coinGroup.remove(c.mesh))
-      g.obstacles=[];g.coinMeshes=[]
-    }
-
-    function startLevel(){
-      clearAll()
-      g.dist=0;g.lane=1;g.targetLane=1;g.carY=0;g.carVY=0;g.onGround=true
-      g.dead=false;g.dieT=0;g.winT=0
-      g.spd=dc.spd+(g.lv-1)*dc.si
-      g.lvLen=80+g.lv*15
-      g.nextObst=12;g.nextCoin=6
-      carGroup.position.set(LANES[1],0,0);carGroup.rotation.set(0,0,0)
-      // Pre-spawn some obstacles ahead
-      for(let z=18;z<g.lvLen;z+=5+Math.random()*8){
-        if(Math.random()<dc.obstRate*15)spawnObstacle(z)
-        if(Math.random()<dc.coinRate*15)spawnCoin(z)
-      }
+    function stLv(){
+      g.terr=buildTerrain(g.lv,g.lv*137)
+      g.items=spawnCollectibles(g.terr,g.lv)
+      g.cx=80;g.cy=getTerrainY(g.terr.pts,80)-WHL_R-CAR_H/2
+      g.vx=0;g.vy=0;g.angle=0;g.angVel=0
+      g.air=false;g.gas=false;g.brk=false;g.whlRot=0
+      g.fuel=100;g.dead=false;g.dieT=0;g.winT=0
+      g.camX=g.cx-W*0.35;g.camY=g.cy;g.pts=[];g.shk=0
+      sFuel(100);sDist(0)
       sp('play')
     }
-
-    function doRetry(){
-      g.att++;
-      startLevel()
-    }
-
-    function doDie(){
-      sp('dying');g.dieT=50;g.dead=true
+    function retry(){g.att++;sAt(g.att);stLv()}
+    function die(reason){
+      sp('dying');g.dieT=45;g.dead=true;g.shk=12
+      for(let i=0;i<12;i++){const a=P2*Math.random()
+        g.pts.push({x:g.cx,y:g.cy,dx:Math.cos(a)*(2+Math.random()*4),dy:Math.sin(a)*(1+Math.random()*3)-2,l:20+Math.random()*20,ml:40,r:3+Math.random()*3,c:['#FFD93D','#E53935','#212121'][i%3]})}
       try{play('mismatch')}catch(e){}
     }
-
-    function doWin(){
-      sp('winning');g.winT=60
-      const pts=Math.round(200+g.lv*60+g.coins*25+Math.max(0,200-(g.att-1)*20))
+    function win2(){
+      sp('winning');g.winT=55
+      const pts=Math.round(200+g.lv*80+g.coins*30+Math.max(0,150-(g.att-1)*20))
       g.sc+=pts;sSc(g.sc)
       try{play('win')}catch(e){}
     }
-
-    function finGame(won){
+    function finG(won){
       const st=won?3:g.lv>dc.ml/2?2:g.lv>2?1:0
       let co=({easy:25,medium:50,hard:75}[difficulty.id]||25)+Math.floor(g.sc/150);if(st===3)co+=35
       if(!won)co=Math.max(5,Math.floor(g.sc/200))
-      earnCoins(co,`Voxel Racer (${difficulty.id})`)
+      earnC(co,`Voxel Racer (${difficulty.id})`)
       reportGameResult({gameId:'voxel-racer',difficultyId:difficulty.id,won,score:g.sc,stars:Math.max(st,won?1:0),timeSec:0})
       const bk=`voxel-racer-best-${difficulty.id}`,pv=parseInt(localStorage.getItem(bk)||'0')
       if(g.sc>pv)localStorage.setItem(bk,g.sc)
     }
 
-    // ═══ INPUT ═══
-    let touchStartX=null
+    // Input
     function onDown(e){
       const p=phR.current
-      if(p==='idle'){startLevel();return}
-      if(p==='dead'){doRetry();return}
+      if(p==='idle'){stLv();return}
+      if(p==='dead'){retry();return}
       if(p!=='play')return
-      // Jump
-      if(g.onGround){g.carVY=0.18;g.onGround=false;try{play('flip')}catch(e2){}}
-      // Touch tracking
-      if(e.touches)touchStartX=e.touches[0].clientX
+      let cx=e.clientX||(e.touches&&e.touches[0]?.clientX)||W/2
+      if(cx>W*0.4)g.gas=true;else g.brk=true
     }
-    function onMove(e){
-      if(!touchStartX||phR.current!=='play')return
-      const x=e.touches[0].clientX
-      const dx=x-touchStartX
-      if(Math.abs(dx)>30){
-        if(dx>0&&g.targetLane<2){g.targetLane++;touchStartX=x}
-        if(dx<0&&g.targetLane>0){g.targetLane--;touchStartX=x}
-      }
-    }
-    function onUp(){touchStartX=null}
+    function onUp(){g.gas=false;g.brk=false}
     function onKey(e){
       const p=phR.current
-      if(p==='idle'){startLevel();return}
-      if(p==='dead'){doRetry();return}
+      if(p==='idle'){stLv();return}
+      if(p==='dead'){retry();return}
       if(p!=='play')return
-      if(e.code==='ArrowLeft'&&g.targetLane>0)g.targetLane--
-      if(e.code==='ArrowRight'&&g.targetLane<2)g.targetLane++
-      if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();if(g.onGround){g.carVY=0.18;g.onGround=false;try{play('flip')}catch(e2){}}}
+      if(e.type==='keydown'){
+        if(e.code==='ArrowRight'||e.code==='KeyD'||e.code==='Space'){e.preventDefault();g.gas=true}
+        if(e.code==='ArrowLeft'||e.code==='KeyA')g.brk=true
+      }else{
+        if(e.code==='ArrowRight'||e.code==='KeyD'||e.code==='Space')g.gas=false
+        if(e.code==='ArrowLeft'||e.code==='KeyA')g.brk=false
+      }
     }
+    c.addEventListener('mousedown',onDown);c.addEventListener('mouseup',onUp)
+    c.addEventListener('touchstart',e=>{e.preventDefault();onDown(e)},{passive:false})
+    c.addEventListener('touchend',e=>{e.preventDefault();onUp()},{passive:false})
+    window.addEventListener('keydown',onKey);window.addEventListener('keyup',onKey)
 
-    const el=renderer.domElement
-    el.addEventListener('mousedown',onDown);el.addEventListener('touchstart',e=>{e.preventDefault();onDown(e)},{passive:false})
-    el.addEventListener('touchmove',onMove,{passive:false});el.addEventListener('touchend',onUp)
-    window.addEventListener('keydown',onKey)
+    // ═════════════ GAME LOOP ═════════════
+    let lt=0
+    function loop(ts){try{
+      const dt=Math.min((ts-lt)/16.667,2.5);lt=ts
+      const p=phR.current
 
-    // ═══ GAME LOOP ═══
-    const clock=new THREE.Clock()
-    function loop(){
-      aRef.current=requestAnimationFrame(loop)
-      try{
-        const dt=Math.min(clock.getDelta(),0.05)
-        const p=phR.current
+      // VFX
+      for(let i=g.pts.length-1;i>=0;i--){const pt=g.pts[i];pt.x+=pt.dx*dt;pt.y+=pt.dy*dt;pt.dy+=0.1*dt;pt.l-=dt;if(pt.l<=0)g.pts.splice(i,1)}
+      if(g.shk>0){g.shk*=0.9;if(g.shk<0.3)g.shk=0}
 
-        // State transitions
-        if(p==='dying'){g.dieT-=1;if(g.dieT<=0)sp('dead')}
-        if(p==='winning'){g.winT-=1;if(g.winT<=0){
-          if(g.lv>=dc.ml){sp('won');setShowConf(true);finGame(true)}
-          else{g.lv++;g.att=1;sLv(g.lv);startLevel()}}}
+      if(p==='dying'){g.dieT-=dt;if(g.dieT<=0)sp('dead')}
+      if(p==='winning'){g.winT-=dt;if(g.winT<=0){
+        if(g.lv>=dc.ml){sp('won');setShowConf(true);finG(true)}
+        else{g.lv++;g.att=1;sLv(g.lv);sAt(1);stLv()}}}
 
-        if(p==='play'){
-          // Speed
-          g.spd=Math.min(dc.spd+(g.lv-1)*dc.si+g.dist*0.0003,dc.spd*1.8)
+      if(p==='play'){
+        const tPts=g.terr.pts
 
-          // Move forward
-          g.dist+=g.spd
-          sDist(Math.round(g.dist))
+        // Fuel consumption
+        g.fuel-=dc.fuelDrain*dt*(g.gas?1.5:0.5)
+        if(g.fuel<=0){g.fuel=0;die('fuel');sFuel(0)}
+        sFuel(Math.round(g.fuel))
 
-          // Lane switching (smooth)
-          const targetX=LANES[g.targetLane]
-          carGroup.position.x+=(targetX-carGroup.position.x)*0.12
-          // Tilt on lane change
-          const dx=targetX-carGroup.position.x
-          carGroup.rotation.z=-dx*0.15
+        // ═══════════════════════════════════════════════════
+        // PHYSICS ENGINE v2 — Suspension-based, smooth
+        // ═══════════════════════════════════════════════════
 
-          // Jump physics
-          g.carVY-=0.008 // gravity
-          g.carY+=g.carVY
-          if(g.carY<=0){g.carY=0;g.carVY=0;g.onGround=true}
-          carGroup.position.y=g.carY
-          // Tilt forward when jumping
-          carGroup.rotation.x=g.carY>0.1?-0.1:0
+        // Terrain query at wheel positions
+        const cosA=Math.cos(g.angle),sinA=Math.sin(g.angle)
+        const rearWX=g.cx-cosA*WHL_BASE/2
+        const frontWX=g.cx+cosA*WHL_BASE/2
+        const terrAtRear=getTerrainY(tPts,rearWX)
+        const terrAtFront=getTerrainY(tPts,frontWX)
+        const terrAtCenter=getTerrainY(tPts,g.cx)
+        const terrAngle=getTerrainAngle(tPts,g.cx)
 
-          // Move world (move camera + everything relative)
-          // Actually: keep car at z=0, move obstacles toward car
-          for(const o of g.obstacles){o.mesh.position.z=o.z-g.dist}
-          for(const c of g.coinMeshes){
-            c.mesh.position.z=c.z-g.dist
-            c.mesh.rotation.y+=0.03 // spin coins
-            c.mesh.position.y=c.y+Math.sin(Date.now()*0.003+c.z)*0.15 // bob
+        // Wheel ground heights (car-relative, positive = wheel pushed up)
+        const rearWheelY=g.cy+sinA*(-WHL_BASE/2)+CAR_H/2+WHL_R
+        const frontWheelY=g.cy+sinA*(WHL_BASE/2)+CAR_H/2+WHL_R
+        const rearPen=rearWheelY-terrAtRear   // positive = wheel below ground
+        const frontPen=frontWheelY-terrAtFront
+
+        // Determine ground contact
+        const rearTouch=rearPen>-3
+        const frontTouch=frontPen>-3
+        const anyTouch=rearTouch||frontTouch
+        const wasAir=g.air
+        g.air=!anyTouch
+
+        // ── GROUND PHYSICS ──
+        if(anyTouch){
+          // Suspension spring force (pushes car up when wheels penetrate ground)
+          const springK=0.4    // spring stiffness
+          const dampK=0.6      // damping (prevents oscillation)
+
+          if(rearTouch&&rearPen>0){
+            const springF=rearPen*springK-g.vy*dampK
+            g.vy-=springF*dt
+            g.cy-=rearPen*0.4*dt // push car up gently
           }
-          // Move ground/road/buildings
-          ground.position.z=g.dist
-          road.position.z=g.dist
-          sun.position.z=g.dist+10
-
-          // Scenery recycling
-          for(const b of buildings){
-            if(b.position.z-g.dist<-30)b.position.z+=ROAD_LEN*1.5
+          if(frontTouch&&frontPen>0){
+            const springF=frontPen*springK-g.vy*dampK
+            g.vy-=springF*dt
+            g.cy-=frontPen*0.4*dt
           }
 
-          // ── Collision detection ──
-          const carX=carGroup.position.x, carZ=0, carYpos=g.carY
-          for(const o of g.obstacles){
-            const oz=o.mesh.position.z
-            if(oz>8||oz<-2)continue // too far
-            const hb=o.hitbox
-            const ox=o.hitbox.cx!==undefined?o.hitbox.cx:o.mesh.position.x
-            // AABB check
-            if(Math.abs(carX-ox)<(hb.w/2+0.5)&&
-               Math.abs(oz)<(hb.d/2+0.8)&&
-               carYpos<hb.h-0.1){
-              if(hb.isRamp&&carYpos<0.3){
-                // Hit ramp = boost jump!
-                g.carVY=0.22;g.onGround=false
-              }else if(!hb.isRamp){
-                doDie();break
-              }
-            }
+          // Hard clamp: never go below ground
+          const avgGround=(terrAtRear+terrAtFront)/2
+          const carBottom=g.cy+CAR_H/2+WHL_R
+          if(carBottom>avgGround){
+            g.cy=avgGround-CAR_H/2-WHL_R
           }
-          // Coin collection
-          for(const c of g.coinMeshes){
-            if(c.collected)continue
-            const cz=c.mesh.position.z
-            if(Math.abs(carX-c.mesh.position.x)<1.0&&Math.abs(cz)<1.2&&Math.abs(carYpos-c.y)<1.0){
-              c.collected=true;c.mesh.visible=false
-              g.coins++;g.sc+=25;sSc(g.sc);sCo(g.coins)
+
+          // Smooth angle matching — FAST on ground (no jitter)
+          const angleDiff=terrAngle-g.angle
+          // Normalize angle diff to [-PI, PI]
+          const normDiff=((angleDiff+PI)%(PI*2))-PI
+          g.angle+=normDiff*0.3*dt  // fast tracking
+          g.angVel*=(1-0.15*dt)     // dampen angular velocity on ground
+
+          // Landing impact absorption
+          if(wasAir&&g.vy>3){
+            g.shk=Math.min(g.vy*0.4,6)
+            g.vy*=0.15 // absorb most impact (suspension!)
+          }else if(wasAir){
+            g.vy*=0.3 // soft landing
+          }
+
+          // ── Drive force — along terrain surface ──
+          const surfCos=Math.cos(terrAngle),surfSin=Math.sin(terrAngle)
+
+          if(g.gas&&g.fuel>0){
+            // Uphill boost: more power when going uphill (like HCR motor torque)
+            const slopeBoost=terrAngle<-0.05?1.6:1.0 // 60% extra power uphill
+            const power=dc.power*slopeBoost
+            g.vx+=surfCos*power*dt
+            g.vy+=surfSin*power*dt
+          }
+          if(g.brk){
+            g.vx-=surfCos*dc.power*0.8*dt
+            g.vy-=surfSin*dc.power*0.8*dt
+          }
+
+          // Ground friction (rolling resistance)
+          const spd=Math.sqrt(g.vx*g.vx+g.vy*g.vy)
+          const friction=0.012
+          g.vx*=(1-friction*dt)
+          g.vy*=(1-friction*dt)
+
+          // Project velocity onto terrain surface (prevents "floating")
+          // Only apply when not bouncing
+          if(Math.abs(g.vy)<2){
+            const dot=g.vx*surfCos+g.vy*surfSin
+            g.vx=dot*surfCos
+            g.vy=dot*surfSin
+          }
+
+          // Speed limit
+          if(spd>dc.maxSpd){const f=dc.maxSpd/spd;g.vx*=f;g.vy*=f}
+
+        }else{
+          // ── AIR PHYSICS ──
+          // Air control (lean forward/backward)
+          if(g.gas)g.angVel+=0.005*dt    // lean forward (stronger)
+          if(g.brk)g.angVel-=0.005*dt    // lean backward
+          g.angle+=g.angVel*dt
+          g.angVel*=(1-0.003*dt)          // minimal air drag on rotation
+
+          // Minimal air resistance on velocity
+          g.vx*=(1-0.001*dt)
+        }
+
+        // Gravity (always)
+        g.vy+=dc.grav*dt
+
+        // Move car
+        g.cx+=g.vx*dt
+        g.cy+=g.vy*dt
+
+        // Wheel rotation visual
+        g.whlRot+=g.vx*0.12*dt
+
+        // ── Death conditions ──
+        // Flip: only die if VERY tilted and touching ground
+        if(!g.air&&Math.abs(g.angle)>PI*0.45){die('flip')}
+        // Fall off map
+        if(g.cy>terrAtCenter+250){die('fall')}
+
+        // Collect items
+        for(const it of g.items){
+          if(it.collected)continue
+          const dx=g.cx-it.x,dy=g.cy-it.y
+          if(dx*dx+dy*dy<900){ // ~30px radius
+            it.collected=true
+            if(it.type==='coin'){
+              g.coins++;g.sc+=25;sSc(g.sc);sCoins(g.coins)
+              g.pts.push({x:it.x,y:it.y,dx:0,dy:-2,l:15,ml:15,r:5,c:'#FFD700'})
               try{play('match')}catch(e){}
             }
+            if(it.type==='fuel'){
+              g.fuel=Math.min(g.maxFuel,g.fuel+dc.fuelCan)
+              sFuel(Math.round(g.fuel))
+              g.pts.push({x:it.x,y:it.y,dx:0,dy:-2,l:15,ml:15,r:5,c:'#4CAF50'})
+              try{play('flip')}catch(e){}
+            }
           }
-
-          // Level complete
-          if(g.dist>=g.lvLen){doWin()}
-
-          // Progress
-          sPr(Math.round(Math.min(g.dist/g.lvLen,1)*100))
         }
 
-        // ── Dying animation ──
-        if(p==='dying'){
-          carGroup.rotation.x+=0.05;carGroup.rotation.z+=0.03
-          carGroup.position.y+=0.02
+        // Camera — HCR style: car always at ~60% screen height, 35% from left
+        g.camX+=(g.cx-W*0.35-g.camX)*0.1*dt
+        g.camY+=(g.cy-g.camY)*0.1*dt
+
+        // Win
+        if(g.cx>=g.terr.finishX){win2()}
+
+        // Progress & distance
+        const dist=Math.max(0,g.cx-80)
+        g.bestDist=Math.max(g.bestDist,dist)
+        sDist(Math.round(dist))
+        sPr(Math.round(Math.min(dist/(g.terr.finishX-80),1)*100))
+      }
+
+      // ═════════════ DRAW ═════════════
+      const shx=g.shk>0?(Math.random()-0.5)*g.shk*2:0
+      const shy=g.shk>0?(Math.random()-0.5)*g.shk*2:0
+      ctx.save();ctx.translate(shx,shy)
+
+      // Sky gradient
+      const sky=ctx.createLinearGradient(0,0,0,H)
+      sky.addColorStop(0,'#4FC3F7');sky.addColorStop(0.5,'#81D4FA');sky.addColorStop(1,'#B3E5FC')
+      ctx.fillStyle=sky;ctx.fillRect(0,0,W,H)
+
+      // Clouds (parallax)
+      ctx.fillStyle='rgba(255,255,255,0.6)'
+      for(let i=0;i<6;i++){
+        const cx2=((i*280+100)-g.camX*0.05)%(W+200)-50
+        ctx.beginPath()
+        ctx.arc(cx2,50+i*18,25+i*8,0,P2);ctx.arc(cx2+20,45+i*18,20+i*6,0,P2);ctx.arc(cx2-15,48+i*18,18+i*5,0,P2)
+        ctx.fill()
+      }
+
+      // Far mountains (parallax) - positioned relative to screen
+      ctx.fillStyle='#A5D6A7'
+      ctx.beginPath();ctx.moveTo(0,H)
+      for(let x=0;x<=W;x+=8){const wx=x+g.camX*0.15;ctx.lineTo(x,H*0.35+Math.sin(wx*0.006)*25+Math.sin(wx*0.013)*12)}
+      ctx.lineTo(W,H);ctx.fill()
+
+      // Near hills
+      ctx.fillStyle='#81C784'
+      ctx.beginPath();ctx.moveTo(0,H)
+      for(let x=0;x<=W;x+=6){const wx=x+g.camX*0.3;ctx.lineTo(x,H*0.45+Math.sin(wx*0.01)*18+Math.sin(wx*0.022)*8)}
+      ctx.lineTo(W,H);ctx.fill()
+
+      // ── World space — car centered at (35%, 60%) of screen ──
+      ctx.save()
+      ctx.translate(-g.camX,H*0.6-g.camY)
+
+      // Terrain fill
+      const tPts=g.terr.pts
+      const vl=g.camX-50,vr=g.camX+W+50
+
+      // Ground body (dirt — HCR brown)
+      ctx.fillStyle='#5D4037'
+      ctx.beginPath();ctx.moveTo(tPts[0].x,tPts[0].y+12)
+      for(const pt of tPts){if(pt.x<vl-100||pt.x>vr+100)continue;ctx.lineTo(pt.x,pt.y+12)}
+      ctx.lineTo(tPts[tPts.length-1].x,500);ctx.lineTo(tPts[0].x,500);ctx.fill()
+
+      // Ground surface (green like HCR)
+      ctx.fillStyle='#4CAF50'
+      ctx.beginPath();ctx.moveTo(tPts[0].x,tPts[0].y)
+      for(const pt of tPts){if(pt.x<vl-100||pt.x>vr+100)continue;ctx.lineTo(pt.x,pt.y)}
+      ctx.lineTo(tPts[tPts.length-1].x,500);ctx.lineTo(tPts[0].x,500);ctx.fill()
+
+      // HCR-style multi-layer grass edge
+      ctx.strokeStyle='#2E7D32';ctx.lineWidth=4
+      ctx.beginPath();let st2=false
+      for(const pt of tPts){if(pt.x<vl-100||pt.x>vr+100)continue;if(!st2){ctx.moveTo(pt.x,pt.y+6);st2=true}else ctx.lineTo(pt.x,pt.y+6)}
+      ctx.stroke()
+      ctx.strokeStyle='#388E3C';ctx.lineWidth=3
+      ctx.beginPath();let st3=false
+      for(const pt of tPts){if(pt.x<vl-100||pt.x>vr+100)continue;if(!st3){ctx.moveTo(pt.x,pt.y+3);st3=true}else ctx.lineTo(pt.x,pt.y+3)}
+      ctx.stroke()
+      // Top bright green edge
+      ctx.strokeStyle='#66BB6A';ctx.lineWidth=3
+      ctx.beginPath()
+      let started=false
+      for(const pt of tPts){if(pt.x<vl-100||pt.x>vr+100)continue;if(!started){ctx.moveTo(pt.x,pt.y-1);started=true}else ctx.lineTo(pt.x,pt.y-1)}
+      ctx.stroke()
+
+      // Collectibles
+      for(const it of g.items){
+        if(it.collected||it.x<vl-30||it.x>vr+30)continue
+        if(it.type==='coin'){
+          const bob=Math.sin(ts*0.003+it.x*0.01)*3
+          ctx.fillStyle='#FFD700';ctx.shadowColor='#FFD700';ctx.shadowBlur=8
+          ctx.beginPath();ctx.arc(it.x,it.y+bob,7,0,P2);ctx.fill()
+          ctx.strokeStyle='#FFA000';ctx.lineWidth=1.5;ctx.stroke()
+          ctx.shadowBlur=0
+          ctx.fillStyle='#FFA000';ctx.font='bold 8px sans-serif';ctx.textAlign='center'
+          ctx.fillText('$',it.x,it.y+bob+3)
+        }
+        if(it.type==='fuel'){
+          ctx.fillStyle='#E53935';ctx.fillRect(it.x-6,it.y-8,12,16)
+          ctx.fillStyle='#FFEB3B';ctx.fillRect(it.x-3,it.y-5,6,4)
+          ctx.strokeStyle='#B71C1C';ctx.lineWidth=1.5;ctx.strokeRect(it.x-6,it.y-8,12,16)
+          ctx.fillStyle='#fff';ctx.font='bold 6px sans-serif';ctx.textAlign='center'
+          ctx.fillText('⛽',it.x,it.y+5)
+        }
+      }
+
+      // Finish flag
+      const fx=g.terr.finishX,fy=getTerrainY(tPts,fx)
+      ctx.fillStyle='#fff';ctx.fillRect(fx,fy-55,3,55)
+      ctx.fillStyle='#E53935';ctx.fillRect(fx+3,fy-55,22,12)
+      ctx.fillStyle='#000'
+      for(let r=0;r<12;r+=4)for(let c2=0;c2<22;c2+=4){if(((r/4)+(c2/4))%2===0)ctx.fillRect(fx+3+c2,fy-55+r,4,4)}
+      ctx.fillStyle='#fff';ctx.font="bold 9px 'Fredoka One',sans-serif";ctx.textAlign='center'
+      ctx.fillText('🏁',fx+14,fy-58)
+
+      // CAR
+      const ph2=phR.current
+      if(ph2==='play'||ph2==='winning'||(ph2==='dying'&&g.dieT>18)){
+        ctx.save();ctx.translate(g.cx,g.cy);ctx.rotate(g.angle)
+
+        // Shadow on ground
+        ctx.fillStyle='rgba(0,0,0,0.12)';ctx.fillRect(-CAR_W/2+5,CAR_H/2+3,CAR_W-10,5)
+
+        // Body bottom
+        ctx.fillStyle='#E6A817';ctx.fillRect(-CAR_W/2,-CAR_H/2,CAR_W,CAR_H)
+        // Body top
+        ctx.fillStyle='#FFD93D';ctx.fillRect(-CAR_W/2+2,-CAR_H/2-1,CAR_W-4,CAR_H-1)
+        // Cabin
+        ctx.fillStyle='#E6A817';ctx.fillRect(-8,-CAR_H/2-11,24,13)
+        // Windshield
+        ctx.fillStyle='rgba(41,182,246,0.7)';ctx.fillRect(13,-CAR_H/2-9,4,9)
+        // Rear window
+        ctx.fillStyle='rgba(41,182,246,0.5)';ctx.fillRect(-6,-CAR_H/2-9,4,9)
+        // Bumpers
+        ctx.fillStyle='#BDBDBD';ctx.fillRect(-CAR_W/2-2,-3,3,6);ctx.fillRect(CAR_W/2-1,-3,3,6)
+        // Headlights
+        ctx.fillStyle='#FFEB3B';ctx.fillRect(CAR_W/2,-5,2,3);ctx.fillRect(CAR_W/2,1,2,3)
+        // Taillights
+        ctx.fillStyle='#E53935';ctx.fillRect(-CAR_W/2-1,-4,2,3);ctx.fillRect(-CAR_W/2-1,1,2,3)
+        // Outline
+        ctx.strokeStyle='rgba(0,0,0,0.2)';ctx.lineWidth=1;ctx.strokeRect(-CAR_W/2,-CAR_H/2,CAR_W,CAR_H)
+
+        // Wheels
+        for(const wx of[-WHL_BASE/2,WHL_BASE/2]){
+          ctx.save();ctx.translate(wx,CAR_H/2)
+          ctx.rotate(g.whlRot)
+          ctx.fillStyle='#212121';ctx.beginPath();ctx.arc(0,0,WHL_R,0,P2);ctx.fill()
+          ctx.fillStyle='#616161';ctx.beginPath();ctx.arc(0,0,WHL_R*0.5,0,P2);ctx.fill()
+          ctx.strokeStyle='#424242';ctx.lineWidth=1
+          ctx.beginPath();ctx.moveTo(-WHL_R*0.35,0);ctx.lineTo(WHL_R*0.35,0);ctx.stroke()
+          ctx.beginPath();ctx.moveTo(0,-WHL_R*0.35);ctx.lineTo(0,WHL_R*0.35);ctx.stroke()
+          ctx.restore()
         }
 
-        renderer.render(scene,camera)
-      }catch(e){console.error('VR:',e)}
-    }
+        // Exhaust
+        if(g.gas&&!g.air&&Math.random()>0.4){
+          g.pts.push({x:g.cx-Math.cos(g.angle)*CAR_W/2,y:g.cy-Math.sin(g.angle)*CAR_W/2,
+            dx:-g.vx*0.2+(Math.random()-0.5),dy:-0.5-Math.random()*1.5,l:10+Math.random()*8,ml:18,r:2+Math.random()*2,c:'#9E9E9E'})}
 
-    // Handle resize
-    function onResize(){
-      const w=mount.clientWidth,h=mount.clientHeight
-      camera.aspect=w/h;camera.updateProjectionMatrix()
-      renderer.setSize(w,h)
-    }
-    window.addEventListener('resize',onResize)
+        ctx.restore()
+      }
 
-    loop()
+      // Particles
+      for(const pt of g.pts){const a=pt.l/pt.ml;ctx.globalAlpha=a;ctx.fillStyle=pt.c;ctx.beginPath();ctx.arc(pt.x,pt.y,pt.r*a,0,P2);ctx.fill()}
+      ctx.globalAlpha=1
 
-    return()=>{
-      cancelAnimationFrame(aRef.current)
-      window.removeEventListener('keydown',onKey)
-      window.removeEventListener('resize',onResize)
-      renderer.dispose()
-      if(mount.contains(renderer.domElement))mount.removeChild(renderer.domElement)
-    }
+      ctx.restore() // world space
+
+      // ═══ HUD ═══
+      ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(0,0,W,42)
+
+      // Progress bar
+      const bx=50,bw=W-140,bh=6,by=8,pr=Math.min(uPr/100,1)
+      ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(bx,by,bw,bh)
+      ctx.fillStyle='#FFD93D';ctx.fillRect(bx,by,bw*pr,bh)
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bx+bw*pr,by+bh/2,3,0,P2);ctx.fill()
+      ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font="bold 8px 'Fredoka One',sans-serif";ctx.textAlign='center'
+      ctx.fillText(`${uPr}%`,bx+bw/2,by+bh+9)
+
+      // Fuel gauge
+      const fgx=10,fgy=22,fgw=80,fgh=8
+      ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(fgx,fgy,fgw,fgh)
+      const fuelPct=uFuel/100
+      ctx.fillStyle=fuelPct>0.3?'#4CAF50':fuelPct>0.15?'#FF9800':'#E53935'
+      ctx.fillRect(fgx,fgy,fgw*fuelPct,fgh)
+      ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1;ctx.strokeRect(fgx,fgy,fgw,fgh)
+      ctx.fillStyle='#fff';ctx.font="bold 7px 'Fredoka One',sans-serif";ctx.textAlign='left'
+      ctx.fillText(`⛽ ${uFuel}%`,fgx,fgy+fgh+9)
+
+      // Info
+      ctx.textAlign='left';ctx.fillStyle='#FFD93D';ctx.font="bold 11px 'Fredoka One',sans-serif"
+      ctx.fillText(`🚗 Lv${g.lv}`,fgx,10)
+      ctx.textAlign='right';ctx.fillStyle='#fff';ctx.font="bold 11px 'Fredoka One',sans-serif"
+      ctx.fillText(`${uDist}m`,W-10,12)
+      ctx.fillStyle='#FFD700';ctx.fillText(`🪙 ${uCoins}`,W-10,26)
+      ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font="9px 'Fredoka One',sans-serif"
+      ctx.fillText(`×${g.att}`,W-10,38)
+
+      // Touch controls hint
+      if(phR.current==='play'){
+        ctx.globalAlpha=0.12;ctx.fillStyle='#fff';ctx.font='bold 30px sans-serif';ctx.textAlign='center'
+        ctx.fillText('◀ REM',W*0.15,H-30);ctx.fillText('GAS ▶',W*0.85,H-30)
+        ctx.globalAlpha=1
+      }
+
+      // Overlays
+      const ph=phR.current
+      if(ph==='idle'){
+        ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(0,0,W,H)
+        const sc=0.92+Math.sin(ts/400)*0.08;ctx.save();ctx.translate(W/2,H*0.4);ctx.scale(sc,sc)
+        ctx.fillStyle='#fff';ctx.shadowColor='#FFD93D';ctx.shadowBlur=16;ctx.font="bold 24px 'Fredoka One',sans-serif";ctx.textAlign='center'
+        ctx.fillText('TAP UNTUK MULAI',0,0);ctx.shadowBlur=4;ctx.fillStyle='#FFD93D';ctx.font="14px 'Fredoka One',sans-serif"
+        ctx.fillText('🚗 Voxel Racer',0,28);ctx.shadowBlur=0;ctx.restore()
+      }
+      if(ph==='dead'){
+        ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,H)
+        ctx.fillStyle='#fff';ctx.shadowColor='#E53935';ctx.shadowBlur=12;ctx.font="bold 24px 'Fredoka One',sans-serif";ctx.textAlign='center'
+        ctx.fillText('💥 CRASH!',W/2,H*0.34);ctx.shadowBlur=4;ctx.font="13px 'Fredoka One',sans-serif"
+        ctx.fillText(g.fuel<=0?'Bensin habis!':'Mobil terbalik!',W/2,H*0.34+25)
+        ctx.fillStyle='rgba(255,255,255,0.6)';ctx.fillText('Tap untuk retry',W/2,H*0.34+50)
+        ctx.fillStyle='rgba(255,255,255,0.35)';ctx.font="11px 'Fredoka One',sans-serif"
+        ctx.fillText(`${uDist}m • Attempt #${g.att}`,W/2,H*0.34+70);ctx.shadowBlur=0
+      }
+      if(ph==='winning'){
+        ctx.fillStyle='rgba(0,0,0,0.25)';ctx.fillRect(0,0,W,H)
+        ctx.fillStyle='#FFD93D';ctx.shadowColor='#FFD93D';ctx.shadowBlur=15;ctx.font="bold 28px 'Fredoka One',sans-serif";ctx.textAlign='center'
+        ctx.fillText('🏁 FINISH!',W/2,H*0.38);ctx.shadowBlur=0
+      }
+      ctx.restore()
+    }catch(e){console.error('VR:',e)}
+      aRef.current=requestAnimationFrame(loop)}
+    aRef.current=requestAnimationFrame(loop)
+    return()=>{cancelAnimationFrame(aRef.current);c.removeEventListener('mousedown',onDown);c.removeEventListener('mouseup',onUp);window.removeEventListener('keydown',onKey);window.removeEventListener('keyup',onKey)}
   },[difficulty.id])
 
-  const restart=()=>{sp('idle');sSc(0);sLv(1);sCo(0);sDist(0);setShowConf(false)}
+  const restart=()=>{const{w,h}=szC();gR.current=mkG(w,h);sp('idle');sSc(0);sLv(1);sPr(0);sAt(1);sFuel(100);sDist(0);sCoins(0);setShowConf(false)}
   const coinR=phase==='won'?({easy:25,medium:50,hard:75}[difficulty.id]||25)+Math.floor(uSc/150)+35:0
 
-  const [uPr,sPr]=useState(0)
-
   return(
-    <div style={{width:'100%',height:typeof CSS!=='undefined'&&CSS.supports('height','100dvh')?'100dvh':'100vh',background:'#87CEEB',position:'relative',overflow:'hidden',userSelect:'none',fontFamily:"'Fredoka One',cursive"}}>
+    <div style={{width:'100%',height:typeof CSS!=='undefined'&&CSS.supports('height','100dvh')?'100dvh':'100vh',background:'#4FC3F7',position:'relative',overflow:'hidden',userSelect:'none',fontFamily:"'Fredoka One',cursive"}}>
       {showTut&&<TutorialModal steps={TUT} storageKey="bp_tut_voxel-racer" onClose={()=>setShowTut(false)}/>}
       {showConf&&<Confetti/>}
-
-      {/* 3D Canvas Mount */}
-      <div ref={mountRef} style={{position:'absolute',inset:0,zIndex:1}}/>
-
-      {/* Back button */}
-      <div style={{position:'absolute',top:8,left:8,zIndex:20}}>
-        <button onClick={onBack} style={{background:'rgba(0,0,0,0.3)',border:'1px solid rgba(255,255,255,0.3)',color:'#fff',borderRadius:10,padding:'7px 13px',fontSize:15,cursor:'pointer',backdropFilter:'blur(4px)'}}>←</button>
-      </div>
-
-      {/* HUD */}
-      <div style={{position:'absolute',top:0,left:0,right:0,zIndex:10,padding:'10px 16px',display:'flex',justifyContent:'space-between',alignItems:'center',background:'rgba(0,0,0,0.25)',backdropFilter:'blur(4px)'}}>
-        <div style={{color:'#fff',fontSize:13}}>
-          <span>🚗 Lv {uLv}</span>
-          <span style={{marginLeft:12}}>💰 {uCo}</span>
-        </div>
-        {/* Progress bar */}
-        <div style={{flex:1,maxWidth:200,margin:'0 16px',height:6,background:'rgba(255,255,255,0.2)',borderRadius:3}}>
-          <div style={{height:'100%',borderRadius:3,background:'#FFD93D',width:`${uPr}%`,transition:'width 0.2s',boxShadow:'0 0 8px rgba(255,217,61,0.5)'}}/>
-        </div>
-        <div style={{color:'#fff',fontSize:12}}>{uPr}%</div>
-      </div>
-
-      {/* Idle overlay */}
-      {phase==='idle'&&(
-        <div style={{position:'absolute',inset:0,zIndex:30,background:'rgba(0,0,0,0.4)',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column'}}>
-          <div style={{fontSize:60,marginBottom:16}}>🚗</div>
-          <div style={{color:'#fff',fontSize:24,fontWeight:800,textShadow:'0 2px 8px rgba(0,0,0,0.5)'}}>TAP UNTUK MULAI</div>
-          <div style={{color:'rgba(255,255,255,0.7)',fontSize:14,marginTop:8}}>Voxel Racer</div>
-        </div>
-      )}
-
-      {/* Dead overlay */}
-      {phase==='dead'&&(
-        <div style={{position:'absolute',inset:0,zIndex:30,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column'}}>
-          <div style={{fontSize:50,marginBottom:12}}>💥</div>
-          <div style={{color:'#fff',fontSize:22,fontWeight:800}}>CRASH!</div>
-          <div style={{color:'rgba(255,255,255,0.6)',fontSize:14,marginTop:8}}>Tap untuk retry</div>
-          <div style={{color:'rgba(255,255,255,0.4)',fontSize:12,marginTop:4}}>Attempt #{gR.current?.att||1} • {uPr}%</div>
-        </div>
-      )}
-
-      {/* Winning overlay */}
-      {phase==='winning'&&(
-        <div style={{position:'absolute',inset:0,zIndex:30,background:'rgba(0,0,0,0.3)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <div style={{color:'#FFD93D',fontSize:28,fontWeight:800,textShadow:'0 2px 12px rgba(0,0,0,0.5)'}}>✨ LEVEL CLEAR!</div>
-        </div>
-      )}
-
-      {/* Won modal */}
+      <div style={{position:'absolute',top:8,left:8,zIndex:20}}><button onClick={onBack} style={{background:'rgba(0,0,0,0.3)',border:'1px solid rgba(255,255,255,0.3)',color:'#fff',borderRadius:10,padding:'7px 13px',fontSize:15,cursor:'pointer',backdropFilter:'blur(4px)'}}>←</button></div>
+      <div style={{position:'absolute',inset:0,zIndex:1}}><canvas ref={cRef} style={{width:'100%',height:'100%',display:'block',touchAction:'none'}}/></div>
       {phase==='won'&&(
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(10px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:20}}>
           <div style={{background:'linear-gradient(180deg,#1a237e,#0d47a1)',borderRadius:28,padding:'36px 28px',textAlign:'center',maxWidth:380,width:'100%',boxShadow:'0 0 60px rgba(33,150,243,0.3)',position:'relative',overflow:'hidden'}}>
             <div style={{position:'absolute',top:0,left:0,right:0,height:4,background:'linear-gradient(90deg,#FFD93D,#FF6B6B,#29B6F6)'}}/>
-            <div style={{fontSize:52,marginBottom:8}}>🏆</div>
-            <h2 style={{color:'#fff',fontSize:26,marginBottom:4}}>RACE COMPLETE!</h2>
+            <div style={{fontSize:52,marginBottom:8}}>🏆</div><h2 style={{color:'#fff',fontSize:26,marginBottom:4}}>RACE COMPLETE!</h2>
             <p style={{color:'#90CAF9',fontSize:13,marginBottom:12}}>{dc.ml} level selesai!</p>
             <div style={{fontSize:30,marginBottom:12,letterSpacing:8}}>⭐⭐⭐</div>
-            <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(255,217,61,0.15)',border:'1.5px solid rgba(255,217,61,0.3)',borderRadius:100,padding:'6px 18px',marginBottom:16}}>
-              <span>🪙</span><span style={{color:'#FFD93D',fontSize:16,fontWeight:800}}>+{coinR}</span>
-            </div>
+            <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(255,217,61,0.15)',border:'1.5px solid rgba(255,217,61,0.3)',borderRadius:100,padding:'6px 18px',marginBottom:16}}><span>🪙</span><span style={{color:'#FFD93D',fontSize:16,fontWeight:800}}>+{coinR}</span></div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10,marginBottom:24}}>
               <div style={{background:'rgba(255,217,61,0.1)',borderRadius:14,padding:'12px 8px'}}><div style={{fontSize:22,color:'#FFD93D'}}>{uSc}</div><div style={{fontSize:10,color:'#90CAF9',marginTop:2}}>Skor</div></div>
-              <div style={{background:'rgba(41,182,246,0.1)',borderRadius:14,padding:'12px 8px'}}><div style={{fontSize:22,color:'#29B6F6'}}>{uCo}</div><div style={{fontSize:10,color:'#90CAF9',marginTop:2}}>Koin</div></div>
+              <div style={{background:'rgba(41,182,246,0.1)',borderRadius:14,padding:'12px 8px'}}><div style={{fontSize:22,color:'#29B6F6'}}>{uCoins}</div><div style={{fontSize:10,color:'#90CAF9',marginTop:2}}>Koin</div></div>
             </div>
             <div style={{display:'flex',gap:10}}>
               <button onClick={restart} style={{flex:1,background:'linear-gradient(135deg,#FFD93D,#FF6B6B)',color:'#fff',border:'none',borderRadius:100,padding:'13px 18px',fontSize:15,fontWeight:800,cursor:'pointer'}}>🔄 Main Lagi</button>
               <button onClick={onBack} style={{flex:1,background:'#1a237e',color:'#90CAF9',border:'2px solid rgba(255,255,255,0.1)',borderRadius:100,padding:'13px 18px',fontSize:15,fontWeight:800,cursor:'pointer'}}>🎯 Ganti Level</button>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  )
+        </div>)}
+    </div>)
 }
