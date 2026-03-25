@@ -25,19 +25,22 @@ function buildTerrain(lvl, seed){
   // Generate smooth terrain using layered sine waves
   const pts=[]
   const len=800+lvl*200 // longer per level
-  const step=5 // point every 5px for smooth curves
+  const step=5
   const s=seed||lvl*137
   for(let x=-100;x<len;x+=step){
     let y=0
-    // Layer 1: big hills (HCR-like amplitude)
-    y+=Math.sin(x*0.005+s)*80*(1+lvl*0.2)
+    // Amplitude scales gently — capped so hills stay climbable
+    const amp1=Math.min(50+lvl*8,110)   // 58..110 (was 96..176)
+    const amp2=Math.min(20+lvl*5,55)    // 25..55  (was 46..76)
+    const amp3=Math.min(5+lvl*2,20)     // 7..20   (was up to 27)
+    // Layer 1: big rolling hills
+    y+=Math.sin(x*0.004+s)*amp1
     // Layer 2: medium bumps
-    y+=Math.sin(x*0.015+s*2.3)*40*(1+lvl*0.15)
-    // Layer 3: small bumps (more at higher levels)
-    y+=Math.sin(x*0.04+s*4.7)*15*Math.min(lvl*0.3,3)
-    // Flat start (longer like HCR)
-    if(x<200)y*=Math.max(0,(x-20)/180)
-    // Keep y negative (up) for hills, positive for valleys
+    y+=Math.sin(x*0.012+s*2.3)*amp2
+    // Layer 3: small texture bumps
+    y+=Math.sin(x*0.035+s*4.7)*amp3
+    // Flat start 250px
+    if(x<250)y*=Math.max(0,(x-30)/220)
     pts.push({x,y})
   }
   return{pts,len,finishX:len-150}
@@ -227,7 +230,7 @@ export default function VoxelRacer({onBack,game,difficulty}){
         // 2) DRIVE FORCE — along terrain surface when grounded, along car angle in air
         if(!g.air){
           if(g.gas&&g.fuel>0){
-            const slopeBoost=terrAngle<-0.05?1.8:1.0 // 80% extra uphill
+            const slopeBoost=terrAngle<-0.05?2.2:1.0 // 120% extra uphill
             g.vx+=surfCos*dc.power*slopeBoost*dt
             g.vy+=surfSin*dc.power*slopeBoost*dt
           }
@@ -295,10 +298,10 @@ export default function VoxelRacer({onBack,game,difficulty}){
           g.angVel*=(1-0.12*dt)
 
           // Downhill gravity boost: on downhill, add speed along surface
-          if(terrAngle>0.03){ // going downhill
-            const gravAlongSurface=dc.grav*surfSin*0.5*dt
-            g.vx+=surfCos*gravAlongSurface
-            g.vy+=surfSin*gravAlongSurface
+          if(terrAngle>0.03){ // going downhill — gravity accelerates along surface
+            const gravBoost=dc.grav*Math.sin(terrAngle)*0.8*dt
+            g.vx+=surfCos*gravBoost
+            g.vy+=surfSin*gravBoost
           }
 
         }else{
