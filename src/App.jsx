@@ -36,6 +36,7 @@ const BrickBreaker    = lazy(() => import('./pages/games/BrickBreaker.jsx'))
 const ReactionTest    = lazy(() => import('./pages/games/ReactionTest.jsx'))
 const NeonDash        = lazy(() => import('./pages/games/NeonDash.jsx'))
 const MemoryPatternPro = lazy(() => import('./pages/games/MemoryPatternPro.jsx'))
+const WordleIndonesia = lazy(() => import('./pages/games/WordleIndonesia.jsx'))
 const VoxelRacer      = lazy(() => import('./pages/games/VoxelRacer.jsx'))
 
 // ─── Game loading fallback ──────────────────────────────────────────────────
@@ -221,6 +222,19 @@ export const GAMES = [
       { id:'easy',   description:'Bola lambat, paddle lebar, 5 nyawa — santai untuk pemula',   stats:['10 level','5 nyawa','Boss tiap 5 lv'] },
       { id:'medium', description:'Kecepatan sedang, 4 nyawa — butuh refleks yang baik!',       stats:['15 level','4 nyawa','Boss tiap 5 lv'] },
       { id:'hard',   description:'Bola cepat, paddle kecil, 3 nyawa — master breaker only!',   stats:['20 level','3 nyawa','Boss tiap 5 lv'] },
+    ],
+  },
+  {
+    id: 'wordle',
+    title: 'Wordle Indonesia',
+    emoji: '💬',
+    description: 'Tebak kata 5 huruf bahasa Indonesia! Warna hijau = posisi benar, kuning = huruf ada tapi salah posisi.',
+    color: '#55EFC4', bg: '#E8FFF8', tag: 'Kata',
+    component: WordleIndonesia, day: 14,
+    difficulties: [
+      { id:'easy',   description:'7 percobaan, 3 hint — santai untuk pemula',           stats:['7 tebakan','3 hint'] },
+      { id:'medium', description:'6 percobaan, 2 hint — standar Wordle!',               stats:['6 tebakan','2 hint'] },
+      { id:'hard',   description:'5 percobaan, 1 hint — hanya master kata!',            stats:['5 tebakan','1 hint'] },
     ],
   },
   {

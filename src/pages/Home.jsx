@@ -9,7 +9,6 @@ import { useDailyChallenge } from '../context/DailyChallengeContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 
 const COMING_SOON = [
-  { day: 14, emoji: '💬', title: 'Wordle Indonesia',  tag: 'Kata',     color: '#55EFC4' },
   { day: 16, emoji: '⌨️', title: 'Typing Speed',     tag: 'Kata',     color: '#FD79A8' },
   { day: 17, emoji: '💣', title: 'Minesweeper',      tag: 'Logika',   color: '#45B7D1' },
   { day: 18, emoji: '🔀', title: 'Anagram',          tag: 'Kata',     color: '#FDCB6E' },
