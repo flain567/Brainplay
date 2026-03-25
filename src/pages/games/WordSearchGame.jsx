@@ -489,7 +489,7 @@ export default function WordSearchGame({ onBack, game, difficulty }) {
   // ── Category select mode ──
   if (categorySelectMode) {
     return (
-      <div style={{ minHeight: '100vh', background: bg, display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'background 0.3s' }}>
+      <div style={{ minHeight: '100dvh', background: bg, display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'background 0.3s' }}>
         <div style={{ width: '100%', maxWidth: 480, padding: '20px 16px' }}>
           <button onClick={() => setCategorySelectMode(false)} style={{ background: surface, border: `2px solid ${borderCol}`, borderRadius: 12, padding: '9px 18px', fontSize: 14, fontWeight: 700, color: textMuted, cursor: 'pointer', fontFamily: "'Nunito',sans-serif", marginBottom: 20 }}>
             ← Kembali
@@ -527,7 +527,7 @@ export default function WordSearchGame({ onBack, game, difficulty }) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: bg, display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'background 0.3s', userSelect: 'none', WebkitUserSelect: 'none' }}>
+    <div style={{ minHeight: '100dvh', background: bg, display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'background 0.3s', userSelect: 'none', WebkitUserSelect: 'none' }}>
       <style>{`
         @keyframes tileShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-4px)} 40%{transform:translateX(4px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
         @keyframes toastIn { from{opacity:0;transform:translateY(-10px) translateX(-50%)} to{opacity:1;transform:translateY(0) translateX(-50%)} }

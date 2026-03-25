@@ -335,8 +335,9 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
     const fn = () => { sizeCanvas() }
     fn()
     window.addEventListener('resize', fn)
-    window.addEventListener('orientationchange', () => setTimeout(fn, 200))
-    return () => { window.removeEventListener('resize', fn) }
+    const orientFn = () => setTimeout(fn, 200)
+    window.addEventListener('orientationchange', orientFn)
+    return () => { window.removeEventListener('resize', fn); window.removeEventListener('orientationchange', orientFn) }
   }, [])
 
   // ── Game loop ──

@@ -439,7 +439,7 @@ export default function HangmanGame({ onBack, game, difficulty }) {
   }))
 
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100vh', transition: 'background 0.3s' }}>
+    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100dvh', transition: 'background 0.3s' }}>
       {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_hangman","1") }} />}
       <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
       <style>{`

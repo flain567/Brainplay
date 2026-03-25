@@ -260,7 +260,7 @@ export default function Game2048({ onBack, game, difficulty }) {
   const boardPx  = (cellSize+gap)*CN - gap + 16
 
   return (
-    <div style={{minHeight:'100vh',background:'#111',color:'#fff',display:'flex',flexDirection:'column',alignItems:'center',padding:'18px 12px 40px',userSelect:'none'}}>
+    <div style={{minHeight:'100dvh',background:dark?'#111':'#F5F0EB',color:dark?'#fff':'#1A1A2E',display:'flex',flexDirection:'column',alignItems:'center',padding:'18px 12px 40px',userSelect:'none',transition:'background 0.3s'}}>
       {showTutorial && <TutorialModal steps={TUTORIAL_STEPS_CB} color="#A29BFE" onClose={()=>{ setShowTutorial(false); localStorage.setItem("bp_tut_2048","1") }} />}
       <Confetti active={showConfetti} onDone={()=>setShowConfetti(false)} />
       <style>{`
@@ -273,34 +273,34 @@ export default function Game2048({ onBack, game, difficulty }) {
 
       {/* Header */}
       <div style={{width:'100%',maxWidth:boardPx,display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
-        <button onClick={()=>{play('click');onBack()}} style={{background:'rgba(255,255,255,0.07)',border:'1.5px solid rgba(255,255,255,0.12)',borderRadius:10,padding:'7px 14px',color:'rgba(255,255,255,0.6)',fontSize:15,cursor:'pointer',fontWeight:700,fontFamily:"'Nunito',sans-serif"}}>←</button>
+        <button onClick={()=>{play('click');onBack()}} style={{background:dark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.05)',border:dark?'1.5px solid rgba(255,255,255,0.12)':'1.5px solid rgba(0,0,0,0.12)',borderRadius:10,padding:'7px 14px',color:dark?'rgba(255,255,255,0.6)':'rgba(0,0,0,0.5)',fontSize:15,cursor:'pointer',fontWeight:700,fontFamily:"'Nunito',sans-serif"}}>←</button>
         <div style={{flex:1,fontFamily:"'Fredoka One',cursive",fontSize:20,background:'linear-gradient(135deg,#4CAF50,#FFC107)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>Connect Blocks 🔗</div>
         <div style={{textAlign:'right'}}>
           <div style={{fontFamily:"'Fredoka One',cursive",fontSize:16,color:'#FFC107'}}>Level {level}</div>
-          <div style={{fontSize:10,color:'rgba(255,255,255,0.3)',fontWeight:700}}>{DLABEL[difficulty.id]}</div>
+          <div style={{fontSize:10,color:dark?'rgba(255,255,255,0.3)':'rgba(0,0,0,0.35)',fontWeight:700}}>{DLABEL[difficulty.id]}</div>
         </div>
       </div>
 
       {/* Scores */}
       <div style={{width:'100%',maxWidth:boardPx,display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}}>
         {[{label:'SKOR',value:score,color:'#4CAF50'},{label:'REKOR',value:best,color:'#FFC107'}].map(s=>(
-          <div key={s.label} style={{background:'rgba(255,255,255,0.05)',border:`1.5px solid ${s.color}33`,borderRadius:12,padding:'8px 12px',textAlign:'center'}}>
+          <div key={s.label} style={{background:dark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.04)',border:`1.5px solid ${s.color}33`,borderRadius:12,padding:'8px 12px',textAlign:'center'}}>
             <div style={{fontFamily:"'Fredoka One',cursive",fontSize:20,color:s.color,lineHeight:1}}>{s.value.toLocaleString()}</div>
-            <div style={{fontSize:9,color:'rgba(255,255,255,0.3)',fontWeight:700,letterSpacing:'0.5px',marginTop:2}}>{s.label}</div>
+            <div style={{fontSize:9,color:dark?'rgba(255,255,255,0.3)':'rgba(0,0,0,0.35)',fontWeight:700,letterSpacing:'0.5px',marginTop:2}}>{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Progress — shows how close best merge is to the level-up goal */}
       <div style={{width:'100%',maxWidth:boardPx,marginBottom:10}}>
-        <div style={{display:'flex',justifyContent:'space-between',marginBottom:4,fontSize:11,color:'rgba(255,255,255,0.35)',fontWeight:700}}>
+        <div style={{display:'flex',justifyContent:'space-between',marginBottom:4,fontSize:11,color:dark?'rgba(255,255,255,0.35)':'rgba(0,0,0,0.4)',fontWeight:700}}>
           <span>🎯 Gabungkan ≥ <span style={{color:'#4CAF50'}}>{goal.toLocaleString()}</span></span>
           <span style={{color:'#FFC107'}}>Lv{level}/{cfg.maxLevel}</span>
         </div>
-        <div style={{height:9,background:'rgba(255,255,255,0.07)',borderRadius:100,overflow:'hidden'}}>
+        <div style={{height:9,background:dark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.05)',borderRadius:100,overflow:'hidden'}}>
           <div style={{height:'100%',width:`${mergePct}%`,background:'linear-gradient(90deg,#4CAF50,#FFC107,#FF5722)',borderRadius:100,transition:'width 0.4s ease',backgroundSize:'200% 100%',animation:'shimmer 2s linear infinite'}}/>
         </div>
-        <div style={{fontSize:10,color:'rgba(255,255,255,0.25)',marginTop:3,textAlign:'center'}}>
+        <div style={{fontSize:10,color:dark?'rgba(255,255,255,0.25)':'rgba(0,0,0,0.3)',marginTop:3,textAlign:'center'}}>
           Merge terbaik: <span style={{color:bestMerge>=goal?'#4CAF50':'#FFC107'}}>{bestMerge > 0 ? bestMerge.toLocaleString() : '—'}</span> / {goal.toLocaleString()}
         </div>
       </div>
@@ -324,7 +324,7 @@ export default function Game2048({ onBack, game, difficulty }) {
         onMouseDown={e=>startDrag(e.clientX,e.clientY)}
         onMouseMove={e=>moveDrag(e.clientX,e.clientY)}
         onMouseUp={endDrag} onMouseLeave={endDrag}
-        style={{display:'grid',gridTemplateColumns:`repeat(${CN},${cellSize}px)`,gap,padding:8,background:'rgba(255,255,255,0.04)',borderRadius:20,border:`1.5px solid ${invalidFlash ? '#ff6b6b' : 'rgba(255,255,255,0.07)'}`,transition:'border-color 0.2s',touchAction:'none',cursor:'grab',position:'relative'}}
+        style={{display:'grid',gridTemplateColumns:`repeat(${CN},${cellSize}px)`,gap,padding:8,background:dark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.03)',borderRadius:20,border:`1.5px solid ${invalidFlash ? '#ff6b6b' : dark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.08)'}`,transition:'border-color 0.2s',touchAction:'none',cursor:'grab',position:'relative'}}
       >
         {grid.map((row,r)=>row.map((cell,c)=>{
           if (!cell) return <div key={`${r}-${c}-null`} style={{width:cellSize,height:cellSize}}/>
@@ -370,7 +370,7 @@ export default function Game2048({ onBack, game, difficulty }) {
         )}
       </div>
 
-      <button onClick={restart} style={{marginTop:16,background:'rgba(255,255,255,0.05)',border:'1.5px solid rgba(255,255,255,0.1)',borderRadius:100,padding:'9px 26px',color:'rgba(255,255,255,0.45)',fontSize:12,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer'}}>
+      <button onClick={restart} style={{marginTop:16,background:dark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.04)',border:'1.5px solid rgba(255,255,255,0.1)',borderRadius:100,padding:'9px 26px',color:'rgba(255,255,255,0.45)',fontSize:12,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer'}}>
         🔄 Restart
       </button>
 
@@ -404,7 +404,7 @@ export default function Game2048({ onBack, game, difficulty }) {
             <button onClick={()=>{setPhase('playing');setLuInfo(null)}} style={{width:'100%',background:'linear-gradient(135deg,#4CAF50,#8BC34A)',color:'#fff',border:'none',borderRadius:100,padding:'13px',fontSize:16,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer',boxShadow:'0 0 24px rgba(76,175,80,0.4)',marginBottom:8}}>
               ▶ Lanjut Main
             </button>
-            <div onClick={()=>{setPhase('playing');setLuInfo(null)}} style={{color:'rgba(255,255,255,0.35)',fontSize:13,cursor:'pointer',padding:4}}>No Thanks</div>
+            <div onClick={()=>{setPhase('playing');setLuInfo(null)}} style={{color:dark?'rgba(255,255,255,0.35)':'rgba(0,0,0,0.4)',fontSize:13,cursor:'pointer',padding:4}}>No Thanks</div>
           </div>
         </div>
       )}

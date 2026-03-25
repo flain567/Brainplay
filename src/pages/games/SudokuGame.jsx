@@ -329,7 +329,7 @@ export default function SudokuGame({ onBack, game, difficulty }) {
   const selectedNum = selectedCell ? board[selectedCell[0]][selectedCell[1]] : null
 
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100vh', transition: 'background 0.3s' }}>
+    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100dvh', transition: 'background 0.3s' }}>
       {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_sudoku","1") }} />}
       <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
 

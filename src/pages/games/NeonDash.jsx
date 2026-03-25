@@ -187,9 +187,11 @@ export default function NeonDash({onBack,game,difficulty}){
       if(g.mode==='cube'&&g.gnd){g.vy=dc.jv;g.gnd=false;try{play('flip')}catch(e){}}
     }
     function onUp(){g.hold=false}
+    const onTouchStart=e=>{e.preventDefault();onDown()}
+    const onTouchEnd=e=>{e.preventDefault();onUp()}
     c.addEventListener('mousedown',onDown);c.addEventListener('mouseup',onUp)
-    c.addEventListener('touchstart',e=>{e.preventDefault();onDown()},{passive:false})
-    c.addEventListener('touchend',e=>{e.preventDefault();onUp()},{passive:false})
+    c.addEventListener('touchstart',onTouchStart,{passive:false})
+    c.addEventListener('touchend',onTouchEnd,{passive:false})
     const kd=e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();onDown()}}
     const ku=e=>{if(e.code==='Space'||e.code==='ArrowUp')onUp()}
     window.addEventListener('keydown',kd);window.addEventListener('keyup',ku)
@@ -417,7 +419,7 @@ export default function NeonDash({onBack,game,difficulty}){
     }catch(e){console.error('ND:',e)}
       aRef.current=requestAnimationFrame(loop)}
     aRef.current=requestAnimationFrame(loop)
-    return()=>{cancelAnimationFrame(aRef.current);c.removeEventListener('mousedown',onDown);c.removeEventListener('mouseup',onUp);window.removeEventListener('keydown',kd);window.removeEventListener('keyup',ku)}
+    return()=>{cancelAnimationFrame(aRef.current);c.removeEventListener('mousedown',onDown);c.removeEventListener('mouseup',onUp);c.removeEventListener('touchstart',onTouchStart);c.removeEventListener('touchend',onTouchEnd);window.removeEventListener('keydown',kd);window.removeEventListener('keyup',ku)}
   },[difficulty.id])
 
   const restart=()=>{const{w,h}=szC();gR.current=mkG(w,h);sp('idle');sSc(0);sLv(1);sPr(0);sDi('0/0');sAt(1);setShowConf(false)}

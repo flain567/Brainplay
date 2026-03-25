@@ -316,7 +316,7 @@ export default function ReactionTest({ onBack, game, difficulty }) {
   // ═══════ MODE SELECT SCREEN ═══════
   if (!mode) {
     return (
-      <div style={{ minHeight: '100vh', background: bg, padding: '24px 16px 80px' }}>
+      <div style={{ minHeight: '100dvh', background: bg, padding: '24px 16px 80px' }}>
         {showTutorial && (
           <TutorialModal steps={TUTORIAL_STEPS} storageKey="bp_tut_reaction-test"
             onClose={() => setShowTutorial(false)} />
@@ -360,7 +360,7 @@ export default function ReactionTest({ onBack, game, difficulty }) {
     return (
       <div onClick={handleTapClick}
         style={{
-          minHeight: '100vh', background: tapBg, display: 'flex', flexDirection: 'column',
+          minHeight: '100dvh', background: tapBg, display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
           transition: 'background 0.15s', userSelect: 'none',
         }}>
@@ -404,7 +404,7 @@ export default function ReactionTest({ onBack, game, difficulty }) {
   // ═══════ COLOR MODE SCREEN ═══════
   if (mode === 'color' && gameState !== 'done') {
     return (
-      <div style={{ minHeight: '100vh', background: bg, padding: '24px 16px 80px' }}>
+      <div style={{ minHeight: '100dvh', background: bg, padding: '24px 16px 80px' }}>
         <div style={{ position: 'relative' }}>
           <GameHeader emoji="🎨" title="Warna" subtitle={cfg.stroopMode ? 'Pilih WARNA teks (bukan kata!)' : 'Pilih warna yang ditampilkan'}
             diffId={difficulty.id} onBack={restart} dark={dark} />
@@ -479,7 +479,7 @@ export default function ReactionTest({ onBack, game, difficulty }) {
   if (mode === 'sequence' && gameState !== 'done') {
     const seqColors = SEQ_COLORS.slice(0, 5)
     return (
-      <div style={{ minHeight: '100vh', background: bg, padding: '24px 16px 80px' }}>
+      <div style={{ minHeight: '100dvh', background: bg, padding: '24px 16px 80px' }}>
         <GameHeader emoji="🧠" title="Sequence" subtitle="Ingat urutan warna!"
           diffId={difficulty.id} onBack={restart} dark={dark} />
 
@@ -566,7 +566,7 @@ export default function ReactionTest({ onBack, game, difficulty }) {
 
   // ═══════ DONE SCREEN ═══════
   return (
-    <div style={{ minHeight: '100vh', background: bg, padding: '24px 16px 80px' }}>
+    <div style={{ minHeight: '100dvh', background: bg, padding: '24px 16px 80px' }}>
       {showConfetti && <Confetti />}
       <WinModal
         emoji={accuracy >= 70 ? '🏆' : '⚡'}

@@ -132,8 +132,8 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
   useEffect(() => {
     sizeCanvas()
     const fn = () => { const { w, h } = sizeCanvas(); if (gameRef.current && phaseRef.current === 'playing') { gameRef.current.W = w; gameRef.current.H = h; gameRef.current.player.y = Math.min(gameRef.current.player.y, h-40) } }
-    window.addEventListener('resize', fn); window.addEventListener('orientationchange', () => setTimeout(fn, 200))
-    return () => { window.removeEventListener('resize', fn); window.removeEventListener('orientationchange', fn) }
+    window.addEventListener('resize', fn); const orientFn = () => setTimeout(fn, 200); window.addEventListener('orientationchange', orientFn)
+    return () => { window.removeEventListener('resize', fn); window.removeEventListener('orientationchange', orientFn) }
   }, [])
 
   // Touch controls
@@ -158,9 +158,10 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
     canvas.addEventListener('touchend', onEnd, { passive: true })
     canvas.addEventListener('touchcancel', onEnd, { passive: true })
     canvas.addEventListener('mousedown', onStart)
-    canvas.addEventListener('mousemove', (e) => { if (inputRef.current.touchActive) { const p = getXY(e); if (p) { inputRef.current.touchX = p.x; inputRef.current.touchY = p.y } } })
+    const onMouseMove = (e) => { if (inputRef.current.touchActive) { const p = getXY(e); if (p) { inputRef.current.touchX = p.x; inputRef.current.touchY = p.y } } }
+    canvas.addEventListener('mousemove', onMouseMove)
     canvas.addEventListener('mouseup', onEnd); canvas.addEventListener('mouseleave', onEnd)
-    return () => { canvas.removeEventListener('touchstart', onStart); canvas.removeEventListener('touchmove', onMove); canvas.removeEventListener('touchend', onEnd); canvas.removeEventListener('touchcancel', onEnd) }
+    return () => { canvas.removeEventListener('touchstart', onStart); canvas.removeEventListener('touchmove', onMove); canvas.removeEventListener('touchend', onEnd); canvas.removeEventListener('touchcancel', onEnd); canvas.removeEventListener('mousedown', onStart); canvas.removeEventListener('mousemove', onMouseMove); canvas.removeEventListener('mouseup', onEnd); canvas.removeEventListener('mouseleave', onEnd) }
   }, [])
 
   useEffect(() => {

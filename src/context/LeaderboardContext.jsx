@@ -126,6 +126,12 @@ const MAX_SCORES = {
   'color-sort':    5000,
   'sudoku':        5000,
   'jigsaw':        5000,
+  'reaction-test': 2000,
+  'neon-dash':     10000,
+  'brick-breaker': 50000,
+  'memory-pattern':15000,
+  'voxel-racer':   15000,
+  'wordle':        1500,
 }
 
 // Rate limiter: 1 submit per 5 seconds per game

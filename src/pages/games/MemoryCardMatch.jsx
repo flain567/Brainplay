@@ -7,7 +7,7 @@ const TUTORIAL_STEPS = [
   { emoji:'⭐', title:'Sistem Bintang', desc:'Semakin sedikit gerakan yang kamu pakai, semakin banyak bintang yang kamu dapat. Targetkan 3 bintang!', tip:'Easy ≤10 gerakan, Medium ≤14, Hard ≤20 untuk 3 bintang.' },
 ]
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSettings } from '../../context/SettingsContext.jsx'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
@@ -58,6 +58,19 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
 
   const { pairs, cols } = difficulty
   const iconPool = getActiveIcons()
+  const timersRef = useRef([])
+
+  // Safe setTimeout that auto-cleans on unmount
+  const safeTimeout = useCallback((fn, ms) => {
+    const id = setTimeout(fn, ms)
+    timersRef.current.push(id)
+    return id
+  }, [])
+
+  // Cleanup all pending timeouts on unmount
+  useEffect(() => {
+    return () => { timersRef.current.forEach(id => clearTimeout(id)); timersRef.current = [] }
+  }, [])
 
   const [deck, setDeck]         = useState(() => createDeck(pairs, iconPool))
   const [selected, setSelected] = useState([])
@@ -118,7 +131,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
       setLocked(true)
       if (newSelected[0].emoji === newSelected[1].emoji) {
         play('match')
-        setTimeout(() => {
+        safeTimeout(() => {
           setDeck(d => d.map(c =>
             c.id === newSelected[0].id || c.id === newSelected[1].id
               ? { ...c, matched: true } : c
@@ -127,8 +140,8 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
           setLocked(false)
         }, 500)
       } else {
-        setTimeout(() => play('mismatch'), 200)
-        setTimeout(() => {
+        safeTimeout(() => play('mismatch'), 200)
+        safeTimeout(() => {
           setDeck(d => d.map(c =>
             c.id === newSelected[0].id || c.id === newSelected[1].id
               ? { ...c, flipped: false } : c
@@ -170,7 +183,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
     setHintCells(foundIds)
     setLocked(true)
     setDeck(d => d.map(c => foundIds.includes(c.id) ? {...c, flipped:true} : c))
-    setTimeout(() => {
+    safeTimeout(() => {
       setDeck(d => d.map(c => foundIds.includes(c.id) ? {...c, flipped:false} : c))
       setHintCells([])
       setLocked(false)
@@ -201,7 +214,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
   const borderCol = darkMode ? '#2d3561' : '#DFE6E9'
 
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100vh', transition: 'background 0.3s' }}>
+    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100dvh', transition: 'background 0.3s' }}>
       {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color="#FF6B6B" onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_memory-card","1") }} />}
       <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
 

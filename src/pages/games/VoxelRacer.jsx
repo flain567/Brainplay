@@ -188,9 +188,11 @@ export default function VoxelRacer({onBack,game,difficulty}){
         if(e.code==='ArrowLeft'||e.code==='KeyA')g.brk=false
       }
     }
+    const onTouchStart=e=>{e.preventDefault();onDown(e)}
+    const onTouchEnd=e=>{e.preventDefault();onUp()}
     c.addEventListener('mousedown',onDown);c.addEventListener('mouseup',onUp)
-    c.addEventListener('touchstart',e=>{e.preventDefault();onDown(e)},{passive:false})
-    c.addEventListener('touchend',e=>{e.preventDefault();onUp()},{passive:false})
+    c.addEventListener('touchstart',onTouchStart,{passive:false})
+    c.addEventListener('touchend',onTouchEnd,{passive:false})
     window.addEventListener('keydown',onKey);window.addEventListener('keyup',onKey)
 
     // ═════════════ GAME LOOP ═════════════
@@ -563,7 +565,7 @@ export default function VoxelRacer({onBack,game,difficulty}){
     }catch(e){console.error('VR:',e)}
       aRef.current=requestAnimationFrame(loop)}
     aRef.current=requestAnimationFrame(loop)
-    return()=>{cancelAnimationFrame(aRef.current);c.removeEventListener('mousedown',onDown);c.removeEventListener('mouseup',onUp);window.removeEventListener('keydown',onKey);window.removeEventListener('keyup',onKey)}
+    return()=>{cancelAnimationFrame(aRef.current);c.removeEventListener('mousedown',onDown);c.removeEventListener('mouseup',onUp);c.removeEventListener('touchstart',onTouchStart);c.removeEventListener('touchend',onTouchEnd);window.removeEventListener('keydown',onKey);window.removeEventListener('keyup',onKey)}
   },[difficulty.id])
 
   const restart=()=>{const{w,h}=szC();gR.current=mkG(w,h);sp('idle');sSc(0);sLv(1);sPr(0);sAt(1);sFuel(100);sDist(0);sCoins(0);setShowConf(false)}
