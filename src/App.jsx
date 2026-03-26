@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { SettingsProvider, useSettings } from './context/SettingsContext.jsx'
 import { ProgressProvider } from './context/ProgressContext.jsx'
-import { CoinProvider } from './context/CoinContext.jsx'
+import { CoinProvider, useCoins } from './context/CoinContext.jsx'
 import { NotifProvider } from './context/NotifContext.jsx'
 import { LeaderboardProvider } from './context/LeaderboardContext.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
@@ -18,12 +18,14 @@ import Home from './pages/Home.jsx'
 import { migrateOldStorage } from './utils/storage.js'
 import { useMusic } from './hooks/useMusic.js'
 import { preloadFirestore } from './firebase.js'
+import { preloadAnalytics, trackSessionStart, trackSessionEnd, trackScreenView, trackGameStart, trackGameComplete, trackGameDropoff, trackDailyActive } from './utils/analytics.js'
 
 // ─── Lazy-loaded pages (split into separate chunks) ──────────────────────────
 const Profile     = lazy(() => import('./pages/Profile.jsx'))
 const Shop        = lazy(() => import('./pages/Shop.jsx'))
 const Leaderboard = lazy(() => import('./pages/Leaderboard.jsx'))
 const LoginModal  = lazy(() => import('./components/LoginModal.jsx'))
+const OnboardingModal = lazy(() => import('./components/OnboardingModal.jsx'))
 
 // ─── Lazy-loaded game components (split into separate chunks) ────────────────
 const MemoryCardMatch = lazy(() => import('./pages/games/MemoryCardMatch.jsx'))
@@ -259,15 +261,55 @@ function AppInner() {
   const [currentGame, setCurrentGame] = useState(null)
   const [difficulty,  setDifficulty]  = useState(null)
   const [screen,      setScreen]      = useState('home')
+  const [showOnboarding, setShowOnboarding] = useState(false)
   const { isLoggedIn, isGuest, needsName, loading: authLoading } = useAuth()
   const { initialSyncDone } = useCloudSave()
   const { muted, musicOff } = useSettings()
+  const { earnCoins } = useCoins()
 
   // Run migration once
   useEffect(() => { migrateOldStorage() }, [])
 
-  // Preload Firestore after first render (don't block initial paint)
-  useEffect(() => { preloadFirestore() }, [])
+  // Preload Firestore + Analytics after first render (don't block initial paint)
+  useEffect(() => {
+    preloadFirestore()
+    preloadAnalytics()
+    trackSessionStart()
+    trackDailyActive()
+    // Track session end on page unload
+    const onUnload = () => trackSessionEnd()
+    window.addEventListener('beforeunload', onUnload)
+    return () => window.removeEventListener('beforeunload', onUnload)
+  }, [])
+
+  // Track screen views
+  useEffect(() => { trackScreenView(screen) }, [screen])
+
+  // Show onboarding after auth is done and user has never been onboarded
+  useEffect(() => {
+    if (!authLoading && initialSyncDone && (isLoggedIn || isGuest) && !needsName) {
+      if (!localStorage.getItem('bp_onboarded')) {
+        setShowOnboarding(true)
+      }
+    }
+  }, [authLoading, initialSyncDone, isLoggedIn, isGuest, needsName])
+
+  // Track game completion via bp-game-result event + first-game reward
+  useEffect(() => {
+    const handler = (e) => {
+      const { gameId, difficultyId, score, timeSec, stars } = e.detail || {}
+      if (gameId && score > 0) {
+        trackGameComplete(gameId, difficultyId || 'easy', score, stars, timeSec)
+        // First-game bonus: 100 coins
+        if (!localStorage.getItem('bp_first_game_rewarded') && localStorage.getItem('bp_onboarded')) {
+          localStorage.setItem('bp_first_game_rewarded', 'true')
+          if (earnCoins) earnCoins(100, 'Bonus game pertama! 🎉')
+        }
+      }
+    }
+    window.addEventListener('bp-game-result', handler)
+    return () => window.removeEventListener('bp-game-result', handler)
+  }, [earnCoins])
 
   // Music plays on lobby screens, stops during game
   const isLobby = screen === 'home' || screen === 'profile' || screen === 'difficulty' || screen === 'shop' || screen === 'leaderboard'
@@ -278,9 +320,21 @@ function AppInner() {
     setScreen('difficulty')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
-  const selectDifficulty  = (diffId) => { setDifficulty(diffId); setScreen('game'); window.scrollTo({ top: 0 }) }
-  const goHome            = () => { setScreen('home'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const goBackToDifficulty = () => { setDifficulty(null); setScreen('difficulty'); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const selectDifficulty = (diffId) => {
+    setDifficulty(diffId)
+    setScreen('game')
+    window.scrollTo({ top: 0 })
+    if (currentGame) trackGameStart(currentGame.id, diffId)
+  }
+  const goHome            = () => {
+    // Track dropoff if leaving a game
+    if (screen === 'game' && currentGame) trackGameDropoff(currentGame.id, difficulty, 'back_to_home')
+    setScreen('home'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  const goBackToDifficulty = () => {
+    if (currentGame) trackGameDropoff(currentGame.id, difficulty, 'back_to_difficulty')
+    setDifficulty(null); setScreen('difficulty'); window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
   const goProfile         = () => { setScreen('profile'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goShop            = () => { setScreen('shop'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goLeaderboard     = () => { setScreen('leaderboard'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
@@ -308,6 +362,15 @@ function AppInner() {
       {!authLoading && initialSyncDone && ((!isLoggedIn && !isGuest) || needsName) && (
         <Suspense fallback={null}>
           <LoginModal onDone={() => {}} />
+        </Suspense>
+      )}
+      {/* Onboarding — shown once for first-time users after login */}
+      {showOnboarding && !needsName && (isLoggedIn || isGuest) && (
+        <Suspense fallback={null}>
+          <OnboardingModal
+            onPickGame={(gameId) => { setShowOnboarding(false); openGame(gameId) }}
+            onSkip={() => setShowOnboarding(false)}
+          />
         </Suspense>
       )}
       {!isFullscreen && (
