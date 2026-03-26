@@ -61,7 +61,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
           position: sticky; top: 0; z-index: 200;
           transition: background 0.35s, box-shadow 0.35s, border-color 0.35s;
           backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-          padding: 0 28px; border-bottom: 2px solid transparent;
+          padding: var(--safe-top, 0px) 28px 0 28px; border-bottom: 2px solid transparent;
         }
         .nav-root.scrolled {
           box-shadow: 0 4px 24px rgba(0,0,0,0.08);
@@ -150,7 +150,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
           position: fixed; top: 0; right: 0; z-index: 195;
           width: 280px; max-width: 80vw; height: 100vh;
           background: ${drawerBg}; box-shadow: -8px 0 30px rgba(0,0,0,0.15);
-          padding: 24px 20px; overflow-y: auto;
+          padding: calc(24px + var(--safe-top, 0px)) 20px calc(24px + var(--safe-bottom, 0px)) 20px; overflow-y: auto;
           animation: nav-slide-in 0.3s cubic-bezier(0.34,1.56,0.64,1);
           display: flex; flex-direction: column;
         }

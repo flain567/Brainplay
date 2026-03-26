@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { SettingsProvider, useSettings } from './context/SettingsContext.jsx'
 import { ProgressProvider } from './context/ProgressContext.jsx'
 import { CoinProvider, useCoins } from './context/CoinContext.jsx'
@@ -19,6 +19,7 @@ import { migrateOldStorage } from './utils/storage.js'
 import { useMusic } from './hooks/useMusic.js'
 import { preloadFirestore } from './firebase.js'
 import { preloadAnalytics, trackSessionStart, trackSessionEnd, trackScreenView, trackGameStart, trackGameComplete, trackGameDropoff, trackDailyActive } from './utils/analytics.js'
+import { initNative, setupBackButton, hideStatusBar, showStatusBar, isNative } from './utils/native.js'
 
 // ─── Lazy-loaded pages (split into separate chunks) ──────────────────────────
 const Profile     = lazy(() => import('./pages/Profile.jsx'))
@@ -262,6 +263,8 @@ function AppInner() {
   const [difficulty,  setDifficulty]  = useState(null)
   const [screen,      setScreen]      = useState('home')
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const screenRef = useRef('home')
+  const navRef = useRef({ goHome: null, goBackToDifficulty: null })
   const { isLoggedIn, isGuest, needsName, loading: authLoading } = useAuth()
   const { initialSyncDone } = useCloudSave()
   const { muted, musicOff } = useSettings()
@@ -270,10 +273,11 @@ function AppInner() {
   // Run migration once
   useEffect(() => { migrateOldStorage() }, [])
 
-  // Preload Firestore + Analytics after first render (don't block initial paint)
+  // Preload Firestore + Analytics + Native after first render
   useEffect(() => {
     preloadFirestore()
     preloadAnalytics()
+    initNative()
     trackSessionStart()
     trackDailyActive()
     // Track session end on page unload
@@ -284,6 +288,24 @@ function AppInner() {
 
   // Track screen views
   useEffect(() => { trackScreenView(screen) }, [screen])
+
+  // ─── Capacitor hardware back button ────────────────────────────────────────
+  useEffect(() => {
+    return setupBackButton(() => {
+      const s = screenRef.current
+      if (s === 'game') {
+        navRef.current.goBackToDifficulty?.()
+      } else if (s === 'difficulty' || s === 'profile' || s === 'shop' || s === 'leaderboard') {
+        navRef.current.goHome?.()
+      }
+      // On home screen → Capacitor default (minimize app)
+    })
+  }, [])
+
+  // ─── Hide status bar in fullscreen canvas games ────────────────────────────
+  useEffect(() => {
+    if (isFullscreen) { hideStatusBar() } else { showStatusBar() }
+  }, [isFullscreen])
 
   // Show onboarding after auth is done and user has never been onboarded
   useEffect(() => {
@@ -311,6 +333,9 @@ function AppInner() {
     return () => window.removeEventListener('bp-game-result', handler)
   }, [earnCoins])
 
+  const activeDiff   = currentGame?.difficulties?.find(d => d.id === difficulty)
+  const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter' || currentGame?.id === 'brick-breaker' || currentGame?.id === 'memory-pattern' || currentGame?.id === 'neon-dash' || currentGame?.id === 'voxel-racer')
+
   // Music plays on lobby screens, stops during game
   const isLobby = screen === 'home' || screen === 'profile' || screen === 'difficulty' || screen === 'shop' || screen === 'leaderboard'
   useMusic(isLobby, muted || musicOff)
@@ -328,19 +353,21 @@ function AppInner() {
   }
   const goHome            = () => {
     // Track dropoff if leaving a game
-    if (screen === 'game' && currentGame) trackGameDropoff(currentGame.id, difficulty, 'back_to_home')
+    if (screenRef.current === 'game' && currentGame) trackGameDropoff(currentGame.id, difficulty, 'back_to_home')
     setScreen('home'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   const goBackToDifficulty = () => {
     if (currentGame) trackGameDropoff(currentGame.id, difficulty, 'back_to_difficulty')
     setDifficulty(null); setScreen('difficulty'); window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+
+  // Keep refs in sync for back button handler
+  screenRef.current = screen
+  navRef.current.goHome = goHome
+  navRef.current.goBackToDifficulty = goBackToDifficulty
   const goProfile         = () => { setScreen('profile'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goShop            = () => { setScreen('shop'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goLeaderboard     = () => { setScreen('leaderboard'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-
-  const activeDiff   = currentGame?.difficulties?.find(d => d.id === difficulty)
-  const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter' || currentGame?.id === 'brick-breaker' || currentGame?.id === 'memory-pattern' || currentGame?.id === 'neon-dash' || currentGame?.id === 'voxel-racer')
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
