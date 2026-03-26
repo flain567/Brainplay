@@ -151,6 +151,10 @@ export default function NeonDash({onBack,game,difficulty}){
   const[showConf,setShowConf]=useState(false)
   const[uSc,sSc]=useState(0),[uLv,sLv]=useState(1),[uPr,sPr]=useState(0),[uDi,sDi]=useState('0/0'),[uAt,sAt]=useState(1)
   const[rzKey,setRzKey]=useState(0)
+  const bestKey=`nd-best-${difficulty.id}`
+  const[bestPr,sBestPr]=useState(()=>parseInt(localStorage.getItem(bestKey+'p')||'0'))
+  const[bestLv,sBestLv]=useState(()=>parseInt(localStorage.getItem(bestKey+'l')||'1'))
+  const[totalAttempts,sTotalAt]=useState(()=>parseInt(localStorage.getItem(bestKey+'a')||'0'))
   const sp=p=>{phR.current=p;_sp(p)}
 
   // Resize handler
@@ -228,6 +232,12 @@ export default function NeonDash({onBack,game,difficulty}){
         g.pts.push({x:cx,y:cy,dx:Math.cos(a)*s,dy:Math.sin(a)*s-1,l:25+Math.random()*25,ml:50,r:2+Math.random()*4,c:i<12?CL.ply:i<18?'#FF6B6B':'#fff'})}
       g.rings.push({x:cx,y:cy,r:5,mr:100,a:1,c:'#fff',lw:3})
       g.rings.push({x:cx,y:cy,r:10,mr:60,a:0.6,c:'#FF6B6B',lw:2})
+      // Track best progress
+      const curPr=Math.round(Math.min(g.cam/g.lvD.len,1)*100)
+      const totalPr=Math.round(((g.lv-1)/dc.ml)*100+curPr/dc.ml)
+      if(totalPr>bestPr){sBestPr(totalPr);localStorage.setItem(bestKey+'p',totalPr)}
+      if(g.lv>bestLv){sBestLv(g.lv);localStorage.setItem(bestKey+'l',g.lv)}
+      sTotalAt(prev=>{const n=prev+1;localStorage.setItem(bestKey+'a',n);return n})
       try{play('mismatch')}catch(e){}
     }
     function win(){
@@ -428,8 +438,14 @@ export default function NeonDash({onBack,game,difficulty}){
       if(g.deathFlash>0.01){ctx.fillStyle=`rgba(255,80,80,${g.deathFlash*0.4})`;ctx.fillRect(0,0,W,H)}
 
       // Overlays
-      if(ph==='idle'){ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(0,0,W,H);const sc=0.92+Math.sin(ts/400)*0.08;ctx.save();ctx.translate(W/2,H*0.42);ctx.scale(sc,sc);ctx.fillStyle='#fff';ctx.shadowColor=CL.gndL;ctx.shadowBlur=16;ctx.font="bold 22px 'Fredoka One',sans-serif";ctx.textAlign='center';ctx.fillText('TAP UNTUK MULAI',0,0);ctx.shadowBlur=4;ctx.fillStyle=CL.gndL;ctx.font="13px 'Fredoka One',sans-serif";ctx.fillText('💎 Neon Dash',0,26);ctx.shadowBlur=0;ctx.restore()}
-      if(ph==='dead'){ctx.fillStyle='rgba(0,0,0,0.35)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.shadowColor='#fff';ctx.shadowBlur=12;ctx.font="bold 22px 'Fredoka One',sans-serif";ctx.textAlign='center';ctx.fillText('💥 CRASH!',W/2,H*0.38);ctx.shadowBlur=4;ctx.font="14px 'Fredoka One',sans-serif";ctx.fillText('Tap untuk retry',W/2,H*0.38+28);ctx.fillStyle='rgba(255,255,255,0.35)';ctx.font="11px 'Fredoka One',sans-serif";ctx.fillText(`Attempt #${g.att}  •  ${uPr}%`,W/2,H*0.38+50);ctx.shadowBlur=0}
+      if(ph==='idle'){ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(0,0,W,H);const sc=0.92+Math.sin(ts/400)*0.08;ctx.save();ctx.translate(W/2,H*0.38);ctx.scale(sc,sc);ctx.fillStyle='#fff';ctx.shadowColor=CL.gndL;ctx.shadowBlur=16;ctx.font="bold 22px 'Fredoka One',sans-serif";ctx.textAlign='center';ctx.fillText('TAP UNTUK MULAI',0,0);ctx.shadowBlur=4;ctx.fillStyle=CL.gndL;ctx.font="13px 'Fredoka One',sans-serif";ctx.fillText('💎 Neon Dash',0,26);ctx.shadowBlur=0;ctx.restore()
+        if(bestPr>0){ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font="10px 'Fredoka One',sans-serif";ctx.fillText(`Rekor: Lv${bestLv} • ${bestPr}% • ${totalAttempts} attempt`,W/2,H*0.38+56)}}
+      if(ph==='dead'){ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,H)
+        ctx.fillStyle='#FF6B6B';ctx.shadowColor='#FF6B6B';ctx.shadowBlur=15;ctx.font="bold 24px 'Fredoka One',sans-serif";ctx.textAlign='center';ctx.fillText('💥 CRASH!',W/2,H*0.32);ctx.shadowBlur=0
+        ctx.fillStyle='#fff';ctx.font="13px 'Fredoka One',sans-serif";ctx.fillText(`Level ${g.lv}  •  ${uPr}% selesai`,W/2,H*0.32+28)
+        ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font="10px 'Fredoka One',sans-serif";ctx.fillText(`Attempt #${g.att}  •  Skor: ${g.sc}  •  💎 ${uDi}`,W/2,H*0.32+48)
+        if(bestPr>0){ctx.fillStyle=CL.gndL;ctx.font="10px 'Fredoka One',sans-serif";ctx.fillText(`Rekor: Lv${bestLv} • ${bestPr}%`,W/2,H*0.32+68)}
+        ctx.fillStyle='#fff';ctx.shadowColor='#fff';ctx.shadowBlur=8;ctx.font="bold 14px 'Fredoka One',sans-serif";ctx.fillText('Tap → Retry',W/2,H*0.32+98);ctx.shadowBlur=0}
       if(ph==='winning'){ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(0,0,W,H);ctx.fillStyle=CL.gndL;ctx.shadowColor=CL.gndL;ctx.shadowBlur=15;ctx.font="bold 26px 'Fredoka One',sans-serif";ctx.textAlign='center';ctx.fillText('✨ LEVEL CLEAR!',W/2,H*0.4);ctx.shadowBlur=0}
       ctx.restore()
     }catch(e){console.error('ND:',e)}
@@ -454,6 +470,14 @@ export default function NeonDash({onBack,game,difficulty}){
             <div style={{fontSize:52,marginBottom:8}}>🏆</div><h2 style={{color:'#fff',fontSize:26,marginBottom:4}}>ALL CLEAR!</h2>
             <p style={{color:CL.gndL,fontSize:13,marginBottom:12}}>{dc.ml} level selesai!</p>
             <div style={{fontSize:30,marginBottom:12,letterSpacing:8}}>⭐⭐⭐</div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}}>
+              {[{l:'Skor',v:uSc,c:'#FFD700'},{l:'Diamond',v:uDi,c:'#00F5FF'},{l:'Attempts',v:uAt,c:'#A29BFE'}].map(s=>(
+                <div key={s.l} style={{background:`${s.c}15`,borderRadius:12,padding:'10px 6px'}}>
+                  <div style={{fontSize:18,color:s.c,fontWeight:800}}>{s.v}</div>
+                  <div style={{fontSize:9,color:'#888',marginTop:2}}>{s.l}</div>
+                </div>
+              ))}
+            </div>
             <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(253,203,110,0.12)',border:'1.5px solid #FDCB6E44',borderRadius:100,padding:'6px 18px',marginBottom:16}}><span>🪙</span><span style={{color:'#F9A825',fontSize:16,fontWeight:800}}>+{coinR}</span></div>
             <div style={{display:'flex',gap:10}}>
               <button onClick={restart} style={{flex:1,background:'linear-gradient(135deg,#A29BFE,#6C5CE7)',color:'#fff',border:'none',borderRadius:100,padding:'13px 18px',fontSize:15,fontWeight:800,cursor:'pointer'}}>🔄 Main Lagi</button>

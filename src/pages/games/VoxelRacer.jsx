@@ -94,6 +94,11 @@ export default function VoxelRacer({onBack,game,difficulty}){
   const[showConf,setShowConf]=useState(false)
   const[uSc,sSc]=useState(0),[uLv,sLv]=useState(1),[uPr,sPr]=useState(0),[uAt,sAt]=useState(1)
   const[rzKey,setRzKey]=useState(0)
+  const[uFuel,sFuel]=useState(100),[uDist,sDist]=useState(0),[uCoins,sCoins]=useState(0)
+  const[uSpd,sSpd]=useState(0)
+  const vrBestKey=`vr-best-${difficulty.id}`
+  const[bestDist,sBestDist]=useState(()=>parseInt(localStorage.getItem(vrBestKey+'d')||'0'))
+  const[bestLv,sBestLv]=useState(()=>parseInt(localStorage.getItem(vrBestKey+'l')||'1'))
 
   // Resize handler
   useEffect(()=>{
@@ -104,7 +109,6 @@ export default function VoxelRacer({onBack,game,difficulty}){
     window.addEventListener('orientationchange',onOr)
     return()=>{clearTimeout(t);window.removeEventListener('resize',onRz);window.removeEventListener('orientationchange',onOr)}
   },[])
-  const[uFuel,sFuel]=useState(100),[uDist,sDist]=useState(0),[uCoins,sCoins]=useState(0)
   const sp=p=>{phR.current=p;_sp(p)}
 
   function szC(){
@@ -155,9 +159,13 @@ export default function VoxelRacer({onBack,game,difficulty}){
     }
     function retry(){g.att++;sAt(g.att);stLv()}
     function die(reason){
-      sp('dying');g.dieT=45;g.dead=true;g.shk=12
-      for(let i=0;i<12;i++){const a=P2*Math.random()
-        g.pts.push({x:g.cx,y:g.cy,dx:Math.cos(a)*(2+Math.random()*4),dy:Math.sin(a)*(1+Math.random()*3)-2,l:20+Math.random()*20,ml:40,r:3+Math.random()*3,c:['#FFD93D','#E53935','#212121'][i%3]})}
+      sp('dying');g.dieT=45;g.dead=true;g.shk=15
+      for(let i=0;i<20;i++){const a=P2*Math.random()
+        g.pts.push({x:g.cx,y:g.cy,dx:Math.cos(a)*(2+Math.random()*5),dy:Math.sin(a)*(1+Math.random()*3)-2,l:20+Math.random()*25,ml:45,r:2+Math.random()*4,c:i<8?'#FFD93D':i<14?'#E53935':'#fff'})}
+      // Save best
+      const dist=Math.round(Math.max(0,g.cx-80))
+      if(dist>bestDist){sBestDist(dist);localStorage.setItem(vrBestKey+'d',dist)}
+      if(g.lv>bestLv){sBestLv(g.lv);localStorage.setItem(vrBestKey+'l',g.lv)}
       try{play('mismatch')}catch(e){}
     }
     function win2(){
@@ -357,9 +365,11 @@ export default function VoxelRacer({onBack,game,difficulty}){
 
         // Progress & distance
         const dist=Math.max(0,g.cx-80)
-        g.bestDist=Math.max(g.bestDist,dist)
+        g.bestDist=Math.max(g.bestDist||0,dist)
         sDist(Math.round(dist))
         sPr(Math.round(Math.min(dist/(g.terr.finishX-80),1)*100))
+        const spd=Math.sqrt(g.vx*g.vx+g.vy*g.vy)
+        sSpd(Math.round(spd*12))
       }
 
       // ═════════════ DRAW ═════════════
@@ -539,8 +549,11 @@ export default function VoxelRacer({onBack,game,difficulty}){
       ctx.textAlign='right';ctx.fillStyle='#fff';ctx.font="bold 11px 'Fredoka One',sans-serif"
       ctx.fillText(`${uDist}m`,W-10,12)
       ctx.fillStyle='#FFD700';ctx.fillText(`🪙 ${uCoins}`,W-10,26)
-      ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font="9px 'Fredoka One',sans-serif"
-      ctx.fillText(`×${g.att}`,W-10,38)
+      // Speed indicator
+      const spdPct=Math.min(uSpd/100,1)
+      ctx.fillStyle=spdPct>0.7?'#E53935':spdPct>0.4?'#FF9800':'#4CAF50'
+      ctx.font="bold 10px 'Fredoka One',sans-serif"
+      ctx.fillText(`${uSpd} km/h`,W-10,38)
 
       // Touch controls hint
       if(phR.current==='play'){
@@ -553,19 +566,25 @@ export default function VoxelRacer({onBack,game,difficulty}){
       const ph=phR.current
       if(ph==='idle'){
         ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(0,0,W,H)
-        const sc=0.92+Math.sin(ts/400)*0.08;ctx.save();ctx.translate(W/2,H*0.4);ctx.scale(sc,sc)
+        const sc=0.92+Math.sin(ts/400)*0.08;ctx.save();ctx.translate(W/2,H*0.36);ctx.scale(sc,sc)
         ctx.fillStyle='#fff';ctx.shadowColor='#FFD93D';ctx.shadowBlur=16;ctx.font="bold 24px 'Fredoka One',sans-serif";ctx.textAlign='center'
         ctx.fillText('TAP UNTUK MULAI',0,0);ctx.shadowBlur=4;ctx.fillStyle='#FFD93D';ctx.font="14px 'Fredoka One',sans-serif"
         ctx.fillText('🚗 Voxel Racer',0,28);ctx.shadowBlur=0;ctx.restore()
+        if(bestDist>0){ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font="10px 'Fredoka One',sans-serif";ctx.fillText(`Rekor: ${bestDist}m • Lv${bestLv}`,W/2,H*0.36+60)}
       }
       if(ph==='dead'){
-        ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,H)
-        ctx.fillStyle='#fff';ctx.shadowColor='#E53935';ctx.shadowBlur=12;ctx.font="bold 24px 'Fredoka One',sans-serif";ctx.textAlign='center'
-        ctx.fillText('💥 CRASH!',W/2,H*0.34);ctx.shadowBlur=4;ctx.font="13px 'Fredoka One',sans-serif"
-        ctx.fillText(g.fuel<=0?'Bensin habis!':'Mobil terbalik!',W/2,H*0.34+25)
-        ctx.fillStyle='rgba(255,255,255,0.6)';ctx.fillText('Tap untuk retry',W/2,H*0.34+50)
-        ctx.fillStyle='rgba(255,255,255,0.35)';ctx.font="11px 'Fredoka One',sans-serif"
-        ctx.fillText(`${uDist}m • Attempt #${g.att}`,W/2,H*0.34+70);ctx.shadowBlur=0
+        ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,W,H)
+        ctx.fillStyle='#E53935';ctx.shadowColor='#E53935';ctx.shadowBlur=15;ctx.font="bold 24px 'Fredoka One',sans-serif";ctx.textAlign='center'
+        ctx.fillText('💥 CRASH!',W/2,H*0.30);ctx.shadowBlur=0
+        ctx.fillStyle='#fff';ctx.font="14px 'Fredoka One',sans-serif"
+        ctx.fillText(g.fuel<=0?'Bensin habis!':'Mobil terbalik!',W/2,H*0.30+26)
+        ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font="11px 'Fredoka One',sans-serif"
+        ctx.fillText(`${uDist}m  •  🪙 ${uCoins}  •  Attempt #${g.att}`,W/2,H*0.30+50)
+        // Best record
+        if(uDist>bestDist){ctx.fillStyle='#FFD93D';ctx.font="bold 12px 'Fredoka One',sans-serif";ctx.fillText('🏆 REKOR BARU!',W/2,H*0.30+72)}
+        else if(bestDist>0){ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font="10px 'Fredoka One',sans-serif";ctx.fillText(`Rekor: ${bestDist}m • Lv${bestLv}`,W/2,H*0.30+72)}
+        ctx.fillStyle='#fff';ctx.shadowColor='#fff';ctx.shadowBlur=8;ctx.font="bold 14px 'Fredoka One',sans-serif"
+        ctx.fillText('Tap → Retry',W/2,H*0.30+102);ctx.shadowBlur=0
       }
       if(ph==='winning'){
         ctx.fillStyle='rgba(0,0,0,0.25)';ctx.fillRect(0,0,W,H)
@@ -579,7 +598,7 @@ export default function VoxelRacer({onBack,game,difficulty}){
     return()=>{cancelAnimationFrame(aRef.current);c.removeEventListener('mousedown',onDown);c.removeEventListener('mouseup',onUp);c.removeEventListener('touchstart',onTouchStart);c.removeEventListener('touchend',onTouchEnd);window.removeEventListener('keydown',onKey);window.removeEventListener('keyup',onKey)}
   },[difficulty.id,rzKey])
 
-  const restart=()=>{const{w,h}=szC();gR.current=mkG(w,h);sp('idle');sSc(0);sLv(1);sPr(0);sAt(1);sFuel(100);sDist(0);sCoins(0);setShowConf(false)}
+  const restart=()=>{const{w,h}=szC();gR.current=mkG(w,h);sp('idle');sSc(0);sLv(1);sPr(0);sAt(1);sFuel(100);sDist(0);sCoins(0);sSpd(0);setShowConf(false)}
   const coinR=phase==='won'?({easy:25,medium:50,hard:75}[difficulty.id]||25)+Math.floor(uSc/150)+35:0
 
   return(
@@ -596,9 +615,13 @@ export default function VoxelRacer({onBack,game,difficulty}){
             <p style={{color:'#90CAF9',fontSize:13,marginBottom:12}}>{dc.ml} level selesai!</p>
             <div style={{fontSize:30,marginBottom:12,letterSpacing:8}}>⭐⭐⭐</div>
             <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(255,217,61,0.15)',border:'1.5px solid rgba(255,217,61,0.3)',borderRadius:100,padding:'6px 18px',marginBottom:16}}><span>🪙</span><span style={{color:'#FFD93D',fontSize:16,fontWeight:800}}>+{coinR}</span></div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10,marginBottom:24}}>
-              <div style={{background:'rgba(255,217,61,0.1)',borderRadius:14,padding:'12px 8px'}}><div style={{fontSize:22,color:'#FFD93D'}}>{uSc}</div><div style={{fontSize:10,color:'#90CAF9',marginTop:2}}>Skor</div></div>
-              <div style={{background:'rgba(41,182,246,0.1)',borderRadius:14,padding:'12px 8px'}}><div style={{fontSize:22,color:'#29B6F6'}}>{uCoins}</div><div style={{fontSize:10,color:'#90CAF9',marginTop:2}}>Koin</div></div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:20}}>
+              {[{l:'Skor',v:uSc,c:'#FFD93D'},{l:'Koin',v:uCoins,c:'#29B6F6'},{l:'Attempts',v:uAt,c:'#FF6B6B'}].map(s=>(
+                <div key={s.l} style={{background:`${s.c}15`,borderRadius:12,padding:'10px 6px'}}>
+                  <div style={{fontSize:20,color:s.c,fontWeight:800}}>{s.v}</div>
+                  <div style={{fontSize:9,color:'#90CAF9',marginTop:2}}>{s.l}</div>
+                </div>
+              ))}
             </div>
             <div style={{display:'flex',gap:10}}>
               <button onClick={restart} style={{flex:1,background:'linear-gradient(135deg,#FFD93D,#FF6B6B)',color:'#fff',border:'none',borderRadius:100,padding:'13px 18px',fontSize:15,fontWeight:800,cursor:'pointer'}}>🔄 Main Lagi</button>
