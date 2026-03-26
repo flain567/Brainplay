@@ -148,6 +148,12 @@ export const SHIP_CATALOG = [
     stats:{ speed:5.5, fireRate:6, bulletCount:3, maxHP:7, specialType:'beam', specialCharge:350 },
     design:{ body:'#FFD700', wing:'#DAA520', cockpit:'#FFFACD', engine:'#FFA500', accent:'#FFF8DC' }
   },
+  { id:'phantom', name:'Phantom Striker', desc:'Pesawat tempur siluman ultra-premium. Damage dan speed maksimal!',
+    price:5000, icon:'🛩️', color:'#2c3e50',
+    stats:{ speed:8, fireRate:4, bulletCount:4, maxHP:10, specialType:'cloak', specialCharge:400, critChance:0.5 },
+    img: '/phantom.png', // Uses the user's uploaded image
+    design:{ body:'#2c3e50', wing:'#1a252f', cockpit:'#e74c3c', engine:'#c0392b', accent:'#e74c3c' }
+  },
 ]
 
 // ─── Hangman Themes (Hangman) ────────────────────────────────────────────────

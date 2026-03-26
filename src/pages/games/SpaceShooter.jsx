@@ -105,8 +105,13 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
 
   function initGame(W, H) {
     const ship = activeShip, ss = ship.stats
+    let shipImgObj = null
+    if (ship.img) {
+      shipImgObj = new Image()
+      shipImgObj.src = ship.img
+    }
     return {
-      W, H, ship, shipDesign: ship.design,
+      W, H, ship, shipDesign: ship.design, shipImg: shipImgObj,
       player: { x: W/2, y: H-80, w:44, h:44, weaponLv:1, shieldTimer:0, invTimer:60 },
       bullets:[], enemies:[], enemyBullets:[], powerups:[], particles:[],
       floatingTexts:[], trails:[],
@@ -456,24 +461,33 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
       const px=p.x,py=p.y,blink=p.invTimer>0&&Math.floor(p.invTimer/4)%2===0,cloaked=g.cloakTimer>0
       if(!blink){
         ctx.globalAlpha=cloaked?0.3:1
-        // Engines
-        ctx.fillStyle=shipDesign.engine;ctx.beginPath();ctx.arc(px-10,py+p.h/2+2,7+rand(0,2),0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(px+10,py+p.h/2+2,7+rand(0,2),0,Math.PI*2);ctx.fill()
-        ctx.globalAlpha=cloaked?0.3:1
-        // Wings
-        ctx.fillStyle=shipDesign.wing;ctx.beginPath();ctx.moveTo(px-p.w/2-8,py+p.h/3);ctx.lineTo(px-p.w/4,py-p.h/5);ctx.lineTo(px-p.w/4,py+p.h/3+2);ctx.closePath();ctx.fill()
-        ctx.beginPath();ctx.moveTo(px+p.w/2+8,py+p.h/3);ctx.lineTo(px+p.w/4,py-p.h/5);ctx.lineTo(px+p.w/4,py+p.h/3+2);ctx.closePath();ctx.fill()
-        // Body
-        ctx.fillStyle=shipDesign.body;ctx.beginPath();ctx.moveTo(px,py-p.h/2-4);ctx.lineTo(px-p.w/3.5,py+p.h/3);ctx.lineTo(px+p.w/3.5,py+p.h/3);ctx.closePath();ctx.fill()
-        ctx.fillStyle=shipDesign.accent+'33';ctx.beginPath();ctx.moveTo(px,py-p.h/2-4);ctx.lineTo(px-2,py+p.h/6);ctx.lineTo(px+p.w/6,py);ctx.closePath();ctx.fill()
-        // Cockpit
-        ctx.fillStyle=shipDesign.cockpit;ctx.beginPath();ctx.ellipse(px,py-6,5,7,0,0,Math.PI*2);ctx.fill()
-        ctx.fillStyle='#fff';ctx.globalAlpha=cloaked?0.15:0.5;ctx.beginPath();ctx.arc(px-1.5,py-8,2,0,Math.PI*2);ctx.fill();ctx.globalAlpha=cloaked?0.3:1
-        // Flames
-        const fH=10+rand(0,8)+(g.rapidFireTimer>0?6:0)
-        ctx.fillStyle=g.tick%4<2?'#FDCB6E':shipDesign.engine
-        ctx.beginPath();ctx.moveTo(px-7,py+p.h/3);ctx.lineTo(px-3,py+p.h/2+fH*0.7);ctx.lineTo(px,py+p.h/3+2);ctx.closePath();ctx.fill()
-        ctx.beginPath();ctx.moveTo(px,py+p.h/3+2);ctx.lineTo(px+3,py+p.h/2+fH*0.7);ctx.lineTo(px+7,py+p.h/3);ctx.closePath();ctx.fill()
-        ctx.globalAlpha=cloaked?0.15:0.4;ctx.fillStyle='#FF6B6B';ctx.beginPath();ctx.moveTo(px-4,py+p.h/3);ctx.lineTo(px,py+p.h/2+fH);ctx.lineTo(px+4,py+p.h/3);ctx.closePath();ctx.fill();ctx.globalAlpha=1
+        if (g.shipImg && g.shipImg.complete) {
+          // Custom Ship PNG with flame beneath
+          const fH=10+rand(0,8)+(g.rapidFireTimer>0?6:0)
+          ctx.fillStyle=g.tick%4<2?'#FDCB6E':shipDesign.engine
+          ctx.beginPath();ctx.moveTo(px-10,py+p.h/2-10);ctx.lineTo(px,py+p.h/2+fH*1.5);ctx.lineTo(px+10,py+p.h/2-10);ctx.closePath();ctx.fill()
+          // Render PNG Image - drawn larger than hitbox
+          ctx.drawImage(g.shipImg, px - p.w*0.8, py - p.h, p.w*1.6, p.h*2)
+        } else {
+          // Engines
+          ctx.fillStyle=shipDesign.engine;ctx.beginPath();ctx.arc(px-10,py+p.h/2+2,7+rand(0,2),0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(px+10,py+p.h/2+2,7+rand(0,2),0,Math.PI*2);ctx.fill()
+          ctx.globalAlpha=cloaked?0.3:1
+          // Wings
+          ctx.fillStyle=shipDesign.wing;ctx.beginPath();ctx.moveTo(px-p.w/2-8,py+p.h/3);ctx.lineTo(px-p.w/4,py-p.h/5);ctx.lineTo(px-p.w/4,py+p.h/3+2);ctx.closePath();ctx.fill()
+          ctx.beginPath();ctx.moveTo(px+p.w/2+8,py+p.h/3);ctx.lineTo(px+p.w/4,py-p.h/5);ctx.lineTo(px+p.w/4,py+p.h/3+2);ctx.closePath();ctx.fill()
+          // Body
+          ctx.fillStyle=shipDesign.body;ctx.beginPath();ctx.moveTo(px,py-p.h/2-4);ctx.lineTo(px-p.w/3.5,py+p.h/3);ctx.lineTo(px+p.w/3.5,py+p.h/3);ctx.closePath();ctx.fill()
+          ctx.fillStyle=shipDesign.accent+'33';ctx.beginPath();ctx.moveTo(px,py-p.h/2-4);ctx.lineTo(px-2,py+p.h/6);ctx.lineTo(px+p.w/6,py);ctx.closePath();ctx.fill()
+          // Cockpit
+          ctx.fillStyle=shipDesign.cockpit;ctx.beginPath();ctx.ellipse(px,py-6,5,7,0,0,Math.PI*2);ctx.fill()
+          ctx.fillStyle='#fff';ctx.globalAlpha=cloaked?0.15:0.5;ctx.beginPath();ctx.arc(px-1.5,py-8,2,0,Math.PI*2);ctx.fill();ctx.globalAlpha=cloaked?0.3:1
+          // Flames
+          const fH=10+rand(0,8)+(g.rapidFireTimer>0?6:0)
+          ctx.fillStyle=g.tick%4<2?'#FDCB6E':shipDesign.engine
+          ctx.beginPath();ctx.moveTo(px-7,py+p.h/3);ctx.lineTo(px-3,py+p.h/2+fH*0.7);ctx.lineTo(px,py+p.h/3+2);ctx.closePath();ctx.fill()
+          ctx.beginPath();ctx.moveTo(px,py+p.h/3+2);ctx.lineTo(px+3,py+p.h/2+fH*0.7);ctx.lineTo(px+7,py+p.h/3);ctx.closePath();ctx.fill()
+          ctx.globalAlpha=cloaked?0.15:0.4;ctx.fillStyle='#FF6B6B';ctx.beginPath();ctx.moveTo(px-4,py+p.h/3);ctx.lineTo(px,py+p.h/2+fH);ctx.lineTo(px+4,py+p.h/3);ctx.closePath();ctx.fill();ctx.globalAlpha=1
+        }
       }
       // Shield
       if(p.shieldTimer>0){const sa=p.shieldTimer<60?p.shieldTimer/60*0.3:0.2+Math.sin(g.tick*0.12)*0.1;ctx.globalAlpha=sa;ctx.strokeStyle='#74B9FF';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(px,py,p.w/2+14,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=sa*0.3;ctx.fillStyle='#74B9FF';ctx.beginPath();ctx.arc(px,py,p.w/2+14,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1}

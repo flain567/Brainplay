@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { SettingsProvider, useSettings } from './context/SettingsContext.jsx'
-import { ProgressProvider } from './context/ProgressContext.jsx'
+import { ProgressProvider, useProgress } from './context/ProgressContext.jsx'
 import { CoinProvider, useCoins } from './context/CoinContext.jsx'
 import { NotifProvider } from './context/NotifContext.jsx'
 import { LeaderboardProvider } from './context/LeaderboardContext.jsx'
