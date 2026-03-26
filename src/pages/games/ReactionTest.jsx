@@ -58,6 +58,7 @@ export default function ReactionTest({ onBack, game, difficulty }) {
   const [round, setRound] = useState(0)
   const [results, setResults] = useState([])
   const [resetKey, setResetKey] = useState(0)
+  const [countdown, setCountdown] = useState(0) // 3,2,1,0
 
   // Tap mode
   const [tapPhase, setTapPhase] = useState('idle') // idle, waiting, go, early, result
@@ -80,6 +81,27 @@ export default function ReactionTest({ onBack, game, difficulty }) {
 
   const bestKey = `reaction-test-best-${difficulty.id}`
   const [bestScore, setBestScore] = useState(() => parseInt(localStorage.getItem(bestKey) || '0'))
+
+  // Per-mode best scores
+  const getBestMode = (m) => parseInt(localStorage.getItem(`rt-best-${m}-${difficulty.id}`) || '0')
+  const [bestPerMode] = useState({ tap: getBestMode('tap'), color: getBestMode('color'), sequence: getBestMode('sequence') })
+
+  // Start mode with countdown
+  const startMode = (modeId) => {
+    play('click')
+    setCountdown(3)
+    const cdInterval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(cdInterval)
+          setMode(modeId)
+          return 0
+        }
+        try { play('flip') } catch(e) {}
+        return prev - 1
+      })
+    }, 700)
+  }
 
   // ═══════ TAP MODE ═══════
   const startTapRound = useCallback(() => {
@@ -154,7 +176,8 @@ export default function ReactionTest({ onBack, game, difficulty }) {
     } else {
       try { play('mismatch') } catch(e) {}
     }
-    setResults(r => [...r, { type: 'color', time: correct ? reactionTime : -1, correct, label: correct ? `${reactionTime}ms` : 'Salah!' }])
+    const rating = !correct ? '❌ Miss' : reactionTime < 300 ? '⚡ Lightning!' : reactionTime < 500 ? '🔥 Fast!' : reactionTime < 800 ? '👍 Good' : '😐 Slow...'
+    setResults(r => [...r, { type: 'color', time: correct ? reactionTime : -1, correct, label: correct ? `${reactionTime}ms` : 'Salah!', rating }])
     setGameState('result')
     setTimeout(() => {
       setRound(r => r + 1)
@@ -276,6 +299,10 @@ export default function ReactionTest({ onBack, game, difficulty }) {
       localStorage.setItem(bestKey, score)
       setBestScore(score)
     }
+    // Save per-mode best
+    const modeKey = `rt-best-${mode}-${difficulty.id}`
+    const prevModeBest = parseInt(localStorage.getItem(modeKey) || '0')
+    if (score > prevModeBest) localStorage.setItem(modeKey, score)
   }, [results, mode, cfg, difficulty.id, bestScore])
 
   const restart = () => {
@@ -314,6 +341,26 @@ export default function ReactionTest({ onBack, game, difficulty }) {
   const bg = tc.bg
   const textMain = tc.textMain
 
+  // ═══════ COUNTDOWN SCREEN ═══════
+  if (countdown > 0) {
+    return (
+      <div style={{
+        minHeight: '100dvh', background: bg, display: 'flex',
+        alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
+      }}>
+        <div style={{
+          fontSize: 120, fontFamily: "'Fredoka One',cursive", color: '#A29BFE',
+          animation: 'cdPop 0.6s ease', key: countdown,
+          textShadow: '0 0 40px rgba(162,155,254,0.4)',
+        }}>
+          {countdown}
+        </div>
+        <div style={{ fontSize: 14, color: tc.textMuted, marginTop: 8 }}>Bersiap...</div>
+        <style>{`@keyframes cdPop { 0% { transform: scale(2); opacity: 0; } 40% { transform: scale(0.9); opacity: 1; } 100% { transform: scale(1); } }`}</style>
+      </div>
+    )
+  }
+
   // ═══════ MODE SELECT SCREEN ═══════
   if (!mode) {
     return (
@@ -327,21 +374,30 @@ export default function ReactionTest({ onBack, game, difficulty }) {
 
         <div style={{ maxWidth: 420, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {MODES.map(m => (
-            <button key={m.id} onClick={() => { setMode(m.id); play('click') }}
+            <button key={m.id} onClick={() => startMode(m.id)}
               style={{
                 background: tc.surface, border: `2px solid ${tc.borderCol}`,
                 borderRadius: 20, padding: '24px 20px', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 16, textAlign: 'left',
-                transition: 'all 0.15s',
+                transition: 'all 0.15s', position: 'relative',
               }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = '#A29BFE'; e.currentTarget.style.transform = 'scale(1.02)' }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = tc.borderCol; e.currentTarget.style.transform = 'scale(1)' }}
             >
               <span style={{ fontSize: 40 }}>{m.emoji}</span>
-              <div>
+              <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 20, color: textMain }}>{m.name}</div>
                 <div style={{ fontSize: 13, color: tc.textMuted, marginTop: 2 }}>{m.desc}</div>
               </div>
+              {bestPerMode[m.id] > 0 && (
+                <div style={{
+                  textAlign: 'right', fontSize: 11, color: '#A29BFE',
+                  fontFamily: "'Fredoka One',cursive",
+                }}>
+                  <div style={{ fontSize: 16 }}>{bestPerMode[m.id]}</div>
+                  <div style={{ fontSize: 9, color: tc.textMuted }}>best</div>
+                </div>
+              )}
             </button>
           ))}
         </div>
@@ -425,6 +481,12 @@ export default function ReactionTest({ onBack, game, difficulty }) {
         <div style={{ textAlign: 'center', marginBottom: 8, color: tc.textMuted, fontSize: 13, fontFamily: "'Fredoka One',cursive" }}>
           Round {round + 1}/{cfg.rounds}
         </div>
+        {/* Progress bar */}
+        <div style={{ maxWidth: 300, margin: '0 auto 12px' }}>
+          <div style={{ height: 4, background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', borderRadius: 100, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${(round / cfg.rounds) * 100}%`, background: '#A29BFE', borderRadius: 100, transition: 'width 0.4s ease' }} />
+          </div>
+        </div>
 
         {/* Display target */}
         {gameState === 'ready' && colorTarget && (
@@ -466,8 +528,11 @@ export default function ReactionTest({ onBack, game, difficulty }) {
         )}
 
         {gameState === 'result' && (
-          <div style={{ textAlign: 'center', fontSize: 40, margin: '40px 0' }}>
-            {results[results.length - 1]?.correct ? '✅' : '❌'}
+          <div style={{ textAlign: 'center', margin: '40px 0' }}>
+            <div style={{ fontSize: 40 }}>{results[results.length - 1]?.correct ? '✅' : '❌'}</div>
+            <div style={{ color: '#FFD700', fontSize: 16, fontWeight: 800, fontFamily: "'Fredoka One',cursive", marginTop: 6, animation: 'winFadeIn 0.3s ease' }}>
+              {results[results.length - 1]?.rating || ''}
+            </div>
           </div>
         )}
 
@@ -497,6 +562,12 @@ export default function ReactionTest({ onBack, game, difficulty }) {
 
         <div style={{ textAlign: 'center', marginBottom: 8, color: tc.textMuted, fontSize: 13, fontFamily: "'Fredoka One',cursive" }}>
           Round {round + 1}/{cfg.rounds} — Panjang: {seqPattern.length}
+        </div>
+        {/* Progress bar */}
+        <div style={{ maxWidth: 300, margin: '0 auto 12px' }}>
+          <div style={{ height: 4, background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', borderRadius: 100, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${(round / cfg.rounds) * 100}%`, background: '#A29BFE', borderRadius: 100, transition: 'width 0.4s ease' }} />
+          </div>
         </div>
 
         {/* Showing phase */}

@@ -119,8 +119,17 @@ const KEYBOARD_ROWS = [
   ['ENTER','Z','X','C','V','B','N','M','⌫'],
 ]
 
+// Deterministic daily word - same word for all players on same day
+function getDailyWord() {
+  const valid = ANSWERS.filter(w => /^[a-z]{5}$/.test(w))
+  const today = new Date()
+  const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
+  // Simple hash to pick word
+  const idx = ((seed * 2654435761) >>> 0) % valid.length
+  return valid[idx].toUpperCase()
+}
+
 function pickWord() {
-  // Filter to only clean 5-letter alpha words
   const valid = ANSWERS.filter(w => /^[a-z]{5}$/.test(w))
   return valid[Math.floor(Math.random() * valid.length)].toUpperCase()
 }
@@ -164,8 +173,14 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
   const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('bp_tut_wordle'))
   const [showConfetti, setShowConfetti] = useState(false)
 
-  const [answer, setAnswer] = useState(() => pickWord())
-  const [guesses, setGuesses] = useState([]) // [{word, result}]
+  // Daily mode
+  const todayKey = new Date().toISOString().slice(0, 10)
+  const dailyDoneKey = `bp_wordle_daily_${difficulty.id}_${todayKey}`
+  const [isDaily, setIsDaily] = useState(() => !localStorage.getItem(dailyDoneKey))
+  const [dailyDone, setDailyDone] = useState(() => !!localStorage.getItem(dailyDoneKey))
+
+  const [answer, setAnswer] = useState(() => isDaily ? getDailyWord() : pickWord())
+  const [guesses, setGuesses] = useState([])
   const [currentGuess, setCurrentGuess] = useState('')
   const [gameOver, setGameOver] = useState(false)
   const [won, setWon] = useState(false)
@@ -349,7 +364,7 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
   const shareResults = () => {
     const emojiMap = { correct: '🟩', present: '🟨', absent: '⬛' }
     const grid = guesses.map(g => g.result.map(r => emojiMap[r]).join('')).join('\n')
-    const text = `BrainPlay Wordle 🇮🇩\n${won ? guesses.length : 'X'}/${cfg.maxGuesses} (${difficulty.id})\n\n${grid}`
+    const text = `BrainPlay Wordle 🇮🇩${isDaily ? ' 📅' : ''}\n${won ? guesses.length : 'X'}/${cfg.maxGuesses} (${difficulty.id}${isDaily ? ' daily' : ''})\n\n${grid}`
     try {
       navigator.clipboard.writeText(text)
       setCopied(true)
@@ -373,7 +388,14 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
     if (stars === 3) coinAmt += 20
     else if (stars === 2) coinAmt += 10
     if (difficulty.id === 'hard') coinAmt += 10
+    if (isDaily) coinAmt += 15 // daily bonus
     if (hintsUsed > 0) coinAmt = Math.max(5, coinAmt - hintsUsed * 5)
+
+    // Mark daily as done
+    if (isDaily) {
+      localStorage.setItem(dailyDoneKey, won ? 'won' : 'lost')
+      setDailyDone(true)
+    }
 
     earnCoins(coinAmt, `Wordle Indonesia (${difficulty.id})`)
     reportGameResult({
@@ -412,7 +434,9 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
 
   // Reset
   const restart = () => {
-    setAnswer(pickWord())
+    // After daily is done, switch to practice mode
+    if (isDaily && dailyDone) setIsDaily(false)
+    setAnswer((!isDaily || dailyDone) ? pickWord() : getDailyWord())
     setGuesses([])
     setCurrentGuess('')
     setGameOver(false)
@@ -427,6 +451,20 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
     setResetKey(k => k + 1)
     setShowConfetti(false)
     setShowStats(false)
+    setCopied(false)
+  }
+
+  // Switch mode
+  const switchMode = (daily) => {
+    if (daily && dailyDone) { showMsg('Kata harian sudah selesai! 🎯', 2000); return }
+    setIsDaily(daily)
+    setAnswer(daily ? getDailyWord() : pickWord())
+    setGuesses([])
+    setCurrentGuess('')
+    setGameOver(false)
+    setWon(false)
+    setLetterStates({})
+    setHintsUsed(0)
     setCopied(false)
   }
 
@@ -660,9 +698,32 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
       }}>
         <GameHeader
           emoji="💬" title="Wordle Indonesia"
-          subtitle={`Tebak kata 5 huruf! (${cfg.maxGuesses - guesses.length} sisa)`}
+          subtitle={isDaily ? `📅 Kata Harian — ${cfg.maxGuesses - guesses.length} sisa` : `Latihan — ${cfg.maxGuesses - guesses.length} sisa`}
           diffId={difficulty.id} onBack={onBack} dark={dark}
         />
+
+        {/* Daily / Practice toggle */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 10 }}>
+          <button onClick={() => switchMode(true)} style={{
+            padding: '6px 16px', borderRadius: 100, border: 'none',
+            background: isDaily ? GAME_COLOR : (dark ? '#333' : '#E8E8E8'),
+            color: isDaily ? '#1A1A2E' : (dark ? '#888' : '#888'),
+            fontWeight: 700, fontSize: 12, cursor: 'pointer',
+            fontFamily: "'Fredoka One',cursive",
+            opacity: dailyDone && !isDaily ? 0.5 : 1,
+          }}>
+            📅 Harian {dailyDone ? '✓' : ''}
+          </button>
+          <button onClick={() => switchMode(false)} style={{
+            padding: '6px 16px', borderRadius: 100, border: 'none',
+            background: !isDaily ? GAME_COLOR : (dark ? '#333' : '#E8E8E8'),
+            color: !isDaily ? '#1A1A2E' : (dark ? '#888' : '#888'),
+            fontWeight: 700, fontSize: 12, cursor: 'pointer',
+            fontFamily: "'Fredoka One',cursive",
+          }}>
+            🔄 Latihan
+          </button>
+        </div>
 
         <StatsBar stats={[
           { icon: '🎯', label: 'Tebakan', value: `${guesses.length}/${cfg.maxGuesses}` },
