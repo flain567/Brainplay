@@ -109,6 +109,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
           points: isGold ? 30 : isSteel ? 20 : 10,
           alive: true,
           shakeT: 0,
+          breakAnimation: 0,
         })
       }
     }
@@ -303,12 +304,13 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
 
         // Brick collision
         for (const brick of g.bricks) {
-          if (!brick.alive) continue
+          if (!brick.alive && brick.breakAnimation <= 0) continue
           if (ball.x + ball.r > brick.x && ball.x - ball.r < brick.x + brick.w &&
               ball.y + ball.r > brick.y && ball.y - ball.r < brick.y + brick.h) {
             brick.hp--
             if (brick.hp <= 0) {
               brick.alive = false
+              brick.breakAnimation = 15
               g.combo++
               const comboBonus = Math.min(g.combo, 10)
               const pts = brick.points * (1 + comboBonus * 0.1) * (1 + (g.level - 1) * 0.1)
@@ -456,6 +458,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
       // Brick shake decay
       for (const brick of g.bricks) {
         if (brick.shakeT > 0) brick.shakeT -= dt
+        if (brick.breakAnimation > 0) brick.breakAnimation -= dt
       }
 
       // All balls lost
@@ -582,9 +585,12 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
 
       // Bricks
       for (const brick of g.bricks) {
-        if (!brick.alive) continue
+        if (!brick.alive && brick.breakAnimation <= 0) continue
         const shakeOff = brick.shakeT > 0 ? (Math.sin(brick.shakeT * 8) * brick.shakeT * 0.4) : 0
         const bx = brick.x + shakeOff
+        const breakProg = 1 - (brick.breakAnimation / 15)
+        const opacity = brick.breakAnimation > 0 ? 1 - breakProg : 1
+        ctx.globalAlpha = opacity
         ctx.fillStyle = brick.color
         ctx.shadowColor = brick.color
         ctx.shadowBlur = brick.gold ? 12 : 4
@@ -614,6 +620,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
           ctx.lineTo(bx + brick.w * 0.75, brick.y + brick.h * 0.4)
           ctx.stroke()
         }
+        ctx.globalAlpha = 1
         if (brick.steel && brick.hp > 1) {
           ctx.strokeStyle = 'rgba(255,255,255,0.4)'
           ctx.lineWidth = 1.5

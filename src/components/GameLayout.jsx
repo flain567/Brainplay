@@ -261,11 +261,11 @@ export function WinModal({
             display: 'grid', gridTemplateColumns: `repeat(${Math.min(stats.length, 3)},1fr)`,
             gap: 10, marginBottom: 24,
           }}>
-            {stats.map(s => (
+            {stats.map((s, i) => (
               <div key={s.label} style={{
                 background: dark ? `${s.color || '#A29BFE'}12` : `${s.color || '#A29BFE'}10`,
                 borderRadius: 14, padding: '12px 8px',
-                animation: 'winSlideUp 0.4s 0.25s ease both',
+                animation: `winSlideUp 0.4s ${0.35 + i * 0.12}s ease both`,
               }}>
                 <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 22, color: s.color || '#A29BFE' }}>
                   {s.value}
@@ -283,10 +283,12 @@ export function WinModal({
             border: 'none', borderRadius: 100, padding: '13px 18px',
             fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive",
             cursor: 'pointer', boxShadow: `0 4px 14px ${gameColor}44`,
-            transition: 'transform 0.15s',
+            transition: 'transform 0.15s, box-shadow 0.15s',
           }}
             onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = `0 4px 14px ${gameColor}44` }}
+            onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.96)'; e.currentTarget.style.boxShadow = `0 2px 6px ${gameColor}66` }}
+            onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = `0 4px 14px ${gameColor}44` }}
           >
             🔄 Main Lagi
           </button>
@@ -295,10 +297,12 @@ export function WinModal({
             color: textMuted, border: `2px solid ${tc.borderCol}`,
             borderRadius: 100, padding: '13px 18px',
             fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive",
-            cursor: 'pointer', transition: 'transform 0.15s',
+            cursor: 'pointer', transition: 'transform 0.15s, background 0.15s',
           }}
             onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = dark ? '#1e2a4a' : '#F8F9FA' }}
+            onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.96)'; e.currentTarget.style.background = dark ? '#2d3a5a' : '#E8E9EA' }}
+            onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = dark ? '#1e2a4a' : '#F8F9FA' }}
           >
             {backLabel}
           </button>

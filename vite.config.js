@@ -7,9 +7,13 @@ export default defineConfig({
     // Chunk splitting — firebase split into auth (eager) vs firestore (lazy)
     rollupOptions: {
       output: {
-        manualChunks: {
-          'firebase-core': ['firebase/app', 'firebase/auth'],
-          'react-vendor': ['react', 'react-dom'],
+        manualChunks: (id) => {
+          if (id.includes('firebase/app') || id.includes('firebase/auth')) {
+            return 'firebase-core'
+          }
+          if (id.includes('react') || id.includes('react-dom')) {
+            return 'react-vendor'
+          }
         },
       },
     },

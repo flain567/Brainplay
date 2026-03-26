@@ -144,11 +144,12 @@ function mkBgR(W,H){const r=[];for(let i=0;i<10;i++)r.push({x:Math.random()*W*3,
 // ═══════════════════════════════════════════════════════════
 export default function NeonDash({onBack,game,difficulty}){
   const cRef=useRef(null),aRef=useRef(null),gR=useRef(null),phR=useRef('idle')
-  const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins}=useCoins()
+  const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins,getActiveDashTheme}=useCoins()
   const dc=DC[difficulty.id]
   const[phase,_sp]=useState('idle')
   const[showTut,setShowTut]=useState(()=>!localStorage.getItem('bp_tut_neon-dash'))
   const[showConf,setShowConf]=useState(false)
+  const[loading,setLoading]=useState(true)
   const[uSc,sSc]=useState(0),[uLv,sLv]=useState(1),[uPr,sPr]=useState(0),[uDi,sDi]=useState('0/0'),[uAt,sAt]=useState(1)
   const[rzKey,setRzKey]=useState(0)
   const bestKey=`nd-best-${difficulty.id}`
@@ -187,6 +188,7 @@ export default function NeonDash({onBack,game,difficulty}){
   }
 
   useEffect(()=>{
+    setLoading(false)
     const{w:W,h:H}=szC()
     const c=cRef.current;if(!c)return
     const ctx=c.getContext('2d')
@@ -226,10 +228,11 @@ export default function NeonDash({onBack,game,difficulty}){
       g.trail=[];g.pts=[];g.rings=[];sp('play')
     }
     function die(){
+      const currentTheme = getActiveDashTheme()
       sp('dying');g.dieT=40;g.shk=18;g.deathFlash=1.0
       const cx=g.px+PS/2,cy=g.py+PS/2
       for(let i=0;i<25;i++){const a=P2*Math.random(),s=1.5+Math.random()*6
-        g.pts.push({x:cx,y:cy,dx:Math.cos(a)*s,dy:Math.sin(a)*s-1,l:25+Math.random()*25,ml:50,r:2+Math.random()*4,c:i<12?CL.ply:i<18?'#FF6B6B':'#fff'})}
+        g.pts.push({x:cx,y:cy,dx:Math.cos(a)*s,dy:Math.sin(a)*s-1,l:25+Math.random()*25,ml:50,r:2+Math.random()*4,c:i<12?currentTheme.player:i<18?'#FF6B6B':'#fff'})}
       g.rings.push({x:cx,y:cy,r:5,mr:100,a:1,c:'#fff',lw:3})
       g.rings.push({x:cx,y:cy,r:10,mr:60,a:0.6,c:'#FF6B6B',lw:2})
       // Track best progress
@@ -241,13 +244,14 @@ export default function NeonDash({onBack,game,difficulty}){
       try{play('mismatch')}catch(e){}
     }
     function win(){
+      const currentTheme = getActiveDashTheme()
       sp('winning');g.winT=55
       const dr=g.lvD.nd>0?g.cd/g.lvD.nd:1
       const pts=Math.round(250+g.lv*50+dr*350+Math.max(0,200-(g.att-1)*25))
       g.sc+=pts;sSc(g.sc)
       const cx=g.px+PS/2,cy=g.py+PS/2
       for(let i=0;i<18;i++){const a=P2*Math.random(),s=2+Math.random()*5
-        g.pts.push({x:cx,y:cy,dx:Math.cos(a)*s,dy:Math.sin(a)*s,l:25+Math.random()*25,ml:50,r:3+Math.random()*4,c:['#fff',CL.dia,CL.ply,CL.gndL][i%4]})}
+        g.pts.push({x:cx,y:cy,dx:Math.cos(a)*s,dy:Math.sin(a)*s,l:25+Math.random()*25,ml:50,r:3+Math.random()*4,c:['#fff',CL.dia,currentTheme.player,CL.gndL][i%4]})}
       try{play('win')}catch(e){}
     }
     function finG(won){
@@ -282,12 +286,13 @@ export default function NeonDash({onBack,game,difficulty}){
 
       // ── GAMEPLAY ──
       if(p==='play'){
+        const currentTheme = getActiveDashTheme()
         g.spd=Math.min(dc.spd+(g.lv-1)*dc.si+g.cam*0.0001,dc.spd*1.6)
         const spd=g.spd*dt;g.cam+=spd;g.gOff=(g.gOff+spd)%BK
         const wx=g.px+g.cam
 
         // Trail
-        if(fc%2===0)g.trail.push({x:g.px+PS/2,y:g.py+PS/2,a:g.mode==='wave'?0.55:0.3,c:g.mode==='wave'?CL.wav:CL.ply})
+        if(fc%2===0)g.trail.push({x:g.px+PS/2,y:g.py+PS/2,a:g.mode==='wave'?0.55:0.3,c:g.mode==='wave'?currentTheme.wave:currentTheme.player})
 
         if(g.mode==='cube'){
           g.vy+=dc.grav*dt;g.py+=g.vy*dt
@@ -349,6 +354,7 @@ export default function NeonDash({onBack,game,difficulty}){
       }
 
       // ═════════════ DRAW ═════════════
+      const currentDashTheme = getActiveDashTheme()
       const shx=g.shk>0?(Math.random()-0.5)*g.shk*2:0
       const shy=g.shk>0?(Math.random()-0.5)*g.shk*2:0
       ctx.save();ctx.translate(shx,shy)
@@ -385,7 +391,7 @@ export default function NeonDash({onBack,game,difficulty}){
           for(let y=it.y+BK;y<it.y+it.h;y+=BK){ctx.beginPath();ctx.moveTo(sx,y);ctx.lineTo(sx+it.w,y);ctx.stroke()}
           for(let x2=sx+BK;x2<sx+it.w;x2+=BK){ctx.beginPath();ctx.moveTo(x2,it.y);ctx.lineTo(x2,it.y+it.h);ctx.stroke()}}
         if(it.t==='ptl'){
-          const pc=it.mode==='wave'?CL.wav:CL.ptl;const pulse=0.7+Math.sin(ts/200)*0.3
+          const pc=it.mode==='wave'?currentDashTheme.wave:CL.ptl;const pulse=0.7+Math.sin(ts/200)*0.3
           ctx.strokeStyle=pc;ctx.lineWidth=3;ctx.shadowColor=pc;ctx.shadowBlur=18*pulse
           ctx.strokeRect(sx+4,it.y+4,it.w-8,it.h-8);ctx.fillStyle=pc+'22';ctx.fillRect(sx,it.y,it.w,it.h)
           ctx.shadowBlur=0;ctx.fillStyle='#fff';ctx.font="bold 14px 'Fredoka One',sans-serif";ctx.textAlign='center'
@@ -401,7 +407,7 @@ export default function NeonDash({onBack,game,difficulty}){
 
       // Trail
       if(g.trail.length>1){
-        if(g.mode==='wave'){ctx.strokeStyle=CL.wav;ctx.lineWidth=2.5;ctx.shadowColor=CL.wavG;ctx.shadowBlur=5;ctx.beginPath()
+        if(g.mode==='wave'){ctx.strokeStyle=currentDashTheme.wave;ctx.lineWidth=2.5;ctx.shadowColor=currentDashTheme.wave;ctx.shadowBlur=5;ctx.beginPath()
           for(let i=0;i<g.trail.length;i++){const t=g.trail[i];ctx.globalAlpha=t.a;if(i===0)ctx.moveTo(t.x,t.y);else ctx.lineTo(t.x,t.y)}
           ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1
         }else{for(const t of g.trail){ctx.globalAlpha=t.a*0.4;ctx.fillStyle=t.c;ctx.fillRect(t.x-2,t.y-2,4,4)};ctx.globalAlpha=1}}
@@ -410,12 +416,12 @@ export default function NeonDash({onBack,game,difficulty}){
       const ph=phR.current
       if(ph==='play'||ph==='winning'||(ph==='dying'&&g.dieT>12)){
         ctx.save();ctx.translate(g.px+PS/2,g.py+PS/2);ctx.rotate(g.rot)
-        ctx.fillStyle=CL.plyO;ctx.fillRect(-PS/2-2,-PS/2-2,PS+4,PS+4)
-        ctx.fillStyle=g.mode==='wave'?CL.wav:CL.ply
-        ctx.shadowColor=g.mode==='wave'?CL.wavG:CL.ply;ctx.shadowBlur=12
+        ctx.fillStyle=currentDashTheme.playerOutline;ctx.fillRect(-PS/2-2,-PS/2-2,PS+4,PS+4)
+        ctx.fillStyle=g.mode==='wave'?currentDashTheme.wave:currentDashTheme.player
+        ctx.shadowColor=g.mode==='wave'?currentDashTheme.wave:currentDashTheme.player;ctx.shadowBlur=12
         ctx.fillRect(-PS/2,-PS/2,PS,PS);ctx.shadowBlur=0
         ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.strokeRect(-PS/2,-PS/2,PS,PS)
-        ctx.fillStyle=CL.plyE;ctx.fillRect(1,-3,5,5)
+        ctx.fillStyle=currentDashTheme.glow;ctx.fillRect(1,-3,5,5)
         ctx.restore()}
 
       // Particles & rings
@@ -433,7 +439,7 @@ export default function NeonDash({onBack,game,difficulty}){
       ctx.fillStyle=CL.gndL;ctx.shadowColor=CL.gndG;ctx.shadowBlur=4;ctx.fillRect(bx,by,bw*pr,bh);ctx.shadowBlur=0
       ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bx+bw*pr,by+bh/2,4,0,P2);ctx.fill()
       ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font="bold 9px 'Fredoka One',sans-serif";ctx.textAlign='center';ctx.fillText(`${curPr}%`,bx+bw/2,by+bh+10)
-      ctx.textAlign='left';ctx.fillStyle=g.mode==='wave'?CL.wav:CL.ply;ctx.font="bold 10px 'Fredoka One',sans-serif";ctx.fillText(g.mode==='wave'?'~ WAVE':'□ CUBE',10,26)
+      ctx.textAlign='left';ctx.fillStyle=g.mode==='wave'?currentDashTheme.wave:currentDashTheme.player;ctx.font="bold 10px 'Fredoka One',sans-serif";ctx.fillText(g.mode==='wave'?'~ WAVE':'□ CUBE',10,26)
       ctx.textAlign='right';ctx.font="bold 11px 'Fredoka One',sans-serif";ctx.fillStyle='#fff';ctx.fillText(`💎 ${g.cd}/${g.lvD.nd}`,W-10,14);ctx.fillStyle=CL.gndL;ctx.fillText(`Lv${g.lv} ×${g.att}`,W-10,28)
 
       // Death flash overlay
@@ -462,8 +468,7 @@ export default function NeonDash({onBack,game,difficulty}){
   return(
     <div style={{width:'100%',height:typeof CSS!=='undefined'&&CSS.supports('height','100dvh')?'100dvh':'100vh',background:CL.bg,position:'relative',overflow:'hidden',userSelect:'none',fontFamily:"'Fredoka One',cursive"}}>
       {showTut&&<TutorialModal steps={TUT} storageKey="bp_tut_neon-dash" onClose={()=>setShowTut(false)}/>}
-      {showConf&&<Confetti/>}
-      <div style={{position:'absolute',top:8,left:8,zIndex:20}}><button onClick={onBack} style={{background:'rgba(255,255,255,0.08)',border:'1px solid rgba(255,255,255,0.15)',color:'#fff',borderRadius:10,padding:'7px 13px',fontSize:15,cursor:'pointer'}}>←</button></div>
+      {showConf&&<Confetti/>}      {loading&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999}}><div style={{fontSize:48,animation:'spin 2s linear infinite'}}>⚙️</div></div>}      <div style={{position:'absolute',top:8,left:8,zIndex:20}}><button onClick={onBack} style={{background:'rgba(255,255,255,0.08)',border:'1px solid rgba(255,255,255,0.15)',color:'#fff',borderRadius:10,padding:'7px 13px',fontSize:15,cursor:'pointer'}}>←</button></div>
       <div style={{position:'absolute',inset:0,zIndex:1}}><canvas ref={cRef} style={{width:'100%',height:'100%',display:'block',touchAction:'none'}}/></div>
       {phase==='won'&&(
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(10px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:20}}>
@@ -472,8 +477,8 @@ export default function NeonDash({onBack,game,difficulty}){
             <p style={{color:CL.gndL,fontSize:13,marginBottom:12}}>{dc.ml} level selesai!</p>
             <div style={{fontSize:30,marginBottom:12,letterSpacing:8}}>⭐⭐⭐</div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}}>
-              {[{l:'Skor',v:gR.current?.sc||uSc,c:'#FFD700'},{l:'Diamond',v:`${gR.current?.cd||0}/${gR.current?.lvD?.nd||0}`,c:'#00F5FF'},{l:'Attempts',v:gR.current?.att||uAt,c:'#A29BFE'}].map(s=>(
-                <div key={s.l} style={{background:`${s.c}15`,borderRadius:12,padding:'10px 6px'}}>
+              {[{l:'Skor',v:gR.current?.sc||uSc,c:'#FFD700'},{l:'Diamond',v:`${gR.current?.cd||0}/${gR.current?.lvD?.nd||0}`,c:'#00F5FF'},{l:'Attempts',v:gR.current?.att||uAt,c:'#A29BFE'}].map((s,i)=>(
+                <div key={s.l} style={{background:`${s.c}15`,borderRadius:12,padding:'10px 6px',animation:`winSlideUp 0.4s ${0.35+i*0.12}s ease both`}}>
                   <div style={{fontSize:18,color:s.c,fontWeight:800}}>{s.v}</div>
                   <div style={{fontSize:9,color:'#888',marginTop:2}}>{s.l}</div>
                 </div>
@@ -485,6 +490,13 @@ export default function NeonDash({onBack,game,difficulty}){
               <button onClick={onBack} style={{flex:1,background:'#1a1a3e',color:'#aaa',border:'2px solid rgba(255,255,255,0.1)',borderRadius:100,padding:'13px 18px',fontSize:15,fontWeight:800,cursor:'pointer'}}>🎯 Ganti Level</button>
             </div>
           </div>
+          <style>{`
+            @keyframes winSlideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+            @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+          `}</style>
         </div>)}
+      <style>{`
+        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+      `}</style>
     </div>)
 }

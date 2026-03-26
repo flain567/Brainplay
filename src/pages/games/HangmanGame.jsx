@@ -509,23 +509,26 @@ export default function HangmanGame({ onBack, game, difficulty }) {
 
       {/* Word display */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: word.length > 9 ? 5 : 8, flexWrap: 'wrap', marginBottom: 28 }}>
-        {revealedWord.map((item, i) => (
-          <div key={i} style={{
-            width: word.length > 10 ? 30 : word.length > 7 ? 36 : 42,
-            height: word.length > 10 ? 38 : word.length > 7 ? 44 : 50,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            borderBottom: `3px solid ${item.revealed ? (lost && !guessed.has(item.letter) ? '#FF6B6B' : accent) : (dark ? '#4a4a6a' : '#B2BEC3')}`,
-            fontFamily: "'Fredoka One',cursive",
-            fontSize: word.length > 10 ? 20 : word.length > 7 ? 24 : 28,
-            color: lost && !guessed.has(item.letter) ? '#FF6B6B' : textMain,
-            transition: 'all 0.3s',
-            transform: item.revealed ? 'scale(1)' : 'scale(0.8)',
-            opacity: item.revealed ? 1 : 0,
-            animation: item.revealed && !lost ? `popLetter 0.3s ease` : 'none',
-          }}>
-            {item.revealed ? item.letter : ''}
-          </div>
-        ))}
+        {revealedWord.map((item, i) => {
+          const revealDelay = item.revealed && !lost ? (i * 0.08) : 0
+          return (
+            <div key={i} style={{
+              width: word.length > 10 ? 30 : word.length > 7 ? 36 : 42,
+              height: word.length > 10 ? 38 : word.length > 7 ? 44 : 50,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              borderBottom: `3px solid ${item.revealed ? (lost && !guessed.has(item.letter) ? '#FF6B6B' : accent) : (dark ? '#4a4a6a' : '#B2BEC3')}`,
+              fontFamily: "'Fredoka One',cursive",
+              fontSize: word.length > 10 ? 20 : word.length > 7 ? 24 : 28,
+              color: lost && !guessed.has(item.letter) ? '#FF6B6B' : textMain,
+              transition: 'all 0.3s',
+              transform: item.revealed ? 'scale(1)' : 'scale(0.8)',
+              opacity: item.revealed ? 1 : 0,
+              animation: item.revealed && !lost ? `popLetter 0.4s ${revealDelay}s cubic-bezier(0.34,1.56,0.64,1) both` : 'none',
+            }}>
+              {item.revealed ? item.letter : ''}
+            </div>
+          )
+        })}
       </div>
 
       {/* Wrong letters */}
@@ -652,7 +655,7 @@ function ResultModal({ won, word, wrongCount, maxWrong, time, diffLabel, onResta
 
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={onRestart} style={{ flex: 1, background: '#E17055', color: '#fff', border: 'none', borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', boxShadow: '0 4px 14px #E1705544' }}>🔄 Main Lagi</button>
-          <button onClick={onBack} style={{ flex: 1, background: darkMode ? '#1e2a4a' : '#F8F9FA', color: textMuted, border: `2px solid ${dark ? '#2d3561' : '#DFE6E9'}`, borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>🎯 Ganti Level</button>
+          <button onClick={onBack} style={{ flex: 1, background: darkMode ? '#1e2a4a' : '#F8F9FA', color: textMuted, border: `2px solid ${darkMode ? '#2d3561' : '#DFE6E9'}`, borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>🎯 Ganti Level</button>
         </div>
       </div>
       <style>{`

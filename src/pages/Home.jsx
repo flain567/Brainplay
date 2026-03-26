@@ -6,6 +6,7 @@ import { useSound } from '../hooks/useSound.js'
 import { useProgress, getLevelInfo } from '../context/ProgressContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
 import { useDailyChallenge } from '../context/DailyChallengeContext.jsx'
+import { useLimitedMode } from '../context/LimitedModeContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 
 const COMING_SOON = [
@@ -31,7 +32,7 @@ const TAG_META   = {
   Logika:  { icon: '🧠', color: '#FF6B6B' },
 }
 
-export default function Home({ games, onPlay, onProfile, onShop }) {
+export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
   const { darkMode } = useSettings()
   const { play }     = useSound()
   const { progress } = useProgress()
@@ -41,6 +42,7 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
     isChallengeClaimed, claimChallenge, claimBonus,
     completedCount, allComplete, bonusAvailable, bonusClaimed, allCompleteBonus,
   } = useDailyChallenge()
+  const { currentMode, isBonusClaimedToday, markBonusAsClaimed } = useLimitedMode()
   const tc = useThemeColors()
   const [activeTag, setActiveTag] = useState('Semua')
   const [scrollTop, setScrollTop] = useState(false)
@@ -581,6 +583,55 @@ export default function Home({ games, onPlay, onProfile, onShop }) {
               )
             })}
           </div>
+
+          {/* ── Limited Mode Banner ── */}
+          {currentMode && (
+            <div style={{
+              marginBottom: 36, padding: 20, borderRadius: 20,
+              background: `linear-gradient(135deg, ${currentMode.color}20, ${currentMode.color}08)`,
+              border: `2px solid ${currentMode.color}44`,
+              animation: 'slide-up 0.5s 0.4s ease both',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <span style={{ fontSize: 28 }}>{currentMode.emoji}</span>
+                    <div>
+                      <h3 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 18, color: currentMode.color, margin: 0 }}>
+                        {currentMode.name}
+                      </h3>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: 13, color: textMuted, margin: 0, lineHeight: 1.5 }}>
+                    {currentMode.desc}
+                  </p>
+                  <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+                    <div style={{ fontSize: 12, color: textMuted }}>
+                      🪙 ×{currentMode.coinMultiplier}  |  ⭐ ×{currentMode.xpMultiplier}
+                    </div>
+                  </div>
+                </div>
+                {!isBonusClaimedToday(currentMode.id) && (
+                  <button
+                    onClick={() => {
+                      markBonusAsClaimed(currentMode.id)
+                      play('levelUp')
+                    }}
+                    style={{
+                      background: currentMode.color, color: '#fff', border: 'none',
+                      borderRadius: 12, padding: '10px 18px', fontSize: 13, fontWeight: 700,
+                      cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s',
+                      fontFamily: "'Fredoka One',cursive",
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                  >
+                    Mainkan ✨
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* ── Available games ── */}
           {filteredAvailable.length > 0 && (

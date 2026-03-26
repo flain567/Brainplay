@@ -87,11 +87,12 @@ function spawnCollectibles(terrain,lvl){
 // ═══════════════════════════════════════════════════════════
 export default function VoxelRacer({onBack,game,difficulty}){
   const cRef=useRef(null),aRef=useRef(null),gR=useRef(null),phR=useRef('idle')
-  const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins:earnC}=useCoins()
+  const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins:earnC,getActiveRacerTheme}=useCoins()
   const dc=DC[difficulty.id]
   const[phase,_sp]=useState('idle')
   const[showTut,setShowTut]=useState(()=>!localStorage.getItem('bp_tut_voxel-racer'))
   const[showConf,setShowConf]=useState(false)
+  const[loading,setLoading]=useState(true)
   const[uSc,sSc]=useState(0),[uLv,sLv]=useState(1),[uPr,sPr]=useState(0),[uAt,sAt]=useState(1)
   const[rzKey,setRzKey]=useState(0)
   const[uFuel,sFuel]=useState(100),[uDist,sDist]=useState(0),[uCoins,sCoins]=useState(0)
@@ -140,6 +141,7 @@ export default function VoxelRacer({onBack,game,difficulty}){
   }
 
   useEffect(()=>{
+    setLoading(false)
     const{w:W,h:H}=szC()
     const c=cRef.current;if(!c)return
     const ctx=c.getContext('2d')
@@ -373,6 +375,7 @@ export default function VoxelRacer({onBack,game,difficulty}){
       }
 
       // ═════════════ DRAW ═════════════
+      const currentRacerTheme = getActiveRacerTheme()
       const shx=g.shk>0?(Math.random()-0.5)*g.shk*2:0
       const shy=g.shk>0?(Math.random()-0.5)*g.shk*2:0
       ctx.save();ctx.translate(shx,shy)
@@ -477,12 +480,13 @@ export default function VoxelRacer({onBack,game,difficulty}){
         // Shadow on ground
         ctx.fillStyle='rgba(0,0,0,0.12)';ctx.fillRect(-CAR_W/2+5,CAR_H/2+3,CAR_W-10,5)
 
-        // Body bottom
-        ctx.fillStyle='#E6A817';ctx.fillRect(-CAR_W/2,-CAR_H/2,CAR_W,CAR_H)
-        // Body top
-        ctx.fillStyle='#FFD93D';ctx.fillRect(-CAR_W/2+2,-CAR_H/2-1,CAR_W-4,CAR_H-1)
-        // Cabin
-        ctx.fillStyle='#E6A817';ctx.fillRect(-8,-CAR_H/2-11,24,13)
+        // Body bottom (roof)
+        ctx.fillStyle=currentRacerTheme.roof;ctx.fillRect(-CAR_W/2,-CAR_H/2,CAR_W,CAR_H)
+        // Body top (body)
+        const isDark=currentRacerTheme.body.length>4
+        ctx.fillStyle=currentRacerTheme.body;ctx.fillRect(-CAR_W/2+2,-CAR_H/2-1,CAR_W-4,CAR_H-1)
+        // Cabin (accent)
+        ctx.fillStyle=currentRacerTheme.accent;ctx.fillRect(-8,-CAR_H/2-11,24,13)
         // Windshield
         ctx.fillStyle='rgba(41,182,246,0.7)';ctx.fillRect(13,-CAR_H/2-9,4,9)
         // Rear window
@@ -492,26 +496,26 @@ export default function VoxelRacer({onBack,game,difficulty}){
         // Headlights
         ctx.fillStyle='#FFEB3B';ctx.fillRect(CAR_W/2,-5,2,3);ctx.fillRect(CAR_W/2,1,2,3)
         // Taillights
-        ctx.fillStyle='#E53935';ctx.fillRect(-CAR_W/2-1,-4,2,3);ctx.fillRect(-CAR_W/2-1,1,2,3)
+        ctx.fillStyle=currentRacerTheme.accent;ctx.fillRect(-CAR_W/2-1,-4,2,3);ctx.fillRect(-CAR_W/2-1,1,2,3)
         // Outline
         ctx.strokeStyle='rgba(0,0,0,0.2)';ctx.lineWidth=1;ctx.strokeRect(-CAR_W/2,-CAR_H/2,CAR_W,CAR_H)
 
-        // Wheels
+        // Wheels (using wheel color from theme)
         for(const wx of[-WHL_BASE/2,WHL_BASE/2]){
           ctx.save();ctx.translate(wx,CAR_H/2)
           ctx.rotate(g.whlRot)
-          ctx.fillStyle='#212121';ctx.beginPath();ctx.arc(0,0,WHL_R,0,P2);ctx.fill()
-          ctx.fillStyle='#616161';ctx.beginPath();ctx.arc(0,0,WHL_R*0.5,0,P2);ctx.fill()
-          ctx.strokeStyle='#424242';ctx.lineWidth=1
+          ctx.fillStyle=currentRacerTheme.wheel;ctx.beginPath();ctx.arc(0,0,WHL_R,0,P2);ctx.fill()
+          ctx.fillStyle=currentRacerTheme.wheel;ctx.globalAlpha=0.5;ctx.beginPath();ctx.arc(0,0,WHL_R*0.5,0,P2);ctx.fill();ctx.globalAlpha=1
+          ctx.strokeStyle='rgba(0,0,0,0.3)';ctx.lineWidth=1
           ctx.beginPath();ctx.moveTo(-WHL_R*0.35,0);ctx.lineTo(WHL_R*0.35,0);ctx.stroke()
           ctx.beginPath();ctx.moveTo(0,-WHL_R*0.35);ctx.lineTo(0,WHL_R*0.35);ctx.stroke()
           ctx.restore()
         }
 
-        // Exhaust
+        // Exhaust (using exhaust color from theme)
         if(g.gas&&!g.air&&Math.random()>0.4){
           g.pts.push({x:g.cx-Math.cos(g.angle)*CAR_W/2,y:g.cy-Math.sin(g.angle)*CAR_W/2,
-            dx:-g.vx*0.2+(Math.random()-0.5),dy:-0.5-Math.random()*1.5,l:10+Math.random()*8,ml:18,r:2+Math.random()*2,c:'#9E9E9E'})}
+            dx:-g.vx*0.2+(Math.random()-0.5),dy:-0.5-Math.random()*1.5,l:10+Math.random()*8,ml:18,r:2+Math.random()*2,c:currentRacerTheme.exhaust})}
 
         ctx.restore()
       }
@@ -609,8 +613,7 @@ export default function VoxelRacer({onBack,game,difficulty}){
   return(
     <div style={{width:'100%',height:typeof CSS!=='undefined'&&CSS.supports('height','100dvh')?'100dvh':'100vh',background:'#4FC3F7',position:'relative',overflow:'hidden',userSelect:'none',fontFamily:"'Fredoka One',cursive"}}>
       {showTut&&<TutorialModal steps={TUT} storageKey="bp_tut_voxel-racer" onClose={()=>setShowTut(false)}/>}
-      {showConf&&<Confetti/>}
-      <div style={{position:'absolute',top:8,left:8,zIndex:20}}><button onClick={onBack} style={{background:'rgba(0,0,0,0.3)',border:'1px solid rgba(255,255,255,0.3)',color:'#fff',borderRadius:10,padding:'7px 13px',fontSize:15,cursor:'pointer',backdropFilter:'blur(4px)'}}>←</button></div>
+      {showConf&&<Confetti/>}      {loading&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999}}><div style={{fontSize:48,animation:'spin 2s linear infinite'}}>⚡</div></div>}      <div style={{position:'absolute',top:8,left:8,zIndex:20}}><button onClick={onBack} style={{background:'rgba(0,0,0,0.3)',border:'1px solid rgba(255,255,255,0.3)',color:'#fff',borderRadius:10,padding:'7px 13px',fontSize:15,cursor:'pointer',backdropFilter:'blur(4px)'}}>←</button></div>
       <div style={{position:'absolute',inset:0,zIndex:1}}><canvas ref={cRef} style={{width:'100%',height:'100%',display:'block',touchAction:'none'}}/></div>
       {phase==='won'&&(
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(10px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:20}}>
@@ -620,8 +623,8 @@ export default function VoxelRacer({onBack,game,difficulty}){
             <div style={{fontSize:30,marginBottom:12,letterSpacing:8}}>⭐⭐⭐</div>
             <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(255,217,61,0.15)',border:'1.5px solid rgba(255,217,61,0.3)',borderRadius:100,padding:'6px 18px',marginBottom:16}}><span>🪙</span><span style={{color:'#FFD93D',fontSize:16,fontWeight:800}}>+{coinR}</span></div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:20}}>
-              {[{l:'Skor',v:gR.current?.sc||uSc,c:'#FFD93D'},{l:'Koin',v:gR.current?.coins||0,c:'#29B6F6'},{l:'Attempts',v:gR.current?.att||1,c:'#FF6B6B'}].map(s=>(
-                <div key={s.l} style={{background:`${s.c}15`,borderRadius:12,padding:'10px 6px'}}>
+              {[{l:'Skor',v:gR.current?.sc||uSc,c:'#FFD93D'},{l:'Koin',v:gR.current?.coins||0,c:'#29B6F6'},{l:'Attempts',v:gR.current?.att||1,c:'#FF6B6B'}].map((s,i)=>(
+                <div key={s.l} style={{background:`${s.c}15`,borderRadius:12,padding:'10px 6px',animation:`winSlideUp 0.4s ${0.35+i*0.12}s ease both`}}>
                   <div style={{fontSize:20,color:s.c,fontWeight:800}}>{s.v}</div>
                   <div style={{fontSize:9,color:'#90CAF9',marginTop:2}}>{s.l}</div>
                 </div>
@@ -632,6 +635,13 @@ export default function VoxelRacer({onBack,game,difficulty}){
               <button onClick={onBack} style={{flex:1,background:'#1a237e',color:'#90CAF9',border:'2px solid rgba(255,255,255,0.1)',borderRadius:100,padding:'13px 18px',fontSize:15,fontWeight:800,cursor:'pointer'}}>🎯 Ganti Level</button>
             </div>
           </div>
+          <style>{`
+            @keyframes winSlideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+            @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+          `}</style>
         </div>)}
+      <style>{`
+        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+      `}</style>
     </div>)
 }

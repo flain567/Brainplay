@@ -6,6 +6,7 @@ import { NotifProvider } from './context/NotifContext.jsx'
 import { LeaderboardProvider } from './context/LeaderboardContext.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { DailyChallengeProvider } from './context/DailyChallengeContext.jsx'
+import { LimitedModeProvider } from './context/LimitedModeContext.jsx'
 import { CloudSaveProvider, useCloudSave } from './context/CloudSaveContext.jsx'
 import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
@@ -25,6 +26,7 @@ import { initNative, setupBackButton, hideStatusBar, showStatusBar, isNative } f
 const Profile     = lazy(() => import('./pages/Profile.jsx'))
 const Shop        = lazy(() => import('./pages/Shop.jsx'))
 const Leaderboard = lazy(() => import('./pages/Leaderboard.jsx'))
+const GameStatsPage = lazy(() => import('./pages/GameStatsPage.jsx'))
 const LoginModal  = lazy(() => import('./components/LoginModal.jsx'))
 const OnboardingModal = lazy(() => import('./components/OnboardingModal.jsx'))
 
@@ -368,6 +370,7 @@ function AppInner() {
   const goProfile         = () => { setScreen('profile'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goShop            = () => { setScreen('shop'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goLeaderboard     = () => { setScreen('leaderboard'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goStats           = () => { setScreen('stats'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
@@ -408,7 +411,7 @@ function AppInner() {
       <main style={{ flex:1 }}>
         <PageTransition pageKey={`${screen}-${currentGame?.id}-${difficulty}`}>
           {screen === 'home' && (
-            <Home games={GAMES} onPlay={openGame} onProfile={goProfile} onShop={goShop} />
+            <Home games={GAMES} onPlay={openGame} onProfile={goProfile} onShop={goShop} onStats={goStats} />
           )}
           {screen === 'profile' && (
             <Suspense fallback={<GameLoader />}>
@@ -423,6 +426,11 @@ function AppInner() {
           {screen === 'leaderboard' && (
             <Suspense fallback={<GameLoader />}>
               <Leaderboard onBack={goHome} games={GAMES} />
+            </Suspense>
+          )}
+          {screen === 'stats' && (
+            <Suspense fallback={<GameLoader />}>
+              <GameStatsPage onBack={goHome} />
             </Suspense>
           )}
           {screen === 'difficulty' && currentGame && (
@@ -450,10 +458,12 @@ export default function App() {
             <CoinProvider>
               <LeaderboardProvider>
                 <DailyChallengeProvider>
-                  <NotifProvider>
-                    <ThemeApplicator />
-                    <AppInner />
-                  </NotifProvider>
+                  <LimitedModeProvider>
+                    <NotifProvider>
+                      <ThemeApplicator />
+                      <AppInner />
+                    </NotifProvider>
+                  </LimitedModeProvider>
                 </DailyChallengeProvider>
               </LeaderboardProvider>
             </CoinProvider>
