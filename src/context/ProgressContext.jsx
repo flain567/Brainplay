@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { getJSON, setJSON, StorageKeys } from '../utils/storage.js'
+import { useLimitedMode } from './LimitedModeContext.jsx'
 
 const ProgressContext = createContext(null)
 
@@ -8,12 +9,38 @@ const LEVEL_THRESHOLDS = [
   0, 100, 250, 500, 800, 1200, 1800, 2500, 3500, 5000,
   7000, 9500, 12500, 16000, 20000, 25000, 31000, 38000, 46000, 55000,
 ]
-const LEVEL_TITLES = [
+export const LEVEL_TITLES = [
   'Pemula', 'Penjelajah', 'Petualang', 'Penantang', 'Pejuang',
   'Pahlawan', 'Juara', 'Legenda', 'Master', 'Grandmaster',
   'Dewa Otak', 'Ultrabrain', 'Kosmik', 'Mythic', 'Immortal',
   'Transcendent', 'Omega', 'Supreme', 'Celestial', 'BrainGod',
 ]
+
+// ─── Level Rewards (Borders & Title Colors) ──────────────────────────────────
+export const LEVEL_REWARDS = {
+  1: { id: 'wood', name: 'Bingkai Kayu', color: '#8d6e63', border: '5px solid #8d6e63', bgColor: '#8d6e6322' },
+  5: { id: 'silver', name: 'Bingkai Perak', color: '#b0bec5', border: '5px solid #b0bec5', boxShadow: '0 0 12px #b0bec588', bgColor: '#b0bec522' },
+  10: { id: 'gold', name: 'Bingkai Emas', color: '#ffd700', border: '5px solid #ffd700', boxShadow: '0 0 16px #ffd700aa', bgColor: '#ffd70022' },
+  15: { id: 'neon', name: 'Bingkai Neon', color: '#00f5ff', border: '5px solid #00f5ff', boxShadow: '0 0 20px #00f5ffcc', bgColor: '#00f5ff22' },
+  20: { id: 'fire', name: 'Aura Membara', color: '#ff4500', border: '5px solid #ff4500', boxShadow: '0 0 24px #ff4500cc', bgColor: '#ff450022' },
+  25: { id: 'dragon', name: 'Aura Naga', color: '#6c5ce7', border: '5px solid #6c5ce7', boxShadow: '0 0 28px #6c5ce7cc', bgColor: '#6c5ce722' },
+}
+
+export function getBorderForLevel(level) {
+  let activeRew = LEVEL_REWARDS[1]
+  for (const [lvl, rew] of Object.entries(LEVEL_REWARDS)) {
+    if (level >= Number(lvl)) activeRew = rew
+  }
+  return activeRew
+}
+
+export function getTitleColorForLevel(level) {
+  if (level >= 20) return { bg: 'linear-gradient(135deg,#ff4500,#ff8c00)', text: '#fff' }
+  if (level >= 15) return { bg: 'linear-gradient(135deg,#6c5ce7,#a29bfe)', text: '#fff' }
+  if (level >= 10) return { bg: 'linear-gradient(135deg,#d4af37,#ffd700)', text: '#000' }
+  if (level >= 5)  return { bg: 'linear-gradient(135deg,#95a5a6,#bdc3c7)', text: '#000' }
+  return { bg: 'transparent', text: '#A29BFE' }
+}
 
 export function getLevel(xp) {
   let lv = 0
@@ -120,6 +147,7 @@ function getDefaultProgress() {
 
 // ─── Provider ────────────────────────────────────────────────────────────────
 export function ProgressProvider({ children }) {
+  const { currentMode } = useLimitedMode()
   const [progress, setProgress] = useState(() => {
     const saved = getJSON(StorageKeys.XP)
     return saved ? { ...getDefaultProgress(), ...saved } : getDefaultProgress()
@@ -175,6 +203,7 @@ export function ProgressProvider({ children }) {
 
     setProgress(p => {
       const next = { ...p }
+      const oldLevel = getLevel(p.totalXP || 0)
 
       // XP calculation with streak combo multiplier
       let xpGain = 20 // base for playing
@@ -189,7 +218,25 @@ export function ProgressProvider({ children }) {
       const comboMultiplier = streak >= 14 ? 2.0 : streak >= 7 ? 1.5 : streak >= 3 ? 1.2 : 1.0
       xpGain = Math.round(xpGain * comboMultiplier)
 
+      // Limited Mode Event Multiplier
+      if (currentMode) {
+        if (currentMode.id === 'speed' && difficultyId === 'easy') {
+          xpGain = Math.round(xpGain * currentMode.xpMultiplier)
+        } else if (currentMode.id === 'survival' && difficultyId === 'hard') {
+          xpGain = Math.round(xpGain * currentMode.xpMultiplier)
+        } else if (currentMode.id === 'no_mistakes' && stars === 3) {
+          xpGain = Math.round(xpGain * currentMode.xpMultiplier)
+        }
+      }
+
       next.totalXP = (next.totalXP || 0) + xpGain
+
+      // Level Up Detection
+      const newLevel = getLevel(next.totalXP)
+      if (newLevel > oldLevel) {
+        next.levelUpData = { oldLevel, newLevel }
+      }
+
       next.totalGamesPlayed = (next.totalGamesPlayed || 0) + 1
 
       // Track date
@@ -252,15 +299,19 @@ export function ProgressProvider({ children }) {
 
       return next
     })
-  }, [])
+  }, [currentMode])
 
   // Clear new achievement notifications
   const clearNewAchievements = useCallback(() => {
     setProgress(p => ({ ...p, newAchievements: [] }))
   }, [])
 
+  const clearLevelUp = useCallback(() => {
+    setProgress(p => ({ ...p, levelUpData: null }))
+  }, [])
+
   return (
-    <ProgressContext.Provider value={{ progress, reportGameResult, clearNewAchievements, getLevelInfo: () => getLevelInfo(progress.totalXP) }}>
+    <ProgressContext.Provider value={{ progress, reportGameResult, clearNewAchievements, clearLevelUp, getLevelInfo: () => getLevelInfo(progress.totalXP) }}>
       {children}
     </ProgressContext.Provider>
   )

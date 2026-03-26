@@ -13,6 +13,7 @@ import DifficultySelector from './components/DifficultySelector.jsx'
 import PageTransition from './components/PageTransition.jsx'
 import AchievementToast from './components/AchievementToast.jsx'
 import CoinToast from './components/CoinToast.jsx'
+import LevelUpModal from './components/LevelUpModal.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import ThemeApplicator from './components/ThemeApplicator.jsx'
 import Home from './pages/Home.jsx'
@@ -271,6 +272,7 @@ function AppInner() {
   const { initialSyncDone } = useCloudSave()
   const { muted, musicOff } = useSettings()
   const { earnCoins } = useCoins()
+  const { progress, clearLevelUp } = useProgress()
 
   // Run migration once
   useEffect(() => { migrateOldStorage() }, [])
@@ -408,6 +410,9 @@ function AppInner() {
       )}
       <AchievementToast />
       <CoinToast />
+      {progress.levelUpData && (
+        <LevelUpModal data={progress.levelUpData} onClose={clearLevelUp} />
+      )}
       <main style={{ flex:1 }}>
         <PageTransition pageKey={`${screen}-${currentGame?.id}-${difficulty}`}>
           {screen === 'home' && (
@@ -454,20 +459,20 @@ export default function App() {
     <SettingsProvider>
       <AuthProvider>
         <CloudSaveProvider>
-          <ProgressProvider>
-            <CoinProvider>
-              <LeaderboardProvider>
-                <DailyChallengeProvider>
-                  <LimitedModeProvider>
+          <LimitedModeProvider>
+            <ProgressProvider>
+              <CoinProvider>
+                <LeaderboardProvider>
+                  <DailyChallengeProvider>
                     <NotifProvider>
                       <ThemeApplicator />
                       <AppInner />
                     </NotifProvider>
-                  </LimitedModeProvider>
-                </DailyChallengeProvider>
-              </LeaderboardProvider>
-            </CoinProvider>
-          </ProgressProvider>
+                  </DailyChallengeProvider>
+                </LeaderboardProvider>
+              </CoinProvider>
+            </ProgressProvider>
+          </LimitedModeProvider>
         </CloudSaveProvider>
       </AuthProvider>
     </SettingsProvider>

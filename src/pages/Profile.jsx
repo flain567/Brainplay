@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
-import { useProgress, ACHIEVEMENTS, getLevelInfo } from '../context/ProgressContext.jsx'
+import { useProgress, ACHIEVEMENTS, getLevelInfo, getBorderForLevel, getTitleColorForLevel } from '../context/ProgressContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCloudSave } from '../context/CloudSaveContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
@@ -36,6 +36,9 @@ export default function Profile({ onBack, games }) {
   const dark = tc.dark
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
+  const borderData = getBorderForLevel(levelInfo.level)
+  const titleStyle = getTitleColorForLevel(levelInfo.level)
+  
   const unlockedSet = new Set(progress.unlockedAchievements || [])
   const unlockedCount = unlockedSet.size
   const totalAchievements = ACHIEVEMENTS.length
@@ -165,11 +168,12 @@ export default function Profile({ onBack, games }) {
           <div className="prof-level-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20 }}>
               <div style={{
-                width: 72, height: 72, borderRadius: 20,
-                background: photoURL ? 'transparent' : 'linear-gradient(135deg, #A29BFE22, #FDCB6E22)',
-                border: '2px solid #A29BFE33',
+                width: 80, height: 80, borderRadius: '50%',
+                background: photoURL ? 'transparent' : borderData.bgColor,
+                border: borderData.border,
+                boxShadow: borderData.boxShadow,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 36, flexShrink: 0, overflow: 'hidden',
+                fontSize: 36, flexShrink: 0, overflow: 'hidden', position: 'relative'
               }}>
                 {photoURL ? (
                   <img src={photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
@@ -178,14 +182,21 @@ export default function Profile({ onBack, games }) {
                 )}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 13, color: '#A29BFE', letterSpacing: '0.5px', marginBottom: 2 }}>
+                <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 13, color: borderData.color, letterSpacing: '0.5px', marginBottom: 2 }}>
                   LEVEL {levelInfo.level}
                 </div>
-                <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: textMain, lineHeight: 1.1 }}>
+                <div style={{ 
+                  fontFamily: "'Fredoka One',cursive", fontSize: 24, lineHeight: 1.1,
+                  background: titleStyle.bg !== 'transparent' ? titleStyle.bg : 'none',
+                  WebkitBackgroundClip: titleStyle.bg !== 'transparent' ? 'text' : 'border-box',
+                  WebkitTextFillColor: titleStyle.bg !== 'transparent' ? 'transparent' : textMain,
+                  color: textMain,
+                  marginBottom: 4
+                }}>
                   {playerName || levelInfo.title}
                 </div>
                 <div style={{ fontSize: 12, color: textMuted, marginTop: 4 }}>
-                  {isLoggedIn ? `${email}` : isGuest ? 'Mode Tamu' : ''} • {levelInfo.xp.toLocaleString()} XP
+                  {isLoggedIn ? `${email}` : isGuest ? 'Mode Tamu' : ''} • <strong style={{color: borderData.color}}>{(progress.totalXP || 0).toLocaleString()} XP</strong>
                 </div>
               </div>
             </div>
@@ -253,15 +264,19 @@ export default function Profile({ onBack, games }) {
                 <span style={{ fontSize: 11, fontWeight: 700, color: textMuted }}>Level {levelInfo.level + 1}</span>
               </div>
               <div style={{
-                height: 10, borderRadius: 100, overflow: 'hidden',
+                height: 12, borderRadius: 100, overflow: 'hidden',
                 background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+                border: `1px solid ${dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`
               }}>
                 <div style={{
                   height: '100%', borderRadius: 100,
                   background: 'linear-gradient(90deg, #A29BFE, #FDCB6E)',
                   width: `${Math.round(levelInfo.progress * 100)}%`,
                   transition: 'width 0.8s cubic-bezier(0.34,1.56,0.64,1)',
-                }} />
+                  position: 'relative'
+                }}>
+                  <div style={{position:'absolute', inset:0, background:'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)', animation:'shimmer 2s infinite'}} />
+                </div>
               </div>
               <div style={{ textAlign: 'center', fontSize: 11, color: textMuted, marginTop: 5, fontWeight: 700 }}>
                 {levelInfo.xpToNext.toLocaleString()} XP lagi ke Level {levelInfo.level + 1}

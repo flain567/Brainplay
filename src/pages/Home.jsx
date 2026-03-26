@@ -3,7 +3,7 @@ import GameCard from '../components/GameCard.jsx'
 import ParticleBackground from '../components/ParticleBackground.jsx'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
-import { useProgress, getLevelInfo } from '../context/ProgressContext.jsx'
+import { useProgress, getLevelInfo, getBorderForLevel, getTitleColorForLevel } from '../context/ProgressContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
 import { useDailyChallenge } from '../context/DailyChallengeContext.jsx'
 import { useLimitedMode } from '../context/LimitedModeContext.jsx'
@@ -48,6 +48,8 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
   const [scrollTop, setScrollTop] = useState(false)
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
+  const borderData = getBorderForLevel(levelInfo.level)
+  const titleStyle = getTitleColorForLevel(levelInfo.level)
   const streak = progress.currentStreak || 0
   const dark = tc.dark
 
@@ -319,12 +321,24 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
             onMouseEnter={e => { e.currentTarget.style.borderColor = '#A29BFE'; e.currentTarget.style.transform = 'translateY(-2px)' }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.25)'; e.currentTarget.style.transform = 'translateY(0)' }}
             >
-              <div style={{ fontSize:28, flexShrink:0 }}>
+              <div style={{ 
+                fontSize:32, flexShrink:0, width:60, height:60, 
+                borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center',
+                border: borderData.border, boxShadow: borderData.boxShadow, background: borderData.bgColor 
+              }}>
                 {levelInfo.level < 5 ? '🌱' : levelInfo.level < 10 ? '⚔️' : '👑'}
               </div>
               <div style={{ flex:1 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-                  <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:14, color:'#A29BFE' }}>Lv.{levelInfo.level} {levelInfo.title}</span>
+                  <span style={{ 
+                    fontFamily:"'Fredoka One',cursive", fontSize:14, 
+                    background: titleStyle.bg !== 'transparent' ? titleStyle.bg : 'none',
+                    WebkitBackgroundClip: titleStyle.bg !== 'transparent' ? 'text' : 'border-box',
+                    WebkitTextFillColor: titleStyle.bg !== 'transparent' ? 'transparent' : borderData.color,
+                    color: borderData.color
+                  }}>
+                    Lv.{levelInfo.level} {levelInfo.title}
+                  </span>
                   <span style={{ fontSize:12, color:textMuted }}>•</span>
                   <span style={{ fontSize:12, color:textMuted, fontWeight:700 }}>{(progress.totalXP||0).toLocaleString()} XP</span>
                 </div>

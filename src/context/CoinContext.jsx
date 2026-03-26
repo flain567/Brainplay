@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { getJSON, setJSON, StorageKeys } from '../utils/storage.js'
+import { useLimitedMode } from './LimitedModeContext.jsx'
 
 const CoinContext = createContext(null)
 
@@ -444,6 +445,7 @@ function getDefaultCoinState() {
 
 // ─── Provider ───────────────────────────────────────────────────────────────
 export function CoinProvider({ children }) {
+  const { currentMode } = useLimitedMode()
   const [state, setState] = useState(() => {
     const saved = getJSON(StorageKeys.COINS)
     return saved ? { ...getDefaultCoinState(), ...saved } : getDefaultCoinState()
@@ -468,14 +470,26 @@ export function CoinProvider({ children }) {
 
   const earnCoins = useCallback((amount, desc='') => {
     if (amount <= 0) return
-    setCoinAnim({ amount, desc })
+
+    let finalAmt = amount
+    if (currentMode && (desc.includes('Menang') || desc.includes('skor') || desc.includes('Level Up!') || desc.includes('('))) {
+      if (currentMode.id === 'speed' && desc.includes('(easy)')) {
+        finalAmt = Math.round(finalAmt * currentMode.coinMultiplier)
+      } else if (currentMode.id === 'survival' && desc.includes('(hard)')) {
+        finalAmt = Math.round(finalAmt * currentMode.coinMultiplier)
+      } else if (currentMode.id === 'no_mistakes') {
+        finalAmt = Math.round(finalAmt * currentMode.coinMultiplier)
+      }
+    }
+
+    setCoinAnim({ amount: finalAmt, desc })
     setTimeout(() => setCoinAnim(null), 2000)
     setState(s => {
-      const tx = { type:'earn', amount, desc, date:Date.now() }
+      const tx = { type:'earn', amount: finalAmt, desc, date:Date.now() }
       const txs = [tx, ...(s.transactions||[])].slice(0,20)
-      return { ...s, balance:s.balance+amount, totalEarned:(s.totalEarned||0)+amount, transactions:txs }
+      return { ...s, balance:s.balance+finalAmt, totalEarned:(s.totalEarned||0)+finalAmt, transactions:txs }
     })
-  }, [])
+  }, [currentMode])
 
   const spendCoins = useCallback((amount, desc='') => {
     return new Promise((resolve) => {

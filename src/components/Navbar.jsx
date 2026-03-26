@@ -5,10 +5,11 @@ import { useProgress, getComboMultiplier } from '../context/ProgressContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { useEffect, useState, useRef } from 'react'
-import { NotificationBell, useNotifications, requestNotifPermission } from './NotificationManager.jsx'
+import { NotificationBell, useNotifications } from './NotificationManager.jsx'
+import SettingsModal from './SettingsModal.jsx'
 
 export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, currentGame }) {
-  const { darkMode, muted, musicOff, notifEnabled, hapticsEnabled, toggle } = useSettings()
+  const { darkMode, muted } = useSettings()
   const { play, setMuted } = useSound()
   const { coins } = useCoins()
   const { progress } = useProgress()
@@ -16,6 +17,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
   const tc = useThemeColors()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const menuRef = useRef(null)
   const streak = progress.currentStreak || 0
   const combo = getComboMultiplier(streak)
@@ -271,19 +273,8 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
                 <img src={photoURL} alt="" style={{ width:40, height:40, borderRadius:12, objectFit:'cover' }} referrerPolicy="no-referrer" />
               ) : '👤'}
             </button>
-            <button className="nav-btn" title={musicOff ? 'Nyalakan musik' : 'Matikan musik'} onClick={() => { play('click'); toggle.musicOff() }} style={{ position:'relative' }}>
-              {musicOff ? '🎵' : '🎶'}
-              {musicOff && <span style={{ position:'absolute', top:6, right:6, width:14, height:2, background:'#FF6B6B', borderRadius:2, transform:'rotate(-45deg)' }} />}
-            </button>
-            <button className="nav-btn" title={muted ? 'Nyalakan suara' : 'Matikan suara'} onClick={() => { if (!muted) play('click'); toggle.muted() }}>
-              {muted ? '🔇' : '🔊'}
-            </button>
-            <button className="nav-btn" title={hapticsEnabled ? 'Matikan getaran' : 'Nyalakan getaran'} onClick={() => { play('click'); toggle.haptics() }} style={{ position:'relative' }}>
-              📳
-              {!hapticsEnabled && <span style={{ position:'absolute', top:6, right:6, width:14, height:2, background:'#FF6B6B', borderRadius:2, transform:'rotate(-45deg)', zIndex:2 }} />}
-            </button>
-            <button className="nav-btn" title={darkMode ? 'Mode terang' : 'Mode gelap'} onClick={() => { play('toggle'); toggle.darkMode() }}>
-              {darkMode ? '☀️' : '🌙'}
+            <button className="nav-btn" title="Pengaturan" onClick={() => { play('click'); setShowSettings(true) }}>
+              ⚙️
             </button>
           </div>
 
@@ -375,64 +366,13 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
 
             <div className="nav-drawer-divider" />
 
-            {/* Settings toggles */}
-            <div style={{ fontSize:11, fontWeight:800, color:textMuted, letterSpacing:'1px', padding:'0 16px', marginBottom:8 }}>PENGATURAN</div>
-
-            <div className="nav-drawer-toggle-row">
-              <div className="nav-drawer-toggle-label">
-                <span>{darkMode ? '☀️' : '🌙'}</span>
-                <span>Mode Gelap</span>
+            {/* Settings button */}
+            <div className="nav-drawer-item" onClick={() => { play('click'); setMenuOpen(false); setShowSettings(true); }}>
+              <div className="nav-drawer-item-icon" style={{ background:dark?'rgba(162,155,254,0.1)':'#F0EFFE' }}>⚙️</div>
+              <div>
+                <div className="nav-drawer-item-text">Pengaturan</div>
+                <div className="nav-drawer-item-desc">Suara, tampilan & getaran</div>
               </div>
-              <button className={`nav-toggle-switch ${darkMode ? 'on' : 'off'}`} onClick={() => { play('toggle'); toggle.darkMode() }}>
-                <div className="nav-toggle-knob" />
-              </button>
-            </div>
-
-            <div className="nav-drawer-toggle-row">
-              <div className="nav-drawer-toggle-label">
-                <span>{musicOff ? '🔇' : '🎶'}</span>
-                <span>Musik</span>
-              </div>
-              <button className={`nav-toggle-switch ${!musicOff ? 'on' : 'off'}`} onClick={() => { play('click'); toggle.musicOff() }}>
-                <div className="nav-toggle-knob" />
-              </button>
-            </div>
-
-            <div className="nav-drawer-toggle-row">
-              <div className="nav-drawer-toggle-label">
-                <span>{muted ? '🔇' : '🔊'}</span>
-                <span>Efek Suara</span>
-              </div>
-              <button className={`nav-toggle-switch ${!muted ? 'on' : 'off'}`} onClick={() => { if (!muted) play('click'); toggle.muted() }}>
-                <div className="nav-toggle-knob" />
-              </button>
-            </div>
-
-            <div className="nav-drawer-toggle-row">
-              <div className="nav-drawer-toggle-label">
-                <span>{hapticsEnabled ? '📳' : '📴'}</span>
-                <span>Getaran (Haptics)</span>
-              </div>
-              <button className={`nav-toggle-switch ${hapticsEnabled ? 'on' : 'off'}`} onClick={() => { play('click'); toggle.haptics() }}>
-                <div className="nav-toggle-knob" />
-              </button>
-            </div>
-
-            <div className="nav-drawer-toggle-row">
-              <div className="nav-drawer-toggle-label">
-                <span>🔔</span>
-                <span>Notifikasi</span>
-              </div>
-              <button className={`nav-toggle-switch ${notifEnabled ? 'on' : 'off'}`} onClick={async () => {
-                play('click')
-                if (!notifEnabled) {
-                  const perm = await requestNotifPermission()
-                  if (perm === 'denied') return
-                }
-                toggle.notif()
-              }}>
-                <div className="nav-toggle-knob" />
-              </button>
             </div>
 
             {/* Footer info */}
@@ -457,6 +397,9 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
           </div>
         </>
       )}
+
+      {/* ── Settings Modal ── */}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
     </>
   )
 }
