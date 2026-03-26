@@ -61,7 +61,23 @@ function makeNebulae(W, H) {
   }))
 }
 
+const ASSETS = {
+  boss1: null,
+  boss2: null,
+  boss3: null
+}
+
 export default function SpaceShooter({ onBack, game, difficulty }) {
+  useEffect(() => {
+    // Preload boss assets
+    ['boss1.png', 'boss2.png', 'boss3.png'].forEach(src => {
+      if (!ASSETS[src]) {
+        const img = new Image()
+        img.src = '/assets/' + src
+        ASSETS[src] = img
+      }
+    })
+  }, [])
   const canvasRef = useRef(null)
   const gameRef   = useRef(null)
   const animRef   = useRef(null)
@@ -250,14 +266,14 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
     function spawnBoss(g) {
       const wn = g.wave
       const bossTypes = [
-        { name:'Scorpion', color:'#FF4757', accent:'#FF6B6B', w:90, h:70, patterns:3 },
-        { name:'Hydra', color:'#6C5CE7', accent:'#A29BFE', w:100, h:75, patterns:4 },
-        { name:'Inferno', color:'#FF8C00', accent:'#FFD700', w:110, h:80, patterns:5 },
+        { name:'Scorpion', color:'#FF4757', accent:'#FF6B6B', w:90, h:70, patterns:3, imgId:'boss1.png' },
+        { name:'Hydra', color:'#6C5CE7', accent:'#A29BFE', w:120, h:80, patterns:4, imgId:'boss2.png' },
+        { name:'Inferno', color:'#FF8C00', accent:'#FFD700', w:110, h:100, patterns:5, imgId:'boss3.png' },
       ]
       const bt = bossTypes[Math.min(Math.floor(wn/3)-1, bossTypes.length-1)] || bossTypes[0]
       const hpScale = 1 + Math.floor(wn/3)*0.5
       g.boss = {
-        x:g.W/2, y:-100, targetY:90, w:bt.w, h:bt.h, color:bt.color, accent:bt.accent, name:bt.name,
+        x:g.W/2, y:-100, targetY:90, w:bt.w, h:bt.h, color:bt.color, accent:bt.accent, name:bt.name, img: ASSETS[bt.imgId],
         hp:Math.floor(cfg.bossHP*hpScale), maxHp:Math.floor(cfg.bossHP*hpScale),
         points:300+wn*80, shootTimer:0, attackCycle:0, patterns:bt.patterns,
         entered:false, movePhase:0, enraged:false,
@@ -507,7 +523,20 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
       })
 
       // Boss
-      if(g.boss){const b=g.boss;ctx.globalAlpha=0.08;ctx.fillStyle=b.color;ctx.beginPath();ctx.arc(b.x,b.y,b.w+30,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.fillStyle=b.color;ctx.beginPath();ctx.ellipse(b.x,b.y,b.w/2,b.h/2,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=b.accent||b.color;ctx.beginPath();ctx.moveTo(b.x-b.w/2-15,b.y+5);ctx.lineTo(b.x-b.w/3,b.y-b.h/3);ctx.lineTo(b.x-b.w/3,b.y+b.h/4);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(b.x+b.w/2+15,b.y+5);ctx.lineTo(b.x+b.w/3,b.y-b.h/3);ctx.lineTo(b.x+b.w/3,b.y+b.h/4);ctx.closePath();ctx.fill();ctx.fillStyle=b.enraged?'#FF0000':'#FFD700';ctx.beginPath();ctx.arc(b.x,b.y,12,0,Math.PI*2);ctx.fill();ctx.fillStyle=b.enraged?'#FF4444':'#FF0000';ctx.beginPath();ctx.arc(b.x,b.y,6,0,Math.PI*2);ctx.fill();if(b.enraged&&g.tick%8<4){ctx.globalAlpha=0.15;ctx.fillStyle='#FF0000';ctx.beginPath();ctx.arc(b.x,b.y,b.w+5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#FF00FF';ctx.lineWidth=1.5;ctx.globalAlpha=0.4;for(let i=0;i<3;i++){const a=rand(0,Math.PI*2);ctx.beginPath();ctx.moveTo(b.x,b.y);let cx2=b.x,cy2=b.y;for(let j=0;j<4;j++){cx2+=Math.cos(a)*12+rand(-8,8);cy2+=Math.sin(a)*12+rand(-8,8);ctx.lineTo(cx2,cy2)};ctx.stroke()};ctx.globalAlpha=1};const hpW2=b.w*1.2;ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(b.x-hpW2/2,b.y-b.h/2-18,hpW2,7);const hr=b.hp/b.maxHp;ctx.fillStyle=hr>0.5?b.color:hr>0.25?'#FDCB6E':'#FF4757';ctx.fillRect(b.x-hpW2/2,b.y-b.h/2-18,hpW2*hr,7);ctx.fillStyle='#fff';ctx.globalAlpha=0.5;ctx.font="bold 10px 'Nunito',sans-serif";ctx.textAlign='center';ctx.fillText(b.name,b.x,b.y-b.h/2-24);ctx.globalAlpha=1}
+      if(g.boss){
+        const b=g.boss;
+        ctx.globalAlpha=0.08;ctx.fillStyle=b.color;ctx.beginPath();ctx.arc(b.x,b.y,b.w+30,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+        if (b.img && b.img.complete) {
+          // Render Boss PNG
+          if(b.enraged){ ctx.globalAlpha=0.5; ctx.filter='drop-shadow(0 0 10px #ff0000) hue-rotate(45deg)'; ctx.drawImage(b.img, b.x - b.w*0.8, b.y - b.h*0.8, b.w*1.6, b.h*1.6); ctx.filter='none'; ctx.globalAlpha=1; }
+          ctx.drawImage(b.img, b.x - b.w*0.8, b.y - b.h*0.8, b.w*1.6, b.h*1.6);
+        } else {
+          // Fallback primitive
+          ctx.fillStyle=b.color;ctx.beginPath();ctx.ellipse(b.x,b.y,b.w/2,b.h/2,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=b.accent||b.color;ctx.beginPath();ctx.moveTo(b.x-b.w/2-15,b.y+5);ctx.lineTo(b.x-b.w/3,b.y-b.h/3);ctx.lineTo(b.x-b.w/3,b.y+b.h/4);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(b.x+b.w/2+15,b.y+5);ctx.lineTo(b.x+b.w/3,b.y-b.h/3);ctx.lineTo(b.x+b.w/3,b.y+b.h/4);ctx.closePath();ctx.fill();ctx.fillStyle=b.enraged?'#FF0000':'#FFD700';ctx.beginPath();ctx.arc(b.x,b.y,12,0,Math.PI*2);ctx.fill();ctx.fillStyle=b.enraged?'#FF4444':'#FF0000';ctx.beginPath();ctx.arc(b.x,b.y,6,0,Math.PI*2);ctx.fill();
+        }
+        if(b.enraged&&g.tick%8<4){ctx.globalAlpha=0.15;ctx.fillStyle='#FF0000';ctx.beginPath();ctx.arc(b.x,b.y,b.w+5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#FF00FF';ctx.lineWidth=1.5;ctx.globalAlpha=0.4;for(let i=0;i<3;i++){const a=rand(0,Math.PI*2);ctx.beginPath();ctx.moveTo(b.x,b.y);let cx2=b.x,cy2=b.y;for(let j=0;j<4;j++){cx2+=Math.cos(a)*12+rand(-8,8);cy2+=Math.sin(a)*12+rand(-8,8);ctx.lineTo(cx2,cy2)};ctx.stroke()};ctx.globalAlpha=1};
+        const hpW2=b.w*1.2;ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(b.x-hpW2/2,b.y-b.h/2-25,hpW2,7);const hr=b.hp/b.maxHp;ctx.fillStyle=hr>0.5?b.color:hr>0.25?'#FDCB6E':'#FF4757';ctx.fillRect(b.x-hpW2/2,b.y-b.h/2-25,hpW2*hr,7);ctx.fillStyle='#fff';ctx.globalAlpha=0.5;ctx.font="bold 10px 'Nunito',sans-serif";ctx.textAlign='center';ctx.fillText(b.name,b.x,b.y-b.h/2-32);ctx.globalAlpha=1
+      }
 
       // Enemy bullets
       g.enemyBullets.forEach(eb=>{ctx.globalAlpha=0.18;ctx.fillStyle='#FF6B6B';ctx.beginPath();ctx.arc(eb.x,eb.y,eb.w/2+5,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.fillStyle=eb.aimed?'#FF00FF':'#FF6B6B';ctx.beginPath();ctx.arc(eb.x,eb.y,eb.w/2+1,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.globalAlpha=0.45;ctx.beginPath();ctx.arc(eb.x,eb.y,2,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1})
