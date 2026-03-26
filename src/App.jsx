@@ -302,11 +302,6 @@ function AppInner() {
     })
   }, [])
 
-  // ─── Hide status bar in fullscreen canvas games ────────────────────────────
-  useEffect(() => {
-    if (isFullscreen) { hideStatusBar() } else { showStatusBar() }
-  }, [isFullscreen])
-
   // Show onboarding after auth is done and user has never been onboarded
   useEffect(() => {
     if (!authLoading && initialSyncDone && (isLoggedIn || isGuest) && !needsName) {
@@ -335,6 +330,11 @@ function AppInner() {
 
   const activeDiff   = currentGame?.difficulties?.find(d => d.id === difficulty)
   const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter' || currentGame?.id === 'brick-breaker' || currentGame?.id === 'memory-pattern' || currentGame?.id === 'neon-dash' || currentGame?.id === 'voxel-racer')
+
+  // ─── Hide status bar in fullscreen canvas games ────────────────────────────
+  useEffect(() => {
+    if (isFullscreen) { hideStatusBar() } else { showStatusBar() }
+  }, [isFullscreen])
 
   // Music plays on lobby screens, stops during game
   const isLobby = screen === 'home' || screen === 'profile' || screen === 'difficulty' || screen === 'shop' || screen === 'leaderboard'
