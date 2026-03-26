@@ -426,13 +426,15 @@ export default function NeonDash({onBack,game,difficulty}){
 
       // HUD
       ctx.fillStyle='rgba(11,11,42,0.5)';ctx.fillRect(0,0,W,34)
-      const bx=48,bw=W-130,bh=6,by=13,pr=Math.min(uPr/100,1)
+      const bx=48,bw=W-130,bh=6,by=13
+      const curPr=Math.round(Math.min(g.cam/g.lvD.len,1)*100)
+      const pr=curPr/100
       ctx.fillStyle='rgba(255,255,255,0.08)';ctx.fillRect(bx,by,bw,bh)
       ctx.fillStyle=CL.gndL;ctx.shadowColor=CL.gndG;ctx.shadowBlur=4;ctx.fillRect(bx,by,bw*pr,bh);ctx.shadowBlur=0
       ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bx+bw*pr,by+bh/2,4,0,P2);ctx.fill()
-      ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font="bold 9px 'Fredoka One',sans-serif";ctx.textAlign='center';ctx.fillText(`${uPr}%`,bx+bw/2,by+bh+10)
+      ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font="bold 9px 'Fredoka One',sans-serif";ctx.textAlign='center';ctx.fillText(`${curPr}%`,bx+bw/2,by+bh+10)
       ctx.textAlign='left';ctx.fillStyle=g.mode==='wave'?CL.wav:CL.ply;ctx.font="bold 10px 'Fredoka One',sans-serif";ctx.fillText(g.mode==='wave'?'~ WAVE':'□ CUBE',10,26)
-      ctx.textAlign='right';ctx.font="bold 11px 'Fredoka One',sans-serif";ctx.fillStyle='#fff';ctx.fillText(`💎 ${uDi}`,W-10,14);ctx.fillStyle=CL.gndL;ctx.fillText(`Lv${g.lv} ×${g.att}`,W-10,28)
+      ctx.textAlign='right';ctx.font="bold 11px 'Fredoka One',sans-serif";ctx.fillStyle='#fff';ctx.fillText(`💎 ${g.cd}/${g.lvD.nd}`,W-10,14);ctx.fillStyle=CL.gndL;ctx.fillText(`Lv${g.lv} ×${g.att}`,W-10,28)
 
       // Death flash overlay
       if(g.deathFlash>0.01){ctx.fillStyle=`rgba(255,80,80,${g.deathFlash*0.4})`;ctx.fillRect(0,0,W,H)}
@@ -442,8 +444,8 @@ export default function NeonDash({onBack,game,difficulty}){
         if(bestPr>0){ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font="10px 'Fredoka One',sans-serif";ctx.fillText(`Rekor: Lv${bestLv} • ${bestPr}% • ${totalAttempts} attempt`,W/2,H*0.38+56)}}
       if(ph==='dead'){ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,H)
         ctx.fillStyle='#FF6B6B';ctx.shadowColor='#FF6B6B';ctx.shadowBlur=15;ctx.font="bold 24px 'Fredoka One',sans-serif";ctx.textAlign='center';ctx.fillText('💥 CRASH!',W/2,H*0.32);ctx.shadowBlur=0
-        ctx.fillStyle='#fff';ctx.font="13px 'Fredoka One',sans-serif";ctx.fillText(`Level ${g.lv}  •  ${uPr}% selesai`,W/2,H*0.32+28)
-        ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font="10px 'Fredoka One',sans-serif";ctx.fillText(`Attempt #${g.att}  •  Skor: ${g.sc}  •  💎 ${uDi}`,W/2,H*0.32+48)
+        ctx.fillStyle='#fff';ctx.font="13px 'Fredoka One',sans-serif";const deadPr=Math.round(Math.min(g.cam/g.lvD.len,1)*100);ctx.fillText(`Level ${g.lv}  •  ${deadPr}% selesai`,W/2,H*0.32+28)
+        ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font="10px 'Fredoka One',sans-serif";ctx.fillText(`Attempt #${g.att}  •  Skor: ${g.sc}  •  💎 ${g.cd}/${g.lvD.nd}`,W/2,H*0.32+48)
         if(bestPr>0){ctx.fillStyle=CL.gndL;ctx.font="10px 'Fredoka One',sans-serif";ctx.fillText(`Rekor: Lv${bestLv} • ${bestPr}%`,W/2,H*0.32+68)}
         ctx.fillStyle='#fff';ctx.shadowColor='#fff';ctx.shadowBlur=8;ctx.font="bold 14px 'Fredoka One',sans-serif";ctx.fillText('Tap → Retry',W/2,H*0.32+98);ctx.shadowBlur=0}
       if(ph==='winning'){ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(0,0,W,H);ctx.fillStyle=CL.gndL;ctx.shadowColor=CL.gndL;ctx.shadowBlur=15;ctx.font="bold 26px 'Fredoka One',sans-serif";ctx.textAlign='center';ctx.fillText('✨ LEVEL CLEAR!',W/2,H*0.4);ctx.shadowBlur=0}
@@ -466,12 +468,11 @@ export default function NeonDash({onBack,game,difficulty}){
       {phase==='won'&&(
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(10px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:20}}>
           <div style={{background:'linear-gradient(180deg,#1a0a3a,#2d1b69)',borderRadius:28,padding:'36px 28px',textAlign:'center',maxWidth:380,width:'100%',boxShadow:'0 0 60px rgba(162,155,254,0.3)',position:'relative',overflow:'hidden'}}>
-            <div style={{position:'absolute',top:0,left:0,right:0,height:4,background:'linear-gradient(90deg,#A29BFE,#FFD700,#00F5FF)'}}/>
             <div style={{fontSize:52,marginBottom:8}}>🏆</div><h2 style={{color:'#fff',fontSize:26,marginBottom:4}}>ALL CLEAR!</h2>
             <p style={{color:CL.gndL,fontSize:13,marginBottom:12}}>{dc.ml} level selesai!</p>
             <div style={{fontSize:30,marginBottom:12,letterSpacing:8}}>⭐⭐⭐</div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}}>
-              {[{l:'Skor',v:uSc,c:'#FFD700'},{l:'Diamond',v:uDi,c:'#00F5FF'},{l:'Attempts',v:uAt,c:'#A29BFE'}].map(s=>(
+              {[{l:'Skor',v:gR.current?.sc||uSc,c:'#FFD700'},{l:'Diamond',v:`${gR.current?.cd||0}/${gR.current?.lvD?.nd||0}`,c:'#00F5FF'},{l:'Attempts',v:gR.current?.att||uAt,c:'#A29BFE'}].map(s=>(
                 <div key={s.l} style={{background:`${s.c}15`,borderRadius:12,padding:'10px 6px'}}>
                   <div style={{fontSize:18,color:s.c,fontWeight:800}}>{s.v}</div>
                   <div style={{fontSize:9,color:'#888',marginTop:2}}>{s.l}</div>

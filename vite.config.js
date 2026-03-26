@@ -4,11 +4,11 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
-    // Chunk splitting — games load separately
+    // Chunk splitting — firebase split into auth (eager) vs firestore (lazy)
     rollupOptions: {
       output: {
         manualChunks: {
-          'firebase': ['firebase/app', 'firebase/firestore', 'firebase/auth'],
+          'firebase-core': ['firebase/app', 'firebase/auth'],
           'react-vendor': ['react', 'react-dom'],
         },
       },

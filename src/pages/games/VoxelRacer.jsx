@@ -526,34 +526,38 @@ export default function VoxelRacer({onBack,game,difficulty}){
       ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(0,0,W,42)
 
       // Progress bar
-      const bx=50,bw=W-140,bh=6,by=8,pr=Math.min(uPr/100,1)
+      const bx=50,bw=W-140,bh=6,by=8
+      const curPr=g.terr?Math.round(Math.min(Math.max(0,g.cx-80)/(g.terr.finishX-80),1)*100):0
+      const pr=curPr/100
       ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(bx,by,bw,bh)
       ctx.fillStyle='#FFD93D';ctx.fillRect(bx,by,bw*pr,bh)
       ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bx+bw*pr,by+bh/2,3,0,P2);ctx.fill()
       ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font="bold 8px 'Fredoka One',sans-serif";ctx.textAlign='center'
-      ctx.fillText(`${uPr}%`,bx+bw/2,by+bh+9)
+      ctx.fillText(`${curPr}%`,bx+bw/2,by+bh+9)
 
       // Fuel gauge
       const fgx=10,fgy=22,fgw=80,fgh=8
       ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(fgx,fgy,fgw,fgh)
-      const fuelPct=uFuel/100
+      const fuelPct=Math.round(g.fuel)/100
       ctx.fillStyle=fuelPct>0.3?'#4CAF50':fuelPct>0.15?'#FF9800':'#E53935'
-      ctx.fillRect(fgx,fgy,fgw*fuelPct,fgh)
+      ctx.fillRect(fgx,fgy,fgw*Math.max(0,fuelPct),fgh)
       ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1;ctx.strokeRect(fgx,fgy,fgw,fgh)
       ctx.fillStyle='#fff';ctx.font="bold 7px 'Fredoka One',sans-serif";ctx.textAlign='left'
-      ctx.fillText(`⛽ ${uFuel}%`,fgx,fgy+fgh+9)
+      ctx.fillText(`⛽ ${Math.round(g.fuel)}%`,fgx,fgy+fgh+9)
 
       // Info
       ctx.textAlign='left';ctx.fillStyle='#FFD93D';ctx.font="bold 11px 'Fredoka One',sans-serif"
       ctx.fillText(`🚗 Lv${g.lv}`,fgx,10)
       ctx.textAlign='right';ctx.fillStyle='#fff';ctx.font="bold 11px 'Fredoka One',sans-serif"
-      ctx.fillText(`${uDist}m`,W-10,12)
-      ctx.fillStyle='#FFD700';ctx.fillText(`🪙 ${uCoins}`,W-10,26)
+      const curDist=Math.round(Math.max(0,g.cx-80))
+      ctx.fillText(`${curDist}m`,W-10,12)
+      ctx.fillStyle='#FFD700';ctx.fillText(`🪙 ${g.coins}`,W-10,26)
       // Speed indicator
-      const spdPct=Math.min(uSpd/100,1)
+      const curSpd=Math.round(Math.sqrt(g.vx*g.vx+g.vy*g.vy)*12)
+      const spdPct=Math.min(curSpd/100,1)
       ctx.fillStyle=spdPct>0.7?'#E53935':spdPct>0.4?'#FF9800':'#4CAF50'
       ctx.font="bold 10px 'Fredoka One',sans-serif"
-      ctx.fillText(`${uSpd} km/h`,W-10,38)
+      ctx.fillText(`${curSpd} km/h`,W-10,38)
 
       // Touch controls hint
       if(phR.current==='play'){
@@ -579,7 +583,8 @@ export default function VoxelRacer({onBack,game,difficulty}){
         ctx.fillStyle='#fff';ctx.font="14px 'Fredoka One',sans-serif"
         ctx.fillText(g.fuel<=0?'Bensin habis!':'Mobil terbalik!',W/2,H*0.30+26)
         ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font="11px 'Fredoka One',sans-serif"
-        ctx.fillText(`${uDist}m  •  🪙 ${uCoins}  •  Attempt #${g.att}`,W/2,H*0.30+50)
+        const dDist=Math.round(Math.max(0,g.cx-80))
+        ctx.fillText(`${dDist}m  •  🪙 ${g.coins}  •  Attempt #${g.att}`,W/2,H*0.30+50)
         // Best record
         if(uDist>bestDist){ctx.fillStyle='#FFD93D';ctx.font="bold 12px 'Fredoka One',sans-serif";ctx.fillText('🏆 REKOR BARU!',W/2,H*0.30+72)}
         else if(bestDist>0){ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font="10px 'Fredoka One',sans-serif";ctx.fillText(`Rekor: ${bestDist}m • Lv${bestLv}`,W/2,H*0.30+72)}
@@ -610,13 +615,12 @@ export default function VoxelRacer({onBack,game,difficulty}){
       {phase==='won'&&(
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(10px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:20}}>
           <div style={{background:'linear-gradient(180deg,#1a237e,#0d47a1)',borderRadius:28,padding:'36px 28px',textAlign:'center',maxWidth:380,width:'100%',boxShadow:'0 0 60px rgba(33,150,243,0.3)',position:'relative',overflow:'hidden'}}>
-            <div style={{position:'absolute',top:0,left:0,right:0,height:4,background:'linear-gradient(90deg,#FFD93D,#FF6B6B,#29B6F6)'}}/>
             <div style={{fontSize:52,marginBottom:8}}>🏆</div><h2 style={{color:'#fff',fontSize:26,marginBottom:4}}>RACE COMPLETE!</h2>
             <p style={{color:'#90CAF9',fontSize:13,marginBottom:12}}>{dc.ml} level selesai!</p>
             <div style={{fontSize:30,marginBottom:12,letterSpacing:8}}>⭐⭐⭐</div>
             <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(255,217,61,0.15)',border:'1.5px solid rgba(255,217,61,0.3)',borderRadius:100,padding:'6px 18px',marginBottom:16}}><span>🪙</span><span style={{color:'#FFD93D',fontSize:16,fontWeight:800}}>+{coinR}</span></div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:20}}>
-              {[{l:'Skor',v:uSc,c:'#FFD93D'},{l:'Koin',v:uCoins,c:'#29B6F6'},{l:'Attempts',v:uAt,c:'#FF6B6B'}].map(s=>(
+              {[{l:'Skor',v:gR.current?.sc||uSc,c:'#FFD93D'},{l:'Koin',v:gR.current?.coins||0,c:'#29B6F6'},{l:'Attempts',v:gR.current?.att||1,c:'#FF6B6B'}].map(s=>(
                 <div key={s.l} style={{background:`${s.c}15`,borderRadius:12,padding:'10px 6px'}}>
                   <div style={{fontSize:20,color:s.c,fontWeight:800}}>{s.v}</div>
                   <div style={{fontSize:9,color:'#90CAF9',marginTop:2}}>{s.l}</div>

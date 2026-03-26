@@ -1,5 +1,4 @@
 import { initializeApp } from 'firebase/app'
-import { getFirestore } from 'firebase/firestore'
 import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 
 const firebaseConfig = {
@@ -12,7 +11,26 @@ const firebaseConfig = {
 }
 
 const app = initializeApp(firebaseConfig)
-export const db = getFirestore(app)
 export const auth = getAuth(app)
 export const googleProvider = new GoogleAuthProvider()
 export default app
+
+// ─── Lazy Firestore (loaded on-demand, not at startup) ───────────────────────
+let _db = null
+let _dbPromise = null
+
+export function getDb() {
+  if (_db) return Promise.resolve(_db)
+  if (!_dbPromise) {
+    _dbPromise = import('firebase/firestore').then(({ getFirestore }) => {
+      _db = getFirestore(app)
+      return _db
+    })
+  }
+  return _dbPromise
+}
+
+// Preload firestore after initial render (don't block first paint)
+export function preloadFirestore() {
+  if (!_dbPromise) getDb()
+}

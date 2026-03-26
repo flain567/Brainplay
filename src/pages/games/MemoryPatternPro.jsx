@@ -271,7 +271,7 @@ export default function MemoryPatternPro({onBack,game,difficulty}){
       {(phase==='won'||phase==='lost')&&(
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(10px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:20,animation:'mF 0.3s ease'}}>
           <div style={{background:'linear-gradient(180deg,#0d0d30,#1a1a3e)',borderRadius:28,padding:'36px 28px',textAlign:'center',maxWidth:380,width:'100%',boxShadow:phase==='won'?`0 0 60px ${N.cy}33, 0 24px 80px rgba(0,0,0,0.5)`:'0 24px 80px rgba(0,0,0,0.5)',animation:'mP 0.45s cubic-bezier(0.34,1.56,0.64,1)',position:'relative',overflow:'hidden'}}>
-            <div style={{position:'absolute',top:0,left:0,right:0,height:4,background:phase==='won'?`linear-gradient(90deg,${N.cy},${N.pu},${N.go})`:`linear-gradient(90deg,${N.re},#FF6B6B,${N.re})`}}/>
+            
             <div style={{fontSize:52,marginBottom:8,animation:'mB 0.6s ease'}}>{phase==='won'?'🏆':'💥'}</div>
             <h2 style={{color:'#fff',fontSize:26,marginBottom:4}}>{phase==='won'?'SEMPURNA!':'Game Over'}</h2>
             <p style={{color:N.pu,fontSize:13,marginBottom:8}}>{phase==='won'?`${cfg.maxLevel} level ditaklukkan!`:`Sampai Level ${uLv}`}</p>

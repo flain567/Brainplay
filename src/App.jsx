@@ -13,14 +13,17 @@ import PageTransition from './components/PageTransition.jsx'
 import AchievementToast from './components/AchievementToast.jsx'
 import CoinToast from './components/CoinToast.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
-import LoginModal from './components/LoginModal.jsx'
 import ThemeApplicator from './components/ThemeApplicator.jsx'
 import Home from './pages/Home.jsx'
-import Profile from './pages/Profile.jsx'
-import Shop from './pages/Shop.jsx'
-import Leaderboard from './pages/Leaderboard.jsx'
 import { migrateOldStorage } from './utils/storage.js'
 import { useMusic } from './hooks/useMusic.js'
+import { preloadFirestore } from './firebase.js'
+
+// ─── Lazy-loaded pages (split into separate chunks) ──────────────────────────
+const Profile     = lazy(() => import('./pages/Profile.jsx'))
+const Shop        = lazy(() => import('./pages/Shop.jsx'))
+const Leaderboard = lazy(() => import('./pages/Leaderboard.jsx'))
+const LoginModal  = lazy(() => import('./components/LoginModal.jsx'))
 
 // ─── Lazy-loaded game components (split into separate chunks) ────────────────
 const MemoryCardMatch = lazy(() => import('./pages/games/MemoryCardMatch.jsx'))
@@ -263,6 +266,9 @@ function AppInner() {
   // Run migration once
   useEffect(() => { migrateOldStorage() }, [])
 
+  // Preload Firestore after first render (don't block initial paint)
+  useEffect(() => { preloadFirestore() }, [])
+
   // Music plays on lobby screens, stops during game
   const isLobby = screen === 'home' || screen === 'profile' || screen === 'difficulty' || screen === 'shop' || screen === 'leaderboard'
   useMusic(isLobby, muted || musicOff)
@@ -300,7 +306,9 @@ function AppInner() {
       )}
       {/* Login prompt — shown if not authenticated, or if authenticated but no name set (after sync) */}
       {!authLoading && initialSyncDone && ((!isLoggedIn && !isGuest) || needsName) && (
-        <LoginModal onDone={() => {}} />
+        <Suspense fallback={null}>
+          <LoginModal onDone={() => {}} />
+        </Suspense>
       )}
       {!isFullscreen && (
         <Navbar onHome={goHome} onProfile={goProfile} onShop={goShop} onLeaderboard={goLeaderboard} currentGame={screen === 'game' ? currentGame : null} />
@@ -313,13 +321,19 @@ function AppInner() {
             <Home games={GAMES} onPlay={openGame} onProfile={goProfile} onShop={goShop} />
           )}
           {screen === 'profile' && (
-            <Profile onBack={goHome} games={GAMES} />
+            <Suspense fallback={<GameLoader />}>
+              <Profile onBack={goHome} games={GAMES} />
+            </Suspense>
           )}
           {screen === 'shop' && (
-            <Shop onBack={goHome} />
+            <Suspense fallback={<GameLoader />}>
+              <Shop onBack={goHome} />
+            </Suspense>
           )}
           {screen === 'leaderboard' && (
-            <Leaderboard onBack={goHome} games={GAMES} />
+            <Suspense fallback={<GameLoader />}>
+              <Leaderboard onBack={goHome} games={GAMES} />
+            </Suspense>
           )}
           {screen === 'difficulty' && currentGame && (
             <DifficultySelector game={currentGame} onSelect={selectDifficulty} onBack={goHome} />

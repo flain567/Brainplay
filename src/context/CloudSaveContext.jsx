@@ -1,8 +1,16 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
-import { db, auth } from '../firebase.js'
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { auth, getDb } from '../firebase.js'
 import { onAuthStateChanged } from 'firebase/auth'
 import { getJSON, setJSON, StorageKeys, clearGameData } from '../utils/storage.js'
+
+// Lazy-loaded Firestore helpers — only imported when actually needed
+let _firestoreMod = null
+async function getFirestoreHelpers() {
+  if (!_firestoreMod) {
+    _firestoreMod = await import('firebase/firestore')
+  }
+  return _firestoreMod
+}
 
 const CloudSaveContext = createContext(null)
 
@@ -129,6 +137,10 @@ export function CloudSaveProvider({ children }) {
       lastUid.current = uid
       localStorage.setItem('bp_last_synced_uid', uid)
 
+      // Lazy load Firestore
+      const db = await getDb()
+      const { doc, getDoc, setDoc, serverTimestamp } = await getFirestoreHelpers()
+
       const docRef = doc(db, 'users', uid)
       const snap = await getDoc(docRef)
       const cloudData = snap.exists() ? snap.data() : null
@@ -198,6 +210,9 @@ export function CloudSaveProvider({ children }) {
       const progress = getJSON(StorageKeys.XP) || {}
       const coins = getJSON(StorageKeys.COINS) || {}
       const displayName = localStorage.getItem('bp_display_name') || ''
+
+      const db = await getDb()
+      const { doc, setDoc, serverTimestamp } = await getFirestoreHelpers()
 
       await setDoc(doc(db, 'users', user.uid), {
         progress,

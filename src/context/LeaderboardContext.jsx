@@ -1,8 +1,16 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
-import { db, auth } from '../firebase.js'
-import { collection, doc, getDoc, setDoc, query, limit, getDocs, where, serverTimestamp } from 'firebase/firestore'
+import { auth, getDb } from '../firebase.js'
 
 const LeaderboardContext = createContext(null)
+
+// Lazy-loaded Firestore helpers
+let _firestoreMod = null
+async function getFirestoreHelpers() {
+  if (!_firestoreMod) {
+    _firestoreMod = await import('firebase/firestore')
+  }
+  return _firestoreMod
+}
 
 const STORAGE_KEY = 'bp_leaderboard'
 const NICKNAME_KEY = 'bp_nickname'
@@ -171,6 +179,10 @@ async function submitOnlineScore(gameId, diffId, entry) {
   try {
     const user = auth.currentUser
     const docId = makeDocId(gameId, diffId)
+
+    const db = await getDb()
+    const { doc, getDoc, setDoc, serverTimestamp } = await getFirestoreHelpers()
+
     const docRef = doc(db, 'leaderboard', docId)
 
     const existing = await getDoc(docRef)
@@ -236,6 +248,9 @@ async function submitOnlineScore(gameId, diffId, entry) {
 
 async function testFirebaseConnection() {
   try {
+    const db = await getDb()
+    const { collection, query, limit, getDocs } = await getFirestoreHelpers()
+
     const ref = collection(db, 'leaderboard')
     const q = query(ref, limit(1))
     await getDocs(q)
@@ -251,6 +266,9 @@ async function testFirebaseConnection() {
 
 async function fetchOnlineScores(gameId, diffId = null) {
   try {
+    const db = await getDb()
+    const { collection, query, where, limit, getDocs } = await getFirestoreHelpers()
+
     const ref = collection(db, 'leaderboard')
     const q = query(ref, where('gameId', '==', gameId), limit(MAX_ONLINE))
     const snap = await getDocs(q)
