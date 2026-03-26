@@ -12,6 +12,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
+import { useHaptics } from '../../hooks/useHaptics.js'
 
 const CFG = {
   easy:   { ballSpeed: 4, paddleW: 100, lives: 5, maxLevel: 10, brickRows: 4, brickCols: 7,  bossHP: 15, scoreBase: 200 },
@@ -57,6 +58,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
   const { play }  = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins } = useCoins()
+  const { vibrateLight, vibrateMedium, vibrateHeavy, vibrateSuccess, vibrateError } = useHaptics()
 
   const cfg = CFG[difficulty.id]
 
@@ -299,7 +301,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
             ball.stuck = true
           }
           g.combo = 0
-          try { play('flip') } catch(e) {}
+          try { play('flip'); vibrateLight() } catch(e) {}
         }
 
         // Brick collision
@@ -356,7 +358,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
               if (minOverlap === overlapT || minOverlap === overlapB) ball.dy = -ball.dy
               else ball.dx = -ball.dx
             }
-            try { play('match') } catch(e) {}
+            try { play('match'); vibrateLight() } catch(e) {}
             break
           }
         }
@@ -376,7 +378,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
                 life: 20, color: '#FF4757', r: rand(2, 4),
               })
             }
-            try { play('match') } catch(e) {}
+            try { play('match'); vibrateLight() } catch(e) {}
             if (b.hp <= 0) {
               b.alive = false
               g.score += 200 + g.level * 50
@@ -419,7 +421,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
               proj.x >= g.paddle.x && proj.x <= g.paddle.x + g.paddle.w) {
             b.projectiles.splice(i, 1)
             g.lives--
-            try { play('mismatch') } catch(e) {}
+            try { play('mismatch'); vibrateHeavy() } catch(e) {}
             continue
           }
           if (proj.y > H + 20) b.projectiles.splice(i, 1)
@@ -435,7 +437,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
             pu.x >= g.paddle.x && pu.x <= g.paddle.x + g.paddle.w) {
           g.powerups.splice(i, 1)
           applyPowerup(g, pu, W, H)
-          try { play('win') } catch(e) {}
+          try { play('win'); vibrateMedium() } catch(e) {}
           continue
         }
         if (pu.y > H + 20) g.powerups.splice(i, 1)
@@ -469,7 +471,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
           setPhase('lost')
           setScore(g.score)
           setLives(0)
-          try { play('mismatch') } catch(e) {}
+          try { play('mismatch'); vibrateError() } catch(e) {}
           const coinAmt = Math.max(5, Math.floor(g.score / 100))
           earnCoins(coinAmt, `Brick Breaker Lv${g.level} (${difficulty.id})`)
           reportGameResult({
@@ -485,7 +487,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
             r: 7, fireball: false, stuck: true,
           })
           setLives(g.lives)
-          try { play('mismatch') } catch(e) {}
+          try { play('mismatch'); vibrateError() } catch(e) {}
         }
       }
 
@@ -499,7 +501,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
           setPhase('won')
           setScore(g.score)
           setShowConfetti(true)
-          try { play('win') } catch(e) {}
+          try { play('win'); vibrateSuccess() } catch(e) {}
           let stars = g.lives >= cfg.lives ? 3 : g.lives >= cfg.lives - 1 ? 2 : 1
           const coinReward = { easy: 30, medium: 50, hard: 80 }
           let coinAmt = (coinReward[difficulty.id] || 30) + Math.floor(g.score / 200)

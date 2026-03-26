@@ -13,6 +13,7 @@ import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
+import { useHaptics } from '../../hooks/useHaptics.js'
 
 // Pool emoji — diganti dari active icon pack
 const DEFAULT_POOL = ['🐶','🐱','🦊','🐻','🦁','🐯','🐸','🐧','🦄','🐼','🦋','🐙']
@@ -57,6 +58,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { getActiveIcons, earnCoins, spendCoins, coins } = useCoins()
+  const { vibrateLight, vibrateMedium, vibrateSuccess, vibrateError } = useHaptics()
 
   const { pairs, cols } = difficulty
   const iconPool = getActiveIcons()
@@ -94,6 +96,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
       setWon(true)
       setShowConfetti(true)
       play('win')
+      vibrateSuccess()
       if (bestMoves === 0 || moves < bestMoves) {
         localStorage.setItem(bestKey, moves)
         setBestMoves(moves)
@@ -123,6 +126,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
     if (selected.length === 1 && selected[0].id === id) return
 
     play('flip')
+    vibrateLight()
     const newDeck     = deck.map(c => c.id === id ? { ...c, flipped: true } : c)
     const newSelected = [...selected, { ...card }]
     setDeck(newDeck)
@@ -133,6 +137,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
       setLocked(true)
       if (newSelected[0].emoji === newSelected[1].emoji) {
         play('match')
+        vibrateMedium()
         safeTimeout(() => {
           setDeck(d => d.map(c =>
             c.id === newSelected[0].id || c.id === newSelected[1].id
@@ -142,7 +147,7 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
           setLocked(false)
         }, 500)
       } else {
-        safeTimeout(() => play('mismatch'), 200)
+        safeTimeout(() => { play('mismatch'); vibrateError() }, 200)
         safeTimeout(() => {
           setDeck(d => d.map(c =>
             c.id === newSelected[0].id || c.id === newSelected[1].id
@@ -165,12 +170,13 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
     if (locked || won) return
     const isFree = hintUsed < FREE_HINTS
     if (!isFree) {
-      if (coins < HINT_COST) { play('mismatch'); return }
+      if (coins < HINT_COST) { play('mismatch'); vibrateError(); return }
       const ok = await spendCoins(HINT_COST, 'Hint Memory Card')
       if (!ok) return
       setPaidHints(p => p + 1)
     }
     play('click')
+    vibrateMedium()
     const unmatched = deck.filter(c => !c.matched && !c.flipped)
     if (unmatched.length < 2) return
     // Find first unmatched pair

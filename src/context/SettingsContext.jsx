@@ -15,6 +15,9 @@ export function SettingsProvider({ children }) {
   const [notifEnabled, setNotifEnabled] = useState(
     () => localStorage.getItem('brainplay-notif') === 'true'
   )
+  const [hapticsEnabled, setHapticsEnabled] = useState(
+    () => localStorage.getItem('brainplay-haptics') !== 'false'
+  )
 
   // Dark mode class toggle + persist (CSS vars now handled by ThemeApplicator)
   useEffect(() => {
@@ -38,15 +41,20 @@ export function SettingsProvider({ children }) {
     localStorage.setItem('brainplay-notif', notifEnabled)
   }, [notifEnabled])
 
+  useEffect(() => {
+    localStorage.setItem('brainplay-haptics', hapticsEnabled)
+  }, [hapticsEnabled])
+
   const toggle = {
     darkMode: () => setDarkMode(v => !v),
     muted:    () => setMuted(v => !v),
     musicOff: () => setMusicOff(v => !v),
     notif:    () => setNotifEnabled(v => !v),
+    haptics:  () => setHapticsEnabled(v => !v),
   }
 
   return (
-    <SettingsContext.Provider value={{ darkMode, muted, musicOff, notifEnabled, toggle }}>
+    <SettingsContext.Provider value={{ darkMode, muted, musicOff, notifEnabled, hapticsEnabled, toggle }}>
       {children}
     </SettingsContext.Provider>
   )

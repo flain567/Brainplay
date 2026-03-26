@@ -11,6 +11,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
+import { useHaptics } from '../../hooks/useHaptics.js'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SEG_R       = 11
@@ -256,6 +257,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
   const { play }   = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins, getActiveSkin } = useCoins()
+  const { vibrateLight, vibrateMedium, vibrateError } = useHaptics()
   const PLAYER_SKIN = getActiveSkin ? getActiveSkin() : DEFAULT_PLAYER_SKIN
 
   const cfg = CFG[difficulty.id]
@@ -388,6 +390,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
       if (nx < SEG_R || nx > M - SEG_R || ny < SEG_R || ny > M - SEG_R) {
         p.alive = false
         play('gameOver')
+        vibrateError()
         const fs = g.score
         if (fs > bestScore) { localStorage.setItem(`slither-best-${difficulty.id}`, fs); setBestScore(fs); setShowConfetti(true); setTimeout(()=>setShowConfetti(false),100) }
         setDeathCause('wall')
@@ -403,6 +406,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
           if (dist2({ x: nx, y: ny }, bot.segs[si]) < (SEG_R * 1.9) ** 2) {
             p.alive = false
             play('gameOver')
+            vibrateError()
             const fs = g.score
             if (fs > bestScore) { localStorage.setItem(`slither-best-${difficulty.id}`, fs); setBestScore(fs); setShowConfetti(true); setTimeout(()=>setShowConfetti(false),100) }
             // Drop player pellets
@@ -438,6 +442,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
       })
       if (grew > 0) {
         play('eat')
+        vibrateLight()
         const tail = p.segs[p.segs.length - 1]
         for (let i = 0; i < grew; i++) p.segs.push({ ...tail })
         setScore(g.score); setLength(p.segs.length)
@@ -496,6 +501,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
             g.score  += Math.floor(bot.segs.length * 2)
             g.kills  += 1
             play('levelUp')
+            vibrateMedium()
             setScore(g.score); setKills(g.kills)
 
             // Kill celebration particles
@@ -521,6 +527,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
           g.score  += Math.floor(bot.segs.length * 2)
           g.kills  += 1
           play('levelUp')
+          vibrateMedium()
           setScore(g.score); setKills(g.kills)
 
           // Drop pellets

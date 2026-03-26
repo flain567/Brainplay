@@ -8,7 +8,7 @@ import { useEffect, useState, useRef } from 'react'
 import { NotificationBell, useNotifications, requestNotifPermission } from './NotificationManager.jsx'
 
 export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, currentGame }) {
-  const { darkMode, muted, musicOff, notifEnabled, toggle } = useSettings()
+  const { darkMode, muted, musicOff, notifEnabled, hapticsEnabled, toggle } = useSettings()
   const { play, setMuted } = useSound()
   const { coins } = useCoins()
   const { progress } = useProgress()
@@ -278,6 +278,10 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
             <button className="nav-btn" title={muted ? 'Nyalakan suara' : 'Matikan suara'} onClick={() => { if (!muted) play('click'); toggle.muted() }}>
               {muted ? '🔇' : '🔊'}
             </button>
+            <button className="nav-btn" title={hapticsEnabled ? 'Matikan getaran' : 'Nyalakan getaran'} onClick={() => { play('click'); toggle.haptics() }} style={{ position:'relative' }}>
+              📳
+              {!hapticsEnabled && <span style={{ position:'absolute', top:6, right:6, width:14, height:2, background:'#FF6B6B', borderRadius:2, transform:'rotate(-45deg)', zIndex:2 }} />}
+            </button>
             <button className="nav-btn" title={darkMode ? 'Mode terang' : 'Mode gelap'} onClick={() => { play('toggle'); toggle.darkMode() }}>
               {darkMode ? '☀️' : '🌙'}
             </button>
@@ -400,6 +404,16 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
                 <span>Efek Suara</span>
               </div>
               <button className={`nav-toggle-switch ${!muted ? 'on' : 'off'}`} onClick={() => { if (!muted) play('click'); toggle.muted() }}>
+                <div className="nav-toggle-knob" />
+              </button>
+            </div>
+
+            <div className="nav-drawer-toggle-row">
+              <div className="nav-drawer-toggle-label">
+                <span>{hapticsEnabled ? '📳' : '📴'}</span>
+                <span>Getaran (Haptics)</span>
+              </div>
+              <button className={`nav-toggle-switch ${hapticsEnabled ? 'on' : 'off'}`} onClick={() => { play('click'); toggle.haptics() }}>
                 <div className="nav-toggle-knob" />
               </button>
             </div>

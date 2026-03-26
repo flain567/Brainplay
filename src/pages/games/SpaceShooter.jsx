@@ -12,6 +12,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins, SHIP_CATALOG } from '../../context/CoinContext.jsx'
+import { useHaptics } from '../../hooks/useHaptics.js'
 
 const CFG = {
   easy:   { spawnRate:80, enemySpeed:1.2, enemyHP:1, bossHP:18, bulletSpeed:7, lives:5, waveGoal:5, baseScore:300 },
@@ -69,6 +70,7 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
   const { play }  = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins, getActiveShip } = useCoins()
+  const { vibrateLight, vibrateMedium, vibrateHeavy, vibrateSuccess, vibrateError } = useHaptics()
 
   const cfg = CFG[difficulty.id]
   const activeShip = getActiveShip()
@@ -256,6 +258,7 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
         entered:false, movePhase:0, enraged:false,
       }
       g.bossSpawned = true; g.waveState = 'boss'
+      vibrateHeavy()
     }
 
     function fireBullet(g) {
@@ -354,7 +357,7 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
         for (let i=g.bullets.length-1;i>=0;i--) {
           const b = g.bullets[i]
           if (Math.abs(b.x-en.x)<en.w/2+b.w/2 && Math.abs(b.y-en.y)<en.h/2+b.h/2) {
-            g.bullets.splice(i,1); en.hp -= b.dmg; spawnParticles(g,b.x,b.y,en.color,3)
+            g.bullets.splice(i,1); en.hp -= b.dmg; spawnParticles(g,b.x,b.y,en.color,3); vibrateLight()
             if (en.hp<=0) {
               g.waveEnemiesKilled++; const cm=Math.min(1+g.combo*0.1,3); const pts=Math.floor(en.points*cm)
               g.score+=pts; setScore(g.score); g.combo++; g.comboTimer=90; setCombo(g.combo)
@@ -370,8 +373,8 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
         if (g.fireTrailTimer>0) { g.trails.forEach(tr=>{if(tr.dmg&&Math.abs(tr.x-en.x)<en.w&&Math.abs(tr.y-en.y)<en.h)en.hp-=0.15}); if(en.hp<=0){g.waveEnemiesKilled++;g.score+=en.points;setScore(g.score);spawnParticles(g,en.x,en.y,'#FF4500',10);spawnPowerup(g,en.x,en.y);return false} }
         // Player collision
         if (p.shieldTimer<=0&&p.invTimer<=0&&g.cloakTimer<=0&&Math.abs(en.x-p.x)<(en.w+p.w)/2*0.7&&Math.abs(en.y-p.y)<(en.h+p.h)/2*0.7) {
-          g.lives--;setLives(g.lives);g.shakeTimer=15;spawnParticles(g,p.x,p.y,'#FF6B6B',18);play('mismatch');g.combo=0;setCombo(0)
-          if(g.lives<=0){endGame(g,false);return false};p.invTimer=90;return false
+          g.lives--;setLives(g.lives);g.shakeTimer=15;spawnParticles(g,p.x,p.y,'#FF6B6B',18);play('mismatch');vibrateHeavy();g.combo=0;setCombo(0)
+          if(g.lives<=0){vibrateError();endGame(g,false);return false};p.invTimer=90;return false
         }; return true
       })
 
@@ -392,8 +395,8 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
             else if(cy===3){const dx=p.x-bx,dy=p.y-by,d=Math.sqrt(dx*dx+dy*dy)||1;g.enemyBullets.push({x:bx,y:by,w:8,h:8,vy:dy/d*5,vx:dx/d*5,aimed:true})}
             else {for(let i=0;i<8;i++){const a=(Math.PI*2*i)/8;g.enemyBullets.push({x:bx,y:by,w:5,h:5,vy:Math.sin(a)*3.5,vx:Math.cos(a)*3.5,aimed:true})}}
           }
-          for(let i=g.bullets.length-1;i>=0;i--){const b=g.bullets[i];if(Math.abs(b.x-boss.x)<boss.w/2+b.w/2&&Math.abs(b.y-boss.y)<boss.h/2+b.h/2){g.bullets.splice(i,1);boss.hp-=b.dmg;spawnParticles(g,b.x,b.y,boss.color,4);g.specialCharge=Math.min(g.specialCharge+3,activeShip.stats.specialCharge);if(boss.hp<=0){g.score+=boss.points;setScore(g.score);addFloatingText(g,boss.x,boss.y,`+${boss.points} BOSS!`,'#FFD700');spawnParticles(g,boss.x,boss.y,boss.color,40);spawnParticles(g,boss.x,boss.y,'#FFD700',30);for(let j=0;j<3;j++)spawnPowerup(g,boss.x+rand(-40,40),boss.y+rand(-20,20));play('levelUp');g.boss=null;g.bossSpawned=false;g.waveState='transition';g.waveTransitionTimer=120;break}}}
-          if(boss&&p.shieldTimer<=0&&p.invTimer<=0&&g.cloakTimer<=0&&Math.abs(boss.x-p.x)<(boss.w+p.w)/2*0.6&&Math.abs(boss.y-p.y)<(boss.h+p.h)/2*0.6){g.lives-=2;setLives(Math.max(0,g.lives));g.shakeTimer=20;spawnParticles(g,p.x,p.y,'#FF6B6B',20);play('mismatch');if(g.lives<=0)endGame(g,false);p.invTimer=120}
+          for(let i=g.bullets.length-1;i>=0;i--){const b=g.bullets[i];if(Math.abs(b.x-boss.x)<boss.w/2+b.w/2&&Math.abs(b.y-boss.y)<boss.h/2+b.h/2){g.bullets.splice(i,1);boss.hp-=b.dmg;spawnParticles(g,b.x,b.y,boss.color,4);vibrateLight();g.specialCharge=Math.min(g.specialCharge+3,activeShip.stats.specialCharge);if(boss.hp<=0){g.score+=boss.points;setScore(g.score);addFloatingText(g,boss.x,boss.y,`+${boss.points} BOSS!`,'#FFD700');spawnParticles(g,boss.x,boss.y,boss.color,40);spawnParticles(g,boss.x,boss.y,'#FFD700',30);for(let j=0;j<3;j++)spawnPowerup(g,boss.x+rand(-40,40),boss.y+rand(-20,20));play('levelUp');vibrateSuccess();g.boss=null;g.bossSpawned=false;g.waveState='transition';g.waveTransitionTimer=120;break}}}
+          if(boss&&p.shieldTimer<=0&&p.invTimer<=0&&g.cloakTimer<=0&&Math.abs(boss.x-p.x)<(boss.w+p.w)/2*0.6&&Math.abs(boss.y-p.y)<(boss.h+p.h)/2*0.6){g.lives-=2;setLives(Math.max(0,g.lives));g.shakeTimer=20;spawnParticles(g,p.x,p.y,'#FF6B6B',20);play('mismatch');vibrateHeavy();if(g.lives<=0){vibrateError();endGame(g,false);}p.invTimer=120}
         }
       }
 
@@ -401,8 +404,8 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
       g.enemyBullets = g.enemyBullets.filter(eb => {
         eb.y+=(eb.vy||0);eb.x+=(eb.vx||0);if(eb.y>g.H+20||eb.y<-20||eb.x<-20||eb.x>g.W+20)return false
         if(p.shieldTimer<=0&&p.invTimer<=0&&g.cloakTimer<=0&&Math.abs(eb.x-p.x)<p.w/2+eb.w/2&&Math.abs(eb.y-p.y)<p.h/2+eb.h/2){
-          g.lives--;setLives(g.lives);g.shakeTimer=10;spawnParticles(g,p.x,p.y,'#FF6B6B',10);play('mismatch');g.combo=0;setCombo(0)
-          if(g.lives<=0)endGame(g,false);p.invTimer=60;return false
+          g.lives--;setLives(g.lives);g.shakeTimer=10;spawnParticles(g,p.x,p.y,'#FF6B6B',10);play('mismatch');vibrateHeavy();g.combo=0;setCombo(0)
+          if(g.lives<=0){vibrateError();endGame(g,false);return false};p.invTimer=60;return false
         };return true
       })
 
@@ -415,7 +418,7 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
           else if(pu.type.id==='shield'){p.shieldTimer=240;addFloatingText(g,pu.x,pu.y,'🛡️ SHIELD!','#74B9FF')}
           else if(pu.type.id==='coin'){g.coinsCollected+=5;g.score+=50;setScore(g.score);addFloatingText(g,pu.x,pu.y,'🪙 +5 COINS','#FFD700')}
           else if(pu.type.id==='mega'){p.weaponLv=Math.min(p.weaponLv+2,5);setWeaponLv(p.weaponLv);p.shieldTimer=180;g.specialCharge=activeShip.stats.specialCharge;addFloatingText(g,pu.x,pu.y,'💎 MEGA!','#A29BFE')}
-          spawnParticles(g,pu.x,pu.y,pu.type.color,10);play('click');return false
+          spawnParticles(g,pu.x,pu.y,pu.type.color,10);play('click');vibrateMedium();return false
         };return true
       })
 

@@ -10,6 +10,7 @@ import{useEffect,useRef,useState}from'react'
 import{useSound}from'../../hooks/useSound.js'
 import{useProgress}from'../../context/ProgressContext.jsx'
 import{useCoins}from'../../context/CoinContext.jsx'
+import{useHaptics}from'../../hooks/useHaptics.js'
 
 // ═══════════════════════════════════════════════════════════
 // CONFIG — jump heights verified: max obstacle = 2 blocks
@@ -145,6 +146,7 @@ function mkBgR(W,H){const r=[];for(let i=0;i<10;i++)r.push({x:Math.random()*W*3,
 export default function NeonDash({onBack,game,difficulty}){
   const cRef=useRef(null),aRef=useRef(null),gR=useRef(null),phR=useRef('idle')
   const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins,getActiveDashTheme}=useCoins()
+  const{vibrateLight,vibrateMedium,vibrateHeavy,vibrateSuccess,vibrateError}=useHaptics()
   const dc=DC[difficulty.id]
   const[phase,_sp]=useState('idle')
   const[showTut,setShowTut]=useState(()=>!localStorage.getItem('bp_tut_neon-dash'))
@@ -201,7 +203,7 @@ export default function NeonDash({onBack,game,difficulty}){
       if(p==='dead'){retry();return}
       if(p!=='play')return
       g.hold=true
-      if(g.mode==='cube'&&g.gnd){g.vy=dc.jv;g.gnd=false;try{play('flip')}catch(e){}}
+      if(g.mode==='cube'&&g.gnd){g.vy=dc.jv;g.gnd=false;try{play('flip');vibrateLight()}catch(e){}}
     }
     function onUp(){g.hold=false}
     const onTouchStart=e=>{e.preventDefault();onDown()}
@@ -241,7 +243,7 @@ export default function NeonDash({onBack,game,difficulty}){
       if(totalPr>bestPr){sBestPr(totalPr);localStorage.setItem(bestKey+'p',totalPr)}
       if(g.lv>bestLv){sBestLv(g.lv);localStorage.setItem(bestKey+'l',g.lv)}
       sTotalAt(prev=>{const n=prev+1;localStorage.setItem(bestKey+'a',n);return n})
-      try{play('mismatch')}catch(e){}
+      try{play('mismatch');vibrateHeavy()}catch(e){}
     }
     function win(){
       const currentTheme = getActiveDashTheme()
@@ -252,7 +254,7 @@ export default function NeonDash({onBack,game,difficulty}){
       const cx=g.px+PS/2,cy=g.py+PS/2
       for(let i=0;i<18;i++){const a=P2*Math.random(),s=2+Math.random()*5
         g.pts.push({x:cx,y:cy,dx:Math.cos(a)*s,dy:Math.sin(a)*s,l:25+Math.random()*25,ml:50,r:3+Math.random()*4,c:['#fff',CL.dia,currentTheme.player,CL.gndL][i%4]})}
-      try{play('win')}catch(e){}
+      try{play('win');vibrateSuccess()}catch(e){}
     }
     function finG(won){
       const st=won?3:g.lv>dc.ml/2?2:g.lv>2?1:0
@@ -335,7 +337,7 @@ export default function NeonDash({onBack,game,difficulty}){
               if(Math.abs((g.px+PS/2)-(sx+10))<20&&Math.abs((g.py+PS/2)-(it.y+10))<20){
                 it.col=true;g.cd++;g.sc+=30;sSc(g.sc)
                 g.pts.push({x:sx+10,y:it.y+10,dx:0,dy:-1.5,l:15,ml:15,r:5,c:CL.dia})
-                try{play('match')}catch(e){}}}
+                try{play('match');vibrateLight()}catch(e){}}}
             if(it.t==='ptl'&&!it.tr&&wx>=it.x&&wx<=it.x+it.w+15&&g.mode!==it.mode){
               it.tr=true;g.mode=it.mode
               g.rings.push({x:g.px+PS/2,y:g.py+PS/2,r:4,mr:55,a:0.8,c:CL.ptl,lw:3})
@@ -345,7 +347,7 @@ export default function NeonDash({onBack,game,difficulty}){
               if(it.mode==='cube'){
                 // Return to ground
                 g.py=gY-PS;g.vy=0;g.gnd=true;g.rot=0}
-              try{play('flip')}catch(e){}}
+              try{play('flip');vibrateMedium()}catch(e){}}
             if(it.t==='end'&&wx>=it.x){win();break}}
           if(died&&phR.current==='play')die()
         }
