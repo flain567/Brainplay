@@ -325,6 +325,88 @@ export const WEBSITE_THEMES = [
 // ─── Consumable Items (deprecated — hints are now in-game) ──────────────────
 export const CONSUMABLES = []
 
+// ─── Memory Pattern Pro Themes (Day 10) ─────────────────────────────────────
+export const PATTERN_THEMES = [
+  { id:'default', name:'Neon Classic', desc:'Grid neon biru klasik', price:0, icon:'🧠', color:'#00F5FF',
+    style:{ cell:'#12123a', cellStroke:'#2a2a5a', glow:'#A29BFE', hit:'#00F5FF', error:'#FF4757', bg:'#060620' } },
+  { id:'ember', name:'Ember Grid', desc:'Grid api menyala dalam kegelapan', price:150, icon:'🔥', color:'#FF4500',
+    style:{ cell:'#2a1008', cellStroke:'#5a2010', glow:'#FF6348', hit:'#FF4500', error:'#FFD700', bg:'#0a0400' } },
+  { id:'matrix', name:'Matrix Code', desc:'Hijau terminal hacker style', price:150, icon:'💻', color:'#00FF41',
+    style:{ cell:'#0a1a0a', cellStroke:'#1a3a1a', glow:'#00FF41', hit:'#00FF41', error:'#FF0000', bg:'#000800' } },
+  { id:'aurora', name:'Aurora Borealis', desc:'Cahaya utara yang memukau', price:200, icon:'🌌', color:'#7B68EE',
+    style:{ cell:'#0a0a28', cellStroke:'#2a2060', glow:'#7B68EE', hit:'#00CED1', error:'#FF69B4', bg:'#020018' } },
+  { id:'sakurap', name:'Sakura Pattern', desc:'Pink bunga sakura yang lembut', price:200, icon:'🌸', color:'#FF69B4',
+    style:{ cell:'#1e0a18', cellStroke:'#4a1a38', glow:'#FF69B4', hit:'#FFB7D5', error:'#FF4757', bg:'#0e0008' } },
+]
+
+// ─── Reaction Test Themes (Day 11) ───────────────────────────────────────────
+export const REACTION_THEMES = [
+  { id:'default', name:'Classic Colors', desc:'Warna standar yang cerah', price:0, icon:'🎨', color:'#FF6B6B',
+    style:{ primary:'#FF6B6B', accent:'#4ECDC4', bg:'#A29BFE', success:'#00B894', warning:'#FDCB6E' } },
+  { id:'neon', name:'Neon Glow', desc:'Warna neon yang menyala terang', price:150, icon:'💡', color:'#00FF88',
+    style:{ primary:'#00FF88', accent:'#FF00FF', bg:'#00F5FF', success:'#39FF14', warning:'#FFE700' } },
+  { id:'pastel', name:'Soft Pastel', desc:'Warna pastel yang lembut di mata', price:150, icon:'🎀', color:'#FFB5E8',
+    style:{ primary:'#FFB5E8', accent:'#B5DEFF', bg:'#E7FFAC', success:'#AFF8DB', warning:'#FFDAC1' } },
+  { id:'midnight', name:'Midnight', desc:'Gelap misterius dengan aksen tajam', price:200, icon:'🌙', color:'#E74C3C',
+    style:{ primary:'#E74C3C', accent:'#3498DB', bg:'#9B59B6', success:'#2ECC71', warning:'#F39C12' } },
+]
+
+// ─── Neon Dash Trail Themes (Day 12) ─────────────────────────────────────────
+export const DASH_THEMES = [
+  { id:'default', name:'Neon Green', desc:'Trail hijau neon klasik', price:0, icon:'💚', color:'#7dff3a',
+    style:{ player:'#7dff3a', playerOutline:'#2d8a08', trail:'#7dff3a', glow:'#00F5FF', wave:'#FF6348' } },
+  { id:'cyber', name:'Cyber Pink', desc:'Pink cyberpunk yang keren', price:150, icon:'💗', color:'#FF006E',
+    style:{ player:'#FF006E', playerOutline:'#8B0040', trail:'#FF006E', glow:'#FF61D2', wave:'#FFD700' } },
+  { id:'ice', name:'Ice Dash', desc:'Trail es biru yang membekukan', price:150, icon:'❄️', color:'#00BFFF',
+    style:{ player:'#00BFFF', playerOutline:'#006994', trail:'#00BFFF', glow:'#E0FFFF', wave:'#FF4500' } },
+  { id:'gold', name:'Golden Rush', desc:'Trail emas berkilau mewah', price:200, icon:'👑', color:'#FFD700',
+    style:{ player:'#FFD700', playerOutline:'#B8860B', trail:'#FFD700', glow:'#FFFACD', wave:'#FF6B6B' } },
+  { id:'toxic', name:'Toxic', desc:'Hijau beracun yang berbahaya', price:200, icon:'☢️', color:'#ADFF2F',
+    style:{ player:'#ADFF2F', playerOutline:'#556B2F', trail:'#ADFF2F', glow:'#7FFF00', wave:'#FF1493' } },
+]
+
+// ─── Brick Breaker Skins (Day 13) ────────────────────────────────────────────
+export const BREAKER_THEMES = [
+  { id:'default', name:'Classic Paddle', desc:'Paddle ungu standar', price:0, icon:'🏓', color:'#A29BFE',
+    style:{ paddleTop:'#A29BFE', paddleBot:'#6C5CE7', ballColor:'#fff', ballGlow:'#A29BFE', trailColor:'#A29BFE' } },
+  { id:'fire', name:'Fire Paddle', desc:'Paddle api yang membakar bata!', price:150, icon:'🔥', color:'#FF4500',
+    style:{ paddleTop:'#FF6348', paddleBot:'#EE5A24', ballColor:'#FFD700', ballGlow:'#FF4500', trailColor:'#FF6348' } },
+  { id:'ice', name:'Ice Paddle', desc:'Paddle es yang membekukan', price:150, icon:'🧊', color:'#74B9FF',
+    style:{ paddleTop:'#74B9FF', paddleBot:'#0984E3', ballColor:'#E0FFFF', ballGlow:'#00CED1', trailColor:'#74B9FF' } },
+  { id:'neon', name:'Neon Paddle', desc:'Paddle neon menyala di kegelapan', price:200, icon:'💜', color:'#FF00FF',
+    style:{ paddleTop:'#FF00FF', paddleBot:'#8B00FF', ballColor:'#fff', ballGlow:'#FF00FF', trailColor:'#FF00FF' } },
+  { id:'gold', name:'Golden Paddle', desc:'Paddle emas premium eksklusif', price:250, icon:'👑', color:'#FFD700',
+    style:{ paddleTop:'#FFD700', paddleBot:'#DAA520', ballColor:'#FFFACD', ballGlow:'#FFD700', trailColor:'#FFD700' } },
+]
+
+// ─── Wordle Tile Themes (Day 14) ─────────────────────────────────────────────
+export const WORDLE_THEMES = [
+  { id:'default', name:'Classic Wordle', desc:'Hijau-kuning klasik', price:0, icon:'📝', color:'#27AE60',
+    style:{ correct:'#27AE60', present:'#F39C12', absent:'#3B3B3B', absentLight:'#787C7E', empty:'#2A2A2E', emptyLight:'#EDEFF1' } },
+  { id:'ocean', name:'Ocean Tiles', desc:'Biru laut untuk tile yang benar', price:150, icon:'🌊', color:'#0984E3',
+    style:{ correct:'#0984E3', present:'#00CEC9', absent:'#2C3E50', absentLight:'#95A5A6', empty:'#1A252F', emptyLight:'#ECF0F1' } },
+  { id:'sunset', name:'Sunset Tiles', desc:'Merah senja yang hangat', price:150, icon:'🌅', color:'#E74C3C',
+    style:{ correct:'#E74C3C', present:'#E67E22', absent:'#34495E', absentLight:'#7F8C8D', empty:'#2C3A47', emptyLight:'#F5F6FA' } },
+  { id:'forest', name:'Forest Tiles', desc:'Hijau hutan yang segar', price:200, icon:'🌿', color:'#00B894',
+    style:{ correct:'#00B894', present:'#FDCB6E', absent:'#2D3436', absentLight:'#636E72', empty:'#1E272E', emptyLight:'#F0F0F0' } },
+  { id:'galaxy', name:'Galaxy Tiles', desc:'Ungu galaksi yang kosmik', price:200, icon:'🔮', color:'#6C5CE7',
+    style:{ correct:'#6C5CE7', present:'#FD79A8', absent:'#2D3436', absentLight:'#636E72', empty:'#0A0A1E', emptyLight:'#F0EFFF' } },
+]
+
+// ─── Voxel Racer Car Skins (Day 15) ──────────────────────────────────────────
+export const RACER_THEMES = [
+  { id:'default', name:'Blue Racer', desc:'Mobil biru standar', price:0, icon:'🚗', color:'#3498DB',
+    style:{ body:'#3498DB', roof:'#2980B9', accent:'#E74C3C', wheel:'#2C3E50', exhaust:'#FF6348' } },
+  { id:'red', name:'Red Devil', desc:'Mobil sport merah menyala', price:150, icon:'🏎️', color:'#E74C3C',
+    style:{ body:'#E74C3C', roof:'#C0392B', accent:'#FFD700', wheel:'#1A1A2E', exhaust:'#FF4500' } },
+  { id:'toxic', name:'Toxic Green', desc:'Mobil hijau beracun mencolok', price:150, icon:'☢️', color:'#00B894',
+    style:{ body:'#00B894', roof:'#00896A', accent:'#FDCB6E', wheel:'#1A2E1A', exhaust:'#7DFF3A' } },
+  { id:'gold', name:'Gold Edition', desc:'Mobil emas mewah premium', price:250, icon:'👑', color:'#FFD700',
+    style:{ body:'#FFD700', roof:'#DAA520', accent:'#FF6B6B', wheel:'#2C2C1A', exhaust:'#FFFACD' } },
+  { id:'shadow', name:'Shadow Runner', desc:'Hitam misterius dengan glow ungu', price:200, icon:'🌑', color:'#6C5CE7',
+    style:{ body:'#2D3436', roof:'#1A1A2E', accent:'#6C5CE7', wheel:'#0A0A0A', exhaust:'#A29BFE' } },
+]
+
 // ─── Coin reward rates ──────────────────────────────────────────────────────
 export const COIN_REWARDS = {
   gameWin:    { easy:15, medium:25, hard:40 },
@@ -349,6 +431,12 @@ function getDefaultCoinState() {
     ownedSudokuThemes:['default'], activeSudokuTheme:'default',
     ownedJigsawThemes:['default'], activeJigsawTheme:'default',
     ownedWebThemes:['default'], activeWebTheme:'default',
+    ownedPatternThemes:['default'], activePatternTheme:'default',
+    ownedReactionThemes:['default'], activeReactionTheme:'default',
+    ownedDashThemes:['default'], activeDashTheme:'default',
+    ownedBreakerThemes:['default'], activeBreakerTheme:'default',
+    ownedWordleThemes:['default'], activeWordleTheme:'default',
+    ownedRacerThemes:['default'], activeRacerTheme:'default',
     hints:0, timeFreezes:0,
     lastDailyClaim:null, dailyStreak:0, transactions:[],
   }
@@ -403,8 +491,8 @@ export function CoinProvider({ children }) {
 
   // Generic buy cosmetic
   const buyCosmetic = useCallback(async (type, itemId) => {
-    const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS, ships:SHIP_CATALOG, hangmanThemes:HANGMAN_THEMES, tubeThemes:TUBE_THEMES, sudokuThemes:SUDOKU_THEMES, jigsawThemes:JIGSAW_THEMES, webThemes:WEBSITE_THEMES }
-    const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', webThemes:'ownedWebThemes' }
+    const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS, ships:SHIP_CATALOG, hangmanThemes:HANGMAN_THEMES, tubeThemes:TUBE_THEMES, sudokuThemes:SUDOKU_THEMES, jigsawThemes:JIGSAW_THEMES, webThemes:WEBSITE_THEMES, patternThemes:PATTERN_THEMES, reactionThemes:REACTION_THEMES, dashThemes:DASH_THEMES, breakerThemes:BREAKER_THEMES, wordleThemes:WORDLE_THEMES, racerThemes:RACER_THEMES }
+    const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', webThemes:'ownedWebThemes', patternThemes:'ownedPatternThemes', reactionThemes:'ownedReactionThemes', dashThemes:'ownedDashThemes', breakerThemes:'ownedBreakerThemes', wordleThemes:'ownedWordleThemes', racerThemes:'ownedRacerThemes' }
     const items = catalog[type]; const key = ownedKey[type]
     if (!items||!key) return { success:false, reason:'Tipe tidak valid' }
     const item = items.find(i => i.id === itemId)
@@ -419,8 +507,8 @@ export function CoinProvider({ children }) {
   const buyPack = useCallback((packId) => buyCosmetic('packs', packId), [buyCosmetic])
 
   const equipCosmetic = useCallback((type, itemId) => {
-    const ownedKey  = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', webThemes:'ownedWebThemes' }
-    const activeKey = { packs:'activePack', skins:'activeSkin', tileThemes:'activeTileTheme', highlights:'activeHighlight', ships:'activeShip', hangmanThemes:'activeHangmanTheme', tubeThemes:'activeTubeTheme', sudokuThemes:'activeSudokuTheme', jigsawThemes:'activeJigsawTheme', webThemes:'activeWebTheme' }
+    const ownedKey  = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', webThemes:'ownedWebThemes', patternThemes:'ownedPatternThemes', reactionThemes:'ownedReactionThemes', dashThemes:'ownedDashThemes', breakerThemes:'ownedBreakerThemes', wordleThemes:'ownedWordleThemes', racerThemes:'ownedRacerThemes' }
+    const activeKey = { packs:'activePack', skins:'activeSkin', tileThemes:'activeTileTheme', highlights:'activeHighlight', ships:'activeShip', hangmanThemes:'activeHangmanTheme', tubeThemes:'activeTubeTheme', sudokuThemes:'activeSudokuTheme', jigsawThemes:'activeJigsawTheme', webThemes:'activeWebTheme', patternThemes:'activePatternTheme', reactionThemes:'activeReactionTheme', dashThemes:'activeDashTheme', breakerThemes:'activeBreakerTheme', wordleThemes:'activeWordleTheme', racerThemes:'activeRacerTheme' }
     const key = ownedKey[type]; const aKey = activeKey[type]
     if (!key||!aKey) return
     if (!(state[key]||[]).includes(itemId)) return
@@ -519,6 +607,36 @@ export function CoinProvider({ children }) {
     return t || WEBSITE_THEMES[0]
   }, [state.activeWebTheme])
 
+  const getActivePatternTheme = useCallback(() => {
+    const t = PATTERN_THEMES.find(h => h.id === state.activePatternTheme)
+    return t ? t.style : PATTERN_THEMES[0].style
+  }, [state.activePatternTheme])
+
+  const getActiveReactionTheme = useCallback(() => {
+    const t = REACTION_THEMES.find(h => h.id === state.activeReactionTheme)
+    return t ? t.style : REACTION_THEMES[0].style
+  }, [state.activeReactionTheme])
+
+  const getActiveDashTheme = useCallback(() => {
+    const t = DASH_THEMES.find(h => h.id === state.activeDashTheme)
+    return t ? t.style : DASH_THEMES[0].style
+  }, [state.activeDashTheme])
+
+  const getActiveBreakerTheme = useCallback(() => {
+    const t = BREAKER_THEMES.find(h => h.id === state.activeBreakerTheme)
+    return t ? t.style : BREAKER_THEMES[0].style
+  }, [state.activeBreakerTheme])
+
+  const getActiveWordleTheme = useCallback(() => {
+    const t = WORDLE_THEMES.find(h => h.id === state.activeWordleTheme)
+    return t ? t.style : WORDLE_THEMES[0].style
+  }, [state.activeWordleTheme])
+
+  const getActiveRacerTheme = useCallback(() => {
+    const t = RACER_THEMES.find(h => h.id === state.activeRacerTheme)
+    return t ? t.style : RACER_THEMES[0].style
+  }, [state.activeRacerTheme])
+
   return (
     <CoinContext.Provider value={{
       coins:state.balance, totalEarned:state.totalEarned, totalSpent:state.totalSpent,
@@ -532,6 +650,12 @@ export function CoinProvider({ children }) {
       ownedSudokuThemes:state.ownedSudokuThemes||[], activeSudokuTheme:state.activeSudokuTheme,
       ownedJigsawThemes:state.ownedJigsawThemes||[], activeJigsawTheme:state.activeJigsawTheme,
       ownedWebThemes:state.ownedWebThemes||[], activeWebTheme:state.activeWebTheme,
+      ownedPatternThemes:state.ownedPatternThemes||[], activePatternTheme:state.activePatternTheme,
+      ownedReactionThemes:state.ownedReactionThemes||[], activeReactionTheme:state.activeReactionTheme,
+      ownedDashThemes:state.ownedDashThemes||[], activeDashTheme:state.activeDashTheme,
+      ownedBreakerThemes:state.ownedBreakerThemes||[], activeBreakerTheme:state.activeBreakerTheme,
+      ownedWordleThemes:state.ownedWordleThemes||[], activeWordleTheme:state.activeWordleTheme,
+      ownedRacerThemes:state.ownedRacerThemes||[], activeRacerTheme:state.activeRacerTheme,
       hints:state.hints||0, timeFreezes:state.timeFreezes||0,
       dailyStreak:state.dailyStreak, transactions:state.transactions||[],
       isDailyClaimable, coinAnim,
@@ -540,7 +664,8 @@ export function CoinProvider({ children }) {
       setActivePack, claimDaily,
       getActiveIcons, getActiveSkin, getActiveTileColors, getActiveHighlightColors, getActiveShip,
       getActiveHangmanTheme, getActiveTubeTheme, getActiveSudokuTheme, getActiveJigsawTheme,
-      getActiveWebTheme,
+      getActiveWebTheme, getActivePatternTheme, getActiveReactionTheme, getActiveDashTheme,
+      getActiveBreakerTheme, getActiveWordleTheme, getActiveRacerTheme,
     }}>
       {children}
     </CoinContext.Provider>

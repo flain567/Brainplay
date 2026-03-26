@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useAuth } from '../context/AuthContext.jsx'
-import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
+import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, PATTERN_THEMES, REACTION_THEMES, DASH_THEMES, BREAKER_THEMES, WORDLE_THEMES, RACER_THEMES, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 
 // ─── Generic cosmetic list renderer ─────────────────────────────────────────
@@ -93,6 +93,12 @@ export default function Shop({ onBack }) {
     ownedSudokuThemes, activeSudokuTheme,
     ownedJigsawThemes, activeJigsawTheme,
     ownedWebThemes, activeWebTheme,
+    ownedPatternThemes, activePatternTheme,
+    ownedReactionThemes, activeReactionTheme,
+    ownedDashThemes, activeDashTheme,
+    ownedBreakerThemes, activeBreakerTheme,
+    ownedWordleThemes, activeWordleTheme,
+    ownedRacerThemes, activeRacerTheme,
     hints, timeFreezes, dailyStreak, isDailyClaimable,
     buyCosmetic, equipCosmetic, buyConsumable, claimDaily, transactions, earnCoins,
   } = useCoins()
@@ -183,6 +189,12 @@ export default function Shop({ onBack }) {
     { id:'tubes',      label:'🧪 Tubes'     },
     { id:'sudoku',     label:'🔢 Sudoku'    },
     { id:'jigsaw',     label:'🧩 Jigsaw'    },
+    { id:'pattern',    label:'🧠 Pattern'   },
+    { id:'reaction',   label:'⚡ Reaction'  },
+    { id:'dash',       label:'💨 Dash'      },
+    { id:'breaker',    label:'🏓 Breaker'   },
+    { id:'wordle',     label:'📝 Wordle'    },
+    { id:'racer',      label:'🚗 Racer'     },
     { id:'webtheme',   label:'🎨 Tema'      },
     { id:'history',    label:'📜 Riwayat',  },
   ]
@@ -656,6 +668,166 @@ export default function Shop({ onBack }) {
                         boxShadow:`0 2px 8px ${c}44`,
                       }} />
                     ))}
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          {/* ── Memory Pattern Pro Themes (Day 10) ── */}
+          {tab === 'pattern' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                Ubah warna grid dan efek glow di Memory Pattern Pro
+              </p>
+              <CosmeticList
+                items={PATTERN_THEMES} ownedList={ownedPatternThemes||[]} activeId={activePatternTheme} type="patternThemes"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('patternThemes', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                renderPreview={(item) => (
+                  <div style={{ marginTop:12, padding:14, borderRadius:12, background:item.style.bg, display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, maxWidth:200, margin:'0 auto' }}>
+                    {[0,1,2,3,4,5,6,7].map(j => (
+                      <div key={j} style={{
+                        height:36, borderRadius:8,
+                        background: j%3===0 ? item.style.hit : item.style.cell,
+                        border:`1.5px solid ${item.style.cellStroke}`,
+                        boxShadow: j%3===0 ? `0 0 10px ${item.style.glow}` : 'none',
+                      }} />
+                    ))}
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          {/* ── Reaction Test Themes (Day 11) ── */}
+          {tab === 'reaction' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                Ubah skema warna di Reaction Test
+              </p>
+              <CosmeticList
+                items={REACTION_THEMES} ownedList={ownedReactionThemes||[]} activeId={activeReactionTheme} type="reactionThemes"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('reactionThemes', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                renderPreview={(item) => (
+                  <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)', display:'flex', gap:8, justifyContent:'center' }}>
+                    {Object.values(item.style).map((c, j) => (
+                      <div key={j} style={{
+                        width:40, height:40, borderRadius:'50%', background:c,
+                        boxShadow:`0 0 12px ${c}66`,
+                      }} />
+                    ))}
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          {/* ── Neon Dash Trail Themes (Day 12) ── */}
+          {tab === 'dash' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                Ubah warna pemain dan trail di Neon Dash
+              </p>
+              <CosmeticList
+                items={DASH_THEMES} ownedList={ownedDashThemes||[]} activeId={activeDashTheme} type="dashThemes"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('dashThemes', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                renderPreview={(item) => (
+                  <div style={{ marginTop:12, padding:14, borderRadius:12, background:'#1a0a3a', position:'relative', height:60, overflow:'hidden' }}>
+                    <div style={{ position:'absolute', left:20, top:'50%', transform:'translateY(-50%)', width:20, height:20, background:item.style.player, border:`2px solid ${item.style.playerOutline}`, boxShadow:`0 0 12px ${item.style.glow}` }} />
+                    <div style={{ position:'absolute', left:42, top:'50%', transform:'translateY(-50%)', width:120, height:4, background:`linear-gradient(90deg, ${item.style.trail}, transparent)`, borderRadius:4 }} />
+                    <div style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', fontSize:10, color:'rgba(255,255,255,0.4)' }}>Trail preview</div>
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          {/* ── Brick Breaker Skins (Day 13) ── */}
+          {tab === 'breaker' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                Ubah warna paddle dan bola di Brick Breaker
+              </p>
+              <CosmeticList
+                items={BREAKER_THEMES} ownedList={ownedBreakerThemes||[]} activeId={activeBreakerTheme} type="breakerThemes"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('breakerThemes', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                renderPreview={(item) => (
+                  <div style={{ marginTop:12, padding:14, borderRadius:12, background:'#0a0a2e', position:'relative', height:70 }}>
+                    <div style={{ position:'absolute', bottom:10, left:'50%', transform:'translateX(-50%)', width:80, height:12, borderRadius:6, background:`linear-gradient(${item.style.paddleTop}, ${item.style.paddleBot})`, boxShadow:`0 0 10px ${item.style.paddleTop}66` }} />
+                    <div style={{ position:'absolute', top:15, left:'50%', transform:'translateX(-50%)', width:14, height:14, borderRadius:'50%', background:item.style.ballColor, boxShadow:`0 0 10px ${item.style.ballGlow}` }} />
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          {/* ── Wordle Tile Themes (Day 14) ── */}
+          {tab === 'wordle' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                Ubah skema warna tile di Wordle Indonesia
+              </p>
+              <CosmeticList
+                items={WORDLE_THEMES} ownedList={ownedWordleThemes||[]} activeId={activeWordleTheme} type="wordleThemes"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('wordleThemes', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                renderPreview={(item) => (
+                  <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)', display:'flex', gap:6, justifyContent:'center' }}>
+                    {['B','R','A','I','N'].map((l, j) => (
+                      <div key={j} style={{
+                        width:38, height:38, borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center',
+                        background: j===0 ? item.style.correct : j===1 ? item.style.present : dark ? item.style.absent : item.style.absentLight,
+                        color:'#fff', fontWeight:800, fontSize:14,
+                      }}>{l}</div>
+                    ))}
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          {/* ── Voxel Racer Car Skins (Day 15) ── */}
+          {tab === 'racer' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                Ubah warna mobil di Voxel Racer
+              </p>
+              <CosmeticList
+                items={RACER_THEMES} ownedList={ownedRacerThemes||[]} activeId={activeRacerTheme} type="racerThemes"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('racerThemes', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                renderPreview={(item) => (
+                  <div style={{ marginTop:12, padding:14, borderRadius:12, background:'#1a1a3e', display:'flex', alignItems:'center', justifyContent:'center', gap:10 }}>
+                    <svg width="80" height="40" viewBox="0 0 80 40">
+                      <rect x="10" y="15" width="60" height="18" rx="4" fill={item.style.body}/>
+                      <rect x="22" y="8" width="30" height="12" rx="3" fill={item.style.roof}/>
+                      <rect x="55" y="20" width="12" height="6" rx="1" fill={item.style.accent}/>
+                      <circle cx="22" cy="35" r="5" fill={item.style.wheel}/>
+                      <circle cx="58" cy="35" r="5" fill={item.style.wheel}/>
+                    </svg>
+                    <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)' }}>Preview mobil</div>
                   </div>
                 )}
               />
