@@ -473,7 +473,12 @@ function AppInner() {
           )}
           {screen === 'profile' && (
             <Suspense fallback={<GameLoader />}>
-              <Profile onBack={goHome} games={GAMES} onAnalytics={goAnalytics} onAdmin={isAdmin ? goAdmin : undefined} />
+              <Profile 
+                onBack={goHome} 
+                games={GAMES} 
+                onAnalytics={goAnalytics} 
+                onAdmin={userId && ADMIN_IDS.includes(userId) ? goAdmin : null} 
+              />
             </Suspense>
           )}
           {screen === 'shop' && (
