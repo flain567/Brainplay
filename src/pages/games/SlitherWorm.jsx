@@ -19,6 +19,9 @@ const SEG_GAP     = 7
 const FOOD_COLORS = ['#ff6b6b','#ffd93d','#4ecdc4','#a29bfe','#fd79a8','#ff9f43','#54a0ff']
 
 const BOT_SKINS = [
+  { head: '#3498DB', body: '#2980B9', glow: '#3498DB', name: 'Alien', isImage:true, headImg:'/slither/snake_awesome_head.png', bodyImg:'/slither/snake_awesome_body.png' },
+  { head: '#8E44AD', body: '#732D91', glow: '#8E44AD', name: 'Vampire', isImage:true, headImg:'/slither/snake_vamp_head.png', bodyImg:'/slither/snake_vamp_body.png' },
+  { head: '#E67E22', body: '#D35400', glow: '#E67E22', name: 'EyeSpy', isImage:true, headImg:'/slither/snake_stare_head.png', bodyImg:'/slither/snake_stare_body.png' },
   { head: '#ff6b6b', body: '#cc4444', glow: '#ff6b6b', name: 'Ember'   },
   { head: '#ffd93d', body: '#cca820', glow: '#ffd93d', name: 'Goldie'  },
   { head: '#fd79a8', body: '#c94d80', glow: '#fd79a8', name: 'Pinky'   },
@@ -157,10 +160,26 @@ function botThink(bot, foods, mapSize, cfg, allWorms) {
   bot.wantBoost = false
 }
 
+// ─── Image Cache ──────────────────────────────────────────────────────────────
+const skinImagesCache = {}
+function getSkinImage(url) {
+  if (!url) return null
+  if (skinImagesCache[url]) return skinImagesCache[url]
+  const img = new Image()
+  img.src = url
+  img.onload = () => { img.loaded = true }
+  skinImagesCache[url] = img
+  return img
+}
+
 // ─── Draw Worm (no shadowBlur — offscreen glow via pre-drawn circle) ─────────
 function drawWorm(ctx, worm, skin, camX, camY, W, H, isPlayer) {
   const segs = worm.segs
   const len  = segs.length
+  const useImage = skin.isImage
+  const headImg = useImage ? getSkinImage(skin.headImg) : null
+  const bodyImg = useImage ? getSkinImage(skin.bodyImg) : null
+  const ready = headImg?.loaded && bodyImg?.loaded
 
   // Body — back to front
   for (let i = len - 1; i >= 1; i--) {
@@ -169,20 +188,32 @@ function drawWorm(ctx, worm, skin, camX, camY, W, H, isPlayer) {
     if (sx < -30 || sx > W + 30 || sy < -30 || sy > H + 30) continue
 
     const t  = i / len
-    const r  = SEG_R * (1 - t * 0.30)
-    const ev = i % 2 === 0
-
-    ctx.fillStyle = ev ? skin.body : skin.head + 'cc'
-    ctx.beginPath()
-    ctx.arc(sx, sy, r, 0, Math.PI * 2)
-    ctx.fill()
-
-    // Highlight dot — cheap alternative to glow
-    if (i % 4 === 0) {
-      ctx.fillStyle = 'rgba(255,255,255,0.10)'
+    const baseR  = SEG_R * (1 - t * 0.30)
+    
+    if (useImage && ready) {
+      const r = baseR * 1.6
+      const prev = segs[i-1]
+      const ang = Math.atan2(prev.y - s.y, prev.x - s.x)
+      ctx.save()
+      ctx.translate(sx, sy)
+      ctx.rotate(ang)
+      ctx.drawImage(bodyImg, -r, -r, r*2, r*2)
+      ctx.restore()
+    } else {
+      const r = baseR
+      const ev = i % 2 === 0
+      ctx.fillStyle = ev ? skin.body : skin.head + 'cc'
       ctx.beginPath()
-      ctx.arc(sx - r * 0.3, sy - r * 0.3, r * 0.25, 0, Math.PI * 2)
+      ctx.arc(sx, sy, r, 0, Math.PI * 2)
       ctx.fill()
+  
+      // Highlight dot — cheap alternative to glow
+      if (i % 4 === 0) {
+        ctx.fillStyle = 'rgba(255,255,255,0.10)'
+        ctx.beginPath()
+        ctx.arc(sx - r * 0.3, sy - r * 0.3, r * 0.25, 0, Math.PI * 2)
+        ctx.fill()
+      }
     }
   }
 
@@ -190,30 +221,47 @@ function drawWorm(ctx, worm, skin, camX, camY, W, H, isPlayer) {
   const h  = segs[0]
   const hx = h.x - camX, hy = h.y - camY
   if (hx >= -30 && hx <= W + 30 && hy >= -30 && hy <= H + 30) {
-    // Glow ring (1 cheap ring instead of shadowBlur)
-    ctx.globalAlpha = 0.22
-    ctx.fillStyle   = skin.glow
-    ctx.beginPath()
-    ctx.arc(hx, hy, SEG_R + 5, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.globalAlpha = 1
+    if (useImage && ready) {
+      const r = SEG_R * 1.8
+      // Glow ring
+      ctx.globalAlpha = 0.25
+      ctx.fillStyle   = skin.glow
+      ctx.beginPath()
+      ctx.arc(hx, hy, r + 4, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.globalAlpha = 1
 
-    ctx.fillStyle = skin.head
-    ctx.beginPath()
-    ctx.arc(hx, hy, SEG_R, 0, Math.PI * 2)
-    ctx.fill()
-
-    // Eyes
-    const ang = worm.angle
-    const eOff = SEG_R * 0.52
-    ;[ang - 0.42, ang + 0.42].forEach(ea => {
-      const ex = hx + Math.cos(ea) * eOff
-      const ey = hy + Math.sin(ea) * eOff
-      ctx.fillStyle = '#fff'
-      ctx.beginPath(); ctx.arc(ex, ey, SEG_R * 0.30, 0, Math.PI * 2); ctx.fill()
-      ctx.fillStyle = '#0a0a1a'
-      ctx.beginPath(); ctx.arc(ex + Math.cos(ang)*1.4, ey + Math.sin(ang)*1.4, SEG_R * 0.14, 0, Math.PI * 2); ctx.fill()
-    })
+      ctx.save()
+      ctx.translate(hx, hy)
+      ctx.rotate(worm.angle)
+      ctx.drawImage(headImg, -r, -r, r*2, r*2)
+      ctx.restore()
+    } else {
+      // Glow ring (1 cheap ring instead of shadowBlur)
+      ctx.globalAlpha = 0.22
+      ctx.fillStyle   = skin.glow
+      ctx.beginPath()
+      ctx.arc(hx, hy, SEG_R + 5, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.globalAlpha = 1
+  
+      ctx.fillStyle = skin.head
+      ctx.beginPath()
+      ctx.arc(hx, hy, SEG_R, 0, Math.PI * 2)
+      ctx.fill()
+  
+      // Eyes
+      const ang = worm.angle
+      const eOff = SEG_R * 0.52
+      ;[ang - 0.42, ang + 0.42].forEach(ea => {
+        const ex = hx + Math.cos(ea) * eOff
+        const ey = hy + Math.sin(ea) * eOff
+        ctx.fillStyle = '#fff'
+        ctx.beginPath(); ctx.arc(ex, ey, SEG_R * 0.30, 0, Math.PI * 2); ctx.fill()
+        ctx.fillStyle = '#0a0a1a'
+        ctx.beginPath(); ctx.arc(ex + Math.cos(ang)*1.4, ey + Math.sin(ang)*1.4, SEG_R * 0.14, 0, Math.PI * 2); ctx.fill()
+      })
+    }
 
     // Name tag (bots only)
     if (!isPlayer) {

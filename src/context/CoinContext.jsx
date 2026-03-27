@@ -40,6 +40,16 @@ export const SNAKE_SKINS = [
     skin:{ head:'#A29BFE', body:'#6C5CE7', glow:'#A29BFE' } },
   { id:'rainbow', name:'Rainbow', desc:'Pelangi warna-warni yang berubah-ubah!', price:300, icon:'🌈', color:'#FF6B6B',
     skin:{ head:'#FF6B6B', body:'#A29BFE', glow:'#FDCB6E', rainbow:true } },
+  { id:'premium-awesome', name:'Awesome Alien', desc:'Skin monster lucu luar angkasa', price:1000, icon:'👽', color:'#3498DB',
+    skin:{ head:'#3498DB', body:'#2980B9', glow:'#3498DB', isImage:true, headImg:'/slither/snake_awesome_head.png', bodyImg:'/slither/snake_awesome_body.png' } },
+  { id:'premium-vamp', name:'Vampire Bat', desc:'Kekuatan kelelawar vampir penghisap', price:1500, icon:'🦇', color:'#8E44AD',
+    skin:{ head:'#8E44AD', body:'#732D91', glow:'#8E44AD', isImage:true, headImg:'/slither/snake_vamp_head.png', bodyImg:'/slither/snake_vamp_body.png' } },
+  { id:'premium-stare', name:'Staring Eye', desc:'Tatapan mata mistis yang menakutkan', price:1800, icon:'👁️', color:'#E67E22',
+    skin:{ head:'#E67E22', body:'#D35400', glow:'#E67E22', isImage:true, headImg:'/slither/snake_stare_head.png', bodyImg:'/slither/snake_stare_body.png' } },
+  { id:'premium-jelly', name:'Jelly Slime', desc:'Lendir ubur-ubur neon transparan', price:2000, icon:'🦠', color:'#2ECC71',
+    skin:{ head:'#2ECC71', body:'#27AE60', glow:'#2ECC71', isImage:true, headImg:'/slither/snake_jelly.png', bodyImg:'/slither/snake_jelly.png' } },
+  { id:'premium-canada', name:'Maple Snake', desc:'Cacing dengan daun maple musim gugur', price:2500, icon:'🍁', color:'#E74C3C',
+    skin:{ head:'#E74C3C', body:'#C0392B', glow:'#E74C3C', isImage:true, headImg:'/slither/snake_canada.png', bodyImg:'/slither/snake_canada.png' } },
 ]
 
 // ─── Tile Theme Packs (Connect Blocks / 2048) ──────────────────────────────

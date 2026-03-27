@@ -380,20 +380,31 @@ export default function Shop({ onBack }) {
                 previewId={previewId} setPreviewId={setPreviewId}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:14, justifyContent:'center' }}>
-                    {/* Snake preview circles */}
-                    {[...Array(8)].map((_, j) => {
-                      const s = item.skin
-                      const isHead = j === 0
-                      const r = 16 - j * 1.2
-                      return (
-                        <div key={j} style={{
-                          width:r*2, height:r*2, borderRadius:'50%',
-                          background: isHead ? s.head : (j%2===0 ? s.body : s.head+'cc'),
-                          boxShadow: isHead ? `0 0 12px ${s.glow}88` : 'none',
-                          transition:'all 0.3s',
-                        }} />
-                      )
-                    })}
+                    {item.skin.isImage ? (
+                      <div style={{ display:'flex', alignItems:'center', gap:0 }}>
+                        <img src={item.skin.headImg} alt="head" style={{ width:36, height:36, zIndex:2, filter:`drop-shadow(0 0 12px ${item.skin.glow}88)` }} />
+                        <img src={item.skin.bodyImg} alt="body" style={{ width:28, height:28, marginLeft:-12, zIndex:1 }} />
+                        <img src={item.skin.bodyImg} alt="body" style={{ width:26, height:26, marginLeft:-12, zIndex:0 }} />
+                        <img src={item.skin.bodyImg} alt="body" style={{ width:24, height:24, marginLeft:-12, zIndex:-1 }} />
+                      </div>
+                    ) : (
+                      <div style={{ display:'flex', alignItems:'center', gap:0 }}>
+                        {[...Array(8)].map((_, j) => {
+                          const s = item.skin
+                          const isHead = j === 0
+                          const r = 16 - j * 1.2
+                          return (
+                            <div key={j} style={{
+                              width:r*2, height:r*2, borderRadius:'50%', marginLeft: isHead ? 0 : -r*0.8,
+                              background: isHead ? s.head : (j%2===0 ? s.body : s.head+'cc'),
+                              boxShadow: isHead ? `0 0 12px ${s.glow}88` : 'none',
+                              zIndex: 10-j, position:'relative',
+                              transition:'all 0.3s',
+                            }} />
+                          )
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
               />
