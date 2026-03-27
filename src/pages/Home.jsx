@@ -641,6 +641,62 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
             <style>{`@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}`}</style>
           </div>
 
+          {/* ── Limited Mode Banner ── */}
+          {currentMode && (
+            <div style={{
+              marginBottom: 48, padding: 20, borderRadius: 20,
+              background: `linear-gradient(135deg, ${currentMode.color}20, ${currentMode.color}08)`,
+              backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+              border: `1.5px solid ${currentMode.color}44`,
+              animation: 'slide-up 0.5s 0.4s ease both',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <span style={{ fontSize: 32, filter: `drop-shadow(0 0 10px ${currentMode.color}66)` }}>{currentMode.emoji}</span>
+                    <div>
+                      <h3 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 20, color: currentMode.color, margin: 0 }}>
+                        {currentMode.name}
+                      </h3>
+                      <span style={{ fontSize: 11, color: textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>Event Terbatas</span>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: 13, color: textMuted, margin: 0, lineHeight: 1.5, maxWidth: '80%' }}>
+                    {currentMode.desc}
+                  </p>
+                  <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+                    <div style={{ fontSize: 12, color: textMuted, fontWeight: 800, padding: '4px 10px', background: `${currentMode.color}22`, borderRadius: 100, border: `1px solid ${currentMode.color}33`, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      🪙 <span style={{ color: currentMode.color }}>×{currentMode.coinMultiplier}</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: textMuted, fontWeight: 800, padding: '4px 10px', background: `${currentMode.color}22`, borderRadius: 100, border: `1px solid ${currentMode.color}33`, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      ⭐ <span style={{ color: currentMode.color }}>×{currentMode.xpMultiplier}</span>
+                    </div>
+                  </div>
+                </div>
+                {!isBonusClaimedToday(currentMode.id) && (
+                  <button
+                    onClick={() => {
+                      markBonusAsClaimed(currentMode.id)
+                      play('levelUp')
+                    }}
+                    style={{
+                      background: `linear-gradient(135deg, ${currentMode.color}, ${currentMode.color}cc)`,
+                      color: '#fff', border: 'none',
+                      borderRadius: 14, padding: '12px 20px', fontSize: 14, fontWeight: 800,
+                      cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s',
+                      fontFamily: "'Fredoka One',cursive",
+                      boxShadow: `0 6px 16px ${currentMode.color}44`
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                  >
+                    Mainkan ✨
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* ── Categorized Game Rows (Netflix Style) ── */}
           {ALL_TAGS.filter(t => t !== 'Semua').map((tag, tagIndex) => {
             const tagGames = games.filter(g => g.tag === tag)
