@@ -396,9 +396,9 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
               </div>
             </div>
 
-            {/* ── Shop & Daily Reward Row ── */}
-            <div style={{ display:'flex', gap:10 }}>
-              {/* Daily Reward */}
+            {/* ── Shop & Creator Section ── */}
+            <div style={{ display:'flex', flexDirection:'column', gap:12, height: '100%' }}>
+              {/* Daily Reward Row */}
               {isDailyClaimable && (
                 <div
                   className="qa-card"
@@ -418,6 +418,7 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
                   </div>
                 </div>
               )}
+              
               {/* Shop button */}
               <div
                 className="qa-card"
@@ -438,6 +439,34 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
                 <div style={{ display:'flex', alignItems:'center', gap:3, background:'#FDCB6E22', borderRadius:100, padding:'3px 10px' }}>
                   <span style={{ fontSize:12 }}>🪙</span>
                   <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:12, color:'#F9A825' }}>{coins}</span>
+                </div>
+              </div>
+
+              {/* Creator Info Card */}
+              <div
+                className="qa-card"
+                onClick={() => window.open('https://github.com/dwiagus', '_blank')}
+                style={{
+                  flex: 1, // Stretch to match the exact height of the Profile Banner on the left
+                  background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                  backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                  border: `1.5px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}`,
+                  marginTop: 'auto',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'; e.currentTarget.style.transform = 'translateY(-4px)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'; e.currentTarget.style.transform = 'translateY(0)' }}
+              >
+                <div style={{ display: 'flex', width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #00b894, #00cec9)', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 4px 10px rgba(0,206,201,0.3)' }}>
+                  👨‍💻
+                </div>
+                <div style={{ flex: 1, paddingLeft: 4 }}>
+                  <div style={{ fontSize: 10, color: textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2, fontWeight: 800 }}>Dibuat Oleh</div>
+                  <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 13, color: textMain }}>Dwi Agus Hidayat</div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                  <span style={{ fontSize: 10, color: textMuted, fontWeight: 800, padding: '3px 8px', background: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)', borderRadius: 100 }}>
+                    v1.0.0
+                  </span>
                 </div>
               </div>
             </div>
