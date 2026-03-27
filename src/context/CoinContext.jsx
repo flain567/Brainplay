@@ -414,6 +414,28 @@ export const RACER_THEMES = [
     style:{ body:'#2D3436', roof:'#1A1A2E', accent:'#6C5CE7', wheel:'#0A0A0A', exhaust:'#A29BFE' } },
 ]
 
+// ─── Voxel Racer Maps (NEW) ─────────────────────────────────────────────────
+export const RACER_MAP_CATALOG = [
+  { id:'default', name:'Classic Hills', desc:'Perbukitan hijau klasik yang cerah', price:0, icon:'⛰️', color:'#4CAF50',
+    img: null,
+    style:{ skyLight:'#4FC3F7', skyDark:'#B3E5FC', ground:'#5D4037', surface:'#4CAF50', edge:'#388E3C', mountain:'#81C784', accent:'#2E7D32' } },
+  { id:'swamp', name:'Toxic Swamp', desc:'Rawa beracun dengan tanah mutasi', price:2000, icon:'🦠', color:'#00B894',
+    img: '/map_swamp.png',
+    style:{ skyLight:'#1A2E1A', skyDark:'#0A140A', ground:'#1E271C', surface:'#00896A', edge:'#00664D', mountain:'#1A3E24', accent:'#00FF88' } },
+  { id:'cave', name:'Ice Cave', desc:'Gua es dingin membekukan ban mobilmu', price:2500, icon:'🧊', color:'#74B9FF',
+    img: '/map_cave.png',
+    style:{ skyLight:'#0A192F', skyDark:'#020C1B', ground:'#102A43', surface:'#486581', edge:'#334E68', mountain:'#243B53', accent:'#74B9FF' } },
+  { id:'factory', name:'Neon Factory', desc:'Pabrik penuh baja dan lava kimia', price:3000, icon:'🏭', color:'#FFD700',
+    img: '/map_factory.png',
+    style:{ skyLight:'#2C001E', skyDark:'#12000F', ground:'#1E1E1E', surface:'#EB4D4B', edge:'#C23616', mountain:'#2B2B2B', accent:'#FFD700' } },
+  { id:'forest', name:'Pine Forest', desc:'Hutan pinus misterius dan tenang', price:4000, icon:'🌲', color:'#00B894',
+    img: '/map_forest.png',
+    style:{ skyLight:'#0D1B2A', skyDark:'#1B263B', ground:'#3A2E26', surface:'#1D5620', edge:'#113A13', mountain:'#1D3557', accent:'#00B894' } },
+  { id:'mars', name:'Mars Valley', desc:'Bukit berbatu merah di planet lain', price:5000, icon:'🪐', color:'#E74C3C',
+    img: '/map_mars.png',
+    style:{ skyLight:'#200404', skyDark:'#0F0202', ground:'#5A1212', surface:'#D84315', edge:'#BF360C', mountain:'#8E1C1C', accent:'#FF8C00' } },
+]
+
 // ─── Coin reward rates ──────────────────────────────────────────────────────
 export const COIN_REWARDS = {
   gameWin:    { easy:15, medium:25, hard:40 },
@@ -444,6 +466,7 @@ function getDefaultCoinState() {
     ownedBreakerThemes:['default'], activeBreakerTheme:'default',
     ownedWordleThemes:['default'], activeWordleTheme:'default',
     ownedRacerThemes:['default'], activeRacerTheme:'default',
+    ownedRacerMaps:['default'], activeRacerMap:'default',
     hints:0, timeFreezes:0,
     lastDailyClaim:null, dailyStreak:0, transactions:[],
   }
@@ -511,8 +534,8 @@ export function CoinProvider({ children }) {
 
   // Generic buy cosmetic
   const buyCosmetic = useCallback(async (type, itemId) => {
-    const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS, ships:SHIP_CATALOG, hangmanThemes:HANGMAN_THEMES, tubeThemes:TUBE_THEMES, sudokuThemes:SUDOKU_THEMES, jigsawThemes:JIGSAW_THEMES, webThemes:WEBSITE_THEMES, patternThemes:PATTERN_THEMES, reactionThemes:REACTION_THEMES, dashThemes:DASH_THEMES, breakerThemes:BREAKER_THEMES, wordleThemes:WORDLE_THEMES, racerThemes:RACER_THEMES }
-    const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', webThemes:'ownedWebThemes', patternThemes:'ownedPatternThemes', reactionThemes:'ownedReactionThemes', dashThemes:'ownedDashThemes', breakerThemes:'ownedBreakerThemes', wordleThemes:'ownedWordleThemes', racerThemes:'ownedRacerThemes' }
+    const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS, ships:SHIP_CATALOG, hangmanThemes:HANGMAN_THEMES, tubeThemes:TUBE_THEMES, sudokuThemes:SUDOKU_THEMES, jigsawThemes:JIGSAW_THEMES, webThemes:WEBSITE_THEMES, patternThemes:PATTERN_THEMES, reactionThemes:REACTION_THEMES, dashThemes:DASH_THEMES, breakerThemes:BREAKER_THEMES, wordleThemes:WORDLE_THEMES, racerThemes:RACER_THEMES, racerMaps:RACER_MAP_CATALOG }
+    const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', webThemes:'ownedWebThemes', patternThemes:'ownedPatternThemes', reactionThemes:'ownedReactionThemes', dashThemes:'ownedDashThemes', breakerThemes:'ownedBreakerThemes', wordleThemes:'ownedWordleThemes', racerThemes:'ownedRacerThemes', racerMaps:'ownedRacerMaps' }
     const items = catalog[type]; const key = ownedKey[type]
     if (!items||!key) return { success:false, reason:'Tipe tidak valid' }
     const item = items.find(i => i.id === itemId)
@@ -527,8 +550,8 @@ export function CoinProvider({ children }) {
   const buyPack = useCallback((packId) => buyCosmetic('packs', packId), [buyCosmetic])
 
   const equipCosmetic = useCallback((type, itemId) => {
-    const ownedKey  = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', webThemes:'ownedWebThemes', patternThemes:'ownedPatternThemes', reactionThemes:'ownedReactionThemes', dashThemes:'ownedDashThemes', breakerThemes:'ownedBreakerThemes', wordleThemes:'ownedWordleThemes', racerThemes:'ownedRacerThemes' }
-    const activeKey = { packs:'activePack', skins:'activeSkin', tileThemes:'activeTileTheme', highlights:'activeHighlight', ships:'activeShip', hangmanThemes:'activeHangmanTheme', tubeThemes:'activeTubeTheme', sudokuThemes:'activeSudokuTheme', jigsawThemes:'activeJigsawTheme', webThemes:'activeWebTheme', patternThemes:'activePatternTheme', reactionThemes:'activeReactionTheme', dashThemes:'activeDashTheme', breakerThemes:'activeBreakerTheme', wordleThemes:'activeWordleTheme', racerThemes:'activeRacerTheme' }
+    const ownedKey  = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', webThemes:'ownedWebThemes', patternThemes:'ownedPatternThemes', reactionThemes:'ownedReactionThemes', dashThemes:'ownedDashThemes', breakerThemes:'ownedBreakerThemes', wordleThemes:'ownedWordleThemes', racerThemes:'ownedRacerThemes', racerMaps:'ownedRacerMaps' }
+    const activeKey = { packs:'activePack', skins:'activeSkin', tileThemes:'activeTileTheme', highlights:'activeHighlight', ships:'activeShip', hangmanThemes:'activeHangmanTheme', tubeThemes:'activeTubeTheme', sudokuThemes:'activeSudokuTheme', jigsawThemes:'activeJigsawTheme', webThemes:'activeWebTheme', patternThemes:'activePatternTheme', reactionThemes:'activeReactionTheme', dashThemes:'activeDashTheme', breakerThemes:'activeBreakerTheme', wordleThemes:'activeWordleTheme', racerThemes:'activeRacerTheme', racerMaps:'activeRacerMap' }
     const key = ownedKey[type]; const aKey = activeKey[type]
     if (!key||!aKey) return
     if (!(state[key]||[]).includes(itemId)) return
@@ -657,6 +680,11 @@ export function CoinProvider({ children }) {
     return t ? t.style : RACER_THEMES[0].style
   }, [state.activeRacerTheme])
 
+  const getActiveRacerMap = useCallback(() => {
+    const m = RACER_MAP_CATALOG.find(h => h.id === state.activeRacerMap)
+    return m || RACER_MAP_CATALOG[0]
+  }, [state.activeRacerMap])
+
   return (
     <CoinContext.Provider value={{
       coins:state.balance, totalEarned:state.totalEarned, totalSpent:state.totalSpent,
@@ -676,6 +704,7 @@ export function CoinProvider({ children }) {
       ownedBreakerThemes:state.ownedBreakerThemes||[], activeBreakerTheme:state.activeBreakerTheme,
       ownedWordleThemes:state.ownedWordleThemes||[], activeWordleTheme:state.activeWordleTheme,
       ownedRacerThemes:state.ownedRacerThemes||[], activeRacerTheme:state.activeRacerTheme,
+      ownedRacerMaps:state.ownedRacerMaps||[], activeRacerMap:state.activeRacerMap,
       hints:state.hints||0, timeFreezes:state.timeFreezes||0,
       dailyStreak:state.dailyStreak, transactions:state.transactions||[],
       isDailyClaimable, coinAnim,
@@ -685,7 +714,7 @@ export function CoinProvider({ children }) {
       getActiveIcons, getActiveSkin, getActiveTileColors, getActiveHighlightColors, getActiveShip,
       getActiveHangmanTheme, getActiveTubeTheme, getActiveSudokuTheme, getActiveJigsawTheme,
       getActiveWebTheme, getActivePatternTheme, getActiveReactionTheme, getActiveDashTheme,
-      getActiveBreakerTheme, getActiveWordleTheme, getActiveRacerTheme,
+      getActiveBreakerTheme, getActiveWordleTheme, getActiveRacerTheme, getActiveRacerMap,
     }}>
       {children}
     </CoinContext.Provider>

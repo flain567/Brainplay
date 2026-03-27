@@ -87,7 +87,7 @@ function spawnCollectibles(terrain,lvl){
 // ═══════════════════════════════════════════════════════════
 export default function VoxelRacer({onBack,game,difficulty}){
   const cRef=useRef(null),aRef=useRef(null),gR=useRef(null),phR=useRef('idle')
-  const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins:earnC,getActiveRacerTheme}=useCoins()
+  const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins:earnC,getActiveRacerTheme,getActiveRacerMap}=useCoins()
   const dc=DC[difficulty.id]
   const[phase,_sp]=useState('idle')
   const[showTut,setShowTut]=useState(()=>!localStorage.getItem('bp_tut_voxel-racer'))
@@ -100,6 +100,20 @@ export default function VoxelRacer({onBack,game,difficulty}){
   const vrBestKey=`vr-best-${difficulty.id}`
   const[bestDist,sBestDist]=useState(()=>parseInt(localStorage.getItem(vrBestKey+'d')||'0'))
   const[bestLv,sBestLv]=useState(()=>parseInt(localStorage.getItem(vrBestKey+'l')||'1'))
+
+  const currentRacerMap=getActiveRacerMap()
+  const mapImgRef=useRef(null)
+
+  useEffect(()=>{
+    if(currentRacerMap.img){
+      const img=new Image()
+      img.src=currentRacerMap.img
+      img.onload=()=>{mapImgRef.current=img}
+      img.onerror=()=>{mapImgRef.current=null}
+    }else{
+      mapImgRef.current=null
+    }
+  },[currentRacerMap.id])
 
   // Resize handler
   useEffect(()=>{
@@ -382,29 +396,38 @@ export default function VoxelRacer({onBack,game,difficulty}){
 
       // Sky gradient
       const sky=ctx.createLinearGradient(0,0,0,H)
-      sky.addColorStop(0,'#4FC3F7');sky.addColorStop(0.5,'#81D4FA');sky.addColorStop(1,'#B3E5FC')
+      sky.addColorStop(0,currentRacerMap.style.skyLight)
+      sky.addColorStop(1,currentRacerMap.style.skyDark)
       ctx.fillStyle=sky;ctx.fillRect(0,0,W,H)
 
-      // Clouds (parallax)
-      ctx.fillStyle='rgba(255,255,255,0.6)'
-      for(let i=0;i<6;i++){
-        const cx2=((i*280+100)-g.camX*0.05)%(W+200)-50
-        ctx.beginPath()
-        ctx.arc(cx2,50+i*18,25+i*8,0,P2);ctx.arc(cx2+20,45+i*18,20+i*6,0,P2);ctx.arc(cx2-15,48+i*18,18+i*5,0,P2)
-        ctx.fill()
+      if(mapImgRef.current){
+        const img=mapImgRef.current
+        const scale=Math.max(H/img.height,1)
+        const scaledWidth=img.width*scale
+        const pScrolX=(g.camX*0.08)%scaledWidth
+        for(let i=0;i<Math.ceil(W/scaledWidth)+1;i++){
+          ctx.drawImage(img,i*scaledWidth-pScrolX,0,scaledWidth,H)
+        }
+      }else{
+        // Clouds (parallax)
+        ctx.fillStyle='rgba(255,255,255,0.6)'
+        for(let i=0;i<6;i++){
+          const cx2=((i*280+100)-g.camX*0.05)%(W+200)-50
+          ctx.beginPath()
+          ctx.arc(cx2,50+i*18,25+i*8,0,P2);ctx.arc(cx2+20,45+i*18,20+i*6,0,P2);ctx.arc(cx2-15,48+i*18,18+i*5,0,P2)
+          ctx.fill()
+        }
+        // Far mountains (parallax)
+        ctx.fillStyle=currentRacerMap.style.mountain+'99' // slightly transparent to blend
+        ctx.beginPath();ctx.moveTo(0,H)
+        for(let x=0;x<=W;x+=8){const wx=x+g.camX*0.15;ctx.lineTo(x,H*0.35+Math.sin(wx*0.006)*25+Math.sin(wx*0.013)*12)}
+        ctx.lineTo(W,H);ctx.fill()
+        // Near hills
+        ctx.fillStyle=currentRacerMap.style.mountain
+        ctx.beginPath();ctx.moveTo(0,H)
+        for(let x=0;x<=W;x+=6){const wx=x+g.camX*0.3;ctx.lineTo(x,H*0.45+Math.sin(wx*0.01)*18+Math.sin(wx*0.022)*8)}
+        ctx.lineTo(W,H);ctx.fill()
       }
-
-      // Far mountains (parallax) - positioned relative to screen
-      ctx.fillStyle='#A5D6A7'
-      ctx.beginPath();ctx.moveTo(0,H)
-      for(let x=0;x<=W;x+=8){const wx=x+g.camX*0.15;ctx.lineTo(x,H*0.35+Math.sin(wx*0.006)*25+Math.sin(wx*0.013)*12)}
-      ctx.lineTo(W,H);ctx.fill()
-
-      // Near hills
-      ctx.fillStyle='#81C784'
-      ctx.beginPath();ctx.moveTo(0,H)
-      for(let x=0;x<=W;x+=6){const wx=x+g.camX*0.3;ctx.lineTo(x,H*0.45+Math.sin(wx*0.01)*18+Math.sin(wx*0.022)*8)}
-      ctx.lineTo(W,H);ctx.fill()
 
       // ── World space — car centered at (35%, 60%) of screen ──
       ctx.save()
@@ -414,29 +437,31 @@ export default function VoxelRacer({onBack,game,difficulty}){
       const tPts=g.terr.pts
       const vl=g.camX-50,vr=g.camX+W+50
 
-      // Ground body (dirt — HCR brown)
-      ctx.fillStyle='#5D4037'
+      // Ground body
+      ctx.fillStyle=currentRacerMap.style.ground
       ctx.beginPath();ctx.moveTo(tPts[0].x,tPts[0].y+12)
       for(const pt of tPts){if(pt.x<vl-100||pt.x>vr+100)continue;ctx.lineTo(pt.x,pt.y+12)}
-      ctx.lineTo(tPts[tPts.length-1].x,500);ctx.lineTo(tPts[0].x,500);ctx.fill()
+      ctx.lineTo(tPts[tPts.length-1].x,2000);ctx.lineTo(tPts[0].x,2000);ctx.fill()
 
-      // Ground surface (green like HCR)
-      ctx.fillStyle='#4CAF50'
+      // Ground surface
+      ctx.fillStyle=currentRacerMap.style.surface
       ctx.beginPath();ctx.moveTo(tPts[0].x,tPts[0].y)
       for(const pt of tPts){if(pt.x<vl-100||pt.x>vr+100)continue;ctx.lineTo(pt.x,pt.y)}
-      ctx.lineTo(tPts[tPts.length-1].x,500);ctx.lineTo(tPts[0].x,500);ctx.fill()
+      ctx.lineTo(tPts[tPts.length-1].x,2000);ctx.lineTo(tPts[0].x,2000);ctx.fill()
 
-      // HCR-style multi-layer grass edge
-      ctx.strokeStyle='#2E7D32';ctx.lineWidth=4
+      // Edge styling
+      ctx.strokeStyle=currentRacerMap.style.edge;ctx.lineWidth=4
       ctx.beginPath();let st2=false
       for(const pt of tPts){if(pt.x<vl-100||pt.x>vr+100)continue;if(!st2){ctx.moveTo(pt.x,pt.y+6);st2=true}else ctx.lineTo(pt.x,pt.y+6)}
       ctx.stroke()
-      ctx.strokeStyle='#388E3C';ctx.lineWidth=3
+      
+      ctx.strokeStyle=currentRacerMap.style.mountain;ctx.lineWidth=3
       ctx.beginPath();let st3=false
       for(const pt of tPts){if(pt.x<vl-100||pt.x>vr+100)continue;if(!st3){ctx.moveTo(pt.x,pt.y+3);st3=true}else ctx.lineTo(pt.x,pt.y+3)}
       ctx.stroke()
-      // Top bright green edge
-      ctx.strokeStyle='#66BB6A';ctx.lineWidth=3
+      
+      // Top bright edge
+      ctx.strokeStyle=currentRacerMap.style.accent;ctx.lineWidth=3
       ctx.beginPath()
       let started=false
       for(const pt of tPts){if(pt.x<vl-100||pt.x>vr+100)continue;if(!started){ctx.moveTo(pt.x,pt.y-1);started=true}else ctx.lineTo(pt.x,pt.y-1)}

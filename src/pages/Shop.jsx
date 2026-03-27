@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useAuth } from '../context/AuthContext.jsx'
-import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, PATTERN_THEMES, REACTION_THEMES, DASH_THEMES, BREAKER_THEMES, WORDLE_THEMES, RACER_THEMES, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
+import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, PATTERN_THEMES, REACTION_THEMES, DASH_THEMES, BREAKER_THEMES, WORDLE_THEMES, RACER_THEMES, RACER_MAP_CATALOG, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 
 // ─── Generic cosmetic list renderer ─────────────────────────────────────────
@@ -99,6 +99,7 @@ export default function Shop({ onBack }) {
     ownedBreakerThemes, activeBreakerTheme,
     ownedWordleThemes, activeWordleTheme,
     ownedRacerThemes, activeRacerTheme,
+    ownedRacerMaps, activeRacerMap,
     hints, timeFreezes, dailyStreak, isDailyClaimable,
     buyCosmetic, equipCosmetic, buyConsumable, claimDaily, transactions, earnCoins,
   } = useCoins()
@@ -195,6 +196,7 @@ export default function Shop({ onBack }) {
     { id:'breaker',    label:'🏓 Breaker'   },
     { id:'wordle',     label:'📝 Wordle'    },
     { id:'racer',      label:'🚗 Racer'     },
+    { id:'racermaps',  label:'⛰️ Maps'      },
     { id:'webtheme',   label:'🎨 Tema'      },
     { id:'history',    label:'📜 Riwayat',  },
   ]
@@ -828,6 +830,31 @@ export default function Shop({ onBack }) {
                       <circle cx="58" cy="35" r="5" fill={item.style.wheel}/>
                     </svg>
                     <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)' }}>Preview mobil</div>
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          {/* ── Voxel Racer Maps (NEW) ── */}
+          {tab === 'racermaps' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                Ubah tema background panorama dan warna tanah di Voxel Racer
+              </p>
+              <CosmeticList
+                items={RACER_MAP_CATALOG} ownedList={ownedRacerMaps||[]} activeId={activeRacerMap} type="racerMaps"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('racerMaps', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                renderPreview={(item) => (
+                  <div style={{ marginTop:12, padding:14, borderRadius:12, background:item.style.skyLight, display:'flex', alignItems:'flex-end', justifyContent:'center', position:'relative', height:80, overflow:'hidden' }}>
+                    <div style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', background:`linear-gradient(${item.style.skyLight}, ${item.style.skyDark})` }} />
+                    <div style={{ position:'absolute', bottom:10, left:0, width:'100%', height:30, background:item.style.mountain, clipPath:'polygon(0 100%, 20% 40%, 40% 90%, 60% 20%, 80% 80%, 100% 10%, 100% 100%)', opacity:0.8 }} />
+                    <div style={{ position:'absolute', bottom:0, left:0, width:'100%', height:20, background:item.style.ground, borderTop:`4px solid ${item.style.surface}` }} />
+                    <div style={{ position:'relative', zIndex:2, fontSize:11, color:'#fff', textShadow:'0 1px 4px rgba(0,0,0,0.8)', fontWeight:800 }}>Preview Lingkungan</div>
                   </div>
                 )}
               />
