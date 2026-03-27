@@ -965,7 +965,7 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
 
       {/* ── Boost ── */}
       {phase === 'playing' && (
-        <div style={{ position:'absolute', bottom:'max(28px, 5vh)', right:'max(16px, 3vw)', zIndex:15, userSelect:'none' }}>
+        <div style={{ position:'absolute', bottom:140, right:'max(16px, 3vw)', zIndex:15, userSelect:'none' }}>
           <button
             onTouchStart={e=>{e.preventDefault();boostRef.current=true;setBoosting(true)}}
             onTouchEnd={e=>{e.preventDefault();boostRef.current=false;setBoosting(false)}}
