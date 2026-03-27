@@ -44,7 +44,6 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
   } = useDailyChallenge()
   const { currentMode, isBonusClaimedToday, markBonusAsClaimed } = useLimitedMode()
   const tc = useThemeColors()
-  const [activeTag, setActiveTag] = useState('Semua')
   const [scrollTop, setScrollTop] = useState(false)
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
@@ -63,9 +62,6 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
   const textMuted = tc.textMuted
   const borderCol = tc.borderCol
   const surfaceCol = tc.surface
-
-  const filteredAvailable = activeTag === 'Semua' ? games        : games.filter(g => g.tag === activeTag)
-  const filteredComing    = activeTag === 'Semua' ? COMING_SOON  : COMING_SOON.filter(g => g.tag === activeTag)
 
   const totalDone = games.length
   const pct = Math.round((totalDone / 25) * 100)
@@ -140,28 +136,37 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
         .progress-dot  { width: 6px; height: 6px; border-radius: 50%; background: ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}; transition: all 0.3s; }
         .progress-dot.done { background: #A29BFE; box-shadow: 0 0 6px #A29BFE44; }
 
-        /* Filter tabs */
-        .filter-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 36px; animation: slide-up 0.5s 0.35s ease both; }
-        .filter-btn {
-          display: flex; align-items: center; gap: 6px;
-          border-radius: 100px; padding: 10px 22px;
-          font-size: 14px; font-weight: 800; font-family: 'Fredoka One',cursive;
-          cursor: pointer; transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
-          border: 2px solid transparent; position: relative; overflow: hidden;
+        /* Dashboard Grid */
+        .dashboard-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          gap: 20px;
+          margin-bottom: 40px;
+          align-items: start;
+          animation: slide-up 0.5s 0.25s ease both;
         }
-        .filter-btn::before {
-          content: ''; position: absolute; inset: 0; border-radius: 100px;
-          background: rgba(255,255,255,0); transition: background 0.2s;
-        }
-        .filter-btn:hover::before { background: rgba(255,255,255,0.08); }
-        .filter-btn:hover { transform: translateY(-3px) scale(1.05); }
-        .filter-btn:active { transform: scale(0.96); }
-        .filter-btn { -webkit-tap-highlight-color: transparent; }
+
+        /* Filter tabs (kept for Fallback/Mobile if needed but largely removed from UI) */
+        .filter-row { display: none; }
 
         /* Section headers */
-        .section-head { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; animation: slide-up 0.5s ease both; }
-        .section-title { font-family: 'Fredoka One',cursive; font-size: 26px; color: ${textMain}; white-space: nowrap; }
+        .section-head { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; animation: slide-up 0.5s ease both; }
+        .section-title { font-family: 'Fredoka One',cursive; font-size: 24px; color: ${textMain}; white-space: nowrap; }
         .section-line  { flex: 1; height: 2px; border-radius: 100px; background: ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}; min-width: 20px; }
+
+        /* Horizontal Carousel (Netflix Style) */
+        .carousel-row {
+          display: flex;
+          gap: 16px;
+          overflow-x: auto;
+          padding-bottom: 24px;
+          margin-bottom: 12px;
+          scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+        .carousel-row::-webkit-scrollbar { display: none; }
+        .carousel-row::after { content: ''; padding-right: 1px; } /* extra padding at end */
 
         /* Coming soon grid */
         .cs-card {
@@ -306,106 +311,111 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
             </div>
           </div>
 
-          {/* ── XP & Profile Banner ── */}
-          <div
-            onClick={() => { play('click'); onProfile && onProfile() }}
-            style={{ maxWidth:480, margin:'0 auto 20px', cursor:'pointer', animation:'slide-up 0.5s 0.25s ease both' }}
-          >
-            <div style={{
-              display:'flex', alignItems:'center', gap:14,
-              background: dark?'rgba(162,155,254,0.08)':'rgba(162,155,254,0.06)',
-              border:`1.5px solid ${dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.25)'}`,
-              borderRadius:20, padding:'14px 20px',
-              transition:'all 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#A29BFE'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.25)'; e.currentTarget.style.transform = 'translateY(0)' }}
-            >
-              <div style={{ 
-                fontSize:32, flexShrink:0, width:60, height:60, 
-                borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center',
-                border: borderData.border, boxShadow: borderData.boxShadow, background: borderData.bgColor 
-              }}>
-                {levelInfo.level < 5 ? '🌱' : levelInfo.level < 10 ? '⚔️' : '👑'}
-              </div>
-              <div style={{ flex:1 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-                  <span style={{ 
-                    fontFamily:"'Fredoka One',cursive", fontSize:14, 
-                    background: titleStyle.bg !== 'transparent' ? titleStyle.bg : 'none',
-                    WebkitBackgroundClip: titleStyle.bg !== 'transparent' ? 'text' : 'border-box',
-                    WebkitTextFillColor: titleStyle.bg !== 'transparent' ? 'transparent' : borderData.color,
-                    color: borderData.color
-                  }}>
-                    Lv.{levelInfo.level} {levelInfo.title}
-                  </span>
-                  <span style={{ fontSize:12, color:textMuted }}>•</span>
-                  <span style={{ fontSize:12, color:textMuted, fontWeight:700 }}>{(progress.totalXP||0).toLocaleString()} XP</span>
-                </div>
-                <div style={{ height:6, borderRadius:100, background:dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)', overflow:'hidden' }}>
-                  <div style={{ height:'100%', borderRadius:100, background:'linear-gradient(90deg,#A29BFE,#FDCB6E)', width:`${Math.round(levelInfo.progress*100)}%`, transition:'width 0.6s ease' }} />
-                </div>
-              </div>
-              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
-                <span style={{ fontSize:16 }}>🔥</span>
-                <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#FF6B6B' }}>{streak}</span>
-                {comboLabel && <span className="combo-badge">{comboLabel}</span>}
-              </div>
-              <span style={{ fontSize:16, color:textMuted }}>→</span>
-            </div>
-          </div>
+          {/* ── Dashboard Grid ── */}
+          <div className="dashboard-grid">
 
-          {/* ── Shop & Daily Reward Row ── */}
-          <div style={{ maxWidth:480, margin:'0 auto 20px', display:'flex', gap:10, animation:'slide-up 0.5s 0.3s ease both' }}>
-            {/* Daily Reward */}
-            {isDailyClaimable && (
+            {/* ── XP & Profile Banner ── */}
+            <div
+              onClick={() => { play('click'); onProfile && onProfile() }}
+              style={{ cursor:'pointer' }}
+            >
+              <div style={{
+                display:'flex', alignItems:'center', gap:14,
+                background: dark?'rgba(162,155,254,0.08)':'rgba(162,155,254,0.06)',
+                backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                border:`1.5px solid ${dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.25)'}`,
+                borderRadius:20, padding:'14px 20px',
+                transition:'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#A29BFE'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(162,155,254,0.15)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.25)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+              >
+                <div style={{ 
+                  fontSize:32, flexShrink:0, width:60, height:60, 
+                  borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center',
+                  border: borderData.border, boxShadow: borderData.boxShadow, background: borderData.bgColor 
+                }}>
+                  {levelInfo.level < 5 ? '🌱' : levelInfo.level < 10 ? '⚔️' : '👑'}
+                </div>
+                <div style={{ flex:1 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
+                    <span style={{ 
+                      fontFamily:"'Fredoka One',cursive", fontSize:14, 
+                      background: titleStyle.bg !== 'transparent' ? titleStyle.bg : 'none',
+                      WebkitBackgroundClip: titleStyle.bg !== 'transparent' ? 'text' : 'border-box',
+                      WebkitTextFillColor: titleStyle.bg !== 'transparent' ? 'transparent' : borderData.color,
+                      color: borderData.color
+                    }}>
+                      Lv.{levelInfo.level} {levelInfo.title}
+                    </span>
+                    <span style={{ fontSize:12, color:textMuted }}>•</span>
+                    <span style={{ fontSize:12, color:textMuted, fontWeight:700 }}>{(progress.totalXP||0).toLocaleString()} XP</span>
+                  </div>
+                  <div style={{ height:6, borderRadius:100, background:dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)', overflow:'hidden' }}>
+                    <div style={{ height:'100%', borderRadius:100, background:'linear-gradient(90deg,#A29BFE,#FDCB6E)', width:`${Math.round(levelInfo.progress*100)}%`, transition:'width 0.6s ease' }} />
+                  </div>
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
+                  <span style={{ fontSize:16 }}>🔥</span>
+                  <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#FF6B6B' }}>{streak}</span>
+                  {comboLabel && <span className="combo-badge">{comboLabel}</span>}
+                </div>
+                <span style={{ fontSize:16, color:textMuted }}>→</span>
+              </div>
+            </div>
+
+            {/* ── Shop & Daily Reward Row ── */}
+            <div style={{ display:'flex', gap:10, height: '100%' }}>
+              {/* Daily Reward */}
+              {isDailyClaimable && (
+                <div
+                  className="qa-card"
+                  onClick={() => { play('levelUp'); claimDaily() }}
+                  style={{
+                    background: dark?'rgba(253,203,110,0.08)':'rgba(253,203,110,0.1)',
+                    backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                    border:`1.5px solid ${dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.3)'}`,
+                    height: '100%',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor='#FDCB6E'; e.currentTarget.style.transform='translateY(-4px)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor=dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.3)'; e.currentTarget.style.transform='translateY(0)' }}
+                >
+                  <span style={{ fontSize:24 }}>🎁</span>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#F9A825' }}>Hadiah Harian</div>
+                    <div style={{ fontSize:11, color:textMuted }}>Klik klaim!</div>
+                  </div>
+                </div>
+              )}
+              {/* Shop button */}
               <div
                 className="qa-card"
-                onClick={() => { play('levelUp'); claimDaily() }}
+                onClick={() => { play('click'); onShop && onShop() }}
                 style={{
-                  background: dark?'rgba(253,203,110,0.08)':'rgba(253,203,110,0.1)',
-                  border:`1.5px solid ${dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.3)'}`,
+                  background: dark?'rgba(162,155,254,0.08)':'rgba(162,155,254,0.06)',
+                  backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                  border:`1.5px solid ${dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.2)'}`,
+                  height: '100%',
                 }}
-                onMouseEnter={e => e.currentTarget.style.borderColor='#FDCB6E'}
-                onMouseLeave={e => e.currentTarget.style.borderColor=dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.3)'}
+                onMouseEnter={e => { e.currentTarget.style.borderColor='#A29BFE'; e.currentTarget.style.transform='translateY(-4px)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor=dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.2)'; e.currentTarget.style.transform='translateY(0)' }}
               >
-                <span style={{ fontSize:24 }}>🎁</span>
+                <span style={{ fontSize:24 }}>🏪</span>
                 <div style={{ flex:1 }}>
-                  <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#F9A825' }}>Hadiah Harian</div>
-                  <div style={{ fontSize:11, color:textMuted }}>Klik untuk klaim!</div>
+                  <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#A29BFE' }}>Shop</div>
+                  <div style={{ fontSize:11, color:textMuted }}>Card packs dll</div>
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap:3, background:'#FDCB6E22', borderRadius:100, padding:'3px 10px' }}>
+                  <span style={{ fontSize:12 }}>🪙</span>
+                  <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:12, color:'#F9A825' }}>{coins}</span>
                 </div>
               </div>
-            )}
-            {/* Shop button */}
-            <div
-              className="qa-card"
-              onClick={() => { play('click'); onShop && onShop() }}
-              style={{
-                background: dark?'rgba(162,155,254,0.08)':'rgba(162,155,254,0.06)',
-                border:`1.5px solid ${dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.2)'}`,
-              }}
-              onMouseEnter={e => e.currentTarget.style.borderColor='#A29BFE'}
-              onMouseLeave={e => e.currentTarget.style.borderColor=dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.2)'}
-            >
-              <span style={{ fontSize:24 }}>🏪</span>
-              <div style={{ flex:1 }}>
-                <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#A29BFE' }}>Shop</div>
-                <div style={{ fontSize:11, color:textMuted }}>Card packs & lainnya</div>
-              </div>
-              <div style={{ display:'flex', alignItems:'center', gap:3, background:'#FDCB6E22', borderRadius:100, padding:'3px 10px' }}>
-                <span style={{ fontSize:12 }}>🪙</span>
-                <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:12, color:'#F9A825' }}>{coins}</span>
-              </div>
             </div>
-          </div>
 
-          {/* ── Daily Challenges ── */}
-          <div style={{
-            maxWidth:480, margin:'0 auto 24px',
-            animation:'slide-up 0.5s 0.35s ease both',
-          }}>
+            {/* ── Daily Challenges ── */}
             <div style={{
               background: dark ? 'rgba(162,155,254,0.06)' : 'rgba(162,155,254,0.04)',
+              backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
               border:`1.5px solid ${dark ? 'rgba(162,155,254,0.15)' : 'rgba(162,155,254,0.2)'}`,
               borderRadius:20, padding:'18px 16px', overflow:'hidden',
             }}>
@@ -572,114 +582,48 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
             <style>{`@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}`}</style>
           </div>
 
-          {/* ── Filter ── */}
-          <div className="filter-row">
-            {ALL_TAGS.map(tag => {
-              const active = activeTag === tag
-              const meta   = TAG_META[tag]
-              return (
-                <button
-                  key={tag}
-                  className="filter-btn"
-                  onClick={() => { play('click'); setActiveTag(tag) }}
-                  style={{
-                    background: active
-                      ? `linear-gradient(135deg, ${meta.color}, ${meta.color}bb)`
-                      : (dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'),
-                    color: active ? '#fff' : textMuted,
-                    borderColor: active ? 'transparent' : borderCol,
-                    boxShadow: active ? `0 6px 20px ${meta.color}44` : 'none',
-                    transform: active ? 'translateY(-2px) scale(1.04)' : '',
-                  }}
-                >
-                  {meta.icon} {tag}
-                </button>
-              )
-            })}
-          </div>
-
-          {/* ── Limited Mode Banner ── */}
-          {currentMode && (
-            <div style={{
-              marginBottom: 36, padding: 20, borderRadius: 20,
-              background: `linear-gradient(135deg, ${currentMode.color}20, ${currentMode.color}08)`,
-              border: `2px solid ${currentMode.color}44`,
-              animation: 'slide-up 0.5s 0.4s ease both',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <span style={{ fontSize: 28 }}>{currentMode.emoji}</span>
-                    <div>
-                      <h3 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 18, color: currentMode.color, margin: 0 }}>
-                        {currentMode.name}
-                      </h3>
-                    </div>
-                  </div>
-                  <p style={{ fontSize: 13, color: textMuted, margin: 0, lineHeight: 1.5 }}>
-                    {currentMode.desc}
-                  </p>
-                  <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
-                    <div style={{ fontSize: 12, color: textMuted }}>
-                      🪙 ×{currentMode.coinMultiplier}  |  ⭐ ×{currentMode.xpMultiplier}
-                    </div>
-                  </div>
+          {/* ── Categorized Game Rows (Netflix Style) ── */}
+          {ALL_TAGS.filter(t => t !== 'Semua').map((tag, tagIndex) => {
+            const tagGames = games.filter(g => g.tag === tag)
+            if (tagGames.length === 0) return null
+            const meta = TAG_META[tag]
+            return (
+              <section key={tag} style={{ marginBottom: 48, animation: `slide-up 0.5s ${0.3 + tagIndex*0.1}s ease both` }}>
+                <div className="section-head">
+                  <h2 className="section-title" style={{ display:'flex', alignItems:'center', gap:10 }}>
+                    <span style={{ fontSize:28, filter:`drop-shadow(0 0 10px ${meta.color}66)` }}>{meta.icon}</span>
+                    {tag}
+                  </h2>
+                  <span style={{ background: `${meta.color}22`, color: meta.color, borderRadius: 100, padding: '4px 14px', fontSize: 13, fontWeight: 800, border: `1px solid ${meta.color}44` }}>
+                    {tagGames.length} Game
+                  </span>
+                  <div className="section-line" />
                 </div>
-                {!isBonusClaimedToday(currentMode.id) && (
-                  <button
-                    onClick={() => {
-                      markBonusAsClaimed(currentMode.id)
-                      play('levelUp')
-                    }}
-                    style={{
-                      background: currentMode.color, color: '#fff', border: 'none',
-                      borderRadius: 12, padding: '10px 18px', fontSize: 13, fontWeight: 700,
-                      cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s',
-                      fontFamily: "'Fredoka One',cursive",
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                  >
-                    Mainkan ✨
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ── Available games ── */}
-          {filteredAvailable.length > 0 && (
-            <section style={{ marginBottom: 56 }}>
-              <div className="section-head">
-                <h2 className="section-title">🎮 Bisa Dimainkan</h2>
-                <span style={{ background: '#4ECDC4', color: '#fff', borderRadius: 100, padding: '4px 14px', fontSize: 13, fontWeight: 800 }}>
-                  {filteredAvailable.length} Game
-                </span>
-                <div className="section-line" />
-              </div>
-              <div className="game-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 18 }}>
-                {filteredAvailable.map((game, i) => (
-                  <div key={game.id} style={{ animation: `slide-up 0.4s ${i * 0.07}s ease both` }}>
-                    <GameCard game={game} onPlay={onPlay} />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+                <div className="carousel-row">
+                  {tagGames.map((game) => (
+                    <GameCard key={game.id} game={game} onPlay={onPlay} />
+                  ))}
+                </div>
+              </section>
+            )
+          })}
 
           {/* ── Coming soon ── */}
-          {filteredComing.length > 0 && (
-            <section>
+          {COMING_SOON.length > 0 && (
+            <section style={{ animation: 'slide-up 0.5s 0.8s ease both', marginBottom: 48 }}>
               <div className="section-head">
-                <h2 className="section-title">🔒 Segera Hadir</h2>
-                <span style={{ background: '#A29BFE', color: '#fff', borderRadius: 100, padding: '4px 14px', fontSize: 13, fontWeight: 800 }}>
-                  {filteredComing.length} Game
+                <h2 className="section-title" style={{ display:'flex', alignItems:'center', gap:10 }}>
+                  <span style={{ fontSize:28, filter:'drop-shadow(0 0 10px #A29BFE66)' }}>🔒</span>
+                  Segera Hadir
+                </h2>
+                <span style={{ background: '#A29BFE22', color: '#A29BFE', borderRadius: 100, padding: '4px 14px', fontSize: 13, fontWeight: 800, border: '1px solid #A29BFE44' }}>
+                  {COMING_SOON.length} Game
                 </span>
                 <div className="section-line" />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(155px,1fr))', gap: 12 }}>
-                {filteredComing.map((g, i) => (
-                  <div key={g.day} className="cs-card" style={{ animationDelay: `${i * 0.04}s`, opacity: 0.6 }}>
+              <div className="carousel-row" style={{ minHeight: 140 }}>
+                {COMING_SOON.map((g, i) => (
+                  <div key={g.day} className="cs-card" style={{ flexShrink: 0, width: 160, scrollSnapAlign: 'start', opacity: 0.6 }}>
                     <div style={{ position: 'absolute', top: 10, right: 10, background: `${g.color}22`, color: g.color, fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 100, fontFamily: "'Fredoka One',cursive", border: `1px solid ${g.color}44` }}>
                       Hari {g.day}
                     </div>
@@ -690,15 +634,6 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
                 ))}
               </div>
             </section>
-          )}
-
-          {/* Empty state */}
-          {filteredAvailable.length === 0 && filteredComing.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-              <div style={{ fontSize: 56, marginBottom: 16 }}>🔍</div>
-              <p style={{ fontFamily: "'Fredoka One',cursive", fontSize: 22, color: textMain, marginBottom: 8 }}>Belum ada game di kategori ini</p>
-              <p style={{ fontSize: 14, color: textMuted }}>Segera hadir di hari-hari berikutnya!</p>
-            </div>
           )}
 
           {/* ── Footer Credit ── */}

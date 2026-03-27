@@ -33,8 +33,12 @@ export default function GameCard({ game, onPlay }) {
     <>
       <style>{`
         .gcard {
-          border-radius: 28px;
-          padding: 28px;
+          width: 280px;
+          flex-shrink: 0;
+          scroll-snap-align: start;
+          aspect-ratio: 16 / 9;
+          border-radius: 20px;
+          padding: 20px;
           cursor: pointer;
           position: relative;
           overflow: hidden;
@@ -42,41 +46,43 @@ export default function GameCard({ game, onPlay }) {
                       box-shadow 0.25s ease,
                       border-color 0.2s ease;
           border: 2px solid transparent;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
           animation: slide-up 0.4s ease both;
+          -webkit-tap-highlight-color: transparent;
         }
-        .gcard:hover { transform: translateY(-8px) scale(1.02); }
-        .gcard:active { transform: translateY(-3px) scale(0.99); }
-        .gcard { -webkit-tap-highlight-color: transparent; }
+        .gcard:hover { transform: translateY(-6px) scale(1.02); }
+        .gcard:active { transform: translateY(-2px) scale(0.99); }
 
-        .gcard-bg-orb {
-          position: absolute; border-radius: 50%; pointer-events: none;
-          transition: transform 0.4s ease, opacity 0.4s ease;
+        .gcard-emoji-bg {
+          position: absolute;
+          right: -15px;
+          bottom: -20px;
+          font-size: 110px;
+          opacity: 0.15;
+          pointer-events: none;
+          transition: all 0.5s cubic-bezier(0.34,1.56,0.64,1);
+          z-index: 0;
+          filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
         }
-        .gcard:hover .gcard-bg-orb { transform: scale(1.4); opacity: 0.18; }
+        .gcard:hover .gcard-emoji-bg { transform: scale(1.1) rotate(-10deg) translateX(-10px); opacity: 0.35; }
 
-        .gcard-emoji {
-          font-size: 52px; display: inline-block; margin-bottom: 16px;
-          transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
-          filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+        .gcard-content {
+          position: relative; z-index: 2;
         }
-        .gcard:hover .gcard-emoji { transform: scale(1.25) rotate(-10deg) translateY(-4px); }
 
         .gcard-play-btn {
-          display: inline-flex; align-items: center; gap: 8px;
-          border: none; border-radius: 100px;
-          padding: 11px 26px; font-size: 14px; font-weight: 800;
-          font-family: 'Fredoka One', cursive; letter-spacing: 0.3px;
-          color: #fff; cursor: pointer;
-          transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
-          position: relative; overflow: hidden;
+          position: absolute; top: 16px; left: 16px;
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 36px; height: 36px; border-radius: 50%; border: none;
+          background: rgba(255,255,255,0.2); backdrop-filter: blur(4px);
+          color: #fff; cursor: pointer; opacity: 0; transform: scale(0.8);
+          transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+          z-index: 3; font-size: 12px; font-weight: 800; padding-left: 2px;
         }
-        .gcard-play-btn::after {
-          content: ''; position: absolute; inset: 0;
-          background: rgba(255,255,255,0);
-          transition: background 0.2s;
-        }
-        .gcard:hover .gcard-play-btn { transform: scale(1.06); }
-        .gcard:hover .gcard-play-btn::after { background: rgba(255,255,255,0.12); }
+        .gcard:hover .gcard-play-btn { opacity: 1; transform: scale(1); }
+        .gcard:hover .gcard-play-btn:hover { background: rgba(255,255,255,0.4); transform: scale(1.1); }
 
         .gcard-shine {
           position: absolute; top: -50%; left: -60%;
@@ -84,33 +90,29 @@ export default function GameCard({ game, onPlay }) {
           background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
           transform: skewX(-20deg);
           transition: left 0.5s ease;
-          pointer-events: none;
+          pointer-events: none; z-index: 1;
         }
         .gcard:hover .gcard-shine { left: 120%; }
 
         .gcard-ripple {
           position: absolute; border-radius: 50%;
           background: rgba(255,255,255,0.25);
-          pointer-events: none;
+          pointer-events: none; z-index: 3;
           animation: rippleAnim 0.6s ease-out forwards;
         }
         @keyframes rippleAnim {
-          0% { width: 0; height: 0; opacity: 0.4; }
-          100% { width: 300px; height: 300px; opacity: 0; }
+          0% { width: 0; height: 0; opacity: 0.4; transform: translate(-50%, -50%); }
+          100% { width: 400px; height: 400px; opacity: 0; transform: translate(-50%, -50%); }
         }
 
-        .gcard-progress-dots {
-          display: flex; gap: 3px; margin-top: 2px;
-        }
-        .gcard-progress-dots span {
-          width: 5px; height: 5px; border-radius: 50%;
-          transition: all 0.2s;
+        .gcard-top-right {
+          position: absolute; top: 14px; right: 14px;
+          display: flex; gap: 6px; z-index: 3;
         }
 
         @media (max-width: 600px) {
-          .gcard { padding: 22px; border-radius: 22px; }
-          .gcard-emoji { font-size: 42px; margin-bottom: 12px; }
-          .gcard-play-btn { padding: 10px 22px; font-size: 13px; }
+          .gcard { width: 260px; padding: 18px; border-radius: 18px; }
+          .gcard-emoji-bg { font-size: 90px; right: -10px; bottom: -15px; }
         }
       `}</style>
 
@@ -132,66 +134,68 @@ export default function GameCard({ game, onPlay }) {
       >
         {/* Ripple */}
         {ripple && (
-          <div className="gcard-ripple" style={{ left: ripple.x - 150, top: ripple.y - 150 }} />
+          <div className="gcard-ripple" style={{ left: ripple.x, top: ripple.y }} />
         )}
 
         {/* Shine sweep */}
         <div className="gcard-shine" />
 
-        {/* Background orb */}
-        <div className="gcard-bg-orb" style={{ width: 140, height: 140, bottom: -40, right: -40, background: game.color, opacity: 0.08 }} />
-        <div className="gcard-bg-orb" style={{ width: 80, height: 80, top: -20, left: -20, background: game.color, opacity: 0.06, animationDelay: '0.5s' }} />
+        {/* Background gradient overlap to make text readable */}
+        <div style={{ position:'absolute', inset:0, background: 'linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)', zIndex:1 }} />
 
-        {/* Day badge */}
-        <div style={{
-          position: 'absolute', top: 16, right: 16,
-          background: `${game.color}22`,
-          color: game.color,
-          border: `1.5px solid ${game.color}44`,
-          fontSize: 11, fontWeight: 800, padding: '3px 10px',
-          borderRadius: 100, fontFamily: "'Fredoka One',cursive",
-          backdropFilter: 'blur(4px)',
-        }}>
-          Hari {game.day}
+        {/* Play Button Overlay */}
+        <button className="gcard-play-btn">▶</button>
+
+        {/* Top Right Badges */}
+        <div className="gcard-top-right">
+          {wins > 0 && (
+            <div style={{
+              background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(4px)',
+              color: '#fff', fontSize: 10, fontWeight: 800,
+              padding: '2px 8px', borderRadius: 100, border: '1px solid rgba(255,255,255,0.2)',
+            }}>
+              {wins}×✓
+            </div>
+          )}
+          <div style={{
+            background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(4px)',
+            color: '#fff', border: '1px solid rgba(255,255,255,0.2)',
+            fontSize: 10, fontWeight: 800, padding: '2px 8px',
+            borderRadius: 100, fontFamily: "'Fredoka One',cursive",
+          }}>
+            Hari {game.day}
+          </div>
         </div>
 
-        {/* Emoji */}
-        <div className="gcard-emoji">{game.emoji}</div>
+        {/* Jumbo Emoji Watermark */}
+        <div className="gcard-emoji-bg">{game.emoji}</div>
 
-        {/* Tags */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={{ background: game.color, color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 100, letterSpacing: '0.3px' }}>
+        {/* Bottom Content Area */}
+        <div className="gcard-content">
+          <span style={{ 
+            display: 'inline-block',
+            background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(4px)',
+            color: '#fff', fontSize: 10, fontWeight: 700, 
+            padding: '3px 10px', borderRadius: 100, letterSpacing: '0.5px',
+            marginBottom: 6, textTransform: 'uppercase'
+          }}>
             {game.tag}
           </span>
-          {wins > 0 && (
-            <span style={{
-              background: dark ? 'rgba(78,205,196,0.15)' : '#E8FFF8',
-              color: '#4ECDC4', fontSize: 10, fontWeight: 800,
-              padding: '3px 10px', borderRadius: 100,
-              border: '1px solid #4ECDC444',
-            }}>
-              {wins}× ✓
-            </span>
-          )}
+          <h3 style={{ 
+            fontFamily: "'Fredoka One',cursive", fontSize: 20, 
+            color: '#fff', margin: 0, lineHeight: 1.1,
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+          }}>
+            {game.title}
+          </h3>
+          <p style={{ 
+            fontSize: 11, color: 'rgba(255,255,255,0.7)', 
+            lineHeight: 1.4, margin: '4px 0 0 0',
+            display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden'
+          }}>
+            {game.description}
+          </p>
         </div>
-
-        {/* Title */}
-        <h3 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 22, color: tc.textMain, marginBottom: 8, lineHeight: 1.2 }}>
-          {game.title}
-        </h3>
-
-        {/* Description */}
-        <p style={{ fontSize: 13, color: tc.textMuted, lineHeight: 1.6, marginBottom: 20 }}>
-          {game.description}
-        </p>
-
-        {/* Play button */}
-        <button
-          className="gcard-play-btn"
-          style={{ background: `linear-gradient(135deg, ${game.color}, ${game.color}cc)`, boxShadow: `0 6px 20px ${game.color}44` }}
-        >
-          ▶ Main Sekarang
-        </button>
       </div>
     </>
   )
