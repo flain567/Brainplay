@@ -28,6 +28,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script>
+      window.onerror = function(msg, url, line, col, error) {
+        var el = document.createElement('div');
+        el.style.position = 'fixed'; el.style.inset = '0';
+        el.style.background = 'red'; el.style.color = 'white';
+        el.style.zIndex = '999999'; el.style.padding = '20px';
+        el.style.fontSize = '18px'; el.style.fontFamily = 'monospace';
+        el.style.whiteSpace = 'pre-wrap'; el.style.overflow = 'auto';
+        el.innerHTML = "<h1>Crash Log:</h1><p>" + msg + "</p><pre>" + (error ? error.stack : 'N/A') + "</pre>";
+        document.body.appendChild(el);
+      };
+    </script>
   </head>
   <body>
     <div id="root"></div>

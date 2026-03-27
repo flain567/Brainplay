@@ -73,7 +73,7 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
     ['boss1.png', 'boss2.png', 'boss3.png'].forEach(src => {
       if (!ASSETS[src]) {
         const img = new Image()
-        img.src = '/assets/' + src
+        img.src = '/' + src
         ASSETS[src] = img
       }
     })
@@ -477,7 +477,7 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
       const px=p.x,py=p.y,blink=p.invTimer>0&&Math.floor(p.invTimer/4)%2===0,cloaked=g.cloakTimer>0
       if(!blink){
         ctx.globalAlpha=cloaked?0.3:1
-        if (g.shipImg && g.shipImg.complete) {
+        if (g.shipImg && g.shipImg.complete && g.shipImg.naturalWidth > 0) {
           // Custom Ship PNG with flame beneath
           const fH=10+rand(0,8)+(g.rapidFireTimer>0?6:0)
           ctx.fillStyle=g.tick%4<2?'#FDCB6E':shipDesign.engine
@@ -526,7 +526,7 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
       if(g.boss){
         const b=g.boss;
         ctx.globalAlpha=0.08;ctx.fillStyle=b.color;ctx.beginPath();ctx.arc(b.x,b.y,b.w+30,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
-        if (b.img && b.img.complete) {
+        if (b.img && b.img.complete && b.img.naturalWidth > 0) {
           // Render Boss PNG
           if(b.enraged){ ctx.globalAlpha=0.5; ctx.filter='drop-shadow(0 0 10px #ff0000) hue-rotate(45deg)'; ctx.drawImage(b.img, b.x - b.w*0.8, b.y - b.h*0.8, b.w*1.6, b.h*1.6); ctx.filter='none'; ctx.globalAlpha=1; }
           ctx.drawImage(b.img, b.x - b.w*0.8, b.y - b.h*0.8, b.w*1.6, b.h*1.6);
