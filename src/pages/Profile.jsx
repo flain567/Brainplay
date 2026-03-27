@@ -29,11 +29,15 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { progress } = useProgress()
-  const { isLoggedIn, isGuest, playerName, photoURL, email, loginWithGoogle, logout } = useAuth()
+  const { isLoggedIn, isGuest, playerName, photoURL, email, loginWithGoogle, logout, userId } = useAuth()
   const { syncStatus, lastSync, forceSync } = useCloudSave()
   const tc = useThemeColors()
   const [achFilter, setAchFilter] = useState('all')
   const dark = tc.dark
+  
+  // Admin IDs - must match App.jsx
+  const ADMIN_IDS = ['CzLx5RmjKBNpN3JqVxVY9qVwQQd2', 'QoUpY8YdDgUdRvyAOPRgA2hKzD53']
+  const isAdmin = userId && ADMIN_IDS.includes(userId)
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
   const borderData = getBorderForLevel(levelInfo.level)
