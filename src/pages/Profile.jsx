@@ -25,7 +25,7 @@ function formatPlayTime(seconds) {
   return `${m}m`
 }
 
-export default function Profile({ onBack, games }) {
+export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { progress } = useProgress()
@@ -437,6 +437,62 @@ export default function Profile({ onBack, games }) {
               </div>
             )}
           </div>
+
+          {/* ── Analytics Dashboard Link ── */}
+          <div style={{
+            background: surface, border: `2px solid ${borderCol}`,
+            borderRadius: 24, padding: 20, marginBottom: 20, marginTop: 20,
+            animation: 'slide-up 0.4s 0.35s ease both',
+          }}>
+            <button onClick={() => { play('click'); onAnalytics && onAnalytics() }} style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              gap: 14, padding: '14px 16px', borderRadius: 14,
+              background: 'linear-gradient(135deg, #A29BFE22, #6C5CE722)',
+              border: `1.5px solid ${borderCol}`, cursor: 'pointer',
+              transition: 'all 0.2s', fontFamily: "'Nunito', sans-serif",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#A29BFE'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = borderCol; e.currentTarget.style.transform = 'translateY(0)' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 20 }}>📊</span>
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 14, color: textMain, fontWeight: 700 }}>Analytics</div>
+                  <div style={{ fontSize: 11, color: textMuted }}>View event & game stats</div>
+                </div>
+              </div>
+              <span style={{ fontSize: 16, color: textMuted }}>→</span>
+            </button>
+          </div>
+
+          {/* ── Admin Dashboard Link (if user is admin) ── */}
+          {onAdmin && (
+            <div style={{
+              background: surface, border: `2px solid #FF6B6B`,
+              borderRadius: 24, padding: 20, marginBottom: 20,
+              animation: 'slide-up 0.4s 0.36s ease both',
+            }}>
+              <button onClick={() => { play('click'); onAdmin() }} style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: 14, padding: '14px 16px', borderRadius: 14,
+                background: 'linear-gradient(135deg, #FF6B6B22, #FD79A822)',
+                border: `1.5px solid #FF6B6B`, cursor: 'pointer',
+                transition: 'all 0.2s', fontFamily: "'Nunito', sans-serif",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF6B6B'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#FF6B6B'; e.currentTarget.style.transform = 'translateY(0)' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 20 }}>👑</span>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 14, color: '#FF6B6B', fontWeight: 700 }}>Admin Panel</div>
+                    <div style={{ fontSize: 11, color: textMuted }}>View all player analytics</div>
+                  </div>
+                </div>
+                <span style={{ fontSize: 16, color: textMuted }}>→</span>
+              </button>
+            </div>
+          )}
 
           {/* ── About BrainPlay ── */}
           <div className="prof-about" style={{

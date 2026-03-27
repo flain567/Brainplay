@@ -6,7 +6,8 @@ import { NotifProvider } from './context/NotifContext.jsx'
 import { LeaderboardProvider } from './context/LeaderboardContext.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { DailyChallengeProvider } from './context/DailyChallengeContext.jsx'
-import { LimitedModeProvider } from './context/LimitedModeContext.jsx'
+import { LimitedModeProvider, useLimitedMode } from './context/LimitedModeContext.jsx'
+import { LocalAnalyticsProvider } from './context/LocalAnalyticsContext.jsx'
 import { CloudSaveProvider, useCloudSave } from './context/CloudSaveContext.jsx'
 import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
@@ -20,7 +21,8 @@ import Home from './pages/Home.jsx'
 import { migrateOldStorage } from './utils/storage.js'
 import { useMusic } from './hooks/useMusic.js'
 import { preloadFirestore } from './firebase.js'
-import { preloadAnalytics, trackSessionStart, trackSessionEnd, trackScreenView, trackGameStart, trackGameComplete, trackGameDropoff, trackDailyActive } from './utils/analytics.js'
+import { preloadAnalytics, trackSessionStart, trackSessionEnd, trackScreenView, trackGameStart, trackGameComplete, trackGameDropoff, trackDailyActive, trackLimitedModeGameComplete, sendGameAnalyticsToFirestore } from './utils/analytics.js'
+import { useLocalAnalytics } from './context/LocalAnalyticsContext.jsx'
 import { initNative, setupBackButton, hideStatusBar, showStatusBar, isNative } from './utils/native.js'
 
 // ─── Lazy-loaded pages (split into separate chunks) ──────────────────────────
@@ -28,8 +30,13 @@ const Profile     = lazy(() => import('./pages/Profile.jsx'))
 const Shop        = lazy(() => import('./pages/Shop.jsx'))
 const Leaderboard = lazy(() => import('./pages/Leaderboard.jsx'))
 const GameStatsPage = lazy(() => import('./pages/GameStatsPage.jsx'))
+const AnalyticsDashboard = lazy(() => import('./pages/AnalyticsDashboard.jsx'))
+const AdminAnalyticsDashboard = lazy(() => import('./pages/AdminAnalyticsDashboard.jsx'))
 const LoginModal  = lazy(() => import('./components/LoginModal.jsx'))
 const OnboardingModal = lazy(() => import('./components/OnboardingModal.jsx'))
+
+// Admin user IDs - update with your actual admin UID
+const ADMIN_IDS = ['CzLx5RmjKBNpN3JqVxVY9qVwQQd2', 'QoUpY8YdDgUdRvyAOPRgA2hKzD53']
 
 // ─── Lazy-loaded game components (split into separate chunks) ────────────────
 const MemoryCardMatch = lazy(() => import('./pages/games/MemoryCardMatch.jsx'))
@@ -268,11 +275,13 @@ function AppInner() {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const screenRef = useRef('home')
   const navRef = useRef({ goHome: null, goBackToDifficulty: null })
-  const { isLoggedIn, isGuest, needsName, loading: authLoading } = useAuth()
+  const { isLoggedIn, isGuest, needsName, loading: authLoading, userId, playerName: nickname } = useAuth()
   const { initialSyncDone } = useCloudSave()
   const { muted, musicOff } = useSettings()
   const { earnCoins } = useCoins()
   const { progress, clearLevelUp } = useProgress()
+  const { currentMode } = useLimitedMode()
+  const { trackEvent } = useLocalAnalytics()
 
   // Run migration once
   useEffect(() => { migrateOldStorage() }, [])
@@ -318,9 +327,48 @@ function AppInner() {
   // Track game completion via bp-game-result event + first-game reward
   useEffect(() => {
     const handler = (e) => {
-      const { gameId, difficultyId, score, timeSec, stars } = e.detail || {}
+      const { gameId, difficultyId, score, timeSec, stars, coinEarned, xpEarned } = e.detail || {}
       if (gameId && score > 0) {
         trackGameComplete(gameId, difficultyId || 'easy', score, stars, timeSec)
+        
+        // Send to Firestore for admin analytics
+        sendGameAnalyticsToFirestore(
+          userId || 'guest',
+          nickname || 'Anonymous',
+          gameId,
+          difficultyId || 'easy',
+          score,
+          stars,
+          coinEarned || 0,
+          xpEarned || 0,
+          currentMode?.id || null,
+          currentMode?.name || null
+        )
+        
+        // Track limited mode game completion if event is active
+        if (currentMode) {
+          trackLimitedModeGameComplete(
+            currentMode.id,
+            currentMode.name,
+            gameId,
+            difficultyId || 'easy',
+            score,
+            stars,
+            coinEarned || 0,
+            xpEarned || 0
+          )
+          trackEvent('limited_mode_game_complete', {
+            event_id: currentMode.id,
+            event_name: currentMode.name,
+            game_id: gameId,
+            difficulty: difficultyId || 'easy',
+            score,
+            stars: stars || 0,
+            coin_earned: coinEarned || 0,
+            xp_earned: xpEarned || 0,
+          })
+        }
+        
         // First-game bonus: 100 coins
         if (!localStorage.getItem('bp_first_game_rewarded') && localStorage.getItem('bp_onboarded')) {
           localStorage.setItem('bp_first_game_rewarded', 'true')
@@ -330,7 +378,7 @@ function AppInner() {
     }
     window.addEventListener('bp-game-result', handler)
     return () => window.removeEventListener('bp-game-result', handler)
-  }, [earnCoins])
+  }, [earnCoins, currentMode, trackEvent, userId, nickname])
 
   const activeDiff   = currentGame?.difficulties?.find(d => d.id === difficulty)
   const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter' || currentGame?.id === 'brick-breaker' || currentGame?.id === 'memory-pattern' || currentGame?.id === 'neon-dash' || currentGame?.id === 'voxel-racer')
@@ -373,6 +421,11 @@ function AppInner() {
   const goShop            = () => { setScreen('shop'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goLeaderboard     = () => { setScreen('leaderboard'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goStats           = () => { setScreen('stats'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goAnalytics       = () => { setScreen('analytics'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goAdmin           = () => { setScreen('admin'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  
+  // Check if current user is admin
+  const isAdmin = ADMIN_IDS.includes(userId)
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
@@ -420,7 +473,7 @@ function AppInner() {
           )}
           {screen === 'profile' && (
             <Suspense fallback={<GameLoader />}>
-              <Profile onBack={goHome} games={GAMES} />
+              <Profile onBack={goHome} games={GAMES} onAnalytics={goAnalytics} onAdmin={isAdmin ? goAdmin : undefined} />
             </Suspense>
           )}
           {screen === 'shop' && (
@@ -437,6 +490,25 @@ function AppInner() {
             <Suspense fallback={<GameLoader />}>
               <GameStatsPage onBack={goHome} />
             </Suspense>
+          )}
+          {screen === 'analytics' && (
+            <Suspense fallback={<GameLoader />}>
+              <AnalyticsDashboard onBack={goHome} />
+            </Suspense>
+          )}
+          {screen === 'admin' && isAdmin && (
+            <Suspense fallback={<GameLoader />}>
+              <AdminAnalyticsDashboard />
+            </Suspense>
+          )}
+          {screen === 'admin' && !isAdmin && (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#A29BFE' }}>
+              <h1>❌ Access Denied</h1>
+              <p>You don't have permission to view admin analytics</p>
+              <button onClick={goHome} style={{ marginTop: '20px', padding: '10px 20px', background: '#A29BFE', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+                Back to Home
+              </button>
+            </div>
           )}
           {screen === 'difficulty' && currentGame && (
             <DifficultySelector game={currentGame} onSelect={selectDifficulty} onBack={goHome} />
@@ -459,20 +531,22 @@ export default function App() {
     <SettingsProvider>
       <AuthProvider>
         <CloudSaveProvider>
-          <LimitedModeProvider>
-            <ProgressProvider>
-              <CoinProvider>
-                <LeaderboardProvider>
-                  <DailyChallengeProvider>
-                    <NotifProvider>
-                      <ThemeApplicator />
-                      <AppInner />
-                    </NotifProvider>
-                  </DailyChallengeProvider>
-                </LeaderboardProvider>
-              </CoinProvider>
-            </ProgressProvider>
-          </LimitedModeProvider>
+          <LocalAnalyticsProvider>
+            <LimitedModeProvider>
+              <ProgressProvider>
+                <CoinProvider>
+                  <LeaderboardProvider>
+                    <DailyChallengeProvider>
+                      <NotifProvider>
+                        <ThemeApplicator />
+                        <AppInner />
+                      </NotifProvider>
+                    </DailyChallengeProvider>
+                  </LeaderboardProvider>
+                </CoinProvider>
+              </ProgressProvider>
+            </LimitedModeProvider>
+          </LocalAnalyticsProvider>
         </CloudSaveProvider>
       </AuthProvider>
     </SettingsProvider>

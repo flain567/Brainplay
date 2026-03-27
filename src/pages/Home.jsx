@@ -8,6 +8,8 @@ import { useCoins } from '../context/CoinContext.jsx'
 import { useDailyChallenge } from '../context/DailyChallengeContext.jsx'
 import { useLimitedMode } from '../context/LimitedModeContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
+import { trackLimitedModeView, trackLimitedModeBonus } from '../utils/analytics.js'
+import { useLocalAnalytics } from '../context/LocalAnalyticsContext.jsx'
 
 const COMING_SOON = [
   { day: 16, emoji: '⌨️', title: 'Typing Speed',     tag: 'Kata',     color: '#FD79A8' },
@@ -42,8 +44,9 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
     isChallengeClaimed, claimChallenge, claimBonus,
     completedCount, allComplete, bonusAvailable, bonusClaimed, allCompleteBonus,
   } = useDailyChallenge()
-  const { currentMode, isBonusClaimedToday, markBonusAsClaimed } = useLimitedMode()
+  const { currentMode, isBonusClaimedToday, markBonusAsClaimed, getNextWeekendEvent, getWeekNumber } = useLimitedMode()
   const tc = useThemeColors()
+  const { trackEvent } = useLocalAnalytics()
   const [scrollTop, setScrollTop] = useState(false)
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
@@ -57,6 +60,18 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
     window.addEventListener('scroll', fn, { passive: true })
     return () => window.removeEventListener('scroll', fn)
   }, [])
+
+  // Track limited mode view when component mounts or mode changes
+  useEffect(() => {
+    if (currentMode) {
+      trackLimitedModeView(currentMode.id, currentMode.name, getWeekNumber())
+      trackEvent('limited_mode_view', {
+        event_id: currentMode.id,
+        event_name: currentMode.name,
+        week_number: getWeekNumber(),
+      })
+    }
+  }, [currentMode])
 
   const textMain  = tc.textMain
   const textMuted = tc.textMuted
@@ -677,7 +692,19 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
                   <button
                     onClick={() => {
                       markBonusAsClaimed(currentMode.id)
+                      trackLimitedModeBonus(currentMode.id, currentMode.name, 'event_bonus_claim', `Coins: ${currentMode.coinMultiplier}×, XP: ${currentMode.xpMultiplier}×`)
+                      trackEvent('limited_mode_bonus', {
+                        event_id: currentMode.id,
+                        event_name: currentMode.name,
+                        bonus_type: 'event_bonus_claim',
+                        reward: `Coins: ${currentMode.coinMultiplier}×, XP: ${currentMode.xpMultiplier}×`,
+                      })
                       play('levelUp')
+                      // Pick random game dan mainkan
+                      if (games && games.length > 0) {
+                        const randomGame = games[Math.floor(Math.random() * games.length)]
+                        setTimeout(() => onPlay(randomGame), 300)
+                      }
                     }}
                     style={{
                       background: `linear-gradient(135deg, ${currentMode.color}, ${currentMode.color}cc)`,
@@ -695,6 +722,55 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
                 )}
               </div>
             </div>
+          )}
+
+          {/* ── Next Week Preview ── */}
+          {currentMode && (
+            (() => {
+              const nextEvent = getNextWeekendEvent()
+              return nextEvent && nextEvent.id !== currentMode.id ? (
+                <div style={{
+                  marginBottom: 48, padding: 20, borderRadius: 20,
+                  background: `linear-gradient(135deg, ${nextEvent.color}15, ${nextEvent.color}05)`,
+                  backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                  border: `1.5px dashed ${nextEvent.color}33`,
+                  animation: 'slide-up 0.5s 0.5s ease both',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                        <span style={{ fontSize: 28, opacity: 0.6 }}>{nextEvent.emoji}</span>
+                        <div>
+                          <h3 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 16, color: nextEvent.color, margin: 0, opacity: 0.8 }}>
+                            {nextEvent.name}
+                          </h3>
+                          <span style={{ fontSize: 10, color: textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>🔮 Minggu Depan</span>
+                        </div>
+                      </div>
+                      <p style={{ fontSize: 12, color: textMuted, margin: 0, lineHeight: 1.5, maxWidth: '80%', opacity: 0.75 }}>
+                        {nextEvent.desc}
+                      </p>
+                      <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+                        <div style={{ fontSize: 11, color: textMuted, fontWeight: 700, padding: '3px 8px', background: `${nextEvent.color}15`, borderRadius: 100, border: `1px solid ${nextEvent.color}25`, display: 'flex', alignItems: 'center', gap: 4, opacity: 0.7 }}>
+                          🪙 <span style={{ color: nextEvent.color }}>×{nextEvent.coinMultiplier}</span>
+                        </div>
+                        <div style={{ fontSize: 11, color: textMuted, fontWeight: 700, padding: '3px 8px', background: `${nextEvent.color}15`, borderRadius: 100, border: `1px solid ${nextEvent.color}25`, display: 'flex', alignItems: 'center', gap: 4, opacity: 0.7 }}>
+                          ⭐ <span style={{ color: nextEvent.color }}>×{nextEvent.xpMultiplier}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ 
+                      fontSize: 40, 
+                      opacity: 0.3, 
+                      animation: 'pulse 3s ease-in-out infinite',
+                      textShadow: `0 0 20px ${nextEvent.color}44`,
+                    }}>
+                      ✨
+                    </div>
+                  </div>
+                </div>
+              ) : null
+            })()
           )}
 
           {/* ── Categorized Game Rows (Netflix Style) ── */}

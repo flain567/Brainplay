@@ -99,6 +99,111 @@ export function trackOnboardingComplete() {
   })
 }
 
+// ─── Limited Mode / Event Tracking ───────────────────────────────────────────
+export function trackLimitedModeView(eventId, eventName, weekNumber) {
+  track('limited_mode_view', {
+    event_id: eventId,
+    event_name: eventName,
+    week_number: weekNumber,
+    timestamp: new Date().toISOString(),
+  })
+}
+
+export function trackLimitedModeGameStart(eventId, eventName, gameId, difficulty) {
+  track('limited_mode_game_start', {
+    event_id: eventId,
+    event_name: eventName,
+    game_id: gameId,
+    difficulty,
+    timestamp: new Date().toISOString(),
+  })
+}
+
+export function trackLimitedModeGameComplete(eventId, eventName, gameId, difficulty, score, stars, coinEarned, xpEarned) {
+  track('limited_mode_game_complete', {
+    event_id: eventId,
+    event_name: eventName,
+    game_id: gameId,
+    difficulty,
+    score,
+    stars: stars || 0,
+    coin_earned: coinEarned || 0,
+    xp_earned: xpEarned || 0,
+    timestamp: new Date().toISOString(),
+  })
+}
+
+export function trackLimitedModeBonus(eventId, eventName, bonusType, reward) {
+  track('limited_mode_bonus', {
+    event_id: eventId,
+    event_name: eventName,
+    bonus_type: bonusType, // 'claim', 'earn', etc
+    reward,
+    timestamp: new Date().toISOString(),
+  })
+}
+
+// ─── Firestore Analytics (send events to cloud for admin dashboard) ──────────
+let _firestore = null
+let _firestorePromise = null
+let _collection = null
+let _addDoc = null
+let _serverTimestamp = null
+
+async function getFirestore2() {
+  if (_firestore) return { db: _firestore, addDoc: _addDoc, serverTimestamp: _serverTimestamp }
+  if (!_firestorePromise) {
+    _firestorePromise = (async () => {
+      try {
+        const { getDb } = await import('../firebase.js')
+        const mod = await import('firebase/firestore')
+        const db = await getDb()
+        _firestore = db
+        _collection = mod.collection
+        _addDoc = mod.addDoc
+        _serverTimestamp = mod.serverTimestamp
+        return { db: _firestore, addDoc: _addDoc, serverTimestamp: _serverTimestamp, collection: _collection }
+      } catch (err) {
+        console.warn('[Firestore Analytics] Failed to init:', err.message)
+        return null
+      }
+    })()
+  }
+  return _firestorePromise
+}
+
+// Send game completion event to Firestore for admin analytics
+export async function sendGameAnalyticsToFirestore(userId, userName, gameId, difficulty, score, stars, coinEarned, xpEarned, eventId = null, eventName = null) {
+  try {
+    const fs = await getFirestore2()
+    if (!fs) return
+    
+    const { db, addDoc, serverTimestamp, collection } = fs
+    const eventsCollection = collection(db, 'analytics_events')
+    
+    const today = new Date()
+    const dateStr = today.toISOString().split('T')[0]
+    
+    await addDoc(eventsCollection, {
+      userId,
+      userName,
+      gameId,
+      difficulty,
+      score,
+      stars: stars || 0,
+      coinEarned: coinEarned || 0,
+      xpEarned: xpEarned || 0,
+      eventId: eventId || null,
+      eventName: eventName || null,
+      timestamp: serverTimestamp(),
+      date: dateStr,
+      type: 'game_complete',
+    })
+  } catch (err) {
+    console.warn('[Firestore Analytics] Failed to send:', err.message)
+  }
+}
+
 // ─── Retention helper — log daily active ─────────────────────────────────────
 export function trackDailyActive() {
   const today = new Date().toISOString().slice(0, 10)
