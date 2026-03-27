@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useLuckyWheel } from '../context/LuckyWheelContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
 import { useSound } from '../hooks/useSound.js'
@@ -115,20 +116,17 @@ export default function LuckyWheel({ open, onClose }) {
   const textMuted = dark ? '#8892b0' : '#636e72'
   const borderCol = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
 
-  return (
+  return createPortal(
     <>
       <style>{`
         .wheel-overlay {
           position: fixed; inset: 0; z-index: 9999;
           display: flex; align-items: center; justify-content: center;
-          background: ${bg}; backdrop-filter: blur(20px);
-          animation: wheelFadeIn 0.3s ease;
-          overflow: hidden;
+          background: ${bg};
         }
-        @keyframes wheelFadeIn { from { opacity:0; transform:scale(0.95) } to { opacity:1; transform:scale(1) } }
         .wheel-inner {
           max-width: 420px; width: 100%;
-          max-height: 100vh; max-height: 100dvh;
+          max-height: 100dvh;
           overflow-y: auto; overflow-x: hidden;
           overscroll-behavior: contain;
           padding: 24px 20px;
@@ -167,10 +165,12 @@ export default function LuckyWheel({ open, onClose }) {
         .wheel-stage {
           position: relative; width: 280px; height: 280px;
           margin: 0 auto 24px;
+          overflow: visible;
         }
         .wheel-disc {
-          width: 100%; height: 100%; border-radius: 50%;
-          position: relative;
+          width: 280px; height: 280px;
+          display: block;
+          overflow: visible;
           transition: transform ${SPIN_DURATION}ms cubic-bezier(0.17, 0.67, 0.12, 0.99);
           filter: drop-shadow(0 0 30px rgba(162,155,254,0.3));
         }
@@ -306,8 +306,17 @@ export default function LuckyWheel({ open, onClose }) {
         }
       `}</style>
 
-      <div className="wheel-overlay" onWheel={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()}>
-        <div className="wheel-inner">
+      <div className="wheel-overlay" style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: bg,
+      }} onWheel={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()}>
+        <div className="wheel-inner" style={{
+          maxWidth: 420, width: '100%',
+          maxHeight: '100dvh',
+          overflowY: 'auto', overflowX: 'hidden',
+          padding: '24px 20px',
+        }}>
           {/* Header */}
           <div className="wheel-header">
             <div>
@@ -338,25 +347,28 @@ export default function LuckyWheel({ open, onClose }) {
           {tab === 'spin' && (
             <>
               {/* Wheel */}
-              <div className="wheel-stage">
+              <div className="wheel-stage" style={{
+                position: 'relative', width: 280, height: 280,
+                margin: '0 auto 24px', overflow: 'visible',
+              }}>
                 <div className="wheel-pointer" />
                 {slots && slots.length > 0 ? (
                   <svg className={`wheel-disc ${spinning?'spinning':''}`}
                     viewBox="0 0 300 300"
-                    width="100%"
-                    height="100%"
-                    style={{ transform: `rotate(${rotation}deg)` }}
-                    preserveAspectRatio="xMidYMid meet"
+                    width="280" height="280"
+                    overflow="visible"
+                    style={{
+                      display: 'block',
+                      width: 280, height: 280,
+                      transform: `rotate(${rotation}deg)`,
+                      transition: `transform ${SPIN_DURATION}ms cubic-bezier(0.17, 0.67, 0.12, 0.99)`,
+                      filter: spinning ? 'drop-shadow(0 0 40px rgba(162,155,254,0.5))' : 'drop-shadow(0 0 30px rgba(162,155,254,0.3))',
+                    }}
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    {/* SVG background - subtle circle for dimension */}
-                    <circle cx="150" cy="150" r="150" fill="none" stroke={dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} strokeWidth="2" />
-                    
-                    {/* Test: hardcoded slot to verify SVG renders */}
-                    <g>
-                      <circle cx="150" cy="150" r="50" fill="#FF6B6B" opacity="0.7" />
-                      <text x="150" y="155" textAnchor="middle" fontSize="12" fill="#fff" fontWeight="bold">Test</text>
-                    </g>
-                    
+                    {/* Outer border */}
+                    <circle cx="150" cy="150" r="149" fill={dark?'#0E1225':'#F0EEFF'}
+                      stroke={dark?'rgba(162,155,254,0.3)':'rgba(162,155,254,0.4)'} strokeWidth="2" />
                     {slots.map((slot, i) => {
                       try {
                     const angle = (360 / SLOT_COUNT) * i
@@ -371,14 +383,11 @@ export default function LuckyWheel({ open, onClose }) {
                     const labelRad = (labelAngle - 90) * Math.PI / 180
                     const lx = cx + r * 0.62 * Math.cos(labelRad)
                     const ly = cy + r * 0.62 * Math.sin(labelRad)
-                    const bgLightness = dark
-                      ? (slot.rarity === 'legendary' ? '20%' : slot.rarity === 'epic' ? '16%' : slot.rarity === 'rare' ? '14%' : slot.rarity === 'uncommon' ? '12%' : '10%')
-                      : (slot.rarity === 'legendary' ? '95%' : slot.rarity === 'epic' ? '92%' : slot.rarity === 'rare' ? '90%' : slot.rarity === 'uncommon' ? '88%' : '85%')
-                    const fill = slot.rarity === 'legendary' ? (i%2===0?'#3A2800':'#2A1E00')
-                      : slot.rarity === 'epic' ? (i%2===0?'#2A1040':'#1E0830')
-                      : slot.rarity === 'rare' ? (i%2===0?'#102840':'#0A1E30')
-                      : slot.rarity === 'uncommon' ? (i%2===0?'#103020':'#0A2018')
-                      : (i%2===0?'#1A1E30':'#141828')
+                    const fill = slot.rarity === 'legendary' ? (i%2===0?'#5C3D00':'#4A3000')
+                      : slot.rarity === 'epic' ? (i%2===0?'#4A1A6B':'#3A1255')
+                      : slot.rarity === 'rare' ? (i%2===0?'#1A4060':'#14335A')
+                      : slot.rarity === 'uncommon' ? (i%2===0?'#1A4A30':'#143D25')
+                      : (i%2===0?'#2A2E48':'#222640')
 
                     return (
                       <g key={i}>
@@ -612,6 +621,7 @@ export default function LuckyWheel({ open, onClose }) {
           </div>
         </div>
       )}
-    </>
+    </>,
+    document.body
   )
 }
