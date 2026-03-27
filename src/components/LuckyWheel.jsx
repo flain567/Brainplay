@@ -20,10 +20,14 @@ export default function LuckyWheel({ open, onClose }) {
 
   const [spinning, setSpinning] = useState(false)
   const [result, setResult] = useState(null)
+  const [multiResults, setMultiResults] = useState(null) // 5× spin results
   const [rotation, setRotation] = useState(0)
   const [tab, setTab] = useState('spin') // 'spin' | 'collection' | 'history'
   const wheelRef = useRef(null)
   const tickRef = useRef(null)
+
+  const MULTI_COUNT = 5
+  const multiCost = extraSpinCost * MULTI_COUNT
 
   const slots = getWheelSlots()
   const dark = tc.dark
@@ -94,6 +98,63 @@ export default function LuckyWheel({ open, onClose }) {
       try { play(isEpic ? 'levelUp' : 'win') } catch(e) {}
     }, SPIN_DURATION)
   }, [spinning, coins, extraSpinCost, spin, slots, rotation, spendCoins, earnCoins, play])
+
+  // ── 5× Multi Spin ──────────────────────────────────────────────────────────
+  const doMultiSpin = useCallback(async () => {
+    if (spinning) return
+    if (coins < multiCost) return
+    const ok = await spendCoins(multiCost, `Lucky Wheel 5× Spin`)
+    if (!ok) return
+
+    setSpinning(true)
+    setResult(null)
+    setMultiResults(null)
+
+    // Spin wheel fast for visual effect
+    const fastRotation = rotation + (8 * 360) + Math.random() * 360
+    setRotation(fastRotation)
+
+    // Tick sounds
+    let ticks = 0
+    tickRef.current = setInterval(() => {
+      ticks++
+      if (ticks < 20) try { play('click') } catch(e) {}
+    }, 80)
+
+    setTimeout(() => {
+      clearInterval(tickRef.current)
+
+      // Roll all 5 results
+      const rewards = []
+      for (let i = 0; i < MULTI_COUNT; i++) {
+        rewards.push(spin(false))
+      }
+
+      // Apply all rewards
+      let totalCoins = 0
+      let totalXp = 0
+      const exclusives = []
+      for (const reward of rewards) {
+        if (reward.type === 'coin') {
+          totalCoins += reward.amount
+        } else if (reward.type === 'xp') {
+          totalCoins += Math.round(reward.amount / 5)
+          totalXp += reward.amount
+        } else if (reward.type === 'exclusive' && reward.item) {
+          exclusives.push(reward.item)
+          window.dispatchEvent(new CustomEvent('bp-wheel-unlock', { detail: { item: reward.item } }))
+        }
+      }
+      if (totalCoins > 0) earnCoins(totalCoins, `Lucky Wheel 5× Spin — ${totalCoins} coin`)
+
+      // Check if any epic+
+      const hasEpic = rewards.some(r => r.rarity === 'epic' || r.rarity === 'legendary')
+      try { play(hasEpic ? 'levelUp' : 'win') } catch(e) {}
+
+      setSpinning(false)
+      setMultiResults(rewards)
+    }, 2500)
+  }, [spinning, coins, multiCost, spin, rotation, spendCoins, earnCoins, play])
 
   // Lock body & html scroll when modal is open
   useEffect(() => {
@@ -187,10 +248,10 @@ export default function LuckyWheel({ open, onClose }) {
         }
 
         /* Spin buttons */
-        .spin-btns { display: flex; gap: 10px; margin-bottom: 18px; }
+        .spin-btns { display: flex; gap: 8px; margin-bottom: 18px; }
         .spin-btn {
-          flex: 1; padding: 14px; border-radius: 16px; border: none;
-          font-family: 'Fredoka One',cursive; font-size: 15px;
+          flex: 1; padding: 12px 8px; border-radius: 16px; border: none;
+          font-family: 'Fredoka One',cursive; font-size: 13px;
           cursor: pointer; transition: all 0.2s; font-weight: 800;
         }
         .spin-btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -204,6 +265,47 @@ export default function LuckyWheel({ open, onClose }) {
           color: #A29BFE; border: 1.5px solid rgba(162,155,254,0.3);
         }
         .spin-btn.paid:not(:disabled):hover { transform: translateY(-2px); border-color: #A29BFE; }
+        .spin-btn.multi {
+          background: linear-gradient(135deg,#E040FB,#AB47BC);
+          color: #fff; box-shadow: 0 4px 20px rgba(171,71,188,0.3);
+          font-size: 13px;
+        }
+        .spin-btn.multi:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 6px 30px rgba(171,71,188,0.4); }
+
+        /* Multi-result modal */
+        .multi-result {
+          position: fixed; inset: 0; z-index: 10000;
+          display: flex; align-items: center; justify-content: center;
+          background: rgba(0,0,0,0.7); padding: 20px;
+        }
+        .multi-card {
+          background: ${dark?'linear-gradient(180deg,#151830,#0a0c1c)':'linear-gradient(180deg,#fff,#f8f9ff)'};
+          border-radius: 28px; padding: 28px 20px; text-align: center;
+          max-width: 380px; width: 100%; position: relative; overflow: hidden;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+          animation: resultPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+          max-height: 85dvh; overflow-y: auto;
+        }
+        .multi-item {
+          display: flex; align-items: center; gap: 10px;
+          padding: 10px 12px; border-radius: 14px;
+          background: ${dark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.03)'};
+          border: 1.5px solid ${borderCol}; margin-bottom: 8px;
+          text-align: left; transition: all 0.3s;
+          animation: resultPop 0.3s ease both;
+        }
+        .multi-item.epic { border-color: rgba(171,71,188,0.4); background: ${dark?'rgba(171,71,188,0.08)':'rgba(171,71,188,0.04)'}; }
+        .multi-item.legendary { border-color: rgba(255,215,0,0.4); background: ${dark?'rgba(255,215,0,0.08)':'rgba(255,215,0,0.04)'}; }
+        .multi-summary {
+          display: flex; gap: 12px; justify-content: center;
+          margin: 16px 0; flex-wrap: wrap;
+        }
+        .multi-stat {
+          padding: 8px 16px; border-radius: 12px;
+          background: ${dark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.04)'};
+          border: 1px solid ${borderCol};
+          font-size: 13px; font-weight: 700; color: ${textMuted};
+        }
 
         /* Result modal */
         .wheel-result {
@@ -460,7 +562,11 @@ export default function LuckyWheel({ open, onClose }) {
                 </button>
                 <button className="spin-btn paid" disabled={spinning || coins < extraSpinCost}
                   onClick={() => doSpin(false)}>
-                  🪙 {extraSpinCost} Coin
+                  🪙 {extraSpinCost}
+                </button>
+                <button className="spin-btn multi" disabled={spinning || coins < multiCost}
+                  onClick={doMultiSpin}>
+                  {spinning ? '⏳' : `5× 🪙 ${multiCost}`}
                 </button>
               </div>
 
@@ -617,6 +723,98 @@ export default function LuckyWheel({ open, onClose }) {
 
             <button className="result-close-btn" onClick={() => setResult(null)}>
               {result.rarity === 'legendary' ? '🌟 Keren!' : result.rarity === 'epic' ? '✨ Mantap!' : '👍 OK'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Multi-Result Modal (5× Spin) ── */}
+      {multiResults && (
+        <div className="multi-result" onClick={() => setMultiResults(null)}>
+          {/* Confetti if any epic+ */}
+          {multiResults.some(r => r.rarity === 'epic' || r.rarity === 'legendary') && (
+            <div className="wheel-confetti">
+              {Array.from({length: 40}).map((_, i) => (
+                <span key={i} style={{
+                  left: `${Math.random()*100}%`,
+                  background: ['#FFD700','#FF6B6B','#A29BFE','#4ECDC4','#FF8C00','#E040FB'][i%6],
+                  borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+                  width: `${6+Math.random()*8}px`,
+                  height: `${6+Math.random()*8}px`,
+                  animationDelay: `${Math.random()*1.5}s`,
+                  animationDuration: `${2+Math.random()*2}s`,
+                }} />
+              ))}
+            </div>
+          )}
+
+          <div className="multi-card" onClick={e => e.stopPropagation()}>
+            <div style={{
+              fontFamily: "'Fredoka One',cursive", fontSize: 22,
+              background: 'linear-gradient(135deg,#E040FB,#AB47BC)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              marginBottom: 4,
+            }}>🎰 5× Spin Results!</div>
+            <div style={{ fontSize: 12, color: textMuted, marginBottom: 16, fontWeight: 600 }}>
+              {multiResults.filter(r => r.rarity === 'epic' || r.rarity === 'legendary').length > 0
+                ? `✨ ${multiResults.filter(r => r.rarity === 'epic' || r.rarity === 'legendary').length} item langka!`
+                : 'Hasil spinmu:'}
+            </div>
+
+            {/* Summary stats */}
+            <div className="multi-summary">
+              {(() => {
+                const totalCoins = multiResults.reduce((s, r) => s + (r.type === 'coin' ? r.amount : r.type === 'xp' ? Math.round(r.amount / 5) : 0), 0)
+                const totalXP = multiResults.reduce((s, r) => s + (r.type === 'xp' ? r.amount : 0), 0)
+                const exclusiveCount = multiResults.filter(r => r.type === 'exclusive').length
+                return (<>
+                  {totalCoins > 0 && <div className="multi-stat">🪙 +{totalCoins} Coin</div>}
+                  {totalXP > 0 && <div className="multi-stat">⭐ +{totalXP} XP</div>}
+                  {exclusiveCount > 0 && <div className="multi-stat">🎁 {exclusiveCount} Exclusive</div>}
+                </>)
+              })()}
+            </div>
+
+            {/* Individual results */}
+            {multiResults.map((reward, i) => {
+              const rarityClass = reward.rarity === 'legendary' ? 'legendary' : reward.rarity === 'epic' ? 'epic' : ''
+              return (
+                <div key={i} className={`multi-item ${rarityClass}`}
+                  style={{ animationDelay: `${i * 0.08}s` }}>
+                  {reward.img ? (
+                    <img src={reward.img} alt={reward.label}
+                      style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: 8 }} />
+                  ) : (
+                    <span style={{ fontSize: 28, width: 36, textAlign: 'center' }}>{reward.icon}</span>
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontFamily: "'Fredoka One',cursive", fontSize: 13,
+                      color: textMain, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    }}>{reward.label}</div>
+                    <div style={{ fontSize: 10, color: textMuted }}>
+                      {reward.type === 'coin' ? `+${reward.amount} coin`
+                        : reward.type === 'xp' ? `+${reward.amount} XP`
+                        : reward.type === 'exclusive' ? (reward.isDupe ? '♻️ Dupe → coin' : '🆕 Baru!')
+                        : 'Reward'}
+                    </div>
+                  </div>
+                  <span style={{
+                    background: `${RARITY_COLORS[reward.rarity]}22`,
+                    color: RARITY_COLORS[reward.rarity],
+                    fontSize: 9, fontWeight: 800, padding: '3px 8px',
+                    borderRadius: 100, border: `1px solid ${RARITY_COLORS[reward.rarity]}44`,
+                    flexShrink: 0,
+                  }}>
+                    {RARITY_LABELS[reward.rarity]}
+                  </span>
+                </div>
+              )
+            })}
+
+            <button className="result-close-btn" style={{ marginTop: 16 }}
+              onClick={() => setMultiResults(null)}>
+              {multiResults.some(r => r.rarity === 'legendary') ? '🌟 Mantap!' : '✨ Oke!'}
             </button>
           </div>
         </div>
