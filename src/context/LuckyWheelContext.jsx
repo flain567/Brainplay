@@ -43,15 +43,17 @@ export const WHEEL_EXCLUSIVES = [
 // ─── Reward Pool ────────────────────────────────────────────────────────────
 
 const REWARD_POOL = [
-  { id: 'coin15',   type: 'coin',   amount: 15,  rarity: 'common',    weight: 20, icon: '🪙', label: '15 Coin' },
-  { id: 'coin25',   type: 'coin',   amount: 25,  rarity: 'common',    weight: 20, icon: '🪙', label: '25 Coin' },
-  { id: 'coin50',   type: 'coin',   amount: 50,  rarity: 'uncommon',  weight: 12, icon: '🪙', label: '50 Coin' },
-  { id: 'xp100',    type: 'xp',     amount: 100, rarity: 'uncommon',  weight: 13, icon: '⭐', label: '100 XP' },
-  { id: 'shop',     type: 'shop',   amount: 0,   rarity: 'rare',      weight: 18, icon: '🎁', label: 'Shop Item' },
-  { id: 'epic',     type: 'exclusive', amount: 0, rarity: 'epic',      weight: 9,  icon: '🟣', label: 'Epic Exclusive' },
-  { id: 'legendary',type: 'exclusive', amount: 0, rarity: 'legendary', weight: 3,  icon: '🟡', label: 'Legendary' },
-  { id: 'jackpot',  type: 'coin',   amount: 200, rarity: 'legendary', weight: 5,  icon: '💎', label: '200 Coin JACKPOT' },
+  { id: 'coin15',   type: 'coin',   amount: 15,  rarity: 'common',    weight: 50, icon: '🪙', label: '15 Coin' },
+  { id: 'coin25',   type: 'coin',   amount: 25,  rarity: 'common',    weight: 50, icon: '🪙', label: '25 Coin' },
+  { id: 'coin50',   type: 'coin',   amount: 50,  rarity: 'uncommon',  weight: 28, icon: '🪙', label: '50 Coin' },
+  { id: 'xp100',    type: 'xp',     amount: 100, rarity: 'uncommon',  weight: 28, icon: '⭐', label: '100 XP' },
+  { id: 'shop',     type: 'shop',   amount: 0,   rarity: 'rare',      weight: 36, icon: '🎁', label: 'Shop Item' },
+  { id: 'epic',     type: 'exclusive', amount: 0, rarity: 'epic',      weight: 6,  icon: '🟣', label: 'Epic Exclusive' },
+  { id: 'legendary',type: 'exclusive', amount: 0, rarity: 'legendary', weight: 1,  icon: '🟡', label: 'Legendary' },
+  { id: 'jackpot',  type: 'coin',   amount: 200, rarity: 'legendary', weight: 1,  icon: '💎', label: '200 Coin JACKPOT' },
 ]
+// Drop rates (total weight = 200):
+// Common: 50% | Uncommon: 28% | Rare: 18% | Epic: 3% | Legendary: 1%
 
 const RARITY_COLORS = {
   common:    '#B0BEC5',
@@ -69,9 +71,9 @@ const RARITY_LABELS = {
   legendary: 'Legendary',
 }
 
-const EXTRA_SPIN_COST = 50
+const EXTRA_SPIN_COST = 150
 const FREE_SPINS_PER_DAY = 1
-const PITY_THRESHOLD = 20
+const PITY_THRESHOLD = 50
 const DUPE_COIN_EPIC = 300
 const DUPE_COIN_LEGENDARY = 800
 const DUPE_COIN_SHOP = 50

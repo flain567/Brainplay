@@ -572,10 +572,10 @@ export default function LuckyWheel({ open, onClose }) {
 
               {/* Pity indicator */}
               <div style={{ textAlign: 'center', fontSize: 11, color: textMuted, fontWeight: 600 }}>
-                Pity: {pityCounter}/20 — {pityCounter >= 18 ? '🔥 Hampir Epic!' : 'next Epic guaranteed setelah 20 spin'}
+                Pity: {pityCounter}/50 — {pityCounter >= 45 ? '🔥 Hampir Epic!' : 'Epic guaranteed setelah 50 spin'}
               </div>
               <div className="pity-bar">
-                <div className="pity-fill" style={{ width: `${Math.min(pityCounter/20*100, 100)}%` }} />
+                <div className="pity-fill" style={{ width: `${Math.min(pityCounter/50*100, 100)}%` }} />
               </div>
 
               {/* Coin balance */}
