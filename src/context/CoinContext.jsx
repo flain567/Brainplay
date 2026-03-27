@@ -387,7 +387,10 @@ export const DASH_THEMES = [
     style:{ player:'#FFD700', playerOutline:'#B8860B', trail:'#FFD700', glow:'#FFFACD', wave:'#FF6B6B' } },
   { id:'toxic', name:'Toxic', desc:'Hijau beracun yang berbahaya', price:200, icon:'☢️', color:'#ADFF2F',
     style:{ player:'#ADFF2F', playerOutline:'#556B2F', trail:'#ADFF2F', glow:'#7FFF00', wave:'#FF1493' } },
-  // ── Lucky Wheel Exclusive ──
+  // ── Lucky Wheel Exclusives ──
+  { id:'wheel-dash-robot', name:'Robo Truck', desc:'Truk robot merah-kuning. Lucky Wheel Only!', price:0, icon:'🤖', color:'#E53935', exclusive:true, rarity:'epic',
+    img: '/wheel_racer_epic.png',
+    style:{ player:'#E53935', playerOutline:'#C62828', trail:'#FFD600', glow:'#FF6F00', wave:'#FF8A65' } },
   { id:'wheel-dash-graffiti', name:'Graffiti Cube', desc:'Cube graffiti penuh warna. Lucky Wheel Only!', price:0, icon:'🎨', color:'#E040FB', exclusive:true, rarity:'epic',
     img: '/wheel_dash.png',
     style:{ player:'#E040FB', playerOutline:'#6A1B9A', trail:'#FF4081', glow:'#E1BEE7', wave:'#FFD740' } },
@@ -434,9 +437,6 @@ export const RACER_THEMES = [
   { id:'shadow', name:'Shadow Runner', desc:'Hitam misterius dengan glow ungu', price:200, icon:'🌑', color:'#6C5CE7',
     style:{ body:'#2D3436', roof:'#1A1A2E', accent:'#6C5CE7', wheel:'#0A0A0A', exhaust:'#A29BFE' } },
   // ── Lucky Wheel Exclusives ──
-  { id:'wheel-racer-robot', name:'Robo Truck', desc:'Truk robot merah-kuning. Lucky Wheel Only!', price:0, icon:'🤖', color:'#E53935', exclusive:true, rarity:'epic',
-    img: '/wheel_racer_epic.png',
-    style:{ body:'#E53935', roof:'#C62828', accent:'#FFD600', wheel:'#1A1A1A', exhaust:'#FF6F00' } },
   { id:'wheel-racer-monster', name:'Monster Truck', desc:'Monster truck legendaris! LEGENDARY!', price:0, icon:'🛻', color:'#FF6D00', exclusive:true, rarity:'legendary',
     img: '/wheel_racer_monster.png',
     style:{ body:'#FF6D00', roof:'#E65100', accent:'#FFD740', wheel:'#3E2723', exhaust:'#FF3D00' } },

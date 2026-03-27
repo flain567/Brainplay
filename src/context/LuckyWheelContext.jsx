@@ -17,11 +17,6 @@ export const WHEEL_EXCLUSIVES = [
     design: { body: '#00BFFF', wing: '#006994', cockpit: '#E0FFFF', engine: '#00CED1', accent: '#B0E0E6' }
   },
   // ── Voxel Racer Themes ──
-  { id: 'wheel-racer-robot', game: 'voxel-racer', type: 'racerThemes', rarity: 'epic',
-    name: 'Robo Truck', desc: 'Truk robot merah-kuning dari planet mesin. Lucky Wheel Only!',
-    icon: '🤖', color: '#E53935', img: '/wheel_racer_epic.png',
-    style: { body: '#E53935', roof: '#C62828', accent: '#FFD600', wheel: '#1A1A1A', exhaust: '#FF6F00' }
-  },
   { id: 'wheel-racer-monster', game: 'voxel-racer', type: 'racerThemes', rarity: 'legendary',
     name: 'Monster Truck', desc: 'Monster truck legendaris dengan ban raksasa! LEGENDARY!',
     icon: '🛻', color: '#FF6D00', img: '/wheel_racer_monster.png',
@@ -33,6 +28,11 @@ export const WHEEL_EXCLUSIVES = [
     style: { body: '#FF8A65', roof: '#FF7043', accent: '#4FC3F7', wheel: '#455A64', exhaust: '#FFAB91' }
   },
   // ── Neon Dash Themes ──
+  { id: 'wheel-dash-robot', game: 'neon-dash', type: 'dashThemes', rarity: 'epic',
+    name: 'Robo Truck', desc: 'Truk robot merah-kuning dari planet mesin. Lucky Wheel Only!',
+    icon: '🤖', color: '#E53935', img: '/wheel_racer_epic.png',
+    style: { player: '#E53935', playerOutline: '#C62828', trail: '#FFD600', glow: '#FF6F00', wave: '#FF8A65' }
+  },
   { id: 'wheel-dash-graffiti', game: 'neon-dash', type: 'dashThemes', rarity: 'epic',
     name: 'Graffiti Cube', desc: 'Cube graffiti penuh warna dari jalanan kota. Lucky Wheel Only!',
     icon: '🎨', color: '#E040FB', img: '/wheel_dash.png',

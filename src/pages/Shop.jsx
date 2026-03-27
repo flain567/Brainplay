@@ -7,7 +7,9 @@ import { useThemeColors } from '../hooks/useThemeColors.js'
 
 // ─── Generic cosmetic list renderer ─────────────────────────────────────────
 function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMain, textMuted, borderCol, coins, onBuy, onEquip, buyingId, previewId, setPreviewId, renderPreview }) {
-  return items.map((item, i) => {
+  // Filter out Lucky Wheel exclusives — they can't be bought in Shop
+  const shopItems = items.filter(item => !item.exclusive)
+  return shopItems.map((item, i) => {
     const owned = ownedList.includes(item.id)
     const isActive = activeId === item.id
     const expanded = previewId === item.id
@@ -149,6 +151,7 @@ export default function Shop({ onBack }) {
   }, [email])
 
   const handleBuyCosmetic = async (type, item) => {
+    if (item.exclusive) { play('mismatch'); showToast('Item ini hanya dari Lucky Wheel! 🎰'); return }
     if (coins < item.price) { play('mismatch'); showToast('Coin tidak cukup! 😅'); return }
     setBuyingId(item.id); play('click')
     setTimeout(async () => {
@@ -477,7 +480,7 @@ export default function Shop({ onBack }) {
               <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
                 Pesawat mengubah tampilan, stats, dan kemampuan spesial di Space Shooter
               </p>
-              {SHIP_CATALOG.map((item, i) => {
+              {SHIP_CATALOG.filter(s => !s.exclusive).map((item, i) => {
                 const owned = (ownedShips||[]).includes(item.id)
                 const isActive = activeShip === item.id
                 const expanded = previewId === item.id
