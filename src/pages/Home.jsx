@@ -735,7 +735,7 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
                       // Pick random game dan mainkan
                       if (games && games.length > 0) {
                         const randomGame = games[Math.floor(Math.random() * games.length)]
-                        setTimeout(() => onPlay(randomGame), 300)
+                        setTimeout(() => onPlay(randomGame.id), 300)
                       }
                     }}
                     style={{
