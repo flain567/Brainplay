@@ -168,6 +168,38 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
         .carousel-row::-webkit-scrollbar { display: none; }
         .carousel-row::after { content: ''; padding-right: 1px; } /* extra padding at end */
 
+        .carousel-btn {
+          position: absolute;
+          top: 50px;
+          bottom: 30px;
+          width: 50px;
+          border: none;
+          color: white;
+          font-size: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          opacity: 0;
+          transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+          z-index: 10;
+        }
+        section:hover .carousel-btn { opacity: 0.8; }
+        .carousel-btn:hover { opacity: 1 !important; font-size: 40px; width: 66px; }
+        .carousel-btn.left {
+          left: -20px;
+          background: linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+          border-radius: 16px;
+        }
+        .carousel-btn.right {
+          right: -20px;
+          background: linear-gradient(to left, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+          border-radius: 16px;
+        }
+        @media (max-width: 600px) {
+           .carousel-btn { display: none; }
+        }
+
         /* Coming soon grid */
         .cs-card {
           background: ${surfaceCol};
@@ -365,7 +397,7 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
             </div>
 
             {/* ── Shop & Daily Reward Row ── */}
-            <div style={{ display:'flex', gap:10, height: '100%' }}>
+            <div style={{ display:'flex', gap:10 }}>
               {/* Daily Reward */}
               {isDailyClaimable && (
                 <div
@@ -375,7 +407,6 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
                     background: dark?'rgba(253,203,110,0.08)':'rgba(253,203,110,0.1)',
                     backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
                     border:`1.5px solid ${dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.3)'}`,
-                    height: '100%',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor='#FDCB6E'; e.currentTarget.style.transform='translateY(-4px)' }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor=dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.3)'; e.currentTarget.style.transform='translateY(0)' }}
@@ -395,7 +426,6 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
                   background: dark?'rgba(162,155,254,0.08)':'rgba(162,155,254,0.06)',
                   backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
                   border:`1.5px solid ${dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.2)'}`,
-                  height: '100%',
                 }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor='#A29BFE'; e.currentTarget.style.transform='translateY(-4px)' }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor=dark?'rgba(162,155,254,0.2)':'rgba(162,155,254,0.2)'; e.currentTarget.style.transform='translateY(0)' }}
@@ -588,39 +618,50 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
             if (tagGames.length === 0) return null
             const meta = TAG_META[tag]
             return (
-              <section key={tag} style={{ marginBottom: 48, animation: `slide-up 0.5s ${0.3 + tagIndex*0.1}s ease both` }}>
+              <section key={tag} style={{ position: 'relative', marginBottom: 48, animation: `slide-up 0.5s ${0.3 + tagIndex*0.1}s ease both` }}>
                 <div className="section-head">
                   <h2 className="section-title" style={{ display:'flex', alignItems:'center', gap:10 }}>
                     <span style={{ fontSize:28, filter:`drop-shadow(0 0 10px ${meta.color}66)` }}>{meta.icon}</span>
                     {tag}
                   </h2>
-                  <span style={{ background: `${meta.color}22`, color: meta.color, borderRadius: 100, padding: '4px 14px', fontSize: 13, fontWeight: 800, border: `1px solid ${meta.color}44` }}>
-                    {tagGames.length} Game
+                  <span style={{ background: `${meta.color}22`, color: meta.color, borderRadius: 100, padding: '4px 14px', fontSize: 13, fontWeight: 800, border: `1px solid ${meta.color}44`, display: 'flex', alignItems: 'center' }}>
+                    {tagGames.length} Game <span style={{ opacity: 0.6, marginLeft: 6, fontSize: 10 }}>geser ➔</span>
                   </span>
                   <div className="section-line" />
                 </div>
+                
+                <button className="carousel-btn left" onClick={e => e.currentTarget.parentElement.querySelector('.carousel-row').scrollBy({ left: -320, behavior: 'smooth' })}>
+                  ‹
+                </button>
                 <div className="carousel-row">
                   {tagGames.map((game) => (
                     <GameCard key={game.id} game={game} onPlay={onPlay} />
                   ))}
                 </div>
+                <button className="carousel-btn right" onClick={e => e.currentTarget.parentElement.querySelector('.carousel-row').scrollBy({ left: 320, behavior: 'smooth' })}>
+                  ›
+                </button>
               </section>
             )
           })}
 
           {/* ── Coming soon ── */}
           {COMING_SOON.length > 0 && (
-            <section style={{ animation: 'slide-up 0.5s 0.8s ease both', marginBottom: 48 }}>
+            <section style={{ position: 'relative', animation: 'slide-up 0.5s 0.8s ease both', marginBottom: 48 }}>
               <div className="section-head">
                 <h2 className="section-title" style={{ display:'flex', alignItems:'center', gap:10 }}>
                   <span style={{ fontSize:28, filter:'drop-shadow(0 0 10px #A29BFE66)' }}>🔒</span>
                   Segera Hadir
                 </h2>
-                <span style={{ background: '#A29BFE22', color: '#A29BFE', borderRadius: 100, padding: '4px 14px', fontSize: 13, fontWeight: 800, border: '1px solid #A29BFE44' }}>
-                  {COMING_SOON.length} Game
+                <span style={{ background: '#A29BFE22', color: '#A29BFE', borderRadius: 100, padding: '4px 14px', fontSize: 13, fontWeight: 800, border: '1px solid #A29BFE44', display: 'flex', alignItems: 'center' }}>
+                  {COMING_SOON.length} Game <span style={{ opacity: 0.6, marginLeft: 6, fontSize: 10 }}>geser ➔</span>
                 </span>
                 <div className="section-line" />
               </div>
+
+              <button className="carousel-btn left" onClick={e => e.currentTarget.parentElement.querySelector('.carousel-row').scrollBy({ left: -320, behavior: 'smooth' })}>
+                ‹
+              </button>
               <div className="carousel-row" style={{ minHeight: 140 }}>
                 {COMING_SOON.map((g, i) => (
                   <div key={g.day} className="cs-card" style={{ flexShrink: 0, width: 160, scrollSnapAlign: 'start', opacity: 0.6 }}>
@@ -633,6 +674,9 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
                   </div>
                 ))}
               </div>
+              <button className="carousel-btn right" onClick={e => e.currentTarget.parentElement.querySelector('.carousel-row').scrollBy({ left: 320, behavior: 'smooth' })}>
+                ›
+              </button>
             </section>
           )}
 
