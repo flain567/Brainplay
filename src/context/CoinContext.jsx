@@ -161,8 +161,15 @@ export const SHIP_CATALOG = [
   { id:'phantom', name:'Phantom Striker', desc:'Pesawat tempur siluman ultra-premium. Damage dan speed maksimal!',
     price:5000, icon:'🛩️', color:'#2c3e50',
     stats:{ speed:8, fireRate:4, bulletCount:4, maxHP:10, specialType:'cloak', specialCharge:400, critChance:0.5 },
-    img: '/phantom.png', // Uses the user's uploaded image
+    img: '/phantom.png',
     design:{ body:'#2c3e50', wing:'#1a252f', cockpit:'#e74c3c', engine:'#c0392b', accent:'#e74c3c' }
+  },
+  // ── Lucky Wheel Exclusive ──
+  { id:'wheel-ship-ice', name:'Ice Striker', desc:'Pesawat tempur biru es dari dimensi beku. Lucky Wheel Only!',
+    price:0, icon:'❄️', color:'#00BFFF', exclusive:true, rarity:'epic',
+    stats:{ speed:6, fireRate:5, bulletCount:3, maxHP:7, specialType:'beam', specialCharge:280, critChance:0.15 },
+    img: '/wheel_ship.png',
+    design:{ body:'#00BFFF', wing:'#006994', cockpit:'#E0FFFF', engine:'#00CED1', accent:'#B0E0E6' }
   },
 ]
 
@@ -380,6 +387,10 @@ export const DASH_THEMES = [
     style:{ player:'#FFD700', playerOutline:'#B8860B', trail:'#FFD700', glow:'#FFFACD', wave:'#FF6B6B' } },
   { id:'toxic', name:'Toxic', desc:'Hijau beracun yang berbahaya', price:200, icon:'☢️', color:'#ADFF2F',
     style:{ player:'#ADFF2F', playerOutline:'#556B2F', trail:'#ADFF2F', glow:'#7FFF00', wave:'#FF1493' } },
+  // ── Lucky Wheel Exclusive ──
+  { id:'wheel-dash-graffiti', name:'Graffiti Cube', desc:'Cube graffiti penuh warna. Lucky Wheel Only!', price:0, icon:'🎨', color:'#E040FB', exclusive:true, rarity:'epic',
+    img: '/wheel_dash.png',
+    style:{ player:'#E040FB', playerOutline:'#6A1B9A', trail:'#FF4081', glow:'#E1BEE7', wave:'#FFD740' } },
 ]
 
 // ─── Brick Breaker Skins (Day 13) ────────────────────────────────────────────
@@ -422,6 +433,16 @@ export const RACER_THEMES = [
     style:{ body:'#FFD700', roof:'#DAA520', accent:'#FF6B6B', wheel:'#2C2C1A', exhaust:'#FFFACD' } },
   { id:'shadow', name:'Shadow Runner', desc:'Hitam misterius dengan glow ungu', price:200, icon:'🌑', color:'#6C5CE7',
     style:{ body:'#2D3436', roof:'#1A1A2E', accent:'#6C5CE7', wheel:'#0A0A0A', exhaust:'#A29BFE' } },
+  // ── Lucky Wheel Exclusives ──
+  { id:'wheel-racer-robot', name:'Robo Truck', desc:'Truk robot merah-kuning. Lucky Wheel Only!', price:0, icon:'🤖', color:'#E53935', exclusive:true, rarity:'epic',
+    img: '/wheel_racer_epic.png',
+    style:{ body:'#E53935', roof:'#C62828', accent:'#FFD600', wheel:'#1A1A1A', exhaust:'#FF6F00' } },
+  { id:'wheel-racer-monster', name:'Monster Truck', desc:'Monster truck legendaris! LEGENDARY!', price:0, icon:'🛻', color:'#FF6D00', exclusive:true, rarity:'legendary',
+    img: '/wheel_racer_monster.png',
+    style:{ body:'#FF6D00', roof:'#E65100', accent:'#FFD740', wheel:'#3E2723', exhaust:'#FF3D00' } },
+  { id:'wheel-racer-beetle', name:'Retro Beetle', desc:'Mobil klasik retro melegenda. LEGENDARY!', price:0, icon:'🚙', color:'#FF8A65', exclusive:true, rarity:'legendary',
+    img: '/wheel_racer_legendary.png',
+    style:{ body:'#FF8A65', roof:'#FF7043', accent:'#4FC3F7', wheel:'#455A64', exhaust:'#FFAB91' } },
 ]
 
 // ─── Voxel Racer Maps (NEW) ─────────────────────────────────────────────────
@@ -505,6 +526,23 @@ export function CoinProvider({ children }) {
     }
     window.addEventListener('bp-cloud-sync', handler)
     return () => window.removeEventListener('bp-cloud-sync', handler)
+  }, [])
+
+  // Lucky Wheel unlock handler: auto-add exclusive items to owned list
+  useEffect(() => {
+    const handler = (e) => {
+      const { item } = e.detail || {}
+      if (!item) return
+      const typeToKey = { ships:'ownedShips', racerThemes:'ownedRacerThemes', dashThemes:'ownedDashThemes' }
+      const key = typeToKey[item.type]
+      if (!key) return
+      setState(s => {
+        if ((s[key] || []).includes(item.id)) return s // already owned
+        return { ...s, [key]: [...(s[key] || []), item.id] }
+      })
+    }
+    window.addEventListener('bp-wheel-unlock', handler)
+    return () => window.removeEventListener('bp-wheel-unlock', handler)
   }, [])
 
   const earnCoins = useCallback((amount, desc='') => {

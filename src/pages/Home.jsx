@@ -7,9 +7,11 @@ import { useProgress, getLevelInfo, getBorderForLevel, getTitleColorForLevel } f
 import { useCoins } from '../context/CoinContext.jsx'
 import { useDailyChallenge } from '../context/DailyChallengeContext.jsx'
 import { useLimitedMode } from '../context/LimitedModeContext.jsx'
+import { useLuckyWheel } from '../context/LuckyWheelContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { trackLimitedModeView, trackLimitedModeBonus } from '../utils/analytics.js'
 import { useLocalAnalytics } from '../context/LocalAnalyticsContext.jsx'
+import LuckyWheel from '../components/LuckyWheel.jsx'
 
 const COMING_SOON = [
   { day: 16, emoji: '⌨️', title: 'Typing Speed',     tag: 'Kata',     color: '#FD79A8' },
@@ -45,9 +47,11 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
     completedCount, allComplete, bonusAvailable, bonusClaimed, allCompleteBonus,
   } = useDailyChallenge()
   const { currentMode, isBonusClaimedToday, markBonusAsClaimed, getNextWeekendEvent, getWeekNumber } = useLimitedMode()
+  const { hasFreeSpins } = useLuckyWheel()
   const tc = useThemeColors()
   const { trackEvent } = useLocalAnalytics()
   const [scrollTop, setScrollTop] = useState(false)
+  const [wheelOpen, setWheelOpen] = useState(false)
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
   const borderData = getBorderForLevel(levelInfo.level)
@@ -455,6 +459,34 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
                   <span style={{ fontSize:12 }}>🪙</span>
                   <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:12, color:'#F9A825' }}>{coins}</span>
                 </div>
+              </div>
+
+              {/* Lucky Wheel Card */}
+              <div
+                className="qa-card"
+                onClick={() => { play('click'); setWheelOpen(true) }}
+                style={{
+                  background: dark?'rgba(255,215,0,0.06)':'rgba(255,215,0,0.06)',
+                  backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                  border:`1.5px solid ${dark?'rgba(255,215,0,0.2)':'rgba(255,215,0,0.25)'}`,
+                  position: 'relative', overflow: 'hidden',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor='#FFD700'; e.currentTarget.style.transform='translateY(-4px)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor=dark?'rgba(255,215,0,0.2)':'rgba(255,215,0,0.25)'; e.currentTarget.style.transform='translateY(0)' }}
+              >
+                {hasFreeSpins && (
+                  <div style={{
+                    position:'absolute', top:6, right:8, background:'linear-gradient(135deg,#FF6B6B,#E53935)',
+                    color:'#fff', fontSize:9, fontWeight:800, padding:'2px 8px', borderRadius:100,
+                    animation:'pulse 1.5s ease infinite',
+                  }}>FREE!</div>
+                )}
+                <span style={{ fontSize:24 }}>🎰</span>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#FFD700' }}>Lucky Wheel</div>
+                  <div style={{ fontSize:11, color:textMuted }}>{hasFreeSpins ? 'Spin gratis!' : 'Coba keberuntanganmu!'}</div>
+                </div>
+                <div style={{ fontSize:20, animation: hasFreeSpins ? 'spin 3s linear infinite' : 'none' }}>🎡</div>
               </div>
 
               {/* Creator Info Card */}
@@ -868,6 +900,9 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
       >
         ↑
       </button>
+
+      {/* Lucky Wheel Modal */}
+      <LuckyWheel open={wheelOpen} onClose={() => setWheelOpen(false)} />
     </>
   )
 }

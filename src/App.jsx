@@ -7,6 +7,7 @@ import { LeaderboardProvider } from './context/LeaderboardContext.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { DailyChallengeProvider } from './context/DailyChallengeContext.jsx'
 import { LimitedModeProvider, useLimitedMode } from './context/LimitedModeContext.jsx'
+import { LuckyWheelProvider } from './context/LuckyWheelContext.jsx'
 import { LocalAnalyticsProvider } from './context/LocalAnalyticsContext.jsx'
 import { CloudSaveProvider, useCloudSave } from './context/CloudSaveContext.jsx'
 import Navbar from './components/Navbar.jsx'
@@ -541,12 +542,14 @@ export default function App() {
               <ProgressProvider>
                 <CoinProvider>
                   <LeaderboardProvider>
+                    <LuckyWheelProvider>
                     <DailyChallengeProvider>
                       <NotifProvider>
                         <ThemeApplicator />
                         <AppInner />
                       </NotifProvider>
                     </DailyChallengeProvider>
+                    </LuckyWheelProvider>
                   </LeaderboardProvider>
                 </CoinProvider>
               </ProgressProvider>

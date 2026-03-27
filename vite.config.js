@@ -27,7 +27,18 @@ export default defineConfig({
   },
   // Dev server
   server: {
-    host: true,
+    host: '0.0.0.0',
     port: 3000,
+    hmr: {
+      protocol: 'ws',
+      // Vite akan auto-detect host jika tidak specified
+      // Fallback untuk localhost
+      ...(process.env.VITE_HMR_HOST && { host: process.env.VITE_HMR_HOST }),
+      ...(process.env.VITE_HMR_PORT && { port: parseInt(process.env.VITE_HMR_PORT) }),
+    },
+    // Additional middleware options
+    middlewareMode: false,
+    // Enable CORS for HMR
+    cors: true,
   },
 })

@@ -10,6 +10,7 @@ import{useEffect,useRef,useState}from'react'
 import{useSound}from'../../hooks/useSound.js'
 import{useProgress}from'../../context/ProgressContext.jsx'
 import{useCoins}from'../../context/CoinContext.jsx'
+import{DASH_THEMES}from'../../context/CoinContext.jsx'
 import{useHaptics}from'../../hooks/useHaptics.js'
 
 // ═══════════════════════════════════════════════════════════
@@ -145,8 +146,9 @@ function mkBgR(W,H){const r=[];for(let i=0;i<10;i++)r.push({x:Math.random()*W*3,
 // ═══════════════════════════════════════════════════════════
 export default function NeonDash({onBack,game,difficulty}){
   const cRef=useRef(null),aRef=useRef(null),gR=useRef(null),phR=useRef('idle')
-  const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins,getActiveDashTheme}=useCoins()
+  const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins,getActiveDashTheme,activeDashTheme:activeDashThemeId}=useCoins()
   const{vibrateLight,vibrateMedium,vibrateHeavy,vibrateSuccess,vibrateError}=useHaptics()
+  const dashImgRef=useRef(null)
   const dc=DC[difficulty.id]
   const[phase,_sp]=useState('idle')
   const[showTut,setShowTut]=useState(()=>!localStorage.getItem('bp_tut_neon-dash'))
@@ -169,6 +171,19 @@ export default function NeonDash({onBack,game,difficulty}){
     window.addEventListener('orientationchange',onOr)
     return()=>{clearTimeout(t);window.removeEventListener('resize',onRz);window.removeEventListener('orientationchange',onOr)}
   },[])
+
+  // Load dash cube image if the active theme has one
+  useEffect(()=>{
+    const themeObj = DASH_THEMES.find(t => t.id === (activeDashThemeId || 'default'))
+    if(themeObj && themeObj.img){
+      const img=new Image()
+      img.src=themeObj.img
+      img.onload=()=>{dashImgRef.current=img}
+      img.onerror=()=>{dashImgRef.current=null}
+    }else{
+      dashImgRef.current=null
+    }
+  },[activeDashThemeId])
 
   function szC(){
     const c=cRef.current;if(!c)return{w:300,h:500}
@@ -418,12 +433,18 @@ export default function NeonDash({onBack,game,difficulty}){
       const ph=phR.current
       if(ph==='play'||ph==='winning'||(ph==='dying'&&g.dieT>12)){
         ctx.save();ctx.translate(g.px+PS/2,g.py+PS/2);ctx.rotate(g.rot)
-        ctx.fillStyle=currentDashTheme.playerOutline;ctx.fillRect(-PS/2-2,-PS/2-2,PS+4,PS+4)
-        ctx.fillStyle=g.mode==='wave'?currentDashTheme.wave:currentDashTheme.player
-        ctx.shadowColor=g.mode==='wave'?currentDashTheme.wave:currentDashTheme.player;ctx.shadowBlur=12
-        ctx.fillRect(-PS/2,-PS/2,PS,PS);ctx.shadowBlur=0
-        ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.strokeRect(-PS/2,-PS/2,PS,PS)
-        ctx.fillStyle=currentDashTheme.glow;ctx.fillRect(1,-3,5,5)
+        if(dashImgRef.current){
+          // Draw cube image
+          const imgS=PS*1.6
+          ctx.drawImage(dashImgRef.current, -imgS/2, -imgS/2, imgS, imgS)
+        } else {
+          ctx.fillStyle=currentDashTheme.playerOutline;ctx.fillRect(-PS/2-2,-PS/2-2,PS+4,PS+4)
+          ctx.fillStyle=g.mode==='wave'?currentDashTheme.wave:currentDashTheme.player
+          ctx.shadowColor=g.mode==='wave'?currentDashTheme.wave:currentDashTheme.player;ctx.shadowBlur=12
+          ctx.fillRect(-PS/2,-PS/2,PS,PS);ctx.shadowBlur=0
+          ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.strokeRect(-PS/2,-PS/2,PS,PS)
+          ctx.fillStyle=currentDashTheme.glow;ctx.fillRect(1,-3,5,5)
+        }
         ctx.restore()}
 
       // Particles & rings

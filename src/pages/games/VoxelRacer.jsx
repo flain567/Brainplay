@@ -9,6 +9,7 @@ import{useEffect,useRef,useState}from'react'
 import{useSound}from'../../hooks/useSound.js'
 import{useProgress}from'../../context/ProgressContext.jsx'
 import{useCoins}from'../../context/CoinContext.jsx'
+import{RACER_THEMES}from'../../context/CoinContext.jsx'
 
 const DC={
   easy:  {power:0.13,maxSpd:6.5,grav:0.32,fuelDrain:0.06,fuelCan:35,ml:6},
@@ -87,7 +88,7 @@ function spawnCollectibles(terrain,lvl){
 // ═══════════════════════════════════════════════════════════
 export default function VoxelRacer({onBack,game,difficulty}){
   const cRef=useRef(null),aRef=useRef(null),gR=useRef(null),phR=useRef('idle')
-  const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins:earnC,getActiveRacerTheme,getActiveRacerMap}=useCoins()
+  const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins:earnC,getActiveRacerTheme,getActiveRacerMap,activeRacerTheme:activeRacerThemeId}=useCoins()
   const dc=DC[difficulty.id]
   const[phase,_sp]=useState('idle')
   const[showTut,setShowTut]=useState(()=>!localStorage.getItem('bp_tut_voxel-racer'))
@@ -103,7 +104,9 @@ export default function VoxelRacer({onBack,game,difficulty}){
 
   const currentRacerMap=getActiveRacerMap()
   const mapImgRef=useRef(null)
+  const carImgRef=useRef(null)
 
+  // Load map background image
   useEffect(()=>{
     if(currentRacerMap.img){
       const img=new Image()
@@ -114,6 +117,19 @@ export default function VoxelRacer({onBack,game,difficulty}){
       mapImgRef.current=null
     }
   },[currentRacerMap.id])
+
+  // Load car skin image if the active racer theme has one
+  useEffect(()=>{
+    const themeObj = RACER_THEMES.find(t => t.id === (activeRacerThemeId || 'default'))
+    if(themeObj && themeObj.img){
+      const img=new Image()
+      img.src=themeObj.img
+      img.onload=()=>{carImgRef.current=img}
+      img.onerror=()=>{carImgRef.current=null}
+    }else{
+      carImgRef.current=null
+    }
+  },[activeRacerThemeId])
 
   // Resize handler
   useEffect(()=>{
@@ -505,25 +521,32 @@ export default function VoxelRacer({onBack,game,difficulty}){
         // Shadow on ground
         ctx.fillStyle='rgba(0,0,0,0.12)';ctx.fillRect(-CAR_W/2+5,CAR_H/2+3,CAR_W-10,5)
 
-        // Body bottom (roof)
-        ctx.fillStyle=currentRacerTheme.roof;ctx.fillRect(-CAR_W/2,-CAR_H/2,CAR_W,CAR_H)
-        // Body top (body)
-        const isDark=currentRacerTheme.body.length>4
-        ctx.fillStyle=currentRacerTheme.body;ctx.fillRect(-CAR_W/2+2,-CAR_H/2-1,CAR_W-4,CAR_H-1)
-        // Cabin (accent)
-        ctx.fillStyle=currentRacerTheme.accent;ctx.fillRect(-8,-CAR_H/2-11,24,13)
-        // Windshield
-        ctx.fillStyle='rgba(41,182,246,0.7)';ctx.fillRect(13,-CAR_H/2-9,4,9)
-        // Rear window
-        ctx.fillStyle='rgba(41,182,246,0.5)';ctx.fillRect(-6,-CAR_H/2-9,4,9)
-        // Bumpers
-        ctx.fillStyle='#BDBDBD';ctx.fillRect(-CAR_W/2-2,-3,3,6);ctx.fillRect(CAR_W/2-1,-3,3,6)
-        // Headlights
-        ctx.fillStyle='#FFEB3B';ctx.fillRect(CAR_W/2,-5,2,3);ctx.fillRect(CAR_W/2,1,2,3)
-        // Taillights
-        ctx.fillStyle=currentRacerTheme.accent;ctx.fillRect(-CAR_W/2-1,-4,2,3);ctx.fillRect(-CAR_W/2-1,1,2,3)
-        // Outline
-        ctx.strokeStyle='rgba(0,0,0,0.2)';ctx.lineWidth=1;ctx.strokeRect(-CAR_W/2,-CAR_H/2,CAR_W,CAR_H)
+        if(carImgRef.current){
+          // Draw car image (scaled to fit car bounds)
+          const cImg=carImgRef.current
+          const imgW=CAR_W*1.8, imgH=CAR_H*2.2
+          ctx.drawImage(cImg, -imgW/2, -imgH/2-4, imgW, imgH)
+        } else {
+          // Body bottom (roof)
+          ctx.fillStyle=currentRacerTheme.roof;ctx.fillRect(-CAR_W/2,-CAR_H/2,CAR_W,CAR_H)
+          // Body top (body)
+          const isDark=currentRacerTheme.body.length>4
+          ctx.fillStyle=currentRacerTheme.body;ctx.fillRect(-CAR_W/2+2,-CAR_H/2-1,CAR_W-4,CAR_H-1)
+          // Cabin (accent)
+          ctx.fillStyle=currentRacerTheme.accent;ctx.fillRect(-8,-CAR_H/2-11,24,13)
+          // Windshield
+          ctx.fillStyle='rgba(41,182,246,0.7)';ctx.fillRect(13,-CAR_H/2-9,4,9)
+          // Rear window
+          ctx.fillStyle='rgba(41,182,246,0.5)';ctx.fillRect(-6,-CAR_H/2-9,4,9)
+          // Bumpers
+          ctx.fillStyle='#BDBDBD';ctx.fillRect(-CAR_W/2-2,-3,3,6);ctx.fillRect(CAR_W/2-1,-3,3,6)
+          // Headlights
+          ctx.fillStyle='#FFEB3B';ctx.fillRect(CAR_W/2,-5,2,3);ctx.fillRect(CAR_W/2,1,2,3)
+          // Taillights
+          ctx.fillStyle=currentRacerTheme.accent;ctx.fillRect(-CAR_W/2-1,-4,2,3);ctx.fillRect(-CAR_W/2-1,1,2,3)
+          // Outline
+          ctx.strokeStyle='rgba(0,0,0,0.2)';ctx.lineWidth=1;ctx.strokeRect(-CAR_W/2,-CAR_H/2,CAR_W,CAR_H)
+        }
 
         // Wheels (using wheel color from theme)
         for(const wx of[-WHL_BASE/2,WHL_BASE/2]){
