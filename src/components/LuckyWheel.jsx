@@ -177,7 +177,7 @@ export default function LuckyWheel({ open, onClose }) {
       setMultiCurrentReward(reward)
       setMultiRevealed(prev => [...prev, reward])
       setMultiPhase('reveal') // show reward card
-    }, 2800)
+    }, SPIN_DURATION + 200) // wait for wheel CSS transition to fully stop
 
     return () => { clearInterval(tickInterval); clearTimeout(timer) }
   }, [multiPhase, multiIdx]) // re-runs when phase becomes 'spin' or idx changes
