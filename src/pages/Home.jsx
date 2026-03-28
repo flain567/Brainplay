@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import GameCard from '../components/GameCard.jsx'
 import ParticleBackground from '../components/ParticleBackground.jsx'
 import { useSettings } from '../context/SettingsContext.jsx'
@@ -12,6 +12,7 @@ import { useThemeColors } from '../hooks/useThemeColors.js'
 import { trackLimitedModeView, trackLimitedModeBonus } from '../utils/analytics.js'
 import { useLocalAnalytics } from '../context/LocalAnalyticsContext.jsx'
 import LuckyWheel from '../components/LuckyWheel.jsx'
+const AnimatedHeroText = lazy(() => import('../components/AnimatedHeroText.jsx'))
 import { getLastPlayed } from '../utils/lastPlayed.js'
 
 /** Ide konten mendatang (bukan daftar rilis harian — banyak game sudah hidup di katalog). */
@@ -379,6 +380,11 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             <div className="hero-tag">🏆 {gameTotal} game · misi harian · streak &amp; koin</div>
             <h1 className="hero-title">Selamat Datang<br/>di BrainPlay! 🎉</h1>
             <p className="hero-sub">Santai sejenak, tantang otakmu, klaim hadiah harian. Tiap game punya vibe beda — geser katalog di bawah!</p>
+
+            {/* Anime.js text stagger animation */}
+            <Suspense fallback={null}>
+              <AnimatedHeroText text="BrainPlay" dark={dark} reduceMotion={reduceMotion} />
+            </Suspense>
 
             {/* Progress koleksi */}
             <div className="progress-wrap">
