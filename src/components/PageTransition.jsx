@@ -13,14 +13,14 @@ export default function PageTransition({ children, pageKey }) {
     <>
       <style>{`
         .page-enter {
-          animation: pageEnter 0.32s cubic-bezier(0.22,1,0.36,1) both;
+          animation: pageEnter 0.28s ease-out both;
         }
         @keyframes pageEnter {
-          from { opacity: 0; transform: translateY(18px) scale(0.98); }
-          to   { opacity: 1; transform: translateY(0)    scale(1);    }
+          from { opacity: 0; }
+          to   { opacity: 1; }
         }
       `}</style>
-      <div className={visible ? 'page-enter' : ''} style={{ opacity: visible ? 1 : 0, transition: 'opacity 0.1s' }}>
+      <div className={visible ? 'page-enter' : ''} style={{ opacity: visible ? 1 : 0 }}>
         {children}
       </div>
     </>

@@ -35,7 +35,6 @@ export default function LuckyWheel({ open, onClose }) {
   // Debug logging
   useEffect(() => {
     if (open) {
-      console.log('Lucky Wheel opened, slots:', slots)
       if (!slots || slots.length === 0) {
         console.warn('⚠️ Lucky Wheel: No slots available!')
       }

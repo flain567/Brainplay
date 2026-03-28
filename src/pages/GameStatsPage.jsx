@@ -18,6 +18,8 @@ const GAME_DATA = [
   { id: 'neon-dash', emoji: '💎', name: 'Neon Dash' },
   { id: 'brick-breaker', emoji: '🧱', name: 'Brick Breaker' },
   { id: 'voxel-racer', emoji: '🚗', name: 'Voxel Racer' },
+  { id: 'wordle', emoji: '💬', name: 'Wordle Indonesia' },
+  { id: 'math-challenge', emoji: '🧮', name: 'Math Challenge' },
 ]
 
 export default function GameStatsPage({ onBack }) {

@@ -130,7 +130,6 @@ export function initNative() {
   setupSafeArea()
   setupStatusBar(true)
   setupKeyboard()
-  console.log('[Native] Capacitor initialized on', Capacitor.getPlatform())
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

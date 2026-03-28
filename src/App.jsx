@@ -55,6 +55,7 @@ const NeonDash        = lazy(() => import('./pages/games/NeonDash.jsx'))
 const MemoryPatternPro = lazy(() => import('./pages/games/MemoryPatternPro.jsx'))
 const WordleIndonesia = lazy(() => import('./pages/games/WordleIndonesia.jsx'))
 const VoxelRacer      = lazy(() => import('./pages/games/VoxelRacer.jsx'))
+const MathChallenge   = lazy(() => import('./pages/games/MathChallenge.jsx'))
 
 // ─── Game loading fallback ──────────────────────────────────────────────────
 function GameLoader() {
@@ -265,6 +266,19 @@ export const GAMES = [
       { id:'easy',   description:'Kecepatan santai, 6 level — cocok pemula 3D!',        stats:['6 level','Lambat','3 jalur'] },
       { id:'medium', description:'Lebih cepat, 10 level — butuh refleks!',              stats:['10 level','Sedang','Rintangan++'] },
       { id:'hard',   description:'Kecepatan tinggi, 14 level, rintangan padat!',        stats:['14 level','Cepat','Brutal'] },
+    ],
+  },
+  {
+    id: 'math-challenge',
+    title: 'Math Challenge',
+    emoji: '🧮',
+    description: 'Uji kecepatan hitungmu! Jawab soal matematika sebelum waktu habis, naik level dari penjumlahan sampai operasi campuran!',
+    color: '#6C5CE7', bg: '#F0EFFE', tag: 'Logika',
+    component: MathChallenge, day: 16,
+    difficulties: [
+      { id:'easy',   description:'15 detik per soal, 5 nyawa, target Level 8 — santai untuk pemula',      stats:['15s/soal','5 nyawa','Target Lv8'] },
+      { id:'medium', description:'10 detik per soal, 4 nyawa, target Level 10 — butuh kecepatan!',        stats:['10s/soal','4 nyawa','Target Lv10'] },
+      { id:'hard',   description:'7 detik per soal, 3 nyawa, mulai Level 2, target Level 12 — extreme!',  stats:['7s/soal','3 nyawa','Target Lv12'] },
     ],
   },
 ]

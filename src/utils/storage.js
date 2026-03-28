@@ -82,7 +82,6 @@ export function clearGameData() {
   // Restore preserved settings
   Object.entries(saved).forEach(([key, val]) => localStorage.setItem(key, val))
 
-  console.log('[Storage] 🧹 Game data cleared')
 }
 
 // ─── Migration from old keys ─────────────────────────────────────────────────

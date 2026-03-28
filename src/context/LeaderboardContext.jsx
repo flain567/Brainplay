@@ -140,6 +140,7 @@ const MAX_SCORES = {
   'memory-pattern':15000,
   'voxel-racer':   15000,
   'wordle':        1500,
+  'math-challenge':50000,
 }
 
 // Rate limiter: 1 submit per 5 seconds per game
@@ -190,7 +191,6 @@ async function submitOnlineScore(gameId, diffId, entry) {
     if (existing.exists()) {
       const oldData = existing.data()
       if (entry.score <= (oldData.score || 0)) {
-        console.log('[Leaderboard] ⏭️ Score not higher, skip:', entry.score, '<=', oldData.score)
         return { success: true, skipped: true }
       }
       await setDoc(docRef, {
@@ -210,7 +210,6 @@ async function submitOnlineScore(gameId, diffId, entry) {
         createdAt: oldData.createdAt || serverTimestamp(),
         updatedAt: serverTimestamp(),
       })
-      console.log('[Leaderboard] ✅ Score UPDATED:', oldData.score, '→', entry.score)
     } else {
       await setDoc(docRef, {
         gameId,
@@ -229,7 +228,6 @@ async function submitOnlineScore(gameId, diffId, entry) {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       })
-      console.log('[Leaderboard] ✅ New score CREATED:', entry.score)
     }
 
     return { success: true }

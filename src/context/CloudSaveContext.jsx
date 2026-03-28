@@ -141,7 +141,6 @@ export function CloudSaveProvider({ children }) {
       // If different user than last time, clear local data first
       const previousUid = lastUid.current
       if (previousUid && previousUid !== uid) {
-        console.log('[CloudSave] 🔄 Different user detected, clearing local data')
         clearGameData()
         localStorage.removeItem('bp_display_name')
         localStorage.removeItem('bp_nickname')
@@ -186,7 +185,6 @@ export function CloudSaveProvider({ children }) {
           updatedAt: serverTimestamp(),
         })
 
-        console.log('[CloudSave] ✅ Merged cloud + local data')
       } else {
         // No cloud data — push local to cloud
         await setDoc(docRef, {
@@ -195,7 +193,6 @@ export function CloudSaveProvider({ children }) {
           displayName: localName,
           updatedAt: serverTimestamp(),
         })
-        console.log('[CloudSave] ✅ First sync — pushed local to cloud')
       }
 
       setSyncStatus('synced')
@@ -235,7 +232,6 @@ export function CloudSaveProvider({ children }) {
 
       setLastSync(Date.now())
       setSyncStatus('synced')
-      console.log('[CloudSave] ☁️ Saved to cloud')
     } catch (err) {
       console.error('[CloudSave] ❌ Save failed:', err.message)
       setSyncStatus('error')
