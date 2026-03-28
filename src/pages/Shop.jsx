@@ -372,7 +372,7 @@ export default function Shop({ onBack }) {
                 Card Icon Pack mengubah tampilan kartu di Memory Card Match
               </p>
               <CosmeticList
-                items={ICON_PACKS} ownedList={ownedPacks} activeId={activePack} type="packs"
+                items={ICON_PACKS.filter(p => !p.wheelOnly)} ownedList={ownedPacks} activeId={activePack} type="packs"
                 dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
                 borderCol={borderCol} coins={coins}
                 onBuy={(item) => handleBuyCosmetic('packs', item)}
@@ -380,7 +380,11 @@ export default function Shop({ onBack }) {
                 previewId={previewId} setPreviewId={setPreviewId}
                 renderPreview={(pack) => (
                   <div className="pack-preview">
-                    {pack.icons.map((icon, j) => <div key={j} className="pack-icon-cell">{icon}</div>)}
+                    {pack.icons.slice(0,6).map((icon, j) => (
+                      <div key={j} className="pack-icon-cell">
+                        {icon.startsWith('/') ? <img src={icon} alt="" style={{ width:'80%', height:'80%', objectFit:'contain', imageRendering:'pixelated' }} /> : icon}
+                      </div>
+                    ))}
                   </div>
                 )}
               />
@@ -674,7 +678,7 @@ export default function Shop({ onBack }) {
                 Ubah warna grid dan angka di Sudoku
               </p>
               <CosmeticList
-                items={SUDOKU_THEMES} ownedList={ownedSudokuThemes} activeId={activeSudokuTheme} type="sudokuThemes"
+                items={SUDOKU_THEMES.filter(t => !t.wheelOnly)} ownedList={ownedSudokuThemes} activeId={activeSudokuTheme} type="sudokuThemes"
                 dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
                 borderCol={borderCol} coins={coins}
                 onBuy={(item) => handleBuyCosmetic('sudokuThemes', item)}

@@ -38,7 +38,44 @@ export const WHEEL_EXCLUSIVES = [
     icon: '🎨', color: '#E040FB', img: '/wheel_dash.png',
     style: { player: '#E040FB', playerOutline: '#6A1B9A', trail: '#FF4081', glow: '#E1BEE7', wave: '#FFD740' }
   },
+  // ── Memory Card Pixel Pack ──
+  { id: 'wheel-card-pixel', game: 'memory-card', type: 'packs', rarity: 'epic',
+    name: 'Pixel Art Pack', desc: 'Kartu pixel art bergambar eksklusif. Lucky Wheel Only!',
+    icon: '🎨', color: '#E040FB', img: '/cards/cardBackground.png',
+  },
+  // ── Sudoku Pastel Theme ──
+  { id: 'wheel-sudoku-pastel', game: 'sudoku', type: 'sudokuThemes', rarity: 'epic',
+    name: 'Pastel Dream', desc: 'Grid gradient pastel cantik dengan angka metalik. Lucky Wheel Only!',
+    icon: '🌸', color: '#E8B4CB', img: '/sudoku/Grid.png',
+  },
 ]
+
+// ─── Weekly Rotation Schedule ──────────────────────────────────────────────
+// 2 games featured per week, cycles every 4 weeks
+const WHEEL_ROTATION = [
+  ['space-shooter', 'voxel-racer'],  // Minggu 1
+  ['neon-dash',     'memory-card'],  // Minggu 2
+  ['space-shooter', 'neon-dash'],    // Minggu 3
+  ['voxel-racer',   'memory-card'],  // Minggu 4 — lalu repeat
+  ['space-shooter', 'sudoku'],       // Minggu 5
+  ['neon-dash',     'voxel-racer'],  // Minggu 6
+]
+
+function getWeekOfYear() {
+  const now = new Date()
+  const start = new Date(now.getFullYear(), 0, 1)
+  return Math.floor((now - start) / (7 * 24 * 60 * 60 * 1000))
+}
+
+export function getCurrentWeekGames() {
+  const weekIdx = getWeekOfYear() % WHEEL_ROTATION.length
+  return WHEEL_ROTATION[weekIdx]
+}
+
+export function getWeeklyExclusives() {
+  const games = getCurrentWeekGames()
+  return WHEEL_EXCLUSIVES.filter(e => games.includes(e.game))
+}
 
 // ─── Reward Pool ────────────────────────────────────────────────────────────
 
@@ -143,9 +180,16 @@ export function LuckyWheelProvider({ children }) {
     }
     if (rewardSlot.type === 'exclusive') {
       const rarity = rewardSlot.rarity
-      const available = WHEEL_EXCLUSIVES.filter(e => e.rarity === rarity && !ownedExclusives.includes(e.id))
-      if (available.length > 0) {
-        const item = available[Math.floor(Math.random() * available.length)]
+      const weekGames = getCurrentWeekGames()
+      // Only offer exclusives from this week's featured games
+      const available = WHEEL_EXCLUSIVES.filter(e =>
+        weekGames.includes(e.game) && e.rarity === rarity && !ownedExclusives.includes(e.id)
+      )
+      // Fallback: if no weekly items available, try ALL exclusives
+      const fallback = available.length > 0 ? available
+        : WHEEL_EXCLUSIVES.filter(e => e.rarity === rarity && !ownedExclusives.includes(e.id))
+      if (fallback.length > 0) {
+        const item = fallback[Math.floor(Math.random() * fallback.length)]
         return { type: 'exclusive', item, label: item.name, icon: item.icon, rarity: item.rarity, img: item.img, desc: item.desc }
       }
       // All owned — dupe conversion
@@ -198,7 +242,8 @@ export function LuckyWheelProvider({ children }) {
   }, [state, resolveReward])
 
   const getWheelSlots = useCallback(() => {
-    // Return 8 slots for the wheel visual, with actual game images for exclusives
+    // Return 8 slots for the wheel visual, showing this week's exclusive items
+    const weekGames = getCurrentWeekGames()
     return REWARD_POOL.map(r => {
       const slot = {
         id: r.id,
@@ -208,12 +253,12 @@ export function LuckyWheelProvider({ children }) {
         color: RARITY_COLORS[r.rarity],
         img: null,
       }
-      // For exclusive slots, pick a representative item to show its game image
+      // For exclusive slots, show items from this week's featured games
       if (r.type === 'exclusive') {
-        const items = WHEEL_EXCLUSIVES.filter(e => e.rarity === r.rarity)
-        if (items.length > 0) {
-          // Rotate display based on time so it feels dynamic
-          const pick = items[Math.floor(Date.now() / 10000) % items.length]
+        const weekItems = WHEEL_EXCLUSIVES.filter(e => weekGames.includes(e.game) && e.rarity === r.rarity)
+        const allItems = weekItems.length > 0 ? weekItems : WHEEL_EXCLUSIVES.filter(e => e.rarity === r.rarity)
+        if (allItems.length > 0) {
+          const pick = allItems[Math.floor(Date.now() / 10000) % allItems.length]
           slot.img = pick.img
           slot.label = pick.name
           slot.icon = pick.icon
@@ -234,6 +279,8 @@ export function LuckyWheelProvider({ children }) {
       extraSpinCost: EXTRA_SPIN_COST,
       spin,
       getWheelSlots,
+      getCurrentWeekGames,
+      getWeeklyExclusives,
       WHEEL_EXCLUSIVES,
       RARITY_COLORS,
       RARITY_LABELS,

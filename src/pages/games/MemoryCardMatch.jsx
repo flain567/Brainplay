@@ -58,11 +58,13 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
   const dark = tc.dark
   const { play } = useSound()
   const { reportGameResult } = useProgress()
-  const { getActiveIcons, earnCoins, spendCoins, coins } = useCoins()
+  const { getActiveIcons, getActiveCardPack, earnCoins, spendCoins, coins } = useCoins()
   const { vibrateLight, vibrateMedium, vibrateSuccess, vibrateError } = useHaptics()
 
   const { pairs, cols } = difficulty
-  const iconPool = getActiveIcons()
+  const activePack = getActiveCardPack()
+  const iconPool = activePack.icons
+  const cardBack = activePack.cardBack || null
   const timersRef = useRef([])
 
   // Safe setTimeout that auto-cleans on unmount
@@ -274,7 +276,7 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
       {/* Board — columns dinamis sesuai difficulty */}
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: cols >= 4 ? 10 : 12, marginBottom: 24 }}>
         {deck.map(card => (
-          <CardTile key={card.id} card={card} onClick={() => flipCard(card.id)} darkMode={dark} small={cols >= 5} />
+          <CardTile key={card.id} card={card} onClick={() => flipCard(card.id)} darkMode={dark} small={cols >= 5} cardBack={cardBack} />
         ))}
       </div>
 
@@ -324,19 +326,44 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
   )
 }
 
-function CardTile({ card, onClick, darkMode, small }) {
+function CardTile({ card, onClick, darkMode, small, cardBack }) {
   const frontBg = card.matched
     ? (darkMode ? '#1a3d30' : '#E8FDF5')
     : (darkMode ? '#1e2a4a' : '#fff')
+  const isImage = card.emoji && card.emoji.startsWith('/')
 
   return (
     <div onClick={onClick} style={{ aspectRatio: '1', perspective: 600, cursor: card.matched ? 'default' : 'pointer' }}>
       <div style={{ width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d', transition: 'transform 0.35s cubic-bezier(0.4,0,0.2,1)', transform: (card.flipped || card.matched) ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
         {/* Back */}
-        <div style={{ position: 'absolute', inset: 0, backfaceVisibility: 'hidden', background: 'linear-gradient(135deg,#A29BFE,#FD79A8)', borderRadius: small ? 10 : 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: small ? 20 : 28, boxShadow: '0 3px 10px rgba(0,0,0,0.12)' }}>❓</div>
+        <div style={{
+          position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
+          background: cardBack ? 'transparent' : 'linear-gradient(135deg,#A29BFE,#FD79A8)',
+          borderRadius: small ? 10 : 14,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: small ? 20 : 28,
+          boxShadow: '0 3px 10px rgba(0,0,0,0.12)',
+          overflow: 'hidden',
+        }}>
+          {cardBack
+            ? <img src={cardBack} alt="?" style={{ width: '100%', height: '100%', objectFit: 'cover', imageRendering: 'pixelated' }} />
+            : '❓'}
+        </div>
         {/* Front */}
-        <div style={{ position: 'absolute', inset: 0, backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', background: frontBg, border: `2px solid ${card.matched ? '#4ECDC4' : (darkMode ? '#2d3561' : '#DFE6E9')}`, borderRadius: small ? 10 : 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: small ? 22 : 36, transition: 'background 0.3s' }}>
-          {card.emoji}
+        <div style={{
+          position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
+          transform: 'rotateY(180deg)',
+          background: frontBg,
+          border: `2px solid ${card.matched ? '#4ECDC4' : (darkMode ? '#2d3561' : '#DFE6E9')}`,
+          borderRadius: small ? 10 : 14,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: small ? 22 : 36,
+          transition: 'background 0.3s',
+          overflow: 'hidden',
+        }}>
+          {isImage
+            ? <img src={card.emoji} alt="" style={{ width: '90%', height: '90%', objectFit: 'contain', imageRendering: 'pixelated' }} />
+            : card.emoji}
           {card.matched && <span style={{ position: 'absolute', top: 3, right: 5, fontSize: 10, opacity: 0.6 }}>✅</span>}
         </div>
       </div>

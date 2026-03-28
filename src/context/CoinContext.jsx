@@ -8,6 +8,10 @@ const CoinContext = createContext(null)
 export const ICON_PACKS = [
   { id:'default', name:'Emoji Pack', desc:'Emoji klasik yang ekspresif dan berwarna', price:0, icon:'😀', color:'#FDCB6E',
     icons:['🐶','🐱','🦊','🐻','🦁','🐯','🐸','🐧','🦄','🐼','🦋','🐙'] },
+  { id:'pixel', name:'Pixel Art Pack', desc:'Kartu pixel art bergambar — Lucky Wheel exclusive!', price:0, icon:'🎨', color:'#E040FB', wheelOnly:true,
+    cardBack:'/cards/cardBackground.png',
+    icons:['/cards/card1View.png','/cards/card2Flowers.png','/cards/card3Soup.png','/cards/card4cactus.png','/cards/card5Balloons.png','/cards/card6BaldMann.png',
+           '/cards/card1View.png','/cards/card2Flowers.png','/cards/card3Soup.png','/cards/card4cactus.png','/cards/card5Balloons.png','/cards/card6BaldMann.png'] },
   { id:'animal', name:'Animal Pack', desc:'Berbagai jenis hewan lucu dari seluruh dunia', price:150, icon:'🐾', color:'#4ECDC4',
     icons:['🐘','🦒','🦘','🐬','🦜','🦩','🐢','🦔','🦦','🐝','🦚','🐞'] },
   { id:'food', name:'Food Pack', desc:'Makanan dan buah-buahan yang menggugah selera', price:150, icon:'🍔', color:'#FF6B6B',
@@ -223,6 +227,9 @@ export const SUDOKU_THEMES = [
     style:{ grid:'#6C5CE7', selected:'#A29BFE', given:'#ffffff', input:'#FD79A8', error:'#FF6B6B', bg:'#0d0a1e' } },
   { id:'matrix', name:'Matrix', desc:'Hijau terminal hacker — angka berjatuhan', price:200, icon:'💻', color:'#00FF41',
     style:{ grid:'#00FF41', selected:'#39FF14', given:'#00FF41', input:'#7CFF00', error:'#FF0040', bg:'#0a0a0a' } },
+  { id:'wheel-sudoku-pastel', name:'Pastel Dream', desc:'Grid pastel cantik — Lucky Wheel exclusive!', price:0, icon:'🌸', color:'#E8B4CB', wheelOnly:true,
+    style:{ grid:'#D4A5BD', selected:'#F0C6D8', given:'#4A4A4A', input:'#8B6D80', error:'#FF6B6B', bg:'#FFF0F5' },
+    assets:{ gridImg:'/sudoku/Grid.png', numberImgs:'/sudoku/', tickImgs:'/sudoku/Tick', titleImg:'/sudoku/Title.png' } },
 ]
 
 // ─── Jigsaw Themes (Jigsaw Puzzle) ──────────────────────────────────────────
@@ -548,7 +555,7 @@ export function CoinProvider({ children }) {
     const handler = (e) => {
       const { item } = e.detail || {}
       if (!item) return
-      const typeToKey = { ships:'ownedShips', racerThemes:'ownedRacerThemes', dashThemes:'ownedDashThemes' }
+      const typeToKey = { ships:'ownedShips', racerThemes:'ownedRacerThemes', dashThemes:'ownedDashThemes', packs:'ownedPacks', sudokuThemes:'ownedSudokuThemes' }
       const key = typeToKey[item.type]
       if (!key) return
       setState(s => {
@@ -668,6 +675,10 @@ export function CoinProvider({ children }) {
     return pack ? pack.icons : ICON_PACKS[0].icons
   }, [state.activePack])
 
+  const getActiveCardPack = useCallback(() => {
+    return ICON_PACKS.find(p => p.id === state.activePack) || ICON_PACKS[0]
+  }, [state.activePack])
+
   const getActiveSkin = useCallback(() => {
     const s = SNAKE_SKINS.find(sk => sk.id === state.activeSkin)
     return s ? s.skin : SNAKE_SKINS[0].skin
@@ -780,7 +791,7 @@ export function CoinProvider({ children }) {
       earnCoins, spendCoins, buyPack, buyCosmetic, equipCosmetic,
       buyConsumable, useHint, useTimeFreeze,
       setActivePack, claimDaily,
-      getActiveIcons, getActiveSkin, getActiveTileColors, getActiveHighlightColors, getActiveShip,
+      getActiveIcons, getActiveCardPack, getActiveSkin, getActiveTileColors, getActiveHighlightColors, getActiveShip,
       getActiveHangmanTheme, getActiveTubeTheme, getActiveSudokuTheme, getActiveJigsawTheme,
       getActiveWebTheme, getActivePatternTheme, getActiveReactionTheme, getActiveDashTheme,
       getActiveBreakerTheme, getActiveWordleTheme, getActiveRacerTheme, getActiveRacerMap,
