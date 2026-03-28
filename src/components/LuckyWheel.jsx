@@ -70,12 +70,17 @@ export default function LuckyWheel({ open, onClose }) {
     if (targetIdx < 0) targetIdx = slots.findIndex(s => s.rarity === reward.rarity)
     if (targetIdx < 0) targetIdx = 0
 
-    // Calculate rotation: at least 5 full rotations + target slot CENTER
+    // Calculate rotation to land pointer on correct slot
     const slotAngle = 360 / SLOT_COUNT
-    const targetAngle = targetIdx * slotAngle + slotAngle / 2 // center of slot, not edge
+    const targetAngle = targetIdx * slotAngle + slotAngle / 2 // center of slot
+    // Where the wheel needs to end (mod 360) so pointer hits targetAngle
+    const targetStop = ((360 - targetAngle) % 360 + 360) % 360
+    const currentMod = ((rotationRef.current % 360) + 360) % 360
+    const diff = ((targetStop - currentMod) % 360 + 360) % 360
     const fullRotations = 5 + Math.floor(Math.random() * 3)
-    // Random offset stays within slot bounds (±30% of half-slot = safe margin)
-    const newRotation = rotationRef.current + (fullRotations * 360) + (360 - targetAngle) + (Math.random() * slotAngle * 0.3 - slotAngle * 0.15)
+    // Small jitter that stays inside the slot (±6°)
+    const jitter = (Math.random() - 0.5) * slotAngle * 0.25
+    const newRotation = rotationRef.current + fullRotations * 360 + diff + jitter
     
     setRotation(newRotation)
     rotationRef.current = newRotation
@@ -155,10 +160,14 @@ export default function LuckyWheel({ open, onClose }) {
     if (targetIdx < 0) targetIdx = 0
 
     const slotAngle = 360 / SLOT_COUNT
-    const targetAngle = targetIdx * slotAngle + slotAngle / 2 // center of slot
+    const targetAngle = targetIdx * slotAngle + slotAngle / 2
+    const targetStop = ((360 - targetAngle) % 360 + 360) % 360
+    const currentMod = ((rotationRef.current % 360) + 360) % 360
+    const diff = ((targetStop - currentMod) % 360 + 360) % 360
     const fullRotations = 3 + Math.floor(Math.random() * 2)
+    const jitter = (Math.random() - 0.5) * slotAngle * 0.25
     const cur = rotationRef.current
-    const next = cur + (fullRotations * 360) + (360 - targetAngle) + (Math.random() * slotAngle * 0.3 - slotAngle * 0.15)
+    const next = cur + fullRotations * 360 + diff + jitter
     setRotation(next)
     rotationRef.current = next
 
