@@ -161,7 +161,7 @@ function evaluateGuess(guess, answer) {
   return result
 }
 
-export default function WordleIndonesia({ onBack, game, difficulty }) {
+export default function WordleIndonesia({ onBack, onHome, game, difficulty }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { reportGameResult } = useProgress()
@@ -826,6 +826,7 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
             coinReward={coinAmt}
             onRestart={restart}
             onBack={onBack}
+            onHome={onHome}
             dark={dark}
             gameColor={GAME_COLOR}
           />
@@ -871,6 +872,7 @@ export default function WordleIndonesia({ onBack, game, difficulty }) {
             coinReward={coinAmt}
             onRestart={restart}
             onBack={onBack}
+            onHome={onHome}
             dark={dark}
             gameColor={GAME_COLOR}
           />

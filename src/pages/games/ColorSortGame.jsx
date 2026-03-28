@@ -1,11 +1,12 @@
 import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useSettings } from '../../context/SettingsContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
+import { WinModal } from '../../components/GameLayout.jsx'
 
 const TUTORIAL_STEPS = [
   { emoji:'🧪', title:'Color Sort', desc:'Urutkan bola warna ke dalam tabung yang tepat! Setiap tabung harus berisi satu warna saja.', tip:'Gunakan tabung kosong sebagai tempat transit sementara.' },
@@ -106,7 +107,7 @@ const formatTime = (s) =>
 
 const DIFF_LABEL = { easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }
 
-export default function ColorSortGame({ onBack, game, difficulty }) {
+export default function ColorSortGame({ onBack, onHome, game, difficulty }) {
   const tc = useThemeColors()
   const dark = tc.dark
   const { play } = useSound()
@@ -161,6 +162,17 @@ export default function ColorSortGame({ onBack, game, difficulty }) {
       earnCoins(coinAmount, `Menang Color Sort (${difficulty.id})`)
     }
   }, [tubes, moves])
+
+  const { winStars, winCoinAmount } = useMemo(() => {
+    if (!won) return { winStars: 0, winCoinAmount: 0 }
+    const starThresholds = { easy: 20, medium: 30, hard: 45 }
+    const threshold = starThresholds[difficulty.id] || 20
+    const stars = moves <= threshold ? 3 : moves <= threshold * 1.5 ? 2 : 1
+    const coinReward = { easy: 15, medium: 25, hard: 40 }
+    let coinAmount = coinReward[difficulty.id] || 15
+    if (stars === 3) coinAmount += 20
+    return { winStars: stars, winCoinAmount: coinAmount }
+  }, [won, moves, difficulty.id])
 
   const handleTubeClick = useCallback((tubeIndex) => {
     if (won) return
@@ -356,58 +368,22 @@ export default function ColorSortGame({ onBack, game, difficulty }) {
 
       {won && (
         <WinModal
-          moves={moves}
-          time={formatTime(time)}
+          title="Selamat!"
+          subtitle="Semua warna berhasil diurutkan!"
           diffLabel={DIFF_LABEL[difficulty.id]}
+          stats={[
+            { label: 'Langkah', value: String(moves), color: '#6C5CE7' },
+            { label: 'Waktu', value: formatTime(time), color: '#4ECDC4' },
+          ]}
+          stars={winStars}
+          coinReward={winCoinAmount}
           onRestart={restart}
-          onBack={onBack}
-          darkMode={dark}
-          game={game}
-          difficulty={difficulty}
+          onBack={() => { play('click'); onBack() }}
+          onHome={() => { play('click'); onHome?.() }}
+          dark={dark}
+          gameColor={game?.color || accent}
         />
       )}
-    </div>
-  )
-}
-
-function WinModal({ moves, time, diffLabel, onRestart, onBack, darkMode, game, difficulty }) {
-  const starThresholds = { easy: 20, medium: 30, hard: 45 }
-  const threshold = starThresholds[difficulty.id] || 20
-  const stars = moves <= threshold ? 3 : moves <= threshold * 1.5 ? 2 : 1
-  const bg = darkMode ? '#1a1a2e' : '#fff'
-  const textMain = darkMode ? '#e8e8f0' : '#2D3436'
-  const textMuted = darkMode ? '#8892b0' : '#636E72'
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: 24, animation: 'fadeIn 0.3s ease' }}>
-      <div style={{ background: bg, borderRadius: 28, padding: '40px 36px', textAlign: 'center', maxWidth: 360, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.3)', animation: 'popIn 0.4s cubic-bezier(0.34,1.56,0.64,1)' }}>
-        <div style={{ fontSize: 64, marginBottom: 8 }}>🎉</div>
-        <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 32, color: textMain, marginBottom: 4 }}>Selamat!</h2>
-        <p style={{ color: textMuted, fontSize: 14, marginBottom: 6 }}>Semua warna berhasil diurutkan!</p>
-        <span style={{ display: 'inline-block', background: `${game.color}22`, color: game.color, padding: '4px 14px', borderRadius: 100, fontSize: 13, fontWeight: 700, marginBottom: 16 }}>{diffLabel}</span>
-
-        <div style={{ fontSize: 36, marginBottom: 16, letterSpacing: 4 }}>{'⭐'.repeat(stars)}{'☆'.repeat(3-stars)}</div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
-          <div style={{ background: darkMode ? '#2d1f2d' : '#F0EFFE', borderRadius: 14, padding: 12 }}>
-            <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: '#6C5CE7' }}>{moves}</div>
-            <div style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>Langkah</div>
-          </div>
-          <div style={{ background: darkMode ? '#1a2d2d' : '#F0FFFE', borderRadius: 14, padding: 12 }}>
-            <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: '#4ECDC4' }}>{time}</div>
-            <div style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>Waktu</div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={onRestart} style={{ flex: 1, background: '#6C5CE7', color: '#fff', border: 'none', borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', boxShadow: '0 4px 14px #6C5CE744' }}>🔄 Main Lagi</button>
-          <button onClick={onBack} style={{ flex: 1, background: darkMode ? '#1e2a4a' : '#F8F9FA', color: textMuted, border: `2px solid ${darkMode ? '#2d3561' : '#DFE6E9'}`, borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>🎯 Ganti Level</button>
-        </div>
-      </div>
-      <style>{`
-        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-        @keyframes popIn  { from{transform:scale(0.6);opacity:0} to{transform:scale(1);opacity:1} }
-      `}</style>
     </div>
   )
 }

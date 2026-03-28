@@ -13,6 +13,7 @@ import { useProgress } from '../../context/ProgressContext.jsx'
 import { useSettings } from '../../context/SettingsContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useCoins } from '../../context/CoinContext.jsx'
+import { WinModal, LoseModal } from '../../components/GameLayout.jsx'
 
 const TILE_VALUES = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
 const DEFAULT_TILE_COLOR = {
@@ -60,7 +61,7 @@ function checkGameOver(grid, CN, RN) {
   return true // no matches anywhere
 }
 
-export default function Game2048({ onBack, game, difficulty }) {
+export default function Game2048({ onBack, onHome, game, difficulty }) {
   const cfg  = DIFF_CFG[difficulty.id]
   const CN   = cfg.cols, RN = cfg.rows
   const { play } = useSound()
@@ -402,79 +403,45 @@ export default function Game2048({ onBack, game, difficulty }) {
         </div>
       )}
 
-      {/* Game Over Modal */}
-      {phase==='gameover'&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.82)',backdropFilter:'blur(10px)',zIndex:50,display:'flex',alignItems:'center',justifyContent:'center',padding:20,animation:'fadeIn 0.3s ease'}}>
-          <div style={{background:dark?'#1a1a2e':'#fff',borderRadius:28,padding:'32px 24px',maxWidth:340,width:'100%',textAlign:'center',boxShadow:'0 24px 60px rgba(0,0,0,0.3)',animation:'popIn 0.4s cubic-bezier(0.34,1.56,0.64,1)'}}>
-            <div style={{fontSize:56,marginBottom:8}}>😔</div>
-            <h2 style={{fontFamily:"'Fredoka One',cursive",fontSize:26,color:dark?'#FF6B6B':'#E53935',marginBottom:6}}>Game Over!</h2>
-            <p style={{fontSize:13,color:dark?'#8892b0':'#636E72',marginBottom:20}}>Tidak ada lagi blok yang bisa disambungkan</p>
-
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:22}}>
-              <div style={{background:dark?'#16213e':'#F8F9FA',borderRadius:14,padding:'14px 10px'}}>
-                <div style={{fontFamily:"'Fredoka One',cursive",fontSize:22,color:'#A29BFE'}}>{score.toLocaleString()}</div>
-                <div style={{fontSize:11,color:dark?'#8892b0':'#636E72',fontWeight:700}}>Skor</div>
-              </div>
-              <div style={{background:dark?'#16213e':'#F8F9FA',borderRadius:14,padding:'14px 10px'}}>
-                <div style={{fontFamily:"'Fredoka One',cursive",fontSize:22,color:'#4ECDC4'}}>Lv.{level}</div>
-                <div style={{fontSize:11,color:dark?'#8892b0':'#636E72',fontWeight:700}}>Level</div>
-              </div>
-            </div>
-
-            {score >= best && score > 0 && (
-              <div style={{background:'#FDCB6E22',border:'1.5px solid #FDCB6E44',borderRadius:12,padding:'8px 14px',marginBottom:16,fontFamily:"'Fredoka One',cursive",fontSize:14,color:'#FDCB6E'}}>
-                🏆 Rekor Baru!
-              </div>
-            )}
-
-            <div style={{display:'flex',gap:10}}>
-              <button onClick={restart} style={{flex:1,background:'linear-gradient(135deg,#A29BFE,#6C5CE7)',color:'#fff',border:'none',borderRadius:100,padding:'13px',fontSize:15,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer',boxShadow:'0 4px 16px rgba(162,155,254,0.4)'}}>
-                🔄 Main Lagi
-              </button>
-              <button onClick={()=>{play('click');onBack()}} style={{flex:1,background:dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)',color:dark?'#e8e8f0':'#2D3436',border:`1.5px solid ${dark?'rgba(255,255,255,0.15)':'rgba(0,0,0,0.15)'}`,borderRadius:100,padding:'13px',fontSize:15,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer'}}>
-                🎯 Level
-              </button>
-            </div>
-          </div>
-        </div>
+      {phase === 'gameover' && (
+        <LoseModal
+          emoji="😔"
+          title="Game Over!"
+          subtitle="Tidak ada lagi blok yang bisa disambungkan"
+          diffLabel={DLABEL[difficulty.id]}
+          stats={[
+            { label: 'Skor', value: score.toLocaleString(), color: '#A29BFE' },
+            { label: 'Level', value: `Lv.${level}`, color: '#4ECDC4' },
+          ]}
+          coinReward={5}
+          highlight={score >= best && score > 0 ? '🏆 Rekor baru!' : ''}
+          onRestart={restart}
+          onBack={() => { play('click'); onBack() }}
+          onHome={onHome}
+          dark={dark}
+          gameColor="#A29BFE"
+        />
       )}
 
-      {/* Win Modal — all levels cleared! */}
-      {phase==='win'&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.82)',backdropFilter:'blur(10px)',zIndex:50,display:'flex',alignItems:'center',justifyContent:'center',padding:20,animation:'fadeIn 0.3s ease'}}>
-          <div style={{background:'linear-gradient(160deg,#1a3a1a,#0d470d)',border:'2px solid rgba(100,255,100,0.4)',borderRadius:28,padding:'32px 24px',maxWidth:340,width:'100%',textAlign:'center',boxShadow:'0 0 80px rgba(76,175,80,0.5)',animation:'popIn 0.4s cubic-bezier(0.34,1.56,0.64,1)'}}>
-            <div style={{fontSize:56,marginBottom:8}}>🏆</div>
-            <h2 style={{fontFamily:"'Fredoka One',cursive",fontSize:26,color:'#FDCB6E',marginBottom:6,textShadow:'0 0 20px #FDCB6E44'}}>Kamu Menang!</h2>
-            <p style={{fontSize:13,color:'rgba(255,255,255,0.5)',marginBottom:6}}>Semua {cfg.maxLevel} level berhasil ditaklukkan!</p>
-            <div style={{fontSize:30,marginBottom:14,letterSpacing:4}}>⭐⭐⭐</div>
-
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:22}}>
-              <div style={{background:'rgba(255,255,255,0.06)',borderRadius:14,padding:'14px 10px'}}>
-                <div style={{fontFamily:"'Fredoka One',cursive",fontSize:22,color:'#4CAF50'}}>{score.toLocaleString()}</div>
-                <div style={{fontSize:11,color:'rgba(255,255,255,0.4)',fontWeight:700}}>Skor</div>
-              </div>
-              <div style={{background:'rgba(255,255,255,0.06)',borderRadius:14,padding:'14px 10px'}}>
-                <div style={{fontFamily:"'Fredoka One',cursive",fontSize:22,color:'#FFC107'}}>Lv.{cfg.maxLevel}</div>
-                <div style={{fontSize:11,color:'rgba(255,255,255,0.4)',fontWeight:700}}>Level Max</div>
-              </div>
-            </div>
-
-            {score >= best && score > 0 && (
-              <div style={{background:'#FDCB6E22',border:'1.5px solid #FDCB6E44',borderRadius:12,padding:'8px 14px',marginBottom:16,fontFamily:"'Fredoka One',cursive",fontSize:14,color:'#FDCB6E'}}>
-                🏆 Rekor Baru!
-              </div>
-            )}
-
-            <div style={{display:'flex',gap:10}}>
-              <button onClick={restart} style={{flex:1,background:'linear-gradient(135deg,#4CAF50,#8BC34A)',color:'#fff',border:'none',borderRadius:100,padding:'13px',fontSize:15,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer',boxShadow:'0 4px 16px rgba(76,175,80,0.4)'}}>
-                🔄 Main Lagi
-              </button>
-              <button onClick={()=>{play('click');onBack()}} style={{flex:1,background:'rgba(255,255,255,0.08)',color:'#e8e8f0',border:'1.5px solid rgba(255,255,255,0.15)',borderRadius:100,padding:'13px',fontSize:15,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer'}}>
-                🏠 Home
-              </button>
-            </div>
-          </div>
-        </div>
+      {phase === 'win' && (
+        <WinModal
+          emoji="🏆"
+          title="Kamu menang!"
+          subtitle={`Semua ${cfg.maxLevel} level berhasil ditaklukkan!`}
+          diffLabel={DLABEL[difficulty.id]}
+          stats={[
+            { label: 'Skor', value: score.toLocaleString(), color: '#4CAF50' },
+            { label: 'Level', value: `Lv.${cfg.maxLevel}`, color: '#FFC107' },
+          ]}
+          stars={3}
+          coinReward={cfg.maxLevel * 15}
+          highlight={score >= best && score > 0 ? '🏆 Rekor baru!' : ''}
+          onRestart={restart}
+          onBack={() => { play('click'); onBack() }}
+          onHome={onHome}
+          dark={dark}
+          gameColor="#4CAF50"
+        />
       )}
     </div>
   )

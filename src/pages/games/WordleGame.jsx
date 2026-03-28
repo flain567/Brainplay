@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSound } from '../../hooks/useSound.js'
 import { useSettings } from '../../context/SettingsContext.jsx'
+import { useThemeColors } from '../../hooks/useThemeColors.js'
+import { WinModal, LoseModal } from '../../components/GameLayout.jsx'
 import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
 
@@ -211,11 +213,12 @@ function buildShareText(guesses, evaluations, answer, won, wordLen) {
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function WordleGame({ onBack, game, difficulty }) {
+export default function WordleGame({ onBack, onHome, game, difficulty }) {
   const cfg = DIFF_CFG[difficulty.id]
   const { play }    = useSound()
   const { darkMode } = useSettings()
   const dark = darkMode
+  const tc = useThemeColors()
 
   const [answer,      setAnswer]      = useState(() => getRandWord(cfg.words))
   const [guesses,     setGuesses]     = useState([])        // string[]
@@ -432,34 +435,36 @@ export default function WordleGame({ onBack, game, difficulty }) {
         ))}
       </div>
 
-      {/* ── Won/Lost overlay ── */}
-      {(phase === 'won' || phase === 'lost') && (
-        <div style={{ position:'fixed', bottom:0, left:'50%', transform:'translateX(-50%)', width:'100%', maxWidth:480, zIndex:50, padding:'20px 20px 32px', background: dark?'rgba(18,18,19,0.97)':'rgba(255,255,255,0.97)', backdropFilter:'blur(12px)', borderTop:`1px solid ${dark?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.08)'}`, animation:'statsIn 0.3s ease' }}>
-          <div style={{ textAlign:'center', marginBottom:16 }}>
-            {phase === 'won' ? (
-              <>
-                <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:28, color:'#538D4E', marginBottom:4 }}>🎉 Benar!</div>
-                <div style={{ fontSize:13, color:textMuted }}>{guesses.length} dari 6 percobaan</div>
-              </>
-            ) : (
-              <>
-                <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:28, color:'#ff6b6b', marginBottom:4 }}>😔 Belum tepat</div>
-                <div style={{ fontSize:15, fontWeight:700, color:textMain }}>Jawabannya: <span style={{ color:'#538D4E', fontFamily:"'Fredoka One',cursive", fontSize:20 }}>{answer}</span></div>
-              </>
-            )}
-          </div>
-
-          <div style={{ display:'flex', gap:10 }}>
-            <button onClick={newGame}
-              style={{ flex:1, background:'linear-gradient(135deg,#538D4E,#4CAF50)', color:'#fff', border:'none', borderRadius:100, padding:'13px', fontSize:15, fontWeight:800, fontFamily:"'Fredoka One',cursive", cursor:'pointer', boxShadow:'0 4px 16px rgba(83,141,78,0.4)' }}>
-              🔄 Main Lagi
-            </button>
-            <button onClick={shareResult}
-              style={{ flex:1, background: dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)', color:textMain, border:`1.5px solid ${dark?'rgba(255,255,255,0.15)':'rgba(0,0,0,0.15)'}`, borderRadius:100, padding:'13px', fontSize:15, fontWeight:800, fontFamily:"'Fredoka One',cursive", cursor:'pointer' }}>
-              📤 Share
-            </button>
-          </div>
-        </div>
+      {phase === 'won' && (
+        <WinModal
+          emoji="🎉"
+          title="Benar!"
+          subtitle={`${guesses.length} dari ${cfg.maxGuess} percobaan`}
+          diffLabel={{ easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }[difficulty.id]}
+          stats={[{ label: 'Jawaban', value: answer, color: '#538D4E' }]}
+          stars={guesses.length <= 2 ? 3 : guesses.length <= 4 ? 2 : 1}
+          coinReward={0}
+          onRestart={newGame}
+          onBack={() => { play('click'); onBack() }}
+          onHome={onHome}
+          dark={tc.dark}
+          gameColor="#538D4E"
+        />
+      )}
+      {phase === 'lost' && (
+        <LoseModal
+          emoji="😔"
+          title="Belum tepat"
+          subtitle={`Jawabannya: ${answer}`}
+          diffLabel={{ easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }[difficulty.id]}
+          stats={[{ label: 'Percobaan', value: String(guesses.length), color: '#818384' }]}
+          coinReward={0}
+          onRestart={newGame}
+          onBack={() => { play('click'); onBack() }}
+          onHome={onHome}
+          dark={tc.dark}
+          gameColor="#ff6b6b"
+        />
       )}
 
       {/* ── Stats Modal ── */}

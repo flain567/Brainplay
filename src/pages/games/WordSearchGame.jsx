@@ -6,6 +6,7 @@ import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
 import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
+import { WinModal } from '../../components/GameLayout.jsx'
 
 // ─── Kategori & Kata ─────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -201,7 +202,7 @@ function saveStats(diffId, s) {
 }
 
 // ─── Main Component ──────────────────────────────────────────────────────────
-export default function WordSearchGame({ onBack, game, difficulty }) {
+export default function WordSearchGame({ onBack, onHome, game, difficulty }) {
   const cfg = DIFF_CFG[difficulty.id]
   const { play } = useSound()
   const tc = useThemeColors()
@@ -469,13 +470,15 @@ export default function WordSearchGame({ onBack, game, difficulty }) {
     setTimeout(() => setToast(''), duration)
   }
 
-  // ── Stars ──
-  const getStars = () => {
+  const winSummary = useMemo(() => {
+    if (phase !== 'won') return { stars: 0, coins: 0 }
     const [fast, mid] = cfg.timeBonus
-    if (timer <= fast) return 3
-    if (timer <= mid) return 2
-    return 1
-  }
+    const stars = timer <= fast ? 3 : timer <= mid ? 2 : 1
+    const coinReward = { easy: 15, medium: 25, hard: 40 }
+    let coinAmount = coinReward[difficulty.id] || 15
+    if (stars === 3) coinAmount += 20
+    return { stars, coins: coinAmount }
+  }, [phase, timer, cfg, difficulty.id])
 
   // ── Colors ──
   const bg = tc.bg
@@ -721,53 +724,26 @@ export default function WordSearchGame({ onBack, game, difficulty }) {
         </div>
       </div>
 
-      {/* ── Won overlay ── */}
       {phase === 'won' && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div style={{
-            background: surface, borderRadius: 24, padding: '28px 24px', maxWidth: 360, width: '100%',
-            boxShadow: '0 24px 60px rgba(0,0,0,0.3)', animation: 'statsIn 0.3s ease',
-            textAlign: 'center',
-          }}>
-            <div style={{ fontSize: 52, marginBottom: 4 }}>🎉</div>
-            <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 28, color: accent, marginBottom: 4 }}>Hebat!</h2>
-            <p style={{ fontSize: 13, color: textMuted, marginBottom: 16 }}>Semua kata ditemukan!</p>
-
-            {/* Stars */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 16 }}>
-              {[1, 2, 3].map(s => (
-                <span key={s} style={{ fontSize: 36, filter: s <= getStars() ? 'none' : 'grayscale(1) opacity(0.2)', transition: 'all 0.3s' }}>⭐</span>
-              ))}
-            </div>
-
-            {/* Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
-              {[
-                { icon: '⏱️', label: 'Waktu', value: formatTime(timer) },
-                { icon: '🏆', label: 'Skor', value: score },
-                { icon: '🔥', label: 'Maks Combo', value: `x${combo || 1}` },
-              ].map(s => (
-                <div key={s.label} style={{ background: dark ? '#1e2a4a' : '#F8F9FA', borderRadius: 14, padding: '12px 8px' }}>
-                  <div style={{ fontSize: 20, marginBottom: 2 }}>{s.icon}</div>
-                  <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 18, color: textMain }}>{s.value}</div>
-                  <div style={{ fontSize: 10, color: textMuted, fontWeight: 700 }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Buttons */}
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => newGame()}
-                style={{ flex: 1, background: `linear-gradient(135deg, ${accent}, #6C5CE7)`, color: '#fff', border: 'none', borderRadius: 100, padding: '13px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', boxShadow: `0 4px 16px ${accent}44` }}>
-                🔄 Acak Baru
-              </button>
-              <button onClick={() => { setShowConfetti(false); setCategorySelectMode(true) }}
-                style={{ flex: 1, background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', color: textMain, border: `1.5px solid ${dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}`, borderRadius: 100, padding: '13px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>
-                📂 Kategori
-              </button>
-            </div>
-          </div>
-        </div>
+        <WinModal
+          title="Hebat!"
+          subtitle="Semua kata ditemukan!"
+          diffLabel={{ easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }[difficulty.id]}
+          stats={[
+            { label: 'Waktu', value: formatTime(timer), color: '#4ECDC4' },
+            { label: 'Skor', value: String(score), color: '#FDCB6E' },
+            { label: 'Maks combo', value: `×${combo || 1}`, color: '#FF6B6B' },
+          ]}
+          stars={winSummary.stars}
+          coinReward={winSummary.coins}
+          restartLabel="🔄 Acak baru"
+          backLabel="📂 Kategori"
+          onRestart={() => newGame()}
+          onBack={() => { setShowConfetti(false); setCategorySelectMode(true) }}
+          onHome={onHome}
+          dark={dark}
+          gameColor={accent}
+        />
       )}
     </div>
   )

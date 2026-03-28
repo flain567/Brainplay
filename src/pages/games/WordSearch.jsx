@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSound } from '../../hooks/useSound.js'
 import { useSettings } from '../../context/SettingsContext.jsx'
 import Confetti from '../../components/Confetti.jsx'
+import { WinModal, LoseModal } from '../../components/GameLayout.jsx'
 
 // ─── Theme Data ───────────────────────────────────────────────────────────────
 const THEMES = {
@@ -133,7 +134,7 @@ function getCellsBetween(r1, c1, r2, c2) {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function WordSearch({ onBack, game, difficulty }) {
+export default function WordSearch({ onBack, onHome, game, difficulty }) {
   const cfg  = DIFF_CFG[difficulty.id]
   const { play }     = useSound()
   const { darkMode } = useSettings()
@@ -496,74 +497,46 @@ export default function WordSearch({ onBack, game, difficulty }) {
         </div>
       )}
 
-      {/* ── Won Modal ── */}
       {phase === 'won' && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.75)', backdropFilter:'blur(10px)', zIndex:60, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-          <div style={{ background:surface, borderRadius:28, padding:'32px 24px', maxWidth:340, width:'100%', textAlign:'center', boxShadow:'0 24px 80px rgba(0,0,0,0.3)', animation:'popModal 0.4s cubic-bezier(0.34,1.56,0.64,1)' }}>
-            <div style={{ fontSize:64, marginBottom:8 }}>🎉</div>
-            <h2 style={{ fontFamily:"'Fredoka One',cursive", fontSize:30, color:textMain, marginBottom:4 }}>
-              Hebat!
-            </h2>
-            <p style={{ color:textMuted, fontSize:14, marginBottom:16 }}>
-              Semua kata ditemukan di Tingkat {level}!
-            </p>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:20 }}>
-              {[
-                { label:'Koin Didapat', value:`+${timeLeft*2} 🪙`,    color:'#FFD93D' },
-                { label:'Total Koin',  value:`${coins} 🪙`,           color:'#4ECDC4' },
-                { label:'Kata Ditemukan', value:`${found.length}/${currentWords.length}`, color:'#A29BFE' },
-                { label:'Sisa Waktu',  value:`${timeLeft}s`,          color:'#FF6B6B' },
-              ].map(s => (
-                <div key={s.label} style={{ background:dark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.03)', border:`1.5px solid ${s.color}22`, borderRadius:14, padding:'12px 8px' }}>
-                  <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:20, color:s.color }}>{s.value}</div>
-                  <div style={{ fontSize:10, color:textMuted, marginTop:2, fontWeight:700 }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ display:'flex', gap:10 }}>
-              <button onClick={nextLevel}
-                style={{ flex:1, background:'linear-gradient(135deg,#A29BFE,#4ECDC4)', color:'#fff', border:'none', borderRadius:100, padding:'13px', fontSize:16, fontWeight:800, fontFamily:"'Fredoka One',cursive", cursor:'pointer', boxShadow:'0 4px 20px rgba(162,155,254,0.4)' }}>
-                ▶ Tingkat {level+1}
-              </button>
-              <button onClick={() => { play('click'); onBack() }}
-                style={{ flex:1, background:'transparent', color:textMuted, border:`1.5px solid ${border}`, borderRadius:100, padding:'13px', fontSize:14, fontWeight:700, fontFamily:"'Fredoka One',cursive", cursor:'pointer' }}>
-                🏠 Home
-              </button>
-            </div>
-          </div>
-        </div>
+        <WinModal
+          title="Hebat!"
+          subtitle={`Semua kata ditemukan di tingkat ${level}!`}
+          diffLabel={DLABEL[difficulty.id]}
+          stats={[
+            { label: 'Kata', value: `${found.length}/${currentWords.length}`, color: '#A29BFE' },
+            { label: 'Sisa waktu', value: `${timeLeft}s`, color: '#FF6B6B' },
+            { label: 'Total koin', value: String(coins), color: '#4ECDC4' },
+          ]}
+          coinReward={timeLeft * 2}
+          restartLabel={`▶ Tingkat ${level + 1}`}
+          onRestart={nextLevel}
+          onBack={() => { play('click'); onBack() }}
+          onHome={onHome}
+          dark={darkMode}
+          gameColor={game?.color || '#A29BFE'}
+        />
       )}
 
-      {/* ── Lost Modal ── */}
       {phase === 'lost' && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.75)', backdropFilter:'blur(10px)', zIndex:60, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-          <div style={{ background:surface, borderRadius:28, padding:'32px 24px', maxWidth:340, width:'100%', textAlign:'center', boxShadow:'0 24px 80px rgba(0,0,0,0.3)', animation:'popModal 0.4s cubic-bezier(0.34,1.56,0.64,1)' }}>
-            <div style={{ fontSize:64, marginBottom:8 }}>⏰</div>
-            <h2 style={{ fontFamily:"'Fredoka One',cursive", fontSize:28, color:'#FF6B6B', marginBottom:4 }}>Waktu Habis!</h2>
-            <p style={{ color:textMuted, fontSize:14, marginBottom:20 }}>
-              Kamu menemukan {found.length} dari {currentWords.length} kata
-            </p>
-            {/* Show unfound words */}
-            <div style={{ marginBottom:20, textAlign:'left' }}>
-              <div style={{ fontSize:12, fontWeight:700, color:textMuted, marginBottom:8 }}>Kata yang belum ditemukan:</div>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                {currentWords.filter(w => !found.find(f => f.word === w)).map(w => (
-                  <span key={w} style={{ background:'rgba(255,107,107,0.1)', border:'1.5px solid rgba(255,107,107,0.3)', borderRadius:8, padding:'4px 10px', fontSize:13, color:'#FF6B6B', fontFamily:"'Fredoka One',cursive" }}>{w}</span>
-                ))}
-              </div>
-            </div>
-            <div style={{ display:'flex', gap:10 }}>
-              <button onClick={restart}
-                style={{ flex:1, background:'linear-gradient(135deg,#FF6B6B,#FF9F43)', color:'#fff', border:'none', borderRadius:100, padding:'13px', fontSize:16, fontWeight:800, fontFamily:"'Fredoka One',cursive", cursor:'pointer', boxShadow:'0 4px 20px rgba(255,107,107,0.35)' }}>
-                🔄 Coba Lagi
-              </button>
-              <button onClick={() => { play('click'); onBack() }}
-                style={{ flex:1, background:'transparent', color:textMuted, border:`1.5px solid ${border}`, borderRadius:100, padding:'13px', fontSize:14, fontWeight:700, fontFamily:"'Fredoka One',cursive", cursor:'pointer' }}>
-                🏠 Home
-              </button>
-            </div>
-          </div>
-        </div>
+        <LoseModal
+          emoji="⏰"
+          title="Waktu habis!"
+          subtitle={`Kamu menemukan ${found.length} dari ${currentWords.length} kata.`}
+          diffLabel={DLABEL[difficulty.id]}
+          stats={[
+            {
+              label: 'Belum ketemu',
+              value: currentWords.filter(w => !found.find(f => f.word === w)).join(', ') || '—',
+              color: '#FF6B6B',
+            },
+          ]}
+          coinReward={0}
+          onRestart={restart}
+          onBack={() => { play('click'); onBack() }}
+          onHome={onHome}
+          dark={darkMode}
+          gameColor="#FF6B6B"
+        />
       )}
     </div>
   )

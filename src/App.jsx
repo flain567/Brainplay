@@ -633,7 +633,7 @@ function AppInner() {
           {screen === 'game' && currentGame && activeDiff && (
             <ErrorBoundary>
               <Suspense fallback={<GameLoader />}>
-                <currentGame.component onBack={goBackToDifficulty} game={currentGame} difficulty={activeDiff} />
+                <currentGame.component onBack={goBackToDifficulty} onHome={goHome} game={currentGame} difficulty={activeDiff} />
               </Suspense>
             </ErrorBoundary>
           )}

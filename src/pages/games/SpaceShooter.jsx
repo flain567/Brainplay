@@ -13,6 +13,8 @@ import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins, SHIP_CATALOG } from '../../context/CoinContext.jsx'
 import { useHaptics } from '../../hooks/useHaptics.js'
+import { useThemeColors } from '../../hooks/useThemeColors.js'
+import { WinModal, LoseModal } from '../../components/GameLayout.jsx'
 
 const CFG = {
   easy:   { spawnRate:80, enemySpeed:1.2, enemyHP:1, bossHP:18, bulletSpeed:7, lives:5, waveGoal:5, baseScore:300 },
@@ -67,7 +69,7 @@ const ASSETS = {
   boss3: null
 }
 
-export default function SpaceShooter({ onBack, game, difficulty }) {
+export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
   useEffect(() => {
     // Preload boss assets
     ['boss1.png', 'boss2.png', 'boss3.png'].forEach(src => {
@@ -87,6 +89,7 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
   const { reportGameResult } = useProgress()
   const { earnCoins, getActiveShip } = useCoins()
   const { vibrateLight, vibrateMedium, vibrateHeavy, vibrateSuccess, vibrateError } = useHaptics()
+  const tc = useThemeColors()
 
   const cfg = CFG[difficulty.id]
   const activeShip = getActiveShip()
@@ -632,44 +635,59 @@ export default function SpaceShooter({ onBack, game, difficulty }) {
         </div>
       )}
 
-      {/* Win */}
-      {phase === 'win' && (
-        <div style={{position:'absolute',inset:0,zIndex:20,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'rgba(2,1,24,0.95)',animation:'fadeIn 0.3s ease',padding:20}}>
-          <div style={{fontSize:isMobile?56:68,marginBottom:8}}>🏆</div>
-          <h2 style={{fontFamily:"'Fredoka One',cursive",fontSize:isMobile?24:32,color:'#FDCB6E',marginBottom:4,textShadow:'0 0 20px #FDCB6E44'}}>Misi Selesai!</h2>
-          <p style={{color:'rgba(255,255,255,0.35)',marginBottom:16,fontSize:isMobile?11:13}}>Semua wave berhasil dikalahkan!</p>
-          <div style={{fontSize:30,marginBottom:14,letterSpacing:4}}>{'⭐'.repeat(wave>=cfg.waveGoal+3?3:wave>=cfg.waveGoal+1?2:1)}{'☆'.repeat(3-(wave>=cfg.waveGoal+3?3:wave>=cfg.waveGoal+1?2:1))}</div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8,marginBottom:18,width:'100%',maxWidth:300}}>
-            {[{label:'Skor',value:score,c:'#4ecdc4'},{label:'Wave',value:wave,c:'#A29BFE'},{label:'Waktu',value:fmtTime(gameTime),c:'#FDCB6E'},{label:'Max Combo',value:gameRef.current?.maxCombo||0,c:'#FF6B6B'}].map(s=>(
-              <div key={s.label} style={{background:'rgba(255,255,255,0.04)',border:`1.5px solid ${s.c}22`,borderRadius:14,padding:'12px 16px',textAlign:'center'}}><div style={{fontFamily:"'Fredoka One',cursive",fontSize:isMobile?18:24,color:s.c}}>{s.value}</div><div style={{fontSize:10,color:'rgba(255,255,255,0.3)',marginTop:2,fontWeight:600}}>{s.label}</div></div>
-            ))}
-          </div>
-          {score>=bestScore&&bestScore>0&&<div style={{marginBottom:14,background:'rgba(255,211,61,0.08)',border:'1.5px solid rgba(255,211,61,0.25)',borderRadius:100,padding:'6px 18px',color:'#ffd93d',fontSize:12,fontWeight:700}}>🏆 Rekor Baru!</div>}
-          <div style={{display:'flex',gap:10}}>
-            <button onClick={startGame} style={{background:`linear-gradient(135deg,${activeShip.color},#a29bfe)`,color:'#fff',border:'none',borderRadius:100,padding:isMobile?'12px 26px':'13px 32px',fontSize:isMobile?14:16,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer',boxShadow:`0 0 22px ${activeShip.color}55`,WebkitTapHighlightColor:'transparent'}}>🔄 Main Lagi</button>
-            <button onClick={()=>{play('click');onBack()}} style={{background:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.5)',border:'1.5px solid rgba(255,255,255,0.1)',borderRadius:100,padding:isMobile?'12px 16px':'13px 20px',fontSize:isMobile?13:14,fontWeight:700,fontFamily:"'Fredoka One',cursive",cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>🏠 Home</button>
-          </div>
-        </div>
-      )}
+      {phase === 'win' && (() => {
+        const ssStars = wave >= cfg.waveGoal + 3 ? 3 : wave >= cfg.waveGoal + 1 ? 2 : 1
+        const g = gameRef.current
+        const coins = (cfg.lives === 5 ? 20 : cfg.lives === 4 ? 35 : 55) + (g?.coinsCollected || 0)
+        return (
+          <WinModal
+            emoji="🏆"
+            title="Misi selesai!"
+            subtitle="Semua wave berhasil dikalahkan!"
+            diffLabel={DLABEL[difficulty.id]}
+            stats={[
+              { label: 'Skor', value: String(score), color: '#4ecdc4' },
+              { label: 'Wave', value: String(wave), color: '#A29BFE' },
+              { label: 'Waktu', value: fmtTime(gameTime), color: '#FDCB6E' },
+              { label: 'Max combo', value: String(g?.maxCombo ?? 0), color: '#FF6B6B' },
+            ]}
+            stars={ssStars}
+            coinReward={coins}
+            highlight={score >= bestScore && bestScore > 0 ? '🏆 Rekor baru!' : ''}
+            onRestart={startGame}
+            onBack={() => { play('click'); onBack() }}
+            onHome={onHome}
+            dark={tc.dark}
+            gameColor={activeShip.color}
+          />
+        )
+      })()}
 
-      {/* Dead */}
-      {phase === 'dead' && (
-        <div style={{position:'absolute',inset:0,zIndex:20,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'rgba(2,1,24,0.95)',animation:'fadeIn 0.3s ease',padding:20}}>
-          <div style={{fontSize:isMobile?56:68,marginBottom:8}}>💀</div>
-          <h2 style={{fontFamily:"'Fredoka One',cursive",fontSize:isMobile?24:32,color:'#ff6b6b',marginBottom:4,textShadow:'0 0 20px #ff6b6b44'}}>Game Over!</h2>
-          <p style={{color:'rgba(255,255,255,0.35)',marginBottom:16,fontSize:isMobile?11:13}}>Pesawatmu hancur di wave {wave}!</p>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8,marginBottom:18,width:'100%',maxWidth:300}}>
-            {[{label:'Skor',value:score,c:'#4ecdc4'},{label:'Wave',value:wave,c:'#A29BFE'},{label:'Waktu',value:fmtTime(gameTime),c:'#FDCB6E'},{label:'Max Combo',value:gameRef.current?.maxCombo||0,c:'#FF6B6B'}].map(s=>(
-              <div key={s.label} style={{background:'rgba(255,255,255,0.04)',border:`1.5px solid ${s.c}22`,borderRadius:14,padding:'12px 16px',textAlign:'center'}}><div style={{fontFamily:"'Fredoka One',cursive",fontSize:isMobile?18:24,color:s.c}}>{s.value}</div><div style={{fontSize:10,color:'rgba(255,255,255,0.3)',marginTop:2,fontWeight:600}}>{s.label}</div></div>
-            ))}
-          </div>
-          {score>=bestScore&&bestScore>0&&<div style={{marginBottom:14,background:'rgba(255,211,61,0.08)',border:'1.5px solid rgba(255,211,61,0.25)',borderRadius:100,padding:'6px 18px',color:'#ffd93d',fontSize:12,fontWeight:700}}>🏆 Rekor Baru!</div>}
-          <div style={{display:'flex',gap:10}}>
-            <button onClick={startGame} style={{background:`linear-gradient(135deg,${activeShip.color},#a29bfe)`,color:'#fff',border:'none',borderRadius:100,padding:isMobile?'12px 26px':'13px 32px',fontSize:isMobile?14:16,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer',boxShadow:`0 0 22px ${activeShip.color}55`,WebkitTapHighlightColor:'transparent'}}>🔄 Main Lagi</button>
-            <button onClick={()=>{play('click');onBack()}} style={{background:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.5)',border:'1.5px solid rgba(255,255,255,0.1)',borderRadius:100,padding:isMobile?'12px 16px':'13px 20px',fontSize:isMobile?13:14,fontWeight:700,fontFamily:"'Fredoka One',cursive",cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>🏠 Home</button>
-          </div>
-        </div>
-      )}
+      {phase === 'dead' && (() => {
+        const g = gameRef.current
+        const coins = Math.max(5, Math.min(Math.floor(score / 8), 25)) + (g?.coinsCollected || 0)
+        return (
+          <LoseModal
+            emoji="💀"
+            title="Game Over!"
+            subtitle={`Pesawatmu hancur di wave ${wave}!`}
+            diffLabel={DLABEL[difficulty.id]}
+            stats={[
+              { label: 'Skor', value: String(score), color: '#4ecdc4' },
+              { label: 'Wave', value: String(wave), color: '#A29BFE' },
+              { label: 'Waktu', value: fmtTime(gameTime), color: '#FDCB6E' },
+              { label: 'Max combo', value: String(g?.maxCombo ?? 0), color: '#FF6B6B' },
+            ]}
+            coinReward={score > 0 ? coins : 0}
+            highlight={score >= bestScore && bestScore > 0 ? '🏆 Rekor baru!' : ''}
+            onRestart={startGame}
+            onBack={() => { play('click'); onBack() }}
+            onHome={onHome}
+            dark={tc.dark}
+            gameColor="#ff6b6b"
+          />
+        )
+      })()}
 
       <style>{`@keyframes fadeIn{from{opacity:0;transform:scale(0.97)}to{opacity:1;transform:scale(1)}}@keyframes pulse-glow{0%,100%{box-shadow:0 0 10px #4ecdc444}50%{box-shadow:0 0 24px #4ecdc488}}`}</style>
     </div>

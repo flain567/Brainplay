@@ -181,14 +181,21 @@ export function WinModal({
   coinReward = 0,
   onRestart,
   onBack,
+  onHome,
   dark,
   gameColor = '#FF6B6B',
   backLabel = '🎯 Ganti Level',
+  homeLabel = '🏠 Beranda',
+  restartLabel = '🔄 Main Lagi',
+  highlight = '',
 }) {
+  const { play } = useSound()
+  const { reduceMotion } = useSettings()
   const tc = useThemeColors()
   const bg = tc.dark ? tc.surface : '#fff'
   const textMain = tc.textMain
   const textMuted = tc.textMuted
+  const noAnim = reduceMotion
 
   return (
     <div style={{
@@ -196,14 +203,14 @@ export function WinModal({
       background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       zIndex: 999, padding: 24,
-      animation: 'winFadeIn 0.3s ease',
+      animation: noAnim ? 'none' : 'winFadeIn 0.3s ease',
     }}>
       <div style={{
         background: bg, borderRadius: 28,
         padding: '36px 32px', textAlign: 'center',
         maxWidth: 380, width: '100%',
         boxShadow: `0 24px 80px rgba(0,0,0,0.35), 0 0 0 1px ${gameColor}22`,
-        animation: 'winPopIn 0.45s cubic-bezier(0.34,1.56,0.64,1)',
+        animation: noAnim ? 'none' : 'winPopIn 0.45s cubic-bezier(0.34,1.56,0.64,1)',
         position: 'relative', overflow: 'hidden',
       }}>
         {/* Top accent */}
@@ -212,9 +219,20 @@ export function WinModal({
           background: `linear-gradient(90deg, ${gameColor}, #A29BFE, #4ECDC4)`,
         }} />
 
-        <div style={{ fontSize: 60, marginBottom: 8, animation: 'winBounce 0.6s ease' }}>{emoji}</div>
+        <div style={{ fontSize: 60, marginBottom: 8, animation: noAnim ? 'none' : 'winBounce 0.6s ease' }}>{emoji}</div>
         <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 30, color: textMain, marginBottom: 4 }}>{title}</h2>
         {subtitle && <p style={{ color: textMuted, fontSize: 14, marginBottom: 6 }}>{subtitle}</p>}
+
+        {highlight && (
+          <div style={{
+            display: 'inline-block', marginBottom: 14,
+            background: 'linear-gradient(135deg,#FFD700,#FFA500)', color: '#fff',
+            borderRadius: 12, padding: '8px 16px', fontSize: 13, fontWeight: 800,
+            fontFamily: "'Fredoka One',cursive",
+          }}>
+            {highlight}
+          </div>
+        )}
 
         {diffLabel && (
           <span style={{
@@ -231,7 +249,7 @@ export function WinModal({
             {Array.from({ length: 3 }).map((_, i) => (
               <span key={i} style={{
                 display: 'inline-block',
-                animation: i < stars ? `winStarPop 0.4s ${0.2 + i * 0.15}s cubic-bezier(0.34,1.56,0.64,1) both` : 'none',
+                animation: noAnim || i >= stars ? 'none' : `winStarPop 0.4s ${0.2 + i * 0.15}s cubic-bezier(0.34,1.56,0.64,1) both`,
                 opacity: i < stars ? 1 : 0.25,
                 filter: i < stars ? 'none' : 'grayscale(1)',
               }}>
@@ -248,7 +266,7 @@ export function WinModal({
             background: dark ? 'rgba(253,203,110,0.12)' : '#FFFDE7',
             border: '1.5px solid #FDCB6E44',
             borderRadius: 100, padding: '6px 18px', marginBottom: 16,
-            animation: 'winSlideUp 0.4s 0.3s ease both',
+            animation: noAnim ? 'none' : 'winSlideUp 0.4s 0.3s ease both',
           }}>
             <span style={{ fontSize: 16 }}>🪙</span>
             <span style={{ fontFamily: "'Fredoka One',cursive", fontSize: 16, color: '#F9A825' }}>+{coinReward}</span>
@@ -265,7 +283,7 @@ export function WinModal({
               <div key={s.label} style={{
                 background: dark ? `${s.color || '#A29BFE'}12` : `${s.color || '#A29BFE'}10`,
                 borderRadius: 14, padding: '12px 8px',
-                animation: `winSlideUp 0.4s ${0.35 + i * 0.12}s ease both`,
+                animation: noAnim ? 'none' : `winSlideUp 0.4s ${0.35 + i * 0.12}s ease both`,
               }}>
                 <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 22, color: s.color || '#A29BFE' }}>
                   {s.value}
@@ -277,35 +295,57 @@ export function WinModal({
         )}
 
         {/* Buttons */}
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={onRestart} style={{
-            flex: 1, background: gameColor, color: '#fff',
-            border: 'none', borderRadius: 100, padding: '13px 18px',
-            fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive",
-            cursor: 'pointer', boxShadow: `0 4px 14px ${gameColor}44`,
-            transition: 'transform 0.15s, box-shadow 0.15s',
-          }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = `0 4px 14px ${gameColor}44` }}
-            onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.96)'; e.currentTarget.style.boxShadow = `0 2px 6px ${gameColor}66` }}
-            onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = `0 4px 14px ${gameColor}44` }}
-          >
-            🔄 Main Lagi
-          </button>
-          <button onClick={onBack} style={{
-            flex: 1, background: dark ? '#1e2a4a' : '#F8F9FA',
-            color: textMuted, border: `2px solid ${tc.borderCol}`,
-            borderRadius: 100, padding: '13px 18px',
-            fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive",
-            cursor: 'pointer', transition: 'transform 0.15s, background 0.15s',
-          }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = dark ? '#1e2a4a' : '#F8F9FA' }}
-            onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.96)'; e.currentTarget.style.background = dark ? '#2d3a5a' : '#E8E9EA' }}
-            onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = dark ? '#1e2a4a' : '#F8F9FA' }}
-          >
-            {backLabel}
-          </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={() => { play('click'); onRestart() }} style={{
+              flex: 1, background: gameColor, color: '#fff',
+              border: 'none', borderRadius: 100, padding: '13px 18px',
+              fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive",
+              cursor: 'pointer', boxShadow: `0 4px 14px ${gameColor}44`,
+              transition: 'transform 0.15s, box-shadow 0.15s',
+            }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = `0 4px 14px ${gameColor}44` }}
+              onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.96)'; e.currentTarget.style.boxShadow = `0 2px 6px ${gameColor}66` }}
+              onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = `0 4px 14px ${gameColor}44` }}
+            >
+              {restartLabel}
+            </button>
+            <button onClick={() => { play('click'); onBack() }} style={{
+              flex: 1, background: dark ? '#1e2a4a' : '#F8F9FA',
+              color: textMuted, border: `2px solid ${tc.borderCol}`,
+              borderRadius: 100, padding: '13px 18px',
+              fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive",
+              cursor: 'pointer', transition: 'transform 0.15s, background 0.15s',
+            }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = dark ? '#1e2a4a' : '#F8F9FA' }}
+              onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.96)'; e.currentTarget.style.background = dark ? '#2d3a5a' : '#E8E9EA' }}
+              onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = dark ? '#1e2a4a' : '#F8F9FA' }}
+            >
+              {backLabel}
+            </button>
+          </div>
+          {typeof onHome === 'function' && (
+            <button
+              type="button"
+              onClick={() => { play('click'); onHome() }}
+              style={{
+                width: '100%',
+                background: 'transparent',
+                color: textMuted,
+                border: `2px dashed ${tc.borderCol}`,
+                borderRadius: 100,
+                padding: '11px 18px',
+                fontSize: 14,
+                fontWeight: 800,
+                fontFamily: "'Fredoka One',cursive",
+                cursor: 'pointer',
+              }}
+            >
+              {homeLabel}
+            </button>
+          )}
         </div>
       </div>
 
@@ -329,8 +369,13 @@ export function LoseModal({
   coinReward = 0,
   onRestart,
   onBack,
+  onHome,
   dark,
   gameColor = '#FF6B6B',
+  backLabel = '🎯 Ganti Level',
+  homeLabel = '🏠 Beranda',
+  restartLabel = '🔄 Main Lagi',
+  highlight = '',
 }) {
   return (
     <WinModal
@@ -342,8 +387,13 @@ export function LoseModal({
       coinReward={coinReward}
       onRestart={onRestart}
       onBack={onBack}
+      onHome={onHome}
       dark={dark}
       gameColor={gameColor}
+      backLabel={backLabel}
+      homeLabel={homeLabel}
+      restartLabel={restartLabel}
+      highlight={highlight}
     />
   )
 }

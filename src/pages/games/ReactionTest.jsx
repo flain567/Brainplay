@@ -42,7 +42,7 @@ const SEQ_COLORS = [
 const COLOR_WORDS = ['Merah','Biru','Hijau','Kuning','Ungu','Pink','Tosca','Oranye']
 const COLOR_VALUES = ['#FF6B6B','#74B9FF','#00B894','#FDCB6E','#A29BFE','#FD79A8','#00CEC9','#E17055']
 
-export default function ReactionTest({ onBack, game, difficulty }) {
+export default function ReactionTest({ onBack, onHome, game, difficulty }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { reportGameResult } = useProgress()
@@ -707,6 +707,7 @@ export default function ReactionTest({ onBack, game, difficulty }) {
         coinReward={coinAmt}
         onRestart={restart}
         onBack={onBack}
+        onHome={onHome}
         dark={dark}
         gameColor="#A29BFE"
       />

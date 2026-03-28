@@ -6,6 +6,7 @@ import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
+import { WinModal } from '../../components/GameLayout.jsx'
 
 const TUTORIAL_STEPS = [
   { emoji:'🔲', title:'Binary Puzzle', desc:'Isi grid dengan angka 0 dan 1 mengikuti 3 aturan logika!', tip:'Mirip Sudoku tapi dengan hanya dua angka.' },
@@ -155,7 +156,7 @@ function checkErrors(grid, size) {
   return errors
 }
 
-export default function BinaryPuzzle({ onBack, game, difficulty }) {
+export default function BinaryPuzzle({ onBack, onHome, game, difficulty }) {
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins } = useCoins()
@@ -271,26 +272,33 @@ export default function BinaryPuzzle({ onBack, game, difficulty }) {
     </div>
   )
 
-  if (phase === 'result') return (
-    <div style={{ minHeight:'100dvh', background:bg, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:20 }}>
-      {showConfetti && <Confetti />}
-      <div style={{ textAlign:'center', maxWidth:420, width:'100%' }}>
-        <div style={{ fontSize:64, marginBottom:8 }}>🎉</div>
-        <h1 style={{ fontFamily:"'Fredoka One',cursive", color:'#00B894', fontSize:26, margin:'0 0 4px' }}>PUZZLE SELESAI!</h1>
-        {isNewBest && <div style={{ background:'linear-gradient(135deg,#FFD700,#FFA500)', color:'#fff', borderRadius:12, padding:'8px 16px', fontSize:14, fontWeight:700, marginBottom:16, display:'inline-block' }}>🏆 WAKTU TERBAIK!</div>}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:20, background:surface, borderRadius:16, padding:16 }}>
-          {[{ l:'Waktu',v:fmtTime(timeElapsed),i:'⏱️'},{ l:'Skor',v:score,i:'🎯'},{ l:'Hint',v:hintsUsed,i:'💡'},{ l:'Koin',v:`+${coinReward}`,i:'🪙'}].map((s,i) => (
-            <div key={i} style={{ textAlign:'center', padding:8 }}><div style={{ fontSize:20 }}>{s.i}</div><div style={{ fontSize:18, fontWeight:700, color:textMain }}>{s.v}</div><div style={{ fontSize:11, color:textMuted }}>{s.l}</div></div>
-          ))}
-        </div>
-        <div style={{ fontSize:32, marginBottom:16 }}>{[1,2,3].map(s=><span key={s} style={{opacity:s<=stars?1:0.2}}>⭐</span>)}</div>
-        <div style={{ display:'flex', gap:10, justifyContent:'center' }}>
-          <button onClick={() => setPhase('ready')} style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, padding:'12px 32px', background:`linear-gradient(135deg,${accent},${accentLight})`, color:'#fff', border:'none', borderRadius:12, cursor:'pointer' }}>Main Lagi 🔄</button>
-          <button onClick={onBack} style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, padding:'12px 32px', background:surface, color:textMain, border:`2px solid ${tc.border}`, borderRadius:12, cursor:'pointer' }}>Kembali</button>
-        </div>
+  if (phase === 'result') {
+    const diffLabel = { easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }[difficulty?.id] || '🟢 Mudah'
+    return (
+      <div style={{ minHeight:'100dvh', background:bg }}>
+        {showConfetti && <Confetti />}
+        <WinModal
+          emoji="🎉"
+          title="Puzzle selesai!"
+          subtitle="Grid binary valid!"
+          diffLabel={diffLabel}
+          stats={[
+            { label: 'Waktu', value: fmtTime(timeElapsed), color: '#00CEC9' },
+            { label: 'Skor', value: score, color: '#A29BFE' },
+            { label: 'Hint', value: hintsUsed, color: '#FDCB6E' },
+          ]}
+          stars={stars}
+          coinReward={coinReward}
+          highlight={isNewBest ? '🏆 Waktu terbaik!' : ''}
+          onRestart={() => setPhase('ready')}
+          onBack={onBack}
+          onHome={onHome}
+          dark={tc.dark}
+          gameColor={accent}
+        />
       </div>
-    </div>
-  )
+    )
+  }
 
   // ─── Playing ────────────────────────────────────────────────────────────
   const cellSize = Math.min(Math.floor((Math.min(window.innerWidth, 440) - 40) / diff.size), 48)

@@ -12,6 +12,8 @@ import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
 import { useHaptics } from '../../hooks/useHaptics.js'
+import { useThemeColors } from '../../hooks/useThemeColors.js'
+import { LoseModal } from '../../components/GameLayout.jsx'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SEG_R       = 11
@@ -296,7 +298,7 @@ function drawFood(ctx, foods, camX, camY, W, H) {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function SlitherWorm({ onBack, game, difficulty }) {
+export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
   const canvasRef  = useRef(null)
   const gameRef    = useRef(null)
   const stickRef   = useRef({ active: false, dx: 0, dy: 0, bcx: 0, bcy: 0 })
@@ -306,9 +308,11 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
   const { reportGameResult } = useProgress()
   const { earnCoins, getActiveSkin } = useCoins()
   const { vibrateLight, vibrateMedium, vibrateError } = useHaptics()
+  const tc = useThemeColors()
   const PLAYER_SKIN = getActiveSkin ? getActiveSkin() : DEFAULT_PLAYER_SKIN
 
   const cfg = CFG[difficulty.id]
+  const SL_DIFF = { easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }
 
   const [phase, setPhase]       = useState('idle')
   const [deathCause, setDeathCause] = useState('wall')
@@ -905,45 +909,25 @@ export default function SlitherWorm({ onBack, game, difficulty }) {
         </div>
       )}
 
-      {/* ── Dead ── */}
       {phase === 'dead' && (
-        <div style={{ position:'absolute', inset:0, zIndex:20, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'rgba(7,7,26,0.93)', animation:'fadeIn 0.3s ease' }}>
-          <div style={{ fontSize:68, marginBottom:8 }}>💀</div>
-          <h2 style={{ fontFamily:"'Fredoka One',cursive", fontSize:34, color:'#ff6b6b', marginBottom:4, textShadow:'0 0 20px #ff6b6b44' }}>Game Over!</h2>
-          <p style={{ color:'rgba(255,255,255,0.35)', marginBottom:24, fontSize:13 }}>
-            {deathCause === 'bot' ? 'Cacingmu menabrak tubuh bot musuh!' : 'Cacingmu menabrak tembok arena!'}
-          </p>
-
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:22 }}>
-            {[
-              { label:'Skor',    value: gameRef.current?.score || 0,  c:'#4ecdc4' },
-              { label:'Panjang', value: gameRef.current?.player.segs.length || 0, c:'#a29bfe' },
-              { label:'Kills',   value: gameRef.current?.kills || 0,  c:'#ff6b6b' },
-            ].map(s => (
-              <div key={s.label} style={{ background:'rgba(255,255,255,0.04)', border:`1.5px solid ${s.c}22`, borderRadius:16, padding:'16px 20px', textAlign:'center' }}>
-                <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:28, color:s.c }}>{s.value}</div>
-                <div style={{ fontSize:11, color:'rgba(255,255,255,0.35)', marginTop:3, fontWeight:600 }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {(gameRef.current?.score || 0) >= bestScore && bestScore > 0 && (
-            <div style={{ marginBottom:16, background:'rgba(255,211,61,0.08)', border:'1.5px solid rgba(255,211,61,0.25)', borderRadius:100, padding:'7px 20px', color:'#ffd93d', fontSize:13, fontWeight:700 }}>
-              🏆 Rekor Baru!
-            </div>
-          )}
-
-          <div style={{ display:'flex', gap:10 }}>
-            <button onClick={startGame}
-              style={{ background:'linear-gradient(135deg,#4ecdc4,#a29bfe)', color:'#fff', border:'none', borderRadius:100, padding:'13px 34px', fontSize:16, fontWeight:800, fontFamily:"'Fredoka One',cursive", cursor:'pointer', boxShadow:'0 0 22px rgba(78,205,196,0.35)' }}>
-              🔄 Main Lagi
-            </button>
-            <button onClick={() => { play('click'); onBack() }}
-              style={{ background:'rgba(255,255,255,0.06)', color:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(255,255,255,0.1)', borderRadius:100, padding:'13px 22px', fontSize:14, fontWeight:700, fontFamily:"'Fredoka One',cursive", cursor:'pointer' }}>
-              🏠 Home
-            </button>
-          </div>
-        </div>
+        <LoseModal
+          emoji="💀"
+          title="Game Over!"
+          subtitle={deathCause === 'bot' ? 'Cacingmu menabrak tubuh bot musuh!' : 'Cacingmu menabrak tembok arena!'}
+          diffLabel={SL_DIFF[difficulty.id]}
+          stats={[
+            { label: 'Skor', value: String(gameRef.current?.score ?? score), color: '#4ecdc4' },
+            { label: 'Panjang', value: String(gameRef.current?.player?.segs?.length ?? length), color: '#a29bfe' },
+            { label: 'Kills', value: String(gameRef.current?.kills ?? kills), color: '#ff6b6b' },
+          ]}
+          coinReward={score > 0 ? Math.max(5, Math.min(Math.floor(score / 5), 30)) : 0}
+          highlight={(gameRef.current?.score ?? score) >= bestScore && bestScore > 0 ? '🏆 Rekor baru!' : ''}
+          onRestart={startGame}
+          onBack={() => { play('click'); onBack() }}
+          onHome={onHome}
+          dark={tc.dark}
+          gameColor="#ff6b6b"
+        />
       )}
 
       {/* ── Joystick ── */}

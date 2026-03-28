@@ -6,6 +6,7 @@ import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
+import { WinModal } from '../../components/GameLayout.jsx'
 
 const TUTORIAL_STEPS = [
   { emoji:'🔢', title:'Number Sequence', desc:'Temukan pola dalam deret angka dan tebak angka berikutnya!', tip:'Perhatikan selisih, perkalian, atau pola khusus antar angka.' },
@@ -138,7 +139,7 @@ function getComboColor(s) { return s >= 10 ? '#FF3838' : s >= 5 ? '#E17055' : s 
 const LEVEL_NAMES = ['','Pemula','Dasar','Terampil','Mahir','Ahli','Master','Grandmaster','Genius','Legenda','Mythic','Transcendent']
 
 // ─── Component ────────────────────────────────────────────────────────────
-export default function NumberSequence({ onBack, game, difficulty }) {
+export default function NumberSequence({ onBack, onHome, game, difficulty }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { reportGameResult } = useProgress()
@@ -269,25 +270,31 @@ export default function NumberSequence({ onBack, game, difficulty }) {
 
   if (phase === 'result') {
     const accuracy = totalAnswered > 0 ? Math.round(totalCorrect / totalAnswered * 100) : 0
+    const diffLabel = { easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }[difficulty?.id] || '🟢 Mudah'
     return (
-      <div style={{ minHeight:'100dvh', background:bg, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:20 }}>
+      <div style={{ minHeight:'100dvh', background:bg }}>
         {showConfetti && <Confetti />}
-        <div style={{ textAlign:'center', maxWidth:420, width:'100%' }}>
-          <div style={{ fontSize:64, marginBottom:8 }}>{won ? '🎉' : '💔'}</div>
-          <h1 style={{ fontFamily:"'Fredoka One',cursive", color:won?'#00B894':'#FF6B6B', fontSize:26, margin:'0 0 4px' }}>{won ? 'LUAR BIASA!' : 'GAME OVER'}</h1>
-          <p style={{ color:textMuted, fontSize:14, marginBottom:20 }}>{won ? `Kamu master pola angka!` : `Level ${level} — ${LEVEL_NAMES[level]||''}`}</p>
-          {isNewBest && <div style={{ background:'linear-gradient(135deg,#FFD700,#FFA500)', color:'#fff', borderRadius:12, padding:'8px 16px', fontSize:14, fontWeight:700, marginBottom:16, display:'inline-block' }}>🏆 SKOR BARU TERBAIK!</div>}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:20, background:surface, borderRadius:16, padding:16 }}>
-            {[{ l:'Skor',v:score.toLocaleString(),i:'🎯'},{ l:'Level',v:level,i:'📈'},{ l:'Benar',v:`${totalCorrect}/${totalAnswered}`,i:'✅'},{ l:'Akurasi',v:`${accuracy}%`,i:'🎯'},{ l:'Best Streak',v:bestStreak,i:'🔥'},{ l:'Koin',v:`+${coinReward}`,i:'🪙'}].map((s,i) => (
-              <div key={i} style={{ textAlign:'center', padding:8 }}><div style={{ fontSize:20 }}>{s.i}</div><div style={{ fontSize:18, fontWeight:700, color:textMain }}>{s.v}</div><div style={{ fontSize:11, color:textMuted }}>{s.l}</div></div>
-            ))}
-          </div>
-          {won && <div style={{ fontSize:32, marginBottom:16 }}>{[1,2,3].map(s=><span key={s} style={{ opacity:s<=stars?1:0.2 }}>⭐</span>)}</div>}
-          <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap' }}>
-            <button onClick={() => setPhase('ready')} style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, padding:'12px 32px', background:`linear-gradient(135deg,${accent},${accentLight})`, color:'#fff', border:'none', borderRadius:12, cursor:'pointer' }}>Main Lagi 🔄</button>
-            <button onClick={onBack} style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, padding:'12px 32px', background:surface, color:textMain, border:`2px solid ${tc.border}`, borderRadius:12, cursor:'pointer' }}>Kembali</button>
-          </div>
-        </div>
+        <WinModal
+          emoji={won ? '🎉' : '💔'}
+          title={won ? 'LUAR BIASA!' : 'Game over'}
+          subtitle={won ? 'Kamu master pola angka!' : `Level ${level} — ${LEVEL_NAMES[level] || ''}`}
+          diffLabel={diffLabel}
+          stats={[
+            { label: 'Skor', value: score.toLocaleString(), color: '#6C5CE7' },
+            { label: 'Level', value: `${level} — ${LEVEL_NAMES[level] || ''}`, color: '#A29BFE' },
+            { label: 'Benar', value: `${totalCorrect}/${totalAnswered}`, color: '#00B894' },
+            { label: 'Akurasi', value: `${accuracy}%`, color: '#FDCB6E' },
+            { label: 'Best streak', value: String(bestStreak), color: '#FD79A8' },
+          ]}
+          stars={won ? stars : 0}
+          coinReward={coinReward}
+          highlight={isNewBest ? '🏆 Skor baru terbaik!' : ''}
+          onRestart={() => setPhase('ready')}
+          onBack={onBack}
+          onHome={onHome}
+          dark={darkMode}
+          gameColor={accent}
+        />
       </div>
     )
   }

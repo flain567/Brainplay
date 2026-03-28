@@ -12,6 +12,8 @@ import{useProgress}from'../../context/ProgressContext.jsx'
 import{useCoins}from'../../context/CoinContext.jsx'
 import{DASH_THEMES}from'../../context/CoinContext.jsx'
 import{useHaptics}from'../../hooks/useHaptics.js'
+import{useThemeColors}from'../../hooks/useThemeColors.js'
+import{WinModal,LoseModal}from'../../components/GameLayout.jsx'
 
 // ═══════════════════════════════════════════════════════════
 // CONFIG — jump heights verified: max obstacle = 2 blocks
@@ -144,10 +146,11 @@ function mkBgR(W,H){const r=[];for(let i=0;i<10;i++)r.push({x:Math.random()*W*3,
 // ═══════════════════════════════════════════════════════════
 // COMPONENT
 // ═══════════════════════════════════════════════════════════
-export default function NeonDash({onBack,game,difficulty}){
-  const cRef=useRef(null),aRef=useRef(null),gR=useRef(null),phR=useRef('idle')
+export default function NeonDash({onBack,onHome,game,difficulty}){
+  const cRef=useRef(null),aRef=useRef(null),gR=useRef(null),phR=useRef('idle'),retryRef=useRef(()=>{})
   const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins,getActiveDashTheme,activeDashTheme:activeDashThemeId}=useCoins()
   const{vibrateLight,vibrateMedium,vibrateHeavy,vibrateSuccess,vibrateError}=useHaptics()
+  const tc=useThemeColors()
   const dashImgRef=useRef(null)
   const dc=DC[difficulty.id]
   const[phase,_sp]=useState('idle')
@@ -244,6 +247,7 @@ export default function NeonDash({onBack,game,difficulty}){
       g.mode='cube';g.rot=0;g.hold=false;g.dieT=0;g.winT=0
       g.trail=[];g.pts=[];g.rings=[];sp('play')
     }
+    retryRef.current=retry
     function die(){
       const currentTheme = getActiveDashTheme()
       sp('dying');g.dieT=40;g.shk=18;g.deathFlash=1.0
@@ -494,30 +498,17 @@ export default function NeonDash({onBack,game,difficulty}){
       {showConf&&<Confetti/>}      {loading&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999}}><div style={{fontSize:48,animation:'spin 2s linear infinite'}}>⚙️</div></div>}      <div style={{position:'absolute',top:8,left:8,zIndex:20}}><button onClick={onBack} style={{background:'rgba(255,255,255,0.08)',border:'1px solid rgba(255,255,255,0.15)',color:'#fff',borderRadius:10,padding:'7px 13px',fontSize:15,cursor:'pointer'}}>←</button></div>
       <div style={{position:'absolute',inset:0,zIndex:1}}><canvas ref={cRef} style={{width:'100%',height:'100%',display:'block',touchAction:'none'}}/></div>
       {phase==='won'&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(10px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:20}}>
-          <div style={{background:'linear-gradient(180deg,#1a0a3a,#2d1b69)',borderRadius:28,padding:'36px 28px',textAlign:'center',maxWidth:380,width:'100%',boxShadow:'0 0 60px rgba(162,155,254,0.3)',position:'relative',overflow:'hidden'}}>
-            <div style={{fontSize:52,marginBottom:8}}>🏆</div><h2 style={{color:'#fff',fontSize:26,marginBottom:4}}>ALL CLEAR!</h2>
-            <p style={{color:CL.gndL,fontSize:13,marginBottom:12}}>{dc.ml} level selesai!</p>
-            <div style={{fontSize:30,marginBottom:12,letterSpacing:8}}>⭐⭐⭐</div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}}>
-              {[{l:'Skor',v:gR.current?.sc||uSc,c:'#FFD700'},{l:'Diamond',v:`${gR.current?.cd||0}/${gR.current?.lvD?.nd||0}`,c:'#00F5FF'},{l:'Attempts',v:gR.current?.att||uAt,c:'#A29BFE'}].map((s,i)=>(
-                <div key={s.l} style={{background:`${s.c}15`,borderRadius:12,padding:'10px 6px',animation:`winSlideUp 0.4s ${0.35+i*0.12}s ease both`}}>
-                  <div style={{fontSize:18,color:s.c,fontWeight:800}}>{s.v}</div>
-                  <div style={{fontSize:9,color:'#888',marginTop:2}}>{s.l}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(253,203,110,0.12)',border:'1.5px solid #FDCB6E44',borderRadius:100,padding:'6px 18px',marginBottom:16}}><span>🪙</span><span style={{color:'#F9A825',fontSize:16,fontWeight:800}}>+{coinR}</span></div>
-            <div style={{display:'flex',gap:10}}>
-              <button onClick={restart} style={{flex:1,background:'linear-gradient(135deg,#A29BFE,#6C5CE7)',color:'#fff',border:'none',borderRadius:100,padding:'13px 18px',fontSize:15,fontWeight:800,cursor:'pointer'}}>🔄 Main Lagi</button>
-              <button onClick={onBack} style={{flex:1,background:'#1a1a3e',color:'#aaa',border:'2px solid rgba(255,255,255,0.1)',borderRadius:100,padding:'13px 18px',fontSize:15,fontWeight:800,cursor:'pointer'}}>🎯 Ganti Level</button>
-            </div>
-          </div>
-          <style>{`
-            @keyframes winSlideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-            @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-          `}</style>
-        </div>)}
+        <WinModal emoji="🏆" title="All clear!" subtitle={`${dc.ml} level selesai!`} diffLabel={{easy:'🟢 Mudah',medium:'🟡 Sedang',hard:'🔴 Sulit'}[difficulty.id]}
+          stats={[{label:'Skor',value:String(gR.current?.sc??uSc),color:'#FFD700'},{label:'Diamond',value:`${gR.current?.cd||0}/${gR.current?.lvD?.nd||0}`,color:'#00F5FF'},{label:'Attempts',value:String(gR.current?.att??uAt),color:'#A29BFE'}]}
+          stars={3} coinReward={coinR} onRestart={restart} onBack={()=>{play('click');onBack()}} onHome={()=>{play('click');onHome?.()}}
+          dark={tc.dark} gameColor="#A29BFE"/>
+      )}
+      {phase==='dead'&&(
+        <LoseModal emoji="💥" title="Crash!" subtitle="Coba lagi dari checkpoint level ini." diffLabel={{easy:'🟢 Mudah',medium:'🟡 Sedang',hard:'🔴 Sulit'}[difficulty.id]}
+          stats={[{label:'Skor',value:String(uSc),color:'#FFD700'},{label:'Progress',value:`${uPr}%`,color:'#00F5FF'},{label:'Diamond',value:uDi,color:'#A29BFE'},{label:'Attempt',value:String(uAt),color:'#FF6B6B'}]}
+          coinReward={0} onRestart={()=>retryRef.current()} onBack={()=>{play('click');onBack()}} onHome={()=>{play('click');onHome?.()}}
+          dark={tc.dark} gameColor="#FF6B6B"/>
+      )}
       <style>{`
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
       `}</style>

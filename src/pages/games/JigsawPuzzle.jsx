@@ -1,11 +1,12 @@
 import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useSettings } from '../../context/SettingsContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
+import { WinModal } from '../../components/GameLayout.jsx'
 
 const TUTORIAL_STEPS = [
   { emoji:'🧩', title:'Jigsaw Puzzle', desc:'Susun potongan gambar ke posisi yang benar untuk membentuk gambar utuh!', tip:'Lihat preview gambar di kiri atas sebagai panduan.' },
@@ -113,7 +114,7 @@ function PuzzleTile({ tile, size, showNumber, dimmed, glow, onClick, selected, c
 }
 
 // ─── Main component ──────────────────────────────────────────────────────────
-export default function JigsawPuzzle({ onBack, game, difficulty }) {
+export default function JigsawPuzzle({ onBack, onHome, game, difficulty }) {
   const tc = useThemeColors()
   const dark = tc.dark
   const { play } = useSound()
@@ -373,6 +374,15 @@ export default function JigsawPuzzle({ onBack, game, difficulty }) {
     return Math.min(timeStar, moveStar)
   })() : 0
 
+  const winCoinAmount = useMemo(() => {
+    if (!gameOver) return 0
+    let n = { easy: 15, medium: 25, hard: 40 }[difficulty.id]
+    if (stars === 3) n += 20
+    return n
+  }, [gameOver, stars, difficulty.id])
+
+  const JIG_DIFF_LABEL = { easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }
+
   return (
     <>
       <style>{`
@@ -442,21 +452,6 @@ export default function JigsawPuzzle({ onBack, game, difficulty }) {
           background: ${surface}; border-radius: 24px;
           padding: 24px; max-width: 380px; width: 100%;
           animation: popInTut 0.3s cubic-bezier(0.34,1.56,0.64,1);
-        }
-
-        /* Game over overlay */
-        .jig-gameover {
-          position: fixed; inset: 0; z-index: 100;
-          background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
-          display: flex; align-items: center; justify-content: center;
-          padding: 24px;
-          animation: fadeInTut 0.3s ease;
-        }
-        .jig-gameover-card {
-          background: ${surface}; border: 2px solid ${accent}44;
-          border-radius: 28px; padding: 32px; max-width: 380px; width: 100%;
-          text-align: center; box-shadow: 0 24px 80px ${accent}33;
-          animation: popInTut 0.4s cubic-bezier(0.34,1.56,0.64,1);
         }
 
         /* Progress bar */
@@ -666,53 +661,23 @@ export default function JigsawPuzzle({ onBack, game, difficulty }) {
             </div>
           )}
 
-          {/* Game Over overlay */}
           {gameOver && (
-            <div className="jig-gameover">
-              <div className="jig-gameover-card">
-                <div style={{ fontSize:56, marginBottom:12 }}>🎉</div>
-                <h2 style={{ fontFamily:"'Fredoka One',cursive", fontSize:28, color:textMain, marginBottom:8 }}>
-                  Puzzle Selesai!
-                </h2>
-                <div style={{ fontSize:36, marginBottom:12, letterSpacing:4 }}>
-                  {'⭐'.repeat(stars)}{'☆'.repeat(3 - stars)}
-                </div>
-                <div style={{ display:'flex', gap:16, justifyContent:'center', marginBottom:24 }}>
-                  <div style={{ textAlign:'center' }}>
-                    <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:22, color:accent }}>{formatTime(time)}</div>
-                    <div style={{ fontSize:11, color:textMuted, fontWeight:700 }}>Waktu</div>
-                  </div>
-                  <div style={{ textAlign:'center' }}>
-                    <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:22, color:accent }}>{moves}</div>
-                    <div style={{ fontSize:11, color:textMuted, fontWeight:700 }}>Langkah</div>
-                  </div>
-                </div>
-                <div style={{ display:'flex', gap:10 }}>
-                  <button
-                    onClick={() => { play('click'); onBack() }}
-                    style={{
-                      flex:1, padding:'12px', borderRadius:100,
-                      border:`2px solid ${borderCol}`, background:'transparent',
-                      color:textMuted, fontFamily:"'Fredoka One',cursive", fontSize:14,
-                      cursor:'pointer',
-                    }}
-                  >
-                    ← Kembali
-                  </button>
-                  <button
-                    onClick={handleRestart}
-                    style={{
-                      flex:2, padding:'12px', borderRadius:100, border:'none',
-                      background:`linear-gradient(135deg,${accent},${accent}bb)`,
-                      color:'#fff', fontFamily:"'Fredoka One',cursive", fontSize:15,
-                      cursor:'pointer', boxShadow:`0 6px 20px ${accent}44`,
-                    }}
-                  >
-                    🔄 Main Lagi
-                  </button>
-                </div>
-              </div>
-            </div>
+            <WinModal
+              title="Puzzle selesai!"
+              subtitle="Semua potongan pas!"
+              diffLabel={JIG_DIFF_LABEL[difficulty.id]}
+              stats={[
+                { label: 'Waktu', value: formatTime(time), color: accent },
+                { label: 'Langkah', value: String(moves), color: accent },
+              ]}
+              stars={stars}
+              coinReward={winCoinAmount}
+              onRestart={handleRestart}
+              onBack={() => { play('click'); onBack() }}
+              onHome={() => { play('click'); onHome?.() }}
+              dark={dark}
+              gameColor={accent}
+            />
           )}
 
         </div>

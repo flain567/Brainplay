@@ -1,11 +1,12 @@
 import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useSettings } from '../../context/SettingsContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
+import { WinModal } from '../../components/GameLayout.jsx'
 
 const TUTORIAL_STEPS = [
   { emoji:'🔢', title:'Sudoku', desc:'Isi grid 9×9 dengan angka 1-9 tanpa duplikat di setiap baris, kolom, dan kotak 3×3!', tip:'Mulai dari baris/kolom yang paling banyak angkanya.' },
@@ -103,7 +104,7 @@ function useTimer(running, resetKey) {
 const formatTime = (s) =>
   `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`
 
-export default function SudokuGame({ onBack, game, difficulty }) {
+export default function SudokuGame({ onBack, onHome, game, difficulty }) {
   const tc = useThemeColors()
   const dark = tc.dark
   const { play } = useSound()
@@ -330,6 +331,21 @@ export default function SudokuGame({ onBack, game, difficulty }) {
 
   const selectedNum = selectedCell ? board[selectedCell[0]][selectedCell[1]] : null
 
+  const winStarsDisplay = useMemo(() => {
+    if (!won) return 0
+    let s = errors <= (difficulty.id === 'hard' ? 1 : difficulty.id === 'medium' ? 2 : 3) ? 3 : errors <= 5 ? 2 : 1
+    if (paidHints > 0 && s > 2) s = 2
+    return s
+  }, [won, errors, difficulty.id, paidHints])
+
+  const winCoinAmount = useMemo(() => {
+    if (!won) return 0
+    const coinReward = { easy: 20, medium: 35, hard: 50 }
+    let c = coinReward[difficulty.id] || 20
+    if (winStarsDisplay === 3) c += 25
+    return c
+  }, [won, difficulty.id, winStarsDisplay])
+
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100dvh', transition: 'background 0.3s' }}>
       {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_sudoku","1") }} />}
@@ -513,14 +529,21 @@ export default function SudokuGame({ onBack, game, difficulty }) {
 
       {won && (
         <WinModal
-          errors={errors}
-          time={formatTime(time)}
+          emoji="🎉"
+          title="Selamat!"
+          subtitle="Sudoku berhasil diselesaikan!"
           diffLabel={DIFF_LABEL[difficulty.id]}
+          stats={[
+            { label: 'Error', value: errors, color: '#FF6B6B' },
+            { label: 'Waktu', value: formatTime(time), color: '#4ECDC4' },
+          ]}
+          stars={winStarsDisplay}
+          coinReward={winCoinAmount}
           onRestart={restart}
           onBack={onBack}
-          darkMode={dark}
-          game={game}
-          difficulty={difficulty}
+          onHome={onHome}
+          dark={dark}
+          gameColor={game?.color || '#0984E3'}
         />
       )}
 
@@ -530,46 +553,6 @@ export default function SudokuGame({ onBack, game, difficulty }) {
           25% { transform: translateX(-4px) }
           75% { transform: translateX(4px) }
         }
-      `}</style>
-    </div>
-  )
-}
-
-function WinModal({ errors, time, diffLabel, onRestart, onBack, darkMode, game, difficulty }) {
-  const stars = errors <= (difficulty.id === 'hard' ? 1 : difficulty.id === 'medium' ? 2 : 3) ? 3 : errors <= 5 ? 2 : 1
-  const bg = darkMode ? '#1a1a2e' : '#fff'
-  const textMain = darkMode ? '#e8e8f0' : '#2D3436'
-  const textMuted = darkMode ? '#8892b0' : '#636E72'
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: 24, animation: 'fadeIn 0.3s ease' }}>
-      <div style={{ background: bg, borderRadius: 28, padding: '40px 36px', textAlign: 'center', maxWidth: 360, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.3)', animation: 'popIn 0.4s cubic-bezier(0.34,1.56,0.64,1)' }}>
-        <div style={{ fontSize: 64, marginBottom: 8 }}>🎉</div>
-        <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 32, color: textMain, marginBottom: 4 }}>Selamat!</h2>
-        <p style={{ color: textMuted, fontSize: 14, marginBottom: 6 }}>Sudoku berhasil diselesaikan!</p>
-        <span style={{ display: 'inline-block', background: `${game.color}22`, color: game.color, padding: '4px 14px', borderRadius: 100, fontSize: 13, fontWeight: 700, marginBottom: 16 }}>{diffLabel}</span>
-
-        <div style={{ fontSize: 36, marginBottom: 16, letterSpacing: 4 }}>{'⭐'.repeat(stars)}{'☆'.repeat(3-stars)}</div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
-          <div style={{ background: darkMode ? '#2d1f1f' : '#FFF0F0', borderRadius: 14, padding: 12 }}>
-            <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: '#FF6B6B' }}>{errors}</div>
-            <div style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>Error</div>
-          </div>
-          <div style={{ background: darkMode ? '#1a2d2d' : '#F0FFFE', borderRadius: 14, padding: 12 }}>
-            <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: '#4ECDC4' }}>{time}</div>
-            <div style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>Waktu</div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={onRestart} style={{ flex: 1, background: '#0984E3', color: '#fff', border: 'none', borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', boxShadow: '0 4px 14px #0984E344' }}>🔄 Main Lagi</button>
-          <button onClick={onBack} style={{ flex: 1, background: darkMode ? '#1e2a4a' : '#F8F9FA', color: textMuted, border: `2px solid ${darkMode ? '#2d3561' : '#DFE6E9'}`, borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>🎯 Ganti Level</button>
-        </div>
-      </div>
-      <style>{`
-        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-        @keyframes popIn  { from{transform:scale(0.6);opacity:0} to{transform:scale(1);opacity:1} }
       `}</style>
     </div>
   )

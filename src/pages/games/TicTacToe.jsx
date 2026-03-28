@@ -131,7 +131,7 @@ function getAIMove(board, level) {
   }
 }
 
-export default function TicTacToe({ onBack, game, difficulty }) {
+export default function TicTacToe({ onBack, onHome, game, difficulty }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { reportGameResult } = useProgress()
@@ -342,6 +342,7 @@ export default function TicTacToe({ onBack, game, difficulty }) {
           coinReward={finalCoin}
           onRestart={restart}
           onBack={onBack}
+          onHome={onHome}
           dark={dark}
           gameColor="#E17055"
         />

@@ -10,6 +10,8 @@ import{useEffect,useRef,useState}from'react'
 import{useSound}from'../../hooks/useSound.js'
 import{useProgress}from'../../context/ProgressContext.jsx'
 import{useCoins}from'../../context/CoinContext.jsx'
+import{useThemeColors}from'../../hooks/useThemeColors.js'
+import{WinModal,LoseModal}from'../../components/GameLayout.jsx'
 
 const CFG={
   easy:{lives:4,maxLevel:15,showMs:700,gapMs:220,bShowMs:500,bGapMs:160,repFree:3},
@@ -24,9 +26,10 @@ const rnd=(a,b)=>a+Math.random()*(b-a), clp=(v,a,b)=>Math.max(a,Math.min(b,v)), 
 function rr(c,x,y,w,h,r){w=Math.max(w,1);h=Math.max(h,1);r=Math.max(0,Math.min(r||0,w/2,h/2));if(r<1){c.rect(x,y,w,h);return}c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
 function lCfg(l){if(l<=4)return{g:3,p:clp(3+Math.floor((l-1)*0.6),3,5)};if(l<=9)return{g:4,p:clp(4+Math.floor((l-5)*0.5),4,7)};if(l<=14)return{g:5,p:clp(6+Math.floor((l-10)*0.6),6,9)};if(l<=20)return{g:6,p:clp(8+Math.floor((l-15)*0.6),8,12)};return{g:6,p:clp(10+Math.floor((l-20)*0.5),10,14)}}
 
-export default function MemoryPatternPro({onBack,game,difficulty}){
+export default function MemoryPatternPro({onBack,onHome,game,difficulty}){
   const cRef=useRef(null),aRef=useRef(null),phR=useRef('idle'),gR=useRef(null)
   const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins}=useCoins()
+  const tc=useThemeColors()
   const cfg=CFG[difficulty.id]
   const[phase,_sP]=useState('idle')
   const[showTut,setShowTut]=useState(()=>!localStorage.getItem('bp_tut_memory-pattern'))
@@ -268,29 +271,18 @@ export default function MemoryPatternPro({onBack,game,difficulty}){
         <canvas ref={cRef} style={{width:'100%',height:'100%',display:'block',touchAction:'none'}}/>
       </div>
 
-      {(phase==='won'||phase==='lost')&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(10px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:20,animation:'mF 0.3s ease'}}>
-          <div style={{background:'linear-gradient(180deg,#0d0d30,#1a1a3e)',borderRadius:28,padding:'36px 28px',textAlign:'center',maxWidth:380,width:'100%',boxShadow:phase==='won'?`0 0 60px ${N.cy}33, 0 24px 80px rgba(0,0,0,0.5)`:'0 24px 80px rgba(0,0,0,0.5)',animation:'mP 0.45s cubic-bezier(0.34,1.56,0.64,1)',position:'relative',overflow:'hidden'}}>
-            
-            <div style={{fontSize:52,marginBottom:8,animation:'mB 0.6s ease'}}>{phase==='won'?'🏆':'💥'}</div>
-            <h2 style={{color:'#fff',fontSize:26,marginBottom:4}}>{phase==='won'?'SEMPURNA!':'Game Over'}</h2>
-            <p style={{color:N.pu,fontSize:13,marginBottom:8}}>{phase==='won'?`${cfg.maxLevel} level ditaklukkan!`:`Sampai Level ${uLv}`}</p>
-            <span style={{display:'inline-block',background:'rgba(162,155,254,0.15)',color:N.pu,padding:'4px 14px',borderRadius:100,fontSize:13,fontWeight:700,marginBottom:14}}>{DL[difficulty.id]}</span>
-            {phase==='won'&&<div style={{fontSize:30,marginBottom:12,letterSpacing:8}}>{[0,1,2].map(i=><span key={i} style={{display:'inline-block',animation:i<stars?`mS 0.4s ${0.2+i*0.15}s cubic-bezier(0.34,1.56,0.64,1) both`:'none',opacity:i<stars?1:0.25,filter:i<stars?'none':'grayscale(1)'}}>{i<stars?'⭐':'☆'}</span>)}</div>}
-            <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(253,203,110,0.12)',border:'1.5px solid #FDCB6E44',borderRadius:100,padding:'6px 18px',marginBottom:16}}><span>🪙</span><span style={{color:'#F9A825',fontSize:16,fontWeight:800}}>+{coinR}</span></div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:24}}>
-              {[{l:'Skor',v:uS.toLocaleString(),c:N.go},{l:'Max Combo',v:`${gR.current?.mxCo||0}×`,c:N.cy},{l:'Nyawa',v:uLi,c:uLi>0?N.gr:N.re}].map(s=>(
-                <div key={s.l} style={{background:`${s.c}10`,borderRadius:14,padding:'12px 8px'}}><div style={{fontSize:22,color:s.c}}>{s.v}</div><div style={{fontSize:10,color:'#888',marginTop:2}}>{s.l}</div></div>
-              ))}
-            </div>
-            <div style={{display:'flex',gap:10}}>
-              <button onClick={restart} style={{flex:1,background:`linear-gradient(135deg,${N.cy},${N.pu})`,color:'#fff',border:'none',borderRadius:100,padding:'13px 18px',fontSize:15,fontWeight:800,cursor:'pointer',boxShadow:`0 4px 20px ${N.cy}44`}}>🔄 Main Lagi</button>
-              <button onClick={onBack} style={{flex:1,background:'#1e2a4a',color:'#aaa',border:'2px solid rgba(255,255,255,0.1)',borderRadius:100,padding:'13px 18px',fontSize:15,fontWeight:800,cursor:'pointer'}}>🎯 Ganti Level</button>
-            </div>
-          </div>
-        </div>
+      {phase==='won'&&(
+        <WinModal emoji="🏆" title="Sempurna!" subtitle={`${cfg.maxLevel} level ditaklukkan!`} diffLabel={DL[difficulty.id]}
+          stats={[{label:'Skor',value:uS.toLocaleString(),color:N.go},{label:'Max combo',value:`${gR.current?.mxCo||0}×`,color:N.cy},{label:'Nyawa',value:String(uLi),color:uLi>0?N.gr:N.re}]}
+          stars={stars} coinReward={coinR} onRestart={restart} onBack={()=>{play('click');onBack()}} onHome={()=>{play('click');onHome?.()}}
+          dark={tc.dark} gameColor={N.cy}/>
       )}
-      <style>{`@keyframes mF{from{opacity:0}to{opacity:1}}@keyframes mP{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}@keyframes mB{0%{transform:scale(0.3)}60%{transform:scale(1.15)}100%{transform:scale(1)}}@keyframes mS{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}`}</style>
+      {phase==='lost'&&(
+        <LoseModal emoji="💥" title="Game Over" subtitle={`Sampai level ${uLv}`} diffLabel={DL[difficulty.id]}
+          stats={[{label:'Skor',value:uS.toLocaleString(),color:N.go},{label:'Max combo',value:`${gR.current?.mxCo||0}×`,color:N.cy},{label:'Nyawa',value:String(uLi),color:N.re}]}
+          coinReward={coinR} onRestart={restart} onBack={()=>{play('click');onBack()}} onHome={()=>{play('click');onHome?.()}}
+          dark={tc.dark} gameColor={N.re}/>
+      )}
     </div>
   )
 }

@@ -1,11 +1,12 @@
 import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useSettings } from '../../context/SettingsContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
+import { WinModal, LoseModal } from '../../components/GameLayout.jsx'
 
 const TUTORIAL_STEPS = [
   { emoji:'💀', title:'Hangman', desc:'Tebak kata tersembunyi dengan memilih huruf satu per satu sebelum nyawamu habis!', tip:'Baca petunjuk di atas kata untuk tahu konteks jawabannya.' },
@@ -296,7 +297,7 @@ function HangmanFigure({ wrongCount, maxWrong, color, headColor: hColor }) {
   )
 }
 
-export default function HangmanGame({ onBack, game, difficulty }) {
+export default function HangmanGame({ onBack, onHome, game, difficulty }) {
   const tc = useThemeColors()
   const dark = tc.dark
   const { play } = useSound()
@@ -425,6 +426,16 @@ export default function HangmanGame({ onBack, game, difficulty }) {
     setPaidHints(0)
     setResetKey(k => k + 1)
   }
+
+  const { winStars, winCoinAmount } = useMemo(() => {
+    if (!won) return { winStars: 0, winCoinAmount: 0 }
+    let s = wrongCount <= (difficulty.id === 'hard' ? 1 : 2) ? 3 : wrongCount <= maxWrong / 2 ? 2 : 1
+    if (paidHints > 0 && s > 2) s = 2
+    const coinReward = { easy: 15, medium: 25, hard: 40 }
+    let coins = coinReward[difficulty.id] || 15
+    if (s === 3) coins += 20
+    return { winStars: s, winCoinAmount: coins }
+  }, [won, wrongCount, difficulty.id, maxWrong, paidHints])
 
   // Theme
   const bg        = tc.bg
@@ -599,69 +610,43 @@ export default function HangmanGame({ onBack, game, difficulty }) {
         </div>
       )}
 
-      {/* Win/Lose Modal */}
-      {(won || lost) && (
-        <ResultModal
-          won={won}
-          word={word}
-          wrongCount={wrongCount}
-          maxWrong={maxWrong}
-          time={formatTime(time)}
+      {won && (
+        <WinModal
+          title="Selamat!"
+          subtitle="Kata berhasil ditebak!"
           diffLabel={DIFF_LABEL[difficulty.id]}
+          stats={[
+            { label: 'Salah', value: String(wrongCount), color: '#FF6B6B' },
+            { label: 'Waktu', value: formatTime(time), color: '#4ECDC4' },
+            ...(paidHints > 0 ? [{ label: 'Hint berbayar', value: String(paidHints), color: '#A29BFE' }] : []),
+          ]}
+          stars={winStars}
+          coinReward={winCoinAmount}
           onRestart={restart}
-          onBack={onBack}
-          darkMode={dark}
-          game={game}
-          difficulty={difficulty}
-          paidHints={paidHints}
+          onBack={() => { play('click'); onBack() }}
+          onHome={() => { play('click'); onHome?.() }}
+          dark={dark}
+          gameColor={game.color}
         />
       )}
-    </div>
-  )
-}
-
-function ResultModal({ won, word, wrongCount, maxWrong, time, diffLabel, onRestart, onBack, darkMode, game, difficulty, paidHints }) {
-  let stars = won ? (wrongCount <= (difficulty.id === 'hard' ? 1 : 2) ? 3 : wrongCount <= (maxWrong / 2) ? 2 : 1) : 0
-  if (paidHints > 0 && stars > 2) stars = 2
-  const bg = darkMode ? '#1a1a2e' : '#fff'
-  const textMain = darkMode ? '#e8e8f0' : '#2D3436'
-  const textMuted = darkMode ? '#8892b0' : '#636E72'
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: 24, animation: 'fadeIn 0.3s ease' }}>
-      <div style={{ background: bg, borderRadius: 28, padding: '40px 36px', textAlign: 'center', maxWidth: 360, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.3)', animation: 'popIn 0.4s cubic-bezier(0.34,1.56,0.64,1)' }}>
-        <div style={{ fontSize: 64, marginBottom: 8 }}>{won ? '🎉' : '💀'}</div>
-        <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 32, color: textMain, marginBottom: 4 }}>
-          {won ? 'Selamat!' : 'Game Over!'}
-        </h2>
-        <p style={{ color: textMuted, fontSize: 14, marginBottom: 6 }}>
-          {won ? 'Kata berhasil ditebak!' : `Kata yang benar: `}
-          {!won && <strong style={{ color: '#E17055', fontFamily: "'Fredoka One',cursive" }}>{word}</strong>}
-        </p>
-        <span style={{ display: 'inline-block', background: `${game.color}22`, color: game.color, padding: '4px 14px', borderRadius: 100, fontSize: 13, fontWeight: 700, marginBottom: 16 }}>{diffLabel}</span>
-
-        {won && <div style={{ fontSize: 36, marginBottom: 16, letterSpacing: 4 }}>{'⭐'.repeat(stars)}{'☆'.repeat(3-stars)}</div>}
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
-          <div style={{ background: darkMode ? '#2d1f1f' : '#FFF0F0', borderRadius: 14, padding: 12 }}>
-            <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: '#FF6B6B' }}>{wrongCount}</div>
-            <div style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>Salah</div>
-          </div>
-          <div style={{ background: darkMode ? '#1a2d2d' : '#F0FFFE', borderRadius: 14, padding: 12 }}>
-            <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: '#4ECDC4' }}>{time}</div>
-            <div style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>Waktu</div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={onRestart} style={{ flex: 1, background: '#E17055', color: '#fff', border: 'none', borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', boxShadow: '0 4px 14px #E1705544' }}>🔄 Main Lagi</button>
-          <button onClick={onBack} style={{ flex: 1, background: darkMode ? '#1e2a4a' : '#F8F9FA', color: textMuted, border: `2px solid ${darkMode ? '#2d3561' : '#DFE6E9'}`, borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>🎯 Ganti Level</button>
-        </div>
-      </div>
-      <style>{`
-        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-        @keyframes popIn  { from{transform:scale(0.6);opacity:0} to{transform:scale(1);opacity:1} }
-      `}</style>
+      {lost && (
+        <LoseModal
+          emoji="💀"
+          title="Game Over!"
+          subtitle={`Kata yang benar: ${word}`}
+          diffLabel={DIFF_LABEL[difficulty.id]}
+          stats={[
+            { label: 'Salah', value: String(wrongCount), color: '#FF6B6B' },
+            { label: 'Waktu', value: formatTime(time), color: '#4ECDC4' },
+          ]}
+          coinReward={5}
+          onRestart={restart}
+          onBack={() => { play('click'); onBack() }}
+          onHome={() => { play('click'); onHome?.() }}
+          dark={dark}
+          gameColor={game.color}
+        />
+      )}
     </div>
   )
 }

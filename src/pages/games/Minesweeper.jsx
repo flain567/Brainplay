@@ -5,6 +5,7 @@ import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
+import { WinModal, LoseModal } from '../../components/GameLayout.jsx'
 
 const TUTORIAL_STEPS = [
   { emoji:'💣', title:'Minesweeper', desc:'Buka semua kotak tanpa kena bom! Angka menunjukkan jumlah bom di sekitarnya.', tip:'Mulai dari sudut atau tepi — biasanya lebih aman.' },
@@ -66,7 +67,7 @@ function checkWin(board, rows, cols, mines) {
   return revealed === rows * cols - mines
 }
 
-export default function Minesweeper({ onBack, game, difficulty }) {
+export default function Minesweeper({ onBack, onHome, game, difficulty }) {
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins } = useCoins()
@@ -214,27 +215,53 @@ export default function Minesweeper({ onBack, game, difficulty }) {
     </div>
   )
 
-  if (phase === 'result') return (
-    <div style={{ minHeight:'100dvh', background:bg, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:20 }}>
-      {showConfetti && <Confetti />}
-      <div style={{ textAlign:'center', maxWidth:420, width:'100%' }}>
-        <div style={{ fontSize:64, marginBottom:8 }}>{won ? '🎉' : '💥'}</div>
-        <h1 style={{ fontFamily:"'Fredoka One',cursive", color:won?'#00B894':'#FF6B6B', fontSize:26, margin:'0 0 4px' }}>{won ? 'AREA AMAN!' : 'BOOM!'}</h1>
-        <p style={{ color:textMuted, fontSize:14, marginBottom:20 }}>{won ? 'Semua bom berhasil dihindari!' : 'Kamu menginjak bom...'}</p>
-        {isNewBest && <div style={{ background:'linear-gradient(135deg,#FFD700,#FFA500)', color:'#fff', borderRadius:12, padding:'8px 16px', fontSize:14, fontWeight:700, marginBottom:16, display:'inline-block' }}>🏆 WAKTU TERBAIK!</div>}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:20, background:surface, borderRadius:16, padding:16 }}>
-          {[{l:'Waktu',v:fmtTime(timeElapsed),i:'⏱️'},{l:'Terbuka',v:`${revealedCount}/${diff.rows*diff.cols-diff.mines}`,i:'📊'},{l:'Skor',v:score,i:'🎯'},{l:'Koin',v:`+${coinReward}`,i:'🪙'}].map((s,i) => (
-            <div key={i} style={{textAlign:'center',padding:8}}><div style={{fontSize:20}}>{s.i}</div><div style={{fontSize:18,fontWeight:700,color:textMain}}>{s.v}</div><div style={{fontSize:11,color:textMuted}}>{s.l}</div></div>
-          ))}
-        </div>
-        {won && <div style={{ fontSize:32, marginBottom:16 }}>{[1,2,3].map(s=><span key={s} style={{opacity:s<=stars?1:0.2}}>⭐</span>)}</div>}
-        <div style={{ display:'flex', gap:10, justifyContent:'center' }}>
-          <button onClick={() => setPhase('ready')} style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, padding:'12px 32px', background:`linear-gradient(135deg,${accent},${accentLight})`, color:'#fff', border:'none', borderRadius:12, cursor:'pointer' }}>Main Lagi 🔄</button>
-          <button onClick={onBack} style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, padding:'12px 32px', background:surface, color:textMain, border:`2px solid ${tc.border}`, borderRadius:12, cursor:'pointer' }}>Kembali</button>
-        </div>
+  if (phase === 'result') {
+    const diffLabel = { easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }[difficulty?.id] || '🟢 Mudah'
+    const restart = () => setPhase('ready')
+    return (
+      <div style={{ minHeight:'100dvh', background:bg }}>
+        {showConfetti && won && <Confetti />}
+        {won ? (
+          <WinModal
+            emoji="🎉"
+            title="Area aman!"
+            subtitle="Semua bom berhasil dihindari!"
+            diffLabel={diffLabel}
+            stats={[
+              { label: 'Waktu', value: fmtTime(timeElapsed), color: '#00CEC9' },
+              { label: 'Terbuka', value: `${revealedCount}/${diff.rows * diff.cols - diff.mines}`, color: '#A29BFE' },
+              { label: 'Skor', value: score, color: '#FF6B6B' },
+            ]}
+            stars={stars}
+            coinReward={coinReward}
+            highlight={isNewBest ? '🏆 Waktu terbaik!' : ''}
+            onRestart={restart}
+            onBack={onBack}
+            onHome={onHome}
+            dark={tc.dark}
+            gameColor="#636E72"
+          />
+        ) : (
+          <LoseModal
+            emoji="💥"
+            title="Boom!"
+            subtitle="Kamu menginjak bom..."
+            stats={[
+              { label: 'Waktu', value: fmtTime(timeElapsed), color: '#95A5A6' },
+              { label: 'Terbuka', value: `${revealedCount}/${diff.rows * diff.cols - diff.mines}`, color: '#A29BFE' },
+              { label: 'Skor', value: score, color: '#636E72' },
+            ]}
+            coinReward={coinReward}
+            onRestart={restart}
+            onBack={onBack}
+            onHome={onHome}
+            dark={tc.dark}
+            gameColor="#636E72"
+          />
+        )}
       </div>
-    </div>
-  )
+    )
+  }
 
   // ─── Playing ────────────────────────────────────────────────────────────
   const cellSize = Math.min(Math.floor((Math.min(window.innerWidth, 440) - 32) / diff.cols), 36)

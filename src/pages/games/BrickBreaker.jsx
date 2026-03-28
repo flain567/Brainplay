@@ -13,6 +13,8 @@ import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
 import { useHaptics } from '../../hooks/useHaptics.js'
+import { useThemeColors } from '../../hooks/useThemeColors.js'
+import { WinModal, LoseModal } from '../../components/GameLayout.jsx'
 
 const CFG = {
   easy:   { ballSpeed: 4, paddleW: 100, lives: 5, maxLevel: 10, brickRows: 4, brickCols: 7,  bossHP: 15, scoreBase: 200 },
@@ -49,7 +51,7 @@ function drawRoundRect(ctx, x, y, w, h, radius) {
   ctx.closePath()
 }
 
-export default function BrickBreaker({ onBack, game, difficulty }) {
+export default function BrickBreaker({ onBack, onHome, difficulty }) {
   const canvasRef = useRef(null)
   const gameRef   = useRef(null)
   const animRef   = useRef(null)
@@ -59,6 +61,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
   const { reportGameResult } = useProgress()
   const { earnCoins } = useCoins()
   const { vibrateLight, vibrateMedium, vibrateHeavy, vibrateSuccess, vibrateError } = useHaptics()
+  const tc = useThemeColors()
 
   const cfg = CFG[difficulty.id]
 
@@ -878,74 +881,45 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
         <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }} />
       </div>
 
-      {/* Win/Lose modals */}
-      {(phase === 'won' || phase === 'lost') && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: 20,
-          animation: 'bbFadeIn 0.3s ease',
-        }}>
-          <div style={{
-            background: '#1a1a3e', borderRadius: 24, padding: '32px 28px', textAlign: 'center',
-            maxWidth: 360, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-            animation: 'bbPopIn 0.4s cubic-bezier(0.34,1.56,0.64,1)',
-          }}>
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4,
-              background: 'linear-gradient(90deg, #FF6B6B, #A29BFE, #4ECDC4)' }} />
-            <div style={{ fontSize: 52, marginBottom: 8 }}>{phase === 'won' ? '🏆' : '💥'}</div>
-            <h2 style={{ color: '#fff', fontSize: 26, marginBottom: 4 }}>
-              {phase === 'won' ? 'Level Clear!' : 'Game Over'}
-            </h2>
-            <p style={{ color: '#A29BFE', fontSize: 13, marginBottom: 12 }}>
-              {phase === 'won' ? `${cfg.maxLevel} level terselesaikan!` : `Sampai Level ${level}`}
-            </p>
-            <span style={{ display: 'inline-block', background: 'rgba(162,155,254,0.15)', color: '#A29BFE',
-              padding: '4px 14px', borderRadius: 100, fontSize: 13, fontWeight: 700, marginBottom: 12 }}>
-              {DIFF_LABEL[difficulty.id]}
-            </span>
-            {phase === 'won' && stars > 0 && (
-              <div style={{ fontSize: 30, marginBottom: 10, letterSpacing: 6 }}>
-                {[0,1,2].map(i => <span key={i} style={{ opacity: i < stars ? 1 : 0.25, filter: i < stars ? 'none' : 'grayscale(1)' }}>{i < stars ? '⭐' : '☆'}</span>)}
-              </div>
-            )}
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: 'rgba(253,203,110,0.12)', border: '1.5px solid #FDCB6E44',
-              borderRadius: 100, padding: '6px 18px', marginBottom: 16 }}>
-              <span>🪙</span>
-              <span style={{ color: '#F9A825', fontSize: 16, fontWeight: 800 }}>+{coinReward}</span>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
-              <div style={{ background: 'rgba(162,155,254,0.1)', borderRadius: 14, padding: '10px 8px' }}>
-                <div style={{ fontSize: 22, color: '#A29BFE' }}>{score.toLocaleString()}</div>
-                <div style={{ fontSize: 10, color: '#888', marginTop: 2 }}>Skor</div>
-              </div>
-              <div style={{ background: 'rgba(0,184,148,0.1)', borderRadius: 14, padding: '10px 8px' }}>
-                <div style={{ fontSize: 22, color: '#00B894' }}>Lv {level}</div>
-                <div style={{ fontSize: 10, color: '#888', marginTop: 2 }}>Level</div>
-              </div>
-              <div style={{ background: 'rgba(255,107,107,0.1)', borderRadius: 14, padding: '10px 8px' }}>
-                <div style={{ fontSize: 22, color: '#FF6B6B' }}>{lives}</div>
-                <div style={{ fontSize: 10, color: '#888', marginTop: 2 }}>Nyawa</div>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={restart} style={{
-                flex: 1, background: '#FF6B6B', color: '#fff', border: 'none', borderRadius: 100,
-                padding: '12px 16px', fontSize: 14, fontWeight: 800, cursor: 'pointer',
-              }}>🔄 Main Lagi</button>
-              <button onClick={onBack} style={{
-                flex: 1, background: '#1e2a4a', color: '#aaa', border: '2px solid rgba(255,255,255,0.1)',
-                borderRadius: 100, padding: '12px 16px', fontSize: 14, fontWeight: 800, cursor: 'pointer',
-              }}>🎯 Ganti Level</button>
-            </div>
-          </div>
-        </div>
+      {phase === 'won' && (
+        <WinModal
+          emoji="🏆"
+          title="Level Clear!"
+          subtitle={`${cfg.maxLevel} level terselesaikan!`}
+          diffLabel={DIFF_LABEL[difficulty.id]}
+          stats={[
+            { label: 'Skor', value: score.toLocaleString(), color: '#A29BFE' },
+            { label: 'Level', value: `Lv ${level}`, color: '#00B894' },
+            { label: 'Nyawa', value: String(lives), color: '#FF6B6B' },
+          ]}
+          stars={stars}
+          coinReward={coinReward}
+          onRestart={restart}
+          onBack={onBack}
+          onHome={onHome}
+          dark={tc.dark}
+          gameColor="#FF6B6B"
+        />
       )}
-
-      <style>{`
-        @keyframes bbFadeIn  { from{opacity:0} to{opacity:1} }
-        @keyframes bbPopIn   { from{transform:scale(0.6);opacity:0} to{transform:scale(1);opacity:1} }
-      `}</style>
+      {phase === 'lost' && (
+        <LoseModal
+          emoji="💥"
+          title="Game Over"
+          subtitle={`Sampai Level ${level}`}
+          diffLabel={DIFF_LABEL[difficulty.id]}
+          stats={[
+            { label: 'Skor', value: score.toLocaleString(), color: '#A29BFE' },
+            { label: 'Level', value: `Lv ${level}`, color: '#00B894' },
+            { label: 'Nyawa', value: String(lives), color: '#FF6B6B' },
+          ]}
+          coinReward={coinReward}
+          onRestart={restart}
+          onBack={onBack}
+          onHome={onHome}
+          dark={tc.dark}
+          gameColor="#FF6B6B"
+        />
+      )}
     </div>
   )
 }

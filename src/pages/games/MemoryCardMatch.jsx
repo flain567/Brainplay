@@ -7,13 +7,14 @@ const TUTORIAL_STEPS = [
   { emoji:'⭐', title:'Sistem Bintang', desc:'Semakin sedikit gerakan yang kamu pakai, semakin banyak bintang yang kamu dapat. Targetkan 3 bintang!', tip:'Easy ≤10 gerakan, Medium ≤14, Hard ≤20 untuk 3 bintang.' },
 ]
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useSettings } from '../../context/SettingsContext.jsx'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useHaptics } from '../../hooks/useHaptics.js'
+import { WinModal } from '../../components/GameLayout.jsx'
 
 // Pool emoji — diganti dari active icon pack
 const DEFAULT_POOL = ['🐶','🐱','🦊','🐻','🦁','🐯','🐸','🐧','🦄','🐼','🦋','🐙']
@@ -52,7 +53,7 @@ const formatTime = (s) =>
 
 const DIFF_LABEL = { easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }
 
-export default function MemoryCardMatch({ onBack, game, difficulty }) {
+export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
   const tc = useThemeColors()
   const dark = tc.dark
   const { play } = useSound()
@@ -214,6 +215,16 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
 
   const matchedCount = deck.filter(c => c.matched).length / 2
 
+  const { winStars, winCoinAmount } = useMemo(() => {
+    if (!won) return { winStars: 0, winCoinAmount: 0 }
+    let stars = moves <= pairs * 1.5 ? 3 : moves <= pairs * 2.5 ? 2 : 1
+    if (paidHints > 0 && stars > 2) stars = 2
+    const coinReward = { easy: 15, medium: 25, hard: 40 }
+    let coinAmount = coinReward[difficulty.id] || 15
+    if (stars === 3) coinAmount += 20
+    return { winStars: stars, winCoinAmount: coinAmount }
+  }, [won, moves, pairs, paidHints, difficulty.id])
+
   // Theme
   const bg        = tc.bg
   const surface   = tc.surface
@@ -292,15 +303,21 @@ export default function MemoryCardMatch({ onBack, game, difficulty }) {
 
       {won && (
         <WinModal
-          moves={moves}
-          time={formatTime(time)}
+          title="Selamat!"
+          subtitle={`Semua ${pairs} pasangan kartu ketemu!`}
           diffLabel={DIFF_LABEL[difficulty.id]}
+          stats={[
+            { label: 'Gerakan', value: String(moves), color: '#FF6B6B' },
+            { label: 'Waktu', value: formatTime(time), color: '#4ECDC4' },
+            ...(paidHints > 0 ? [{ label: 'Hint berbayar', value: String(paidHints), color: '#A29BFE' }] : []),
+          ]}
+          stars={winStars}
+          coinReward={winCoinAmount}
           onRestart={restart}
-          onBack={onBack}
-          darkMode={dark}
-          game={game}
-          pairs={pairs}
-          paidHints={paidHints}
+          onBack={() => { play('click'); onBack() }}
+          onHome={() => { play('click'); onHome?.() }}
+          dark={dark}
+          gameColor={game.color}
         />
       )}
     </div>
@@ -323,47 +340,6 @@ function CardTile({ card, onClick, darkMode, small }) {
           {card.matched && <span style={{ position: 'absolute', top: 3, right: 5, fontSize: 10, opacity: 0.6 }}>✅</span>}
         </div>
       </div>
-    </div>
-  )
-}
-
-function WinModal({ moves, time, diffLabel, onRestart, onBack, darkMode, game, pairs, paidHints }) {
-  let stars   = moves <= (pairs * 1.5) ? 3 : moves <= (pairs * 2.5) ? 2 : 1
-  if (paidHints > 0 && stars > 2) stars = 2
-  const bg      = darkMode ? '#1a1a2e' : '#fff'
-  const textMain  = darkMode ? '#e8e8f0' : '#2D3436'
-  const textMuted = darkMode ? '#8892b0' : '#636E72'
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: 24, animation: 'fadeIn 0.3s ease' }}>
-      <div style={{ background: bg, borderRadius: 28, padding: '40px 36px', textAlign: 'center', maxWidth: 360, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.3)', animation: 'popIn 0.4s cubic-bezier(0.34,1.56,0.64,1)' }}>
-        <div style={{ fontSize: 64, marginBottom: 8 }}>🎉</div>
-        <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 32, color: textMain, marginBottom: 4 }}>Selamat!</h2>
-        <p style={{ color: textMuted, fontSize: 14, marginBottom: 6 }}>Semua kartu berhasil dicocokkan!</p>
-        <span style={{ display: 'inline-block', background: `${game.color}22`, color: game.color, padding: '4px 14px', borderRadius: 100, fontSize: 13, fontWeight: 700, marginBottom: 16 }}>{diffLabel}</span>
-
-        <div style={{ fontSize: 36, marginBottom: 16, letterSpacing: 4 }}>{'⭐'.repeat(stars)}{'☆'.repeat(3-stars)}</div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
-          <div style={{ background: darkMode ? '#2d1f1f' : '#FFF0F0', borderRadius: 14, padding: 12 }}>
-            <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: '#FF6B6B' }}>{moves}</div>
-            <div style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>Gerakan</div>
-          </div>
-          <div style={{ background: darkMode ? '#1a2d2d' : '#F0FFFE', borderRadius: 14, padding: 12 }}>
-            <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: '#4ECDC4' }}>{time}</div>
-            <div style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>Waktu</div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={onRestart} style={{ flex: 1, background: '#FF6B6B', color: '#fff', border: 'none', borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', boxShadow: '0 4px 14px #FF6B6B44' }}>🔄 Main Lagi</button>
-          <button onClick={onBack}    style={{ flex: 1, background: darkMode ? '#1e2a4a' : '#F8F9FA', color: textMuted, border: `2px solid ${darkMode ? '#2d3561' : '#DFE6E9'}`, borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>🎯 Ganti Level</button>
-        </div>
-      </div>
-      <style>{`
-        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-        @keyframes popIn  { from{transform:scale(0.6);opacity:0} to{transform:scale(1);opacity:1} }
-      `}</style>
     </div>
   )
 }

@@ -10,6 +10,8 @@ import{useSound}from'../../hooks/useSound.js'
 import{useProgress}from'../../context/ProgressContext.jsx'
 import{useCoins}from'../../context/CoinContext.jsx'
 import{RACER_THEMES}from'../../context/CoinContext.jsx'
+import{useThemeColors}from'../../hooks/useThemeColors.js'
+import{WinModal,LoseModal}from'../../components/GameLayout.jsx'
 
 const DC={
   easy:  {power:0.13,maxSpd:6.5,grav:0.32,fuelDrain:0.06,fuelCan:35,ml:6},
@@ -86,9 +88,10 @@ function spawnCollectibles(terrain,lvl){
 // ═══════════════════════════════════════════════════════════
 // COMPONENT
 // ═══════════════════════════════════════════════════════════
-export default function VoxelRacer({onBack,game,difficulty}){
-  const cRef=useRef(null),aRef=useRef(null),gR=useRef(null),phR=useRef('idle')
+export default function VoxelRacer({onBack,onHome,game,difficulty}){
+  const cRef=useRef(null),aRef=useRef(null),gR=useRef(null),phR=useRef('idle'),retryRef=useRef(()=>{})
   const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins:earnC,getActiveRacerTheme,getActiveRacerMap,activeRacerTheme:activeRacerThemeId}=useCoins()
+  const tc=useThemeColors()
   const dc=DC[difficulty.id]
   const[phase,_sp]=useState('idle')
   const[showTut,setShowTut]=useState(()=>!localStorage.getItem('bp_tut_voxel-racer'))
@@ -190,6 +193,7 @@ export default function VoxelRacer({onBack,game,difficulty}){
       sp('play')
     }
     function retry(){g.att++;sAt(g.att);stLv()}
+    retryRef.current=retry
     function die(reason){
       sp('dying');g.dieT=45;g.dead=true;g.shk=15
       for(let i=0;i<20;i++){const a=P2*Math.random()
@@ -664,30 +668,17 @@ export default function VoxelRacer({onBack,game,difficulty}){
       {showConf&&<Confetti/>}      {loading&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999}}><div style={{fontSize:48,animation:'spin 2s linear infinite'}}>⚡</div></div>}      <div style={{position:'absolute',top:8,left:8,zIndex:20}}><button onClick={onBack} style={{background:'rgba(0,0,0,0.3)',border:'1px solid rgba(255,255,255,0.3)',color:'#fff',borderRadius:10,padding:'7px 13px',fontSize:15,cursor:'pointer',backdropFilter:'blur(4px)'}}>←</button></div>
       <div style={{position:'absolute',inset:0,zIndex:1}}><canvas ref={cRef} style={{width:'100%',height:'100%',display:'block',touchAction:'none'}}/></div>
       {phase==='won'&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(10px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:20}}>
-          <div style={{background:'linear-gradient(180deg,#1a237e,#0d47a1)',borderRadius:28,padding:'36px 28px',textAlign:'center',maxWidth:380,width:'100%',boxShadow:'0 0 60px rgba(33,150,243,0.3)',position:'relative',overflow:'hidden'}}>
-            <div style={{fontSize:52,marginBottom:8}}>🏆</div><h2 style={{color:'#fff',fontSize:26,marginBottom:4}}>RACE COMPLETE!</h2>
-            <p style={{color:'#90CAF9',fontSize:13,marginBottom:12}}>{dc.ml} level selesai!</p>
-            <div style={{fontSize:30,marginBottom:12,letterSpacing:8}}>⭐⭐⭐</div>
-            <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(255,217,61,0.15)',border:'1.5px solid rgba(255,217,61,0.3)',borderRadius:100,padding:'6px 18px',marginBottom:16}}><span>🪙</span><span style={{color:'#FFD93D',fontSize:16,fontWeight:800}}>+{coinR}</span></div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:20}}>
-              {[{l:'Skor',v:gR.current?.sc||uSc,c:'#FFD93D'},{l:'Koin',v:gR.current?.coins||0,c:'#29B6F6'},{l:'Attempts',v:gR.current?.att||1,c:'#FF6B6B'}].map((s,i)=>(
-                <div key={s.l} style={{background:`${s.c}15`,borderRadius:12,padding:'10px 6px',animation:`winSlideUp 0.4s ${0.35+i*0.12}s ease both`}}>
-                  <div style={{fontSize:20,color:s.c,fontWeight:800}}>{s.v}</div>
-                  <div style={{fontSize:9,color:'#90CAF9',marginTop:2}}>{s.l}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{display:'flex',gap:10}}>
-              <button onClick={restart} style={{flex:1,background:'linear-gradient(135deg,#FFD93D,#FF6B6B)',color:'#fff',border:'none',borderRadius:100,padding:'13px 18px',fontSize:15,fontWeight:800,cursor:'pointer'}}>🔄 Main Lagi</button>
-              <button onClick={onBack} style={{flex:1,background:'#1a237e',color:'#90CAF9',border:'2px solid rgba(255,255,255,0.1)',borderRadius:100,padding:'13px 18px',fontSize:15,fontWeight:800,cursor:'pointer'}}>🎯 Ganti Level</button>
-            </div>
-          </div>
-          <style>{`
-            @keyframes winSlideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-            @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-          `}</style>
-        </div>)}
+        <WinModal emoji="🏆" title="Race complete!" subtitle={`${dc.ml} level selesai!`} diffLabel={{easy:'🟢 Mudah',medium:'🟡 Sedang',hard:'🔴 Sulit'}[difficulty.id]}
+          stats={[{label:'Skor',value:String(gR.current?.sc??uSc),color:'#FFD93D'},{label:'Koin',value:String(gR.current?.coins??uCoins),color:'#29B6F6'},{label:'Attempts',value:String(gR.current?.att??uAt),color:'#FF6B6B'}]}
+          stars={3} coinReward={coinR} onRestart={restart} onBack={()=>{play('click');onBack()}} onHome={()=>{play('click');onHome?.()}}
+          dark={tc.dark} gameColor="#29B6F6"/>
+      )}
+      {phase==='dead'&&(
+        <LoseModal emoji="💥" title="Game over" subtitle="Mobil rusak atau bensin habis — coba lagi!" diffLabel={{easy:'🟢 Mudah',medium:'🟡 Sedang',hard:'🔴 Sulit'}[difficulty.id]}
+          stats={[{label:'Skor',value:String(uSc),color:'#FFD93D'},{label:'Jarak',value:`${uDist}m`,color:'#29B6F6'},{label:'Bensin',value:`${uFuel}%`,color:'#FF6B6B'},{label:'Attempt',value:String(uAt),color:'#A29BFE'}]}
+          coinReward={0} onRestart={()=>retryRef.current()} onBack={()=>{play('click');onBack()}} onHome={()=>{play('click');onHome?.()}}
+          dark={tc.dark} gameColor="#FF6B6B"/>
+      )}
       <style>{`
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
       `}</style>

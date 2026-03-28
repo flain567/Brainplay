@@ -6,6 +6,7 @@ import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
+import { WinModal } from '../../components/GameLayout.jsx'
 
 const TUTORIAL_STEPS = [
   { emoji:'🇮🇩', title:'Quiz Trivia Indonesia', desc:'Uji pengetahuan umummu tentang Indonesia! Geografi, sejarah, budaya, dan lainnya.', tip:'Jawab secepat mungkin untuk bonus waktu!' },
@@ -97,7 +98,7 @@ function getComboMulti(s) { return s >= 10 ? 3 : s >= 5 ? 2 : s >= 3 ? 1.5 : 1 }
 function getComboLabel(s) { return s >= 10 ? '🔥 UNSTOPPABLE ×3' : s >= 5 ? '⚡ ON FIRE ×2' : s >= 3 ? '✨ COMBO ×1.5' : '' }
 function getComboColor(s) { return s >= 10 ? '#FF3838' : s >= 5 ? '#E17055' : s >= 3 ? '#FDCB6E' : '#888' }
 
-export default function QuizTrivia({ onBack, game, difficulty }) {
+export default function QuizTrivia({ onBack, onHome, game, difficulty }) {
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins } = useCoins()
@@ -232,27 +233,35 @@ export default function QuizTrivia({ onBack, game, difficulty }) {
     </div>
   )
 
-  if (phase === 'result') return (
-    <div style={{ minHeight:'100dvh', background:bg, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:20 }}>
-      {showConfetti && <Confetti />}
-      <div style={{ textAlign:'center', maxWidth:420, width:'100%' }}>
-        <div style={{ fontSize:64, marginBottom:8 }}>{won ? '🎉' : '💔'}</div>
-        <h1 style={{ fontFamily:"'Fredoka One',cursive", color:won?'#00B894':'#FF6B6B', fontSize:26, margin:'0 0 4px' }}>{won ? 'SELAMAT!' : 'GAME OVER'}</h1>
-        <p style={{ color:textMuted, fontSize:14, marginBottom:20 }}>{won ? 'Kamu ahli trivia Indonesia!' : `Sampai soal ${qIndex + 1}/${diff.totalQ}`}</p>
-        {isNewBest && <div style={{ background:'linear-gradient(135deg,#FFD700,#FFA500)', color:'#fff', borderRadius:12, padding:'8px 16px', fontSize:14, fontWeight:700, marginBottom:16, display:'inline-block' }}>🏆 SKOR BARU TERBAIK!</div>}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:20, background:surface, borderRadius:16, padding:16 }}>
-          {[{ l:'Skor',v:score.toLocaleString(),i:'🎯'},{ l:'Benar',v:`${totalCorrect}/${won ? diff.totalQ : qIndex+1}`,i:'✅'},{ l:'Akurasi',v:`${accuracy}%`,i:'📊'},{ l:'Best Streak',v:bestStreak,i:'🔥'},{ l:'Koin',v:`+${coinReward}`,i:'🪙'},{ l:'Nyawa',v:`${lives}/${diff.lives}`,i:'❤️'}].map((s,i) => (
-            <div key={i} style={{ textAlign:'center', padding:8 }}><div style={{ fontSize:20 }}>{s.i}</div><div style={{ fontSize:18, fontWeight:700, color:textMain }}>{s.v}</div><div style={{ fontSize:11, color:textMuted }}>{s.l}</div></div>
-          ))}
-        </div>
-        {won && <div style={{ fontSize:32, marginBottom:16 }}>{[1,2,3].map(s=><span key={s} style={{opacity:s<=stars?1:0.2}}>⭐</span>)}</div>}
-        <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap' }}>
-          <button onClick={() => setPhase('ready')} style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, padding:'12px 32px', background:`linear-gradient(135deg,${accent},${accentLight})`, color:'#fff', border:'none', borderRadius:12, cursor:'pointer' }}>Main Lagi 🔄</button>
-          <button onClick={onBack} style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, padding:'12px 32px', background:surface, color:textMain, border:`2px solid ${tc.border}`, borderRadius:12, cursor:'pointer' }}>Kembali</button>
-        </div>
+  if (phase === 'result') {
+    const diffLabel = { easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }[difficulty?.id] || '🟢 Mudah'
+    return (
+      <div style={{ minHeight:'100dvh', background:bg }}>
+        {showConfetti && <Confetti />}
+        <WinModal
+          emoji={won ? '🎉' : '💔'}
+          title={won ? 'SELAMAT!' : 'Game over'}
+          subtitle={won ? 'Kamu ahli trivia Indonesia!' : `Sampai soal ${qIndex + 1}/${diff.totalQ}`}
+          diffLabel={diffLabel}
+          stats={[
+            { label: 'Skor', value: score.toLocaleString(), color: '#6C5CE7' },
+            { label: 'Benar', value: `${totalCorrect}/${won ? diff.totalQ : qIndex + 1}`, color: '#00B894' },
+            { label: 'Akurasi', value: `${accuracy}%`, color: '#FDCB6E' },
+            { label: 'Best streak', value: String(bestStreak), color: '#FD79A8' },
+            { label: 'Nyawa', value: `${lives}/${diff.lives}`, color: '#FF6B6B' },
+          ]}
+          stars={won ? stars : 0}
+          coinReward={coinReward}
+          highlight={isNewBest ? '🏆 Skor baru terbaik!' : ''}
+          onRestart={() => setPhase('ready')}
+          onBack={onBack}
+          onHome={onHome}
+          dark={tc.dark}
+          gameColor={accent}
+        />
       </div>
-    </div>
-  )
+    )
+  }
 
   // ─── Playing ────────────────────────────────────────────────────────────
   const q = questions[qIndex]
