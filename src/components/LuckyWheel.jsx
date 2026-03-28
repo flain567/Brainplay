@@ -20,11 +20,18 @@ export default function LuckyWheel({ open, onClose }) {
 
   const [spinning, setSpinning] = useState(false)
   const [result, setResult] = useState(null)
-  const [multiResults, setMultiResults] = useState(null) // 5× spin results
+  const [multiResults, setMultiResults] = useState(null) // final 5× summary
   const [rotation, setRotation] = useState(0)
   const [tab, setTab] = useState('spin') // 'spin' | 'collection' | 'history'
   const wheelRef = useRef(null)
   const tickRef = useRef(null)
+
+  // ── Sequential Multi-Spin State ──
+  const [multiQueue, setMultiQueue] = useState(null)    // all 5 rewards (rolled upfront)
+  const [multiIdx, setMultiIdx] = useState(0)           // current reveal index (0–4)
+  const [multiRevealed, setMultiRevealed] = useState([]) // rewards shown so far
+  const [multiCurrentReward, setMultiCurrentReward] = useState(null) // single reward being shown
+  const isMultiActive = multiQueue !== null && multiQueue.length > 0
 
   const MULTI_COUNT = 5
   const multiCost = extraSpinCost * MULTI_COUNT
@@ -98,62 +105,112 @@ export default function LuckyWheel({ open, onClose }) {
     }, SPIN_DURATION)
   }, [spinning, coins, extraSpinCost, spin, slots, rotation, spendCoins, earnCoins, play])
 
-  // ── 5× Multi Spin ──────────────────────────────────────────────────────────
+  // ── 5× Multi Spin — Sequential Reveal ─────────────────────────────────────
   const doMultiSpin = useCallback(async () => {
-    if (spinning) return
+    if (spinning || isMultiActive) return
     if (coins < multiCost) return
     const ok = await spendCoins(multiCost, `Lucky Wheel 5× Spin`)
     if (!ok) return
 
-    setSpinning(true)
-    setResult(null)
+    // Roll all 5 results upfront
+    const rewards = []
+    for (let i = 0; i < MULTI_COUNT; i++) {
+      rewards.push(spin(false))
+    }
+
+    // Apply all rewards immediately (coins/XP/exclusives)
+    let totalCoins = 0
+    for (const reward of rewards) {
+      if (reward.type === 'coin') {
+        totalCoins += reward.amount
+      } else if (reward.type === 'xp') {
+        totalCoins += Math.round(reward.amount / 5)
+      } else if (reward.type === 'exclusive' && reward.item) {
+        window.dispatchEvent(new CustomEvent('bp-wheel-unlock', { detail: { item: reward.item } }))
+      }
+    }
+    if (totalCoins > 0) earnCoins(totalCoins, `Lucky Wheel 5× Spin — ${totalCoins} coin`)
+
+    // Start sequential reveal
+    setMultiQueue(rewards)
+    setMultiIdx(0)
+    setMultiRevealed([])
+    setMultiCurrentReward(null)
     setMultiResults(null)
 
-    // Spin wheel fast for visual effect
-    const fastRotation = rotation + (8 * 360) + Math.random() * 360
-    setRotation(fastRotation)
+    // Trigger first spin
+    spinOneInQueue(rewards, 0)
+  }, [spinning, isMultiActive, coins, multiCost, spin, spendCoins, earnCoins])
+
+  // Spin a single wheel animation for queue index
+  const spinOneInQueue = useCallback((queue, idx) => {
+    if (!queue || idx >= queue.length) return
+
+    const reward = queue[idx]
+    setSpinning(true)
+    setMultiCurrentReward(null)
+
+    // Find slot matching reward rarity
+    let targetIdx = slots.findIndex(s => s.rarity === reward.rarity)
+    if (targetIdx < 0) targetIdx = 0
+
+    const slotAngle = 360 / SLOT_COUNT
+    const targetAngle = targetIdx * slotAngle
+    const fullRotations = 3 + Math.floor(Math.random() * 2)
+    const newRotation = rotation + (fullRotations * 360) + (360 - targetAngle) + (Math.random() * slotAngle * 0.6 - slotAngle * 0.3)
+
+    setRotation(newRotation)
 
     // Tick sounds
     let ticks = 0
     tickRef.current = setInterval(() => {
       ticks++
-      if (ticks < 20) try { play('click') } catch(e) {}
-    }, 80)
+      if (ticks < 18) try { play('click') } catch(e) {}
+    }, 100)
 
     setTimeout(() => {
       clearInterval(tickRef.current)
-
-      // Roll all 5 results
-      const rewards = []
-      for (let i = 0; i < MULTI_COUNT; i++) {
-        rewards.push(spin(false))
-      }
-
-      // Apply all rewards
-      let totalCoins = 0
-      let totalXp = 0
-      const exclusives = []
-      for (const reward of rewards) {
-        if (reward.type === 'coin') {
-          totalCoins += reward.amount
-        } else if (reward.type === 'xp') {
-          totalCoins += Math.round(reward.amount / 5)
-          totalXp += reward.amount
-        } else if (reward.type === 'exclusive' && reward.item) {
-          exclusives.push(reward.item)
-          window.dispatchEvent(new CustomEvent('bp-wheel-unlock', { detail: { item: reward.item } }))
-        }
-      }
-      if (totalCoins > 0) earnCoins(totalCoins, `Lucky Wheel 5× Spin — ${totalCoins} coin`)
-
-      // Check if any epic+
-      const hasEpic = rewards.some(r => r.rarity === 'epic' || r.rarity === 'legendary')
-      try { play(hasEpic ? 'levelUp' : 'win') } catch(e) {}
-
       setSpinning(false)
-      setMultiResults(rewards)
-    }, 2500)
-  }, [spinning, coins, multiCost, spin, rotation, spendCoins, earnCoins, play])
+
+      // Show this reward
+      const isEpic = reward.rarity === 'epic' || reward.rarity === 'legendary'
+      try { play(isEpic ? 'levelUp' : 'win') } catch(e) {}
+
+      setMultiCurrentReward(reward)
+      setMultiRevealed(prev => [...prev, reward])
+      setMultiIdx(idx + 1)
+    }, 2800) // Slightly faster than regular spin
+  }, [slots, rotation, play])
+
+  // Auto-advance to next spin after reveal card is shown
+  const advanceMultiSpin = useCallback(() => {
+    if (!multiQueue) return
+    setMultiCurrentReward(null)
+
+    if (multiIdx >= multiQueue.length) {
+      // All 5 done → show summary
+      setMultiResults(multiQueue)
+      setMultiQueue(null)
+      setMultiIdx(0)
+      setMultiRevealed([])
+    } else {
+      // Spin next after short pause
+      setTimeout(() => spinOneInQueue(multiQueue, multiIdx), 300)
+    }
+  }, [multiQueue, multiIdx, spinOneInQueue])
+
+  // Skip → show all remaining results in summary
+  const skipMultiSpin = useCallback(() => {
+    if (!multiQueue) return
+    clearInterval(tickRef.current)
+    setSpinning(false)
+    setMultiCurrentReward(null)
+    setMultiResults(multiQueue)
+    setMultiQueue(null)
+    setMultiIdx(0)
+    setMultiRevealed([])
+    try { play('win') } catch(e) {}
+  }, [multiQueue, play])
 
   // Lock body & html scroll when modal is open
   useEffect(() => {
@@ -555,18 +612,53 @@ export default function LuckyWheel({ open, onClose }) {
 
               {/* Spin buttons */}
               <div className="spin-btns">
-                <button className="spin-btn free" disabled={spinning || !hasFreeSpins}
-                  onClick={() => doSpin(true)}>
-                  {spinning ? '⏳ Spinning...' : hasFreeSpins ? '🎁 Free Spin!' : '✓ Sudah Klaim'}
-                </button>
-                <button className="spin-btn paid" disabled={spinning || coins < extraSpinCost}
-                  onClick={() => doSpin(false)}>
-                  🪙 {extraSpinCost}
-                </button>
-                <button className="spin-btn multi" disabled={spinning || coins < multiCost}
-                  onClick={doMultiSpin}>
-                  {spinning ? '⏳' : `5× 🪙 ${multiCost}`}
-                </button>
+                {isMultiActive ? (
+                  <>
+                    {/* During multi-spin sequence: show progress + skip */}
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center',
+                      padding: '8px 0', width: '100%',
+                    }}>
+                      {/* Progress dots */}
+                      {multiQueue.map((_, i) => (
+                        <div key={i} style={{
+                          width: 28, height: 28, borderRadius: '50%',
+                          background: i < multiIdx
+                            ? 'linear-gradient(135deg,#4ECDC4,#00B894)'
+                            : i === multiIdx && spinning
+                              ? 'linear-gradient(135deg,#A29BFE,#6C5CE7)'
+                              : dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 11, fontWeight: 800, color: i < multiIdx ? '#fff' : textMuted,
+                          transition: 'all 0.3s',
+                          animation: i === multiIdx && spinning ? 'pulse 1s ease infinite' : 'none',
+                          border: i === multiIdx ? '2px solid #A29BFE' : '2px solid transparent',
+                        }}>
+                          {i < multiIdx ? '✓' : i + 1}
+                        </div>
+                      ))}
+                    </div>
+                    <button className="spin-btn multi" onClick={skipMultiSpin}
+                      style={{ background: 'linear-gradient(135deg,#636E72,#2D3436)' }}>
+                      ⏩ Skip — Lihat Semua
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button className="spin-btn free" disabled={spinning || !hasFreeSpins}
+                      onClick={() => doSpin(true)}>
+                      {spinning ? '⏳ Spinning...' : hasFreeSpins ? '🎁 Free Spin!' : '✓ Sudah Klaim'}
+                    </button>
+                    <button className="spin-btn paid" disabled={spinning || coins < extraSpinCost}
+                      onClick={() => doSpin(false)}>
+                      🪙 {extraSpinCost}
+                    </button>
+                    <button className="spin-btn multi" disabled={spinning || coins < multiCost}
+                      onClick={doMultiSpin}>
+                      {spinning ? '⏳' : `5× 🪙 ${multiCost}`}
+                    </button>
+                  </>
+                )}
               </div>
 
               {/* Pity indicator */}
@@ -723,6 +815,77 @@ export default function LuckyWheel({ open, onClose }) {
             <button className="result-close-btn" onClick={() => setResult(null)}>
               {result.rarity === 'legendary' ? '🌟 Keren!' : result.rarity === 'epic' ? '✨ Mantap!' : '👍 OK'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Individual Reward Reveal (during sequential 5× spin) ── */}
+      {multiCurrentReward && (
+        <div className="multi-result" onClick={advanceMultiSpin}>
+          <div className="result-card" onClick={e => e.stopPropagation()} style={{ padding: '28px 24px' }}>
+            {/* Spin number */}
+            <div style={{
+              fontSize: 11, fontWeight: 800, color: textMuted, textTransform: 'uppercase',
+              letterSpacing: 1, marginBottom: 8,
+            }}>
+              Spin {multiIdx} / {multiQueue ? multiQueue.length : MULTI_COUNT}
+            </div>
+
+            {/* Rarity badge */}
+            <div className="result-rarity" style={{
+              background: `${RARITY_COLORS[multiCurrentReward.rarity]}22`,
+              color: RARITY_COLORS[multiCurrentReward.rarity],
+              border: `1.5px solid ${RARITY_COLORS[multiCurrentReward.rarity]}44`,
+            }}>
+              {RARITY_LABELS[multiCurrentReward.rarity]}
+            </div>
+
+            {/* Icon / Image */}
+            {multiCurrentReward.img ? (
+              <img src={multiCurrentReward.img} alt={multiCurrentReward.label} className="result-img" />
+            ) : (
+              <div className="result-icon">{multiCurrentReward.icon}</div>
+            )}
+
+            {/* Name + desc */}
+            <div className="result-name" style={{ color: textMain }}>{multiCurrentReward.label}</div>
+            <div className="result-desc">
+              {multiCurrentReward.type === 'coin' ? `+${multiCurrentReward.amount} coin`
+                : multiCurrentReward.type === 'xp' ? `+${multiCurrentReward.amount} XP`
+                : multiCurrentReward.type === 'exclusive' ? (multiCurrentReward.isDupe ? '♻️ Dupe → coin' : '🆕 Item baru!')
+                : 'Reward'}
+            </div>
+
+            {/* Previously revealed items (mini) */}
+            {multiRevealed.length > 1 && (
+              <div style={{
+                display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 16, flexWrap: 'wrap',
+              }}>
+                {multiRevealed.slice(0, -1).map((r, i) => (
+                  <div key={i} style={{
+                    width: 32, height: 32, borderRadius: 10, fontSize: 18,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: `${RARITY_COLORS[r.rarity]}15`,
+                    border: `1px solid ${RARITY_COLORS[r.rarity]}33`,
+                  }}>
+                    {r.img ? <img src={r.img} alt="" style={{ width: 22, height: 22, objectFit: 'contain' }} /> : <span style={{ fontSize: 16 }}>{r.icon}</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Buttons */}
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <button className="result-close-btn" onClick={advanceMultiSpin}>
+                {multiIdx >= (multiQueue ? multiQueue.length : MULTI_COUNT) ? '🎉 Lihat Hasil!' : '▶ Lanjut'}
+              </button>
+              {multiQueue && multiIdx < multiQueue.length && (
+                <button className="result-close-btn" onClick={skipMultiSpin}
+                  style={{ background: 'linear-gradient(135deg,#636E72,#2D3436)', boxShadow: 'none' }}>
+                  ⏩ Skip
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
