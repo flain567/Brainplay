@@ -14,6 +14,7 @@ import { useLocalAnalytics } from '../context/LocalAnalyticsContext.jsx'
 import LuckyWheel from '../components/LuckyWheel.jsx'
 const AnimatedHeroText = lazy(() => import('../components/AnimatedHeroText.jsx'))
 import { getLastPlayed } from '../utils/lastPlayed.js'
+import useHomeAnimations from '../hooks/useHomeAnimations.js'
 
 /** Ide konten mendatang (bukan daftar rilis harian — banyak game sudah hidup di katalog). */
 const ROADMAP_FUTURE = [
@@ -53,6 +54,9 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
   const { trackEvent } = useLocalAnalytics()
   const [scrollTop, setScrollTop] = useState(false)
   const [wheelOpen, setWheelOpen] = useState(false)
+
+  // Anime.js animations (stagger, scroll, timeline, count-up)
+  useHomeAnimations(reduceMotion)
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
   const borderData = getBorderForLevel(levelInfo.level)
@@ -170,7 +174,6 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           gap: 20px;
           margin-bottom: 40px;
           align-items: start;
-          animation: slide-up 0.5s 0.25s ease both;
         }
 
         /* Filter tabs (kept for Fallback/Mobile if needed but largely removed from UI) */
@@ -312,7 +315,6 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         /* Footer */
         .home-footer {
           margin-top: 80px; padding-bottom: 20px;
-          animation: slide-up 0.5s 0.5s ease both;
         }
         .footer-divider {
           height: 2px; border-radius: 100px; margin-bottom: 40px;
@@ -425,7 +427,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           )}
 
           {/* ── Dashboard Grid ── */}
-          <div className="dashboard-grid">
+          <div className="dashboard-grid" data-anime-dashboard>
 
             {/* ── XP & Profile Banner ── */}
             <div
@@ -462,7 +464,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                       Lv.{levelInfo.level} {levelInfo.title}
                     </span>
                     <span style={{ fontSize:12, color:textMuted }}>•</span>
-                    <span style={{ fontSize:12, color:textMuted, fontWeight:700 }}>{(progress.totalXP||0).toLocaleString()} XP</span>
+                    <span style={{ fontSize:12, color:textMuted, fontWeight:700 }}><span data-anime-count={progress.totalXP||0} data-anime-suffix=" XP">{(progress.totalXP||0).toLocaleString()} XP</span></span>
                   </div>
                   <div style={{ height:6, borderRadius:100, background:dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)', overflow:'hidden' }}>
                     <div style={{ height:'100%', borderRadius:100, background:'linear-gradient(90deg,#A29BFE,#FDCB6E)', width:`${Math.round(levelInfo.progress*100)}%`, transition:'width 0.6s ease' }} />
@@ -470,7 +472,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                 </div>
                 <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
                   <span style={{ fontSize:16 }}>🔥</span>
-                  <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#FF6B6B' }}>{streak}</span>
+                  <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#FF6B6B' }} data-anime-count={streak}>{streak}</span>
                   {comboLabel && <span className="combo-badge">{comboLabel}</span>}
                 </div>
                 <span style={{ fontSize:16, color:textMuted }}>→</span>
@@ -519,7 +521,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:3, background:'#FDCB6E22', borderRadius:100, padding:'3px 10px' }}>
                   <span style={{ fontSize:12 }}>🪙</span>
-                  <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:12, color:'#F9A825' }}>{coins}</span>
+                  <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:12, color:'#F9A825' }} data-anime-count={coins}>{coins}</span>
                 </div>
               </div>
 
@@ -873,7 +875,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             if (tagGames.length === 0) return null
             const meta = TAG_META[tag]
             return (
-              <section key={tag} style={{ position: 'relative', marginBottom: 48, animation: `slide-up 0.5s ${0.3 + tagIndex*0.1}s ease both` }}>
+              <section key={tag} data-anime-cards data-anime-section style={{ position: 'relative', marginBottom: 48 }}>
                 <div className="section-head">
                   <h2 className="section-title" style={{ display:'flex', alignItems:'center', gap:10 }}>
                     <span style={{ fontSize:28, filter:`drop-shadow(0 0 10px ${meta.color}66)` }}>{meta.icon}</span>
@@ -902,7 +904,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
 
           {/* ── Roadmap (ide mendatang) ── */}
           {ROADMAP_FUTURE.length > 0 && (
-            <section style={{ position: 'relative', animation: 'slide-up 0.5s 0.8s ease both', marginBottom: 48 }}>
+            <section data-anime-section style={{ position: 'relative', marginBottom: 48 }}>
               <div className="section-head">
                 <h2 className="section-title" style={{ display:'flex', alignItems:'center', gap:10 }}>
                   <span style={{ fontSize:28, filter:'drop-shadow(0 0 10px #A29BFE66)' }}>🚀</span>
@@ -937,7 +939,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           )}
 
           {/* ── Footer Credit ── */}
-          <footer className="home-footer">
+          <footer className="home-footer" data-anime-section>
             <div className="footer-divider" />
             <div className="footer-content">
               <div className="footer-logo">
