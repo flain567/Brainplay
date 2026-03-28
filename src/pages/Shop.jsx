@@ -7,9 +7,7 @@ import { useThemeColors } from '../hooks/useThemeColors.js'
 
 // ─── Generic cosmetic list renderer ─────────────────────────────────────────
 function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMain, textMuted, borderCol, coins, onBuy, onEquip, buyingId, previewId, setPreviewId, renderPreview }) {
-  // Filter out Lucky Wheel exclusives — they can't be bought in Shop
-  const shopItems = items.filter(item => !item.exclusive)
-  return shopItems.map((item, i) => {
+  return items.map((item, i) => {
     const owned = ownedList.includes(item.id)
     const isActive = activeId === item.id
     const expanded = previewId === item.id
@@ -26,21 +24,40 @@ function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMai
             AKTIF
           </div>
         )}
+        {item.exclusive && !isActive && (
+          <div style={{ position:'absolute', top:12, right:12, background:`${item.rarity==='legendary'?'#FFD700':'#AB47BC'}22`, color:item.rarity==='legendary'?'#FFD700':'#AB47BC', fontSize:9, fontWeight:800, padding:'3px 8px', borderRadius:100, fontFamily:"'Fredoka One',cursive", border:`1px solid ${item.rarity==='legendary'?'#FFD700':'#AB47BC'}44` }}>
+            {item.rarity==='legendary'?'★ LEGENDARY':'★ EPIC'}
+          </div>
+        )}
 
         <div style={{ display:'flex', alignItems:'center', gap:14 }}>
           <div style={{
             width:52, height:52, borderRadius:14, flexShrink:0,
             background:`${item.color}18`, border:`2px solid ${item.color}33`,
             display:'flex', alignItems:'center', justifyContent:'center', fontSize:28,
+            filter: item.exclusive && !owned ? 'grayscale(0.5) opacity(0.7)' : 'none',
           }}>
-            {item.icon}
+            {item.exclusive && item.img ? (
+              <img src={item.img} alt={item.name} style={{ width:36, height:36, objectFit:'contain', filter: !owned ? 'grayscale(0.5)' : 'none' }} />
+            ) : item.icon}
           </div>
           <div style={{ flex:1 }}>
-            <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color:textMain }}>{item.name}</div>
+            <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color: item.exclusive && !owned ? textMuted : textMain }}>{item.name}</div>
             <div style={{ fontSize:12, color:textMuted, marginTop:1 }}>{item.desc}</div>
           </div>
 
-          {!owned ? (
+          {!owned && item.exclusive ? (
+            <div style={{
+              background: dark?'rgba(255,215,0,0.08)':'rgba(255,215,0,0.1)',
+              border:'1.5px solid rgba(255,215,0,0.3)',
+              borderRadius:12, padding:'8px 12px',
+              fontSize:11, fontWeight:800, color:'#FFD700',
+              fontFamily:"'Fredoka One',cursive",
+              whiteSpace:'nowrap', flexShrink:0, textAlign:'center',
+            }}>
+              🎰 Gacha
+            </div>
+          ) : !owned ? (
             <button
               onClick={(e) => { e.stopPropagation(); onBuy(item) }}
               disabled={buyingId === item.id}
@@ -480,11 +497,12 @@ export default function Shop({ onBack }) {
               <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
                 Pesawat mengubah tampilan, stats, dan kemampuan spesial di Space Shooter
               </p>
-              {SHIP_CATALOG.filter(s => !s.exclusive).map((item, i) => {
+              {SHIP_CATALOG.map((item, i) => {
                 const owned = (ownedShips||[]).includes(item.id)
                 const isActive = activeShip === item.id
                 const expanded = previewId === item.id
                 const st = item.stats
+                const isExclusive = item.exclusive
                 return (
                   <div key={item.id} className={`shop-pack ${owned?'owned':''} ${isActive?'active':''}`}
                     style={{ animation:`slide-up 0.3s ${i*0.04}s ease both`, background:surface, borderColor: isActive?'#4ECDC4':owned?(dark?'#4ECDC444':'#4ECDC4'):borderCol }}
@@ -494,19 +512,36 @@ export default function Shop({ onBack }) {
                         AKTIF
                       </div>
                     )}
+                    {isExclusive && !isActive && (
+                      <div style={{ position:'absolute', top:12, right:12, background:`${item.rarity==='legendary'?'#FFD700':'#AB47BC'}22`, color:item.rarity==='legendary'?'#FFD700':'#AB47BC', fontSize:9, fontWeight:800, padding:'3px 8px', borderRadius:100, fontFamily:"'Fredoka One',cursive", border:`1px solid ${item.rarity==='legendary'?'#FFD700':'#AB47BC'}44` }}>
+                        {item.rarity==='legendary'?'★ LEGENDARY':'★ EPIC'}
+                      </div>
+                    )}
                     <div style={{ display:'flex', alignItems:'center', gap:14 }}>
                       <div style={{
                         width:52, height:52, borderRadius:14, flexShrink:0,
                         background:`${item.color}18`, border:`2px solid ${item.color}33`,
                         display:'flex', alignItems:'center', justifyContent:'center', fontSize:28,
+                        filter: isExclusive && !owned ? 'grayscale(0.5) opacity(0.7)' : 'none',
                       }}>
                         {item.icon}
                       </div>
                       <div style={{ flex:1 }}>
-                        <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color:textMain }}>{item.name}</div>
+                        <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color: isExclusive && !owned ? textMuted : textMain }}>{item.name}</div>
                         <div style={{ fontSize:12, color:textMuted, marginTop:1 }}>{item.desc}</div>
                       </div>
-                      {!owned ? (
+                      {!owned && isExclusive ? (
+                        <div style={{
+                          background: dark?'rgba(255,215,0,0.08)':'rgba(255,215,0,0.1)',
+                          border:'1.5px solid rgba(255,215,0,0.3)',
+                          borderRadius:12, padding:'8px 12px',
+                          fontSize:11, fontWeight:800, color:'#FFD700',
+                          fontFamily:"'Fredoka One',cursive",
+                          whiteSpace:'nowrap', flexShrink:0,
+                        }}>
+                          🎰 Gacha
+                        </div>
+                      ) : !owned ? (
                         <button onClick={(e) => { e.stopPropagation(); handleBuyCosmetic('ships', item) }}
                           disabled={buyingId === item.id}
                           style={{
