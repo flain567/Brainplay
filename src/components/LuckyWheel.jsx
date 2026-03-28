@@ -25,22 +25,16 @@ export default function LuckyWheel({ open, onClose }) {
   const [tab, setTab] = useState('spin') // 'spin' | 'collection' | 'history'
   const wheelRef = useRef(null)
   const tickRef = useRef(null)
+  const rotationRef = useRef(0) // always-fresh rotation for setTimeout
 
-  // ── Sequential Multi-Spin State ──
-  const [multiQueue, setMultiQueue] = useState(null)    // all 5 rewards (rolled upfront)
-  const [multiIdx, setMultiIdx] = useState(0)           // current reveal index (0–4)
-  const [multiRevealed, setMultiRevealed] = useState([]) // rewards shown so far
-  const [multiCurrentReward, setMultiCurrentReward] = useState(null) // single reward being shown
-  const isMultiActive = multiQueue !== null && multiQueue.length > 0
-
-  // Refs to avoid stale closures in setTimeout callbacks
-  const rotationRef = useRef(rotation)
-  const multiQueueRef = useRef(multiQueue)
-  const multiIdxRef = useRef(multiIdx)
-  const spinOneRef = useRef(null)
-  rotationRef.current = rotation
-  multiQueueRef.current = multiQueue
-  multiIdxRef.current = multiIdx
+  // ── Sequential Multi-Spin — State Machine ──
+  // multiPhase: null | 'spin' | 'reveal' | 'done'
+  const [multiQueue, setMultiQueue] = useState(null)
+  const [multiIdx, setMultiIdx] = useState(0)
+  const [multiRevealed, setMultiRevealed] = useState([])
+  const [multiCurrentReward, setMultiCurrentReward] = useState(null)
+  const [multiPhase, setMultiPhase] = useState(null)
+  const isMultiActive = multiPhase !== null
 
   const MULTI_COUNT = 5
   const multiCost = extraSpinCost * MULTI_COUNT
@@ -71,8 +65,9 @@ export default function LuckyWheel({ open, onClose }) {
     // Get result first, then animate to correct slot
     const reward = spin(isFree)
     
-    // Find which slot index matches the reward rarity
-    let targetIdx = slots.findIndex(s => s.rarity === reward.rarity)
+    // Find which slot index matches the reward — match label first, then rarity fallback
+    let targetIdx = slots.findIndex(s => s.label === reward.label)
+    if (targetIdx < 0) targetIdx = slots.findIndex(s => s.rarity === reward.rarity)
     if (targetIdx < 0) targetIdx = 0
 
     // Calculate rotation: at least 5 full rotations + target slot
@@ -82,6 +77,7 @@ export default function LuckyWheel({ open, onClose }) {
     const newRotation = rotationRef.current + (fullRotations * 360) + (360 - targetAngle) + (Math.random() * slotAngle * 0.6 - slotAngle * 0.3)
     
     setRotation(newRotation)
+    rotationRef.current = newRotation
 
     // Tick sounds during spin
     let ticks = 0
@@ -114,7 +110,7 @@ export default function LuckyWheel({ open, onClose }) {
     }, SPIN_DURATION)
   }, [spinning, coins, extraSpinCost, spin, slots, spendCoins, earnCoins, play])
 
-  // ── 5× Multi Spin — Sequential Reveal ─────────────────────────────────────
+  // ── 5× Multi Spin — State Machine ────────────────────────────────────────
   const doMultiSpin = useCallback(async () => {
     if (spinning || isMultiActive) return
     if (coins < multiCost) return
@@ -123,108 +119,99 @@ export default function LuckyWheel({ open, onClose }) {
 
     // Roll all 5 results upfront
     const rewards = []
-    for (let i = 0; i < MULTI_COUNT; i++) {
-      rewards.push(spin(false))
-    }
+    for (let i = 0; i < MULTI_COUNT; i++) rewards.push(spin(false))
 
-    // Apply all rewards immediately (coins/XP/exclusives)
+    // Apply all rewards immediately
     let totalCoins = 0
     for (const reward of rewards) {
-      if (reward.type === 'coin') {
-        totalCoins += reward.amount
-      } else if (reward.type === 'xp') {
-        totalCoins += Math.round(reward.amount / 5)
-      } else if (reward.type === 'exclusive' && reward.item) {
+      if (reward.type === 'coin') totalCoins += reward.amount
+      else if (reward.type === 'xp') totalCoins += Math.round(reward.amount / 5)
+      else if (reward.type === 'exclusive' && reward.item)
         window.dispatchEvent(new CustomEvent('bp-wheel-unlock', { detail: { item: reward.item } }))
-      }
     }
     if (totalCoins > 0) earnCoins(totalCoins, `Lucky Wheel 5× Spin — ${totalCoins} coin`)
 
-    // Start sequential reveal
+    // Start state machine
     setMultiQueue(rewards)
     setMultiIdx(0)
     setMultiRevealed([])
     setMultiCurrentReward(null)
     setMultiResults(null)
-
-    // Trigger first spin
-    setTimeout(() => spinOneRef.current(rewards, 0), 50)
+    setMultiPhase('spin') // triggers useEffect below
   }, [spinning, isMultiActive, coins, multiCost, spin, spendCoins, earnCoins])
 
-  // Spin a single wheel animation for queue index — reads from refs to avoid stale closures
-  const spinOneInQueue = useCallback((queue, idx) => {
-    if (!queue || idx >= queue.length) return
+  // ── useEffect: drives the multi-spin state machine ──
+  useEffect(() => {
+    if (multiPhase !== 'spin' || !multiQueue || multiIdx >= multiQueue.length) return
 
-    const reward = queue[idx]
+    const reward = multiQueue[multiIdx]
     setSpinning(true)
     setMultiCurrentReward(null)
 
-    // Find slot matching reward rarity
-    let targetIdx = slots.findIndex(s => s.rarity === reward.rarity)
+    // Find correct slot — match by label first, then rarity
+    let targetIdx = slots.findIndex(s => s.label === reward.label)
+    if (targetIdx < 0) targetIdx = slots.findIndex(s => s.rarity === reward.rarity)
     if (targetIdx < 0) targetIdx = 0
 
     const slotAngle = 360 / SLOT_COUNT
     const targetAngle = targetIdx * slotAngle
     const fullRotations = 3 + Math.floor(Math.random() * 2)
-    const curRotation = rotationRef.current
-    const newRotation = curRotation + (fullRotations * 360) + (360 - targetAngle) + (Math.random() * slotAngle * 0.6 - slotAngle * 0.3)
-
-    setRotation(newRotation)
+    const cur = rotationRef.current
+    const next = cur + (fullRotations * 360) + (360 - targetAngle) + (Math.random() * slotAngle * 0.6 - slotAngle * 0.3)
+    setRotation(next)
+    rotationRef.current = next
 
     // Tick sounds
     let ticks = 0
-    tickRef.current = setInterval(() => {
+    const tickInterval = setInterval(() => {
       ticks++
-      if (ticks < 18) try { play('click') } catch(e) {}
+      if (ticks < 18) try { play('click') } catch {}
     }, 100)
 
-    setTimeout(() => {
-      clearInterval(tickRef.current)
+    const timer = setTimeout(() => {
+      clearInterval(tickInterval)
       setSpinning(false)
-
-      // Show this reward
       const isEpic = reward.rarity === 'epic' || reward.rarity === 'legendary'
-      try { play(isEpic ? 'levelUp' : 'win') } catch(e) {}
+      try { play(isEpic ? 'levelUp' : 'win') } catch {}
 
       setMultiCurrentReward(reward)
       setMultiRevealed(prev => [...prev, reward])
-      setMultiIdx(idx + 1)
+      setMultiPhase('reveal') // show reward card
     }, 2800)
-  }, [slots, play])
-  spinOneRef.current = spinOneInQueue
 
-  // Auto-advance to next spin after reveal card is shown — reads from refs
-  const advanceMultiSpin = useCallback(() => {
-    const queue = multiQueueRef.current
-    const idx = multiIdxRef.current
-    if (!queue) return
+    return () => { clearInterval(tickInterval); clearTimeout(timer) }
+  }, [multiPhase, multiIdx]) // re-runs when phase becomes 'spin' or idx changes
+
+  // "Lanjut" button handler
+  const advanceMultiSpin = () => {
     setMultiCurrentReward(null)
-
-    if (idx >= queue.length) {
-      // All 5 done → show summary
-      setMultiResults(queue)
+    const nextIdx = multiIdx + 1
+    if (nextIdx >= (multiQueue ? multiQueue.length : MULTI_COUNT)) {
+      // All done → show summary
+      setMultiResults(multiQueue)
       setMultiQueue(null)
       setMultiIdx(0)
       setMultiRevealed([])
+      setMultiPhase(null)
     } else {
-      // Spin next after short pause — use ref to get latest spinOne
-      setTimeout(() => spinOneRef.current(queue, idx), 400)
+      // Trigger next spin
+      setMultiIdx(nextIdx)
+      setMultiPhase('spin')
     }
-  }, [])
+  }
 
-  // Skip → show all remaining results in summary
-  const skipMultiSpin = useCallback(() => {
-    const queue = multiQueueRef.current
-    if (!queue) return
+  // "Skip" button handler
+  const skipMultiSpin = () => {
     clearInterval(tickRef.current)
     setSpinning(false)
     setMultiCurrentReward(null)
-    setMultiResults(queue)
+    setMultiResults(multiQueue)
     setMultiQueue(null)
     setMultiIdx(0)
     setMultiRevealed([])
-    try { play('win') } catch(e) {}
-  }, [play])
+    setMultiPhase(null)
+    try { play('win') } catch {}
+  }
 
   // Lock body & html scroll when modal is open
   useEffect(() => {
