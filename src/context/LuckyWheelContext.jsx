@@ -181,15 +181,12 @@ export function LuckyWheelProvider({ children }) {
     if (rewardSlot.type === 'exclusive') {
       const rarity = rewardSlot.rarity
       const weekGames = getCurrentWeekGames()
-      // Only offer exclusives from this week's featured games
+      // ONLY offer exclusives from this week's featured games — no fallback
       const available = WHEEL_EXCLUSIVES.filter(e =>
         weekGames.includes(e.game) && e.rarity === rarity && !ownedExclusives.includes(e.id)
       )
-      // Fallback: if no weekly items available, try ALL exclusives
-      const fallback = available.length > 0 ? available
-        : WHEEL_EXCLUSIVES.filter(e => e.rarity === rarity && !ownedExclusives.includes(e.id))
-      if (fallback.length > 0) {
-        const item = fallback[Math.floor(Math.random() * fallback.length)]
+      if (available.length > 0) {
+        const item = available[Math.floor(Math.random() * available.length)]
         return { type: 'exclusive', item, label: item.name, icon: item.icon, rarity: item.rarity, img: item.img, desc: item.desc }
       }
       // All owned — dupe conversion

@@ -11,12 +11,13 @@ function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMai
     const owned = ownedList.includes(item.id)
     const isActive = activeId === item.id
     const expanded = previewId === item.id
+    const isLocked = (item.exclusive || item.wheelOnly) && !owned
 
     return (
       <div
         key={item.id}
         className={`shop-pack ${owned?'owned':''} ${isActive?'active':''}`}
-        style={{ animation:`slide-up 0.3s ${i*0.04}s ease both`, background:surface, borderColor: isActive ? '#4ECDC4' : owned ? (dark?'#4ECDC444':'#4ECDC4') : borderCol }}
+        style={{ animation:`slide-up 0.3s ${i*0.04}s ease both`, background:surface, borderColor: isActive ? '#4ECDC4' : owned ? (dark?'#4ECDC444':'#4ECDC4') : borderCol, opacity: isLocked ? 0.75 : 1 }}
         onClick={() => setPreviewId(expanded ? null : item.id)}
       >
         {isActive && (
@@ -24,9 +25,9 @@ function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMai
             AKTIF
           </div>
         )}
-        {item.exclusive && !isActive && (
-          <div style={{ position:'absolute', top:12, right:12, background:`${item.rarity==='legendary'?'#FFD700':'#AB47BC'}22`, color:item.rarity==='legendary'?'#FFD700':'#AB47BC', fontSize:9, fontWeight:800, padding:'3px 8px', borderRadius:100, fontFamily:"'Fredoka One',cursive", border:`1px solid ${item.rarity==='legendary'?'#FFD700':'#AB47BC'}44` }}>
-            {item.rarity==='legendary'?'★ LEGENDARY':'★ EPIC'}
+        {(item.exclusive || item.wheelOnly) && !isActive && (
+          <div style={{ position:'absolute', top:12, right:12, background: owned ? '#4ECDC422' : `${item.rarity==='legendary'?'#FFD700':'#AB47BC'}22`, color: owned ? '#4ECDC4' : (item.rarity==='legendary'?'#FFD700':'#AB47BC'), fontSize:9, fontWeight:800, padding:'3px 8px', borderRadius:100, fontFamily:"'Fredoka One',cursive", border:`1px solid ${owned ? '#4ECDC444' : (item.rarity==='legendary'?'#FFD700':'#AB47BC')+'44'}` }}>
+            {owned ? '🎰 WHEEL' : item.rarity==='legendary'?'★ LEGENDARY':'🎰 WHEEL ONLY'}
           </div>
         )}
 
@@ -35,27 +36,27 @@ function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMai
             width:52, height:52, borderRadius:14, flexShrink:0,
             background:`${item.color}18`, border:`2px solid ${item.color}33`,
             display:'flex', alignItems:'center', justifyContent:'center', fontSize:28,
-            filter: item.exclusive && !owned ? 'grayscale(0.5) opacity(0.7)' : 'none',
+            filter: isLocked ? 'grayscale(0.6) opacity(0.6)' : 'none',
           }}>
-            {item.exclusive && item.img ? (
-              <img src={item.img} alt={item.name} style={{ width:36, height:36, objectFit:'contain', filter: !owned ? 'grayscale(0.5)' : 'none' }} />
+            {(item.exclusive || item.wheelOnly) && item.img ? (
+              <img src={item.img} alt={item.name} style={{ width:36, height:36, objectFit:'contain', imageRendering: item.wheelOnly ? 'pixelated' : 'auto', filter: isLocked ? 'grayscale(0.6)' : 'none' }} />
             ) : item.icon}
           </div>
           <div style={{ flex:1 }}>
-            <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color: item.exclusive && !owned ? textMuted : textMain }}>{item.name}</div>
+            <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color: isLocked ? textMuted : textMain }}>{item.name}</div>
             <div style={{ fontSize:12, color:textMuted, marginTop:1 }}>{item.desc}</div>
           </div>
 
-          {!owned && item.exclusive ? (
+          {isLocked ? (
             <div style={{
-              background: dark?'rgba(255,215,0,0.08)':'rgba(255,215,0,0.1)',
-              border:'1.5px solid rgba(255,215,0,0.3)',
+              background: dark?'rgba(171,71,188,0.08)':'rgba(171,71,188,0.1)',
+              border:'1.5px solid rgba(171,71,188,0.3)',
               borderRadius:12, padding:'8px 12px',
-              fontSize:11, fontWeight:800, color:'#FFD700',
+              fontSize:10, fontWeight:800, color:'#AB47BC',
               fontFamily:"'Fredoka One',cursive",
-              whiteSpace:'nowrap', flexShrink:0, textAlign:'center',
+              whiteSpace:'nowrap', flexShrink:0, textAlign:'center', lineHeight:1.4,
             }}>
-              🎰 Gacha
+              🔒 Dapatkan<br/>dari Lucky Wheel
             </div>
           ) : !owned ? (
             <button
@@ -372,7 +373,7 @@ export default function Shop({ onBack }) {
                 Card Icon Pack mengubah tampilan kartu di Memory Card Match
               </p>
               <CosmeticList
-                items={ICON_PACKS.filter(p => !p.wheelOnly)} ownedList={ownedPacks} activeId={activePack} type="packs"
+                items={ICON_PACKS} ownedList={ownedPacks} activeId={activePack} type="packs"
                 dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
                 borderCol={borderCol} coins={coins}
                 onBuy={(item) => handleBuyCosmetic('packs', item)}
@@ -678,7 +679,7 @@ export default function Shop({ onBack }) {
                 Ubah warna grid dan angka di Sudoku
               </p>
               <CosmeticList
-                items={SUDOKU_THEMES.filter(t => !t.wheelOnly)} ownedList={ownedSudokuThemes} activeId={activeSudokuTheme} type="sudokuThemes"
+                items={SUDOKU_THEMES} ownedList={ownedSudokuThemes} activeId={activeSudokuTheme} type="sudokuThemes"
                 dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
                 borderCol={borderCol} coins={coins}
                 onBuy={(item) => handleBuyCosmetic('sudokuThemes', item)}
