@@ -70,11 +70,12 @@ export default function LuckyWheel({ open, onClose }) {
     if (targetIdx < 0) targetIdx = slots.findIndex(s => s.rarity === reward.rarity)
     if (targetIdx < 0) targetIdx = 0
 
-    // Calculate rotation: at least 5 full rotations + target slot
+    // Calculate rotation: at least 5 full rotations + target slot CENTER
     const slotAngle = 360 / SLOT_COUNT
-    const targetAngle = targetIdx * slotAngle
+    const targetAngle = targetIdx * slotAngle + slotAngle / 2 // center of slot, not edge
     const fullRotations = 5 + Math.floor(Math.random() * 3)
-    const newRotation = rotationRef.current + (fullRotations * 360) + (360 - targetAngle) + (Math.random() * slotAngle * 0.6 - slotAngle * 0.3)
+    // Random offset stays within slot bounds (±30% of half-slot = safe margin)
+    const newRotation = rotationRef.current + (fullRotations * 360) + (360 - targetAngle) + (Math.random() * slotAngle * 0.3 - slotAngle * 0.15)
     
     setRotation(newRotation)
     rotationRef.current = newRotation
@@ -154,10 +155,10 @@ export default function LuckyWheel({ open, onClose }) {
     if (targetIdx < 0) targetIdx = 0
 
     const slotAngle = 360 / SLOT_COUNT
-    const targetAngle = targetIdx * slotAngle
+    const targetAngle = targetIdx * slotAngle + slotAngle / 2 // center of slot
     const fullRotations = 3 + Math.floor(Math.random() * 2)
     const cur = rotationRef.current
-    const next = cur + (fullRotations * 360) + (360 - targetAngle) + (Math.random() * slotAngle * 0.6 - slotAngle * 0.3)
+    const next = cur + (fullRotations * 360) + (360 - targetAngle) + (Math.random() * slotAngle * 0.3 - slotAngle * 0.15)
     setRotation(next)
     rotationRef.current = next
 
