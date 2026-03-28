@@ -248,8 +248,8 @@ export const WEBSITE_THEMES = [
   { id:'default', name:'BrainPlay Classic', desc:'Tema default — warm cream & lavender',
     price:0, icon:'🎮', color:'#A29BFE',
     light:{
-      bg:'#FFF9F0', surface:'#FFFFFF', text:'#2D3436', muted:'#636E72', border:'#DFE6E9',
-      accent:'#A29BFE', accentAlt:'#FD79A8', navBg:'rgba(255,252,245,0.82)', navScrolled:'rgba(255,252,245,0.98)',
+      bg:'#F5F0E8', surface:'#FEFCF8', text:'#2D3436', muted:'#555E62', border:'#D5DAE0',
+      accent:'#A29BFE', accentAlt:'#FD79A8', navBg:'rgba(245,240,232,0.92)', navScrolled:'rgba(245,240,232,0.98)',
     },
     dark:{
       bg:'#1a1a2e', surface:'#16213e', text:'#e8e8f0', muted:'#8892b0', border:'#2d3561',
@@ -259,8 +259,8 @@ export const WEBSITE_THEMES = [
   { id:'sakura', name:'Sakura Bloom', desc:'Pink bunga sakura yang lembut dan romantis',
     price:200, icon:'🌸', color:'#F8A4C8',
     light:{
-      bg:'#FFF5F9', surface:'#FFFFFF', text:'#4A2040', muted:'#9C6B8A', border:'#F8D7E8',
-      accent:'#E84393', accentAlt:'#FD79A8', navBg:'rgba(255,245,249,0.82)', navScrolled:'rgba(255,245,249,0.98)',
+      bg:'#F5EBF0', surface:'#FDF8FA', text:'#4A2040', muted:'#9C6B8A', border:'#F8D7E8',
+      accent:'#E84393', accentAlt:'#FD79A8', navBg:'rgba(245,235,240,0.94)', navScrolled:'rgba(255,245,249,0.98)',
     },
     dark:{
       bg:'#1E0A18', surface:'#2A1025', text:'#F8D7E8', muted:'#B87DA0', border:'#4A1A38',
@@ -270,8 +270,8 @@ export const WEBSITE_THEMES = [
   { id:'ocean', name:'Deep Ocean', desc:'Biru laut dalam yang misterius dan tenang',
     price:200, icon:'🌊', color:'#0984E3',
     light:{
-      bg:'#F0F8FF', surface:'#FFFFFF', text:'#1B3A5C', muted:'#5A7DA0', border:'#C8E0F4',
-      accent:'#0984E3', accentAlt:'#00CEC9', navBg:'rgba(240,248,255,0.82)', navScrolled:'rgba(240,248,255,0.98)',
+      bg:'#E8F0F8', surface:'#F5FAFF', text:'#1B3A5C', muted:'#5A7DA0', border:'#C8E0F4',
+      accent:'#0984E3', accentAlt:'#00CEC9', navBg:'rgba(232,240,248,0.94)', navScrolled:'rgba(240,248,255,0.98)',
     },
     dark:{
       bg:'#0A1628', surface:'#0F2038', text:'#C8E0F4', muted:'#5A8AB5', border:'#1A3050',
@@ -281,8 +281,8 @@ export const WEBSITE_THEMES = [
   { id:'forest', name:'Enchanted Forest', desc:'Hijau hutan ajaib yang menyegarkan mata',
     price:200, icon:'🌿', color:'#00B894',
     light:{
-      bg:'#F0FFF5', surface:'#FFFFFF', text:'#1A3C2A', muted:'#5A8A6A', border:'#C8F0D8',
-      accent:'#00B894', accentAlt:'#55EFC4', navBg:'rgba(240,255,245,0.82)', navScrolled:'rgba(240,255,245,0.98)',
+      bg:'#E6F5EC', surface:'#F5FFF8', text:'#1A3C2A', muted:'#5A8A6A', border:'#C8F0D8',
+      accent:'#00B894', accentAlt:'#55EFC4', navBg:'rgba(230,245,236,0.94)', navScrolled:'rgba(240,255,245,0.98)',
     },
     dark:{
       bg:'#0A1E14', surface:'#0F2A1C', text:'#C8F0D8', muted:'#5AAF7A', border:'#1A4030',
@@ -292,8 +292,8 @@ export const WEBSITE_THEMES = [
   { id:'sunset', name:'Golden Sunset', desc:'Sunset emas hangat yang menenangkan jiwa',
     price:250, icon:'🌅', color:'#F39C12',
     light:{
-      bg:'#FFFBF0', surface:'#FFFFFF', text:'#5D3A00', muted:'#A07A40', border:'#F0E0C0',
-      accent:'#F39C12', accentAlt:'#E17055', navBg:'rgba(255,251,240,0.82)', navScrolled:'rgba(255,251,240,0.98)',
+      bg:'#F5F0E5', surface:'#FEFAF2', text:'#5D3A00', muted:'#A07A40', border:'#F0E0C0',
+      accent:'#F39C12', accentAlt:'#E17055', navBg:'rgba(245,240,229,0.94)', navScrolled:'rgba(255,251,240,0.98)',
     },
     dark:{
       bg:'#1E1400', surface:'#2A1E08', text:'#F0E0C0', muted:'#B89050', border:'#4A3818',
@@ -303,8 +303,8 @@ export const WEBSITE_THEMES = [
   { id:'cyberpunk', name:'Cyberpunk Neon', desc:'Neon futuristik ala kota cyberpunk',
     price:350, icon:'🏙️', color:'#00FF88',
     light:{
-      bg:'#F0FFF5', surface:'#FFFFFF', text:'#0A2A15', muted:'#3A7A4A', border:'#B8F0C8',
-      accent:'#00D975', accentAlt:'#FF0066', navBg:'rgba(240,255,245,0.82)', navScrolled:'rgba(240,255,245,0.98)',
+      bg:'#E6F5EC', surface:'#F5FFF8', text:'#0A2A15', muted:'#3A7A4A', border:'#B8F0C8',
+      accent:'#00D975', accentAlt:'#FF0066', navBg:'rgba(230,245,236,0.94)', navScrolled:'rgba(240,255,245,0.98)',
     },
     dark:{
       bg:'#0A0A1A', surface:'#12122A', text:'#00FF88', muted:'#00CC6E', border:'#1A1A3A',
@@ -314,8 +314,8 @@ export const WEBSITE_THEMES = [
   { id:'lavaglow', name:'Lava Glow', desc:'Merah lava membara dari kedalaman bumi',
     price:300, icon:'🌋', color:'#FF4757',
     light:{
-      bg:'#FFF5F5', surface:'#FFFFFF', text:'#4A0A0A', muted:'#A04040', border:'#F0C8C8',
-      accent:'#FF4757', accentAlt:'#FF8C00', navBg:'rgba(255,245,245,0.82)', navScrolled:'rgba(255,245,245,0.98)',
+      bg:'#F5EDED', surface:'#FDF8F8', text:'#4A0A0A', muted:'#A04040', border:'#F0C8C8',
+      accent:'#FF4757', accentAlt:'#FF8C00', navBg:'rgba(245,237,237,0.94)', navScrolled:'rgba(255,245,245,0.98)',
     },
     dark:{
       bg:'#1A0808', surface:'#2A1010', text:'#F0C8C8', muted:'#B06060', border:'#4A1818',
@@ -325,7 +325,7 @@ export const WEBSITE_THEMES = [
   { id:'arctic', name:'Arctic Frost', desc:'Putih es arktik yang bersih dan premium',
     price:300, icon:'❄️', color:'#74B9FF',
     light:{
-      bg:'#F8FCFF', surface:'#FFFFFF', text:'#1A2E40', muted:'#5A7A9A', border:'#D0E8F8',
+      bg:'#EDF4FA', surface:'#F8FCFF', text:'#1A2E40', muted:'#5A7A9A', border:'#D0E8F8',
       accent:'#3498DB', accentAlt:'#74B9FF', navBg:'rgba(248,252,255,0.85)', navScrolled:'rgba(248,252,255,0.98)',
     },
     dark:{
@@ -336,8 +336,8 @@ export const WEBSITE_THEMES = [
   { id:'royal', name:'Royal Velvet', desc:'Ungu kerajaan yang mewah dan megah',
     price:400, icon:'👑', color:'#6C5CE7',
     light:{
-      bg:'#F8F5FF', surface:'#FFFFFF', text:'#2A1E50', muted:'#7A68B0', border:'#D8D0F0',
-      accent:'#6C5CE7', accentAlt:'#A29BFE', navBg:'rgba(248,245,255,0.82)', navScrolled:'rgba(248,245,255,0.98)',
+      bg:'#F0ECF8', surface:'#F8F5FF', text:'#2A1E50', muted:'#7A68B0', border:'#D8D0F0',
+      accent:'#6C5CE7', accentAlt:'#A29BFE', navBg:'rgba(240,236,248,0.94)', navScrolled:'rgba(248,245,255,0.98)',
     },
     dark:{
       bg:'#0E0A20', surface:'#16103A', text:'#D8D0F0', muted:'#8A7CC0', border:'#2A2058',

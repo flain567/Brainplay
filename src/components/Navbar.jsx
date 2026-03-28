@@ -114,8 +114,8 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
         .nav-actions-desktop { display: flex; gap: 8px; align-items: center; }
         .nav-btn {
           width: 40px; height: 40px; border-radius: 12px;
-          border: 2px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'};
-          background: ${dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'};
+          border: 2px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)'};
+          background: ${dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)'};
           font-size: 18px; cursor: pointer;
           display: flex; align-items: center; justify-content: center;
           transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);

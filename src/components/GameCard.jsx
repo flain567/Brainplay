@@ -60,13 +60,11 @@ export default function GameCard({ game, onPlay }) {
           right: -15px;
           bottom: -20px;
           font-size: 110px;
-          opacity: 0.15;
           pointer-events: none;
           transition: all 0.5s cubic-bezier(0.34,1.56,0.64,1);
           z-index: 0;
-          filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
         }
-        .gcard:hover .gcard-emoji-bg { transform: scale(1.1) rotate(-10deg) translateX(-10px); opacity: 0.35; }
+        .gcard:hover .gcard-emoji-bg { transform: scale(1.1) rotate(-10deg) translateX(-10px); opacity: 0.35 !important; }
 
         .gcard-content {
           position: relative; z-index: 2;
@@ -125,11 +123,11 @@ export default function GameCard({ game, onPlay }) {
         style={{
           background: dark
             ? `linear-gradient(145deg, color-mix(in srgb,${game.color} 14%,#16213e), color-mix(in srgb,${game.color} 6%,#0f1029))`
-            : `linear-gradient(145deg, ${game.bg}, white)`,
-          borderColor: hovered ? game.color : 'transparent',
+            : `linear-gradient(145deg, color-mix(in srgb,${game.color} 25%,#fff), color-mix(in srgb,${game.color} 10%,${game.bg}))`,
+          borderColor: hovered ? game.color : (dark ? 'transparent' : `${game.color}20`),
           boxShadow: hovered
             ? `0 20px 50px ${game.color}30, 0 0 0 1px ${game.color}20`
-            : dark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.07)',
+            : dark ? '0 4px 20px rgba(0,0,0,0.3)' : `0 4px 20px ${game.color}18`,
         }}
       >
         {/* Ripple */}
@@ -141,7 +139,9 @@ export default function GameCard({ game, onPlay }) {
         <div className="gcard-shine" />
 
         {/* Background gradient overlap to make text readable */}
-        <div style={{ position:'absolute', inset:0, background: 'linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)', zIndex:1 }} />
+        <div style={{ position:'absolute', inset:0, background: dark
+          ? 'linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)'
+          : `linear-gradient(to top, ${game.color}cc 0%, ${game.color}40 40%, transparent 70%)`, zIndex:1 }} />
 
         {/* Play Button Overlay */}
         <button className="gcard-play-btn">▶</button>
@@ -168,7 +168,10 @@ export default function GameCard({ game, onPlay }) {
         </div>
 
         {/* Jumbo Emoji Watermark */}
-        <div className="gcard-emoji-bg">{game.emoji}</div>
+        <div className="gcard-emoji-bg" style={{
+          opacity: dark ? 0.15 : 0.25,
+          filter: dark ? 'drop-shadow(0 0 20px rgba(0,0,0,0.5))' : `drop-shadow(0 0 12px ${game.color}30)`,
+        }}>{game.emoji}</div>
 
         {/* Bottom Content Area */}
         <div className="gcard-content">
