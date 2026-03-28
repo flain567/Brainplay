@@ -12,32 +12,32 @@ import { useThemeColors } from '../hooks/useThemeColors.js'
 import { trackLimitedModeView, trackLimitedModeBonus } from '../utils/analytics.js'
 import { useLocalAnalytics } from '../context/LocalAnalyticsContext.jsx'
 import LuckyWheel from '../components/LuckyWheel.jsx'
+import { getLastPlayed } from '../utils/lastPlayed.js'
 
-const COMING_SOON = [
-  { day: 16, emoji: '⌨️', title: 'Typing Speed',     tag: 'Kata',     color: '#FD79A8' },
-  { day: 17, emoji: '💣', title: 'Minesweeper',      tag: 'Logika',   color: '#45B7D1' },
-  { day: 18, emoji: '🔀', title: 'Anagram',          tag: 'Kata',     color: '#FDCB6E' },
-  { day: 19, emoji: '🗼', title: 'Tower of Hanoi',   tag: 'Logika',   color: '#A29BFE' },
-  { day: 20, emoji: '📐', title: 'Nonogram',         tag: 'Puzzle',   color: '#FF6B6B' },
-  { day: 21, emoji: '➕', title: 'Math Quiz',        tag: 'Logika',   color: '#4ECDC4' },
-  { day: 22, emoji: '♠️', title: 'Solitaire',        tag: 'Casual',   color: '#FD79A8' },
-  { day: 23, emoji: '🀄', title: 'Mahjong',          tag: 'Casual',   color: '#FDCB6E' },
-  { day: 24, emoji: '♟️', title: 'Chess Puzzle',     tag: 'Logika',   color: '#FF6B6B' },
-  { day: 25, emoji: '🎲', title: '??? Surprise',     tag: 'Surprise', color: '#FD79A8' },
+/** Ide konten mendatang (bukan daftar rilis harian — banyak game sudah hidup di katalog). */
+const ROADMAP_FUTURE = [
+  { emoji: '⌨️', title: 'Typing Speed',   tag: 'Kata',     color: '#FD79A8', blurb: 'Kecepatan mengetik' },
+  { emoji: '🔀', title: 'Anagram',        tag: 'Kata',     color: '#FDCB6E', blurb: 'Acak huruf jadi kata' },
+  { emoji: '📐', title: 'Nonogram',       tag: 'Puzzle',   color: '#FF6B6B', blurb: 'Tebak gambar dari angka' },
+  { emoji: '♠️', title: 'Solitaire',      tag: 'Casual',   color: '#A29BFE', blurb: 'Santai satu kartu' },
+  { emoji: '🀄', title: 'Mahjong',        tag: 'Casual',   color: '#00CEC9', blurb: 'Pasangkan tile' },
+  { emoji: '♟️', title: 'Chess Puzzle',   tag: 'Logika',   color: '#636E72', blurb: 'Mate dalam N langkah' },
+  { emoji: '🎲', title: 'Mode Surprise',  tag: 'Surprise', color: '#FD79A8', blurb: 'Random challenge' },
 ]
 
-const ALL_TAGS   = ['Semua', 'Puzzle', 'Casual', 'Action', 'Kata', 'Logika']
+const ALL_TAGS   = ['Semua', 'Puzzle', 'Casual', 'Action', 'Kata', 'Logika', 'Pengetahuan']
 const TAG_META   = {
-  Semua:   { icon: '🎮', color: '#A29BFE' },
-  Puzzle:  { icon: '🧩', color: '#FDCB6E' },
-  Casual:  { icon: '🎯', color: '#4ECDC4' },
-  Action:  { icon: '🔥', color: '#FF6B6B' },
-  Kata:    { icon: '📝', color: '#A29BFE' },
-  Logika:  { icon: '🧠', color: '#FF6B6B' },
+  Semua:        { icon: '🎮', color: '#A29BFE' },
+  Puzzle:       { icon: '🧩', color: '#FDCB6E' },
+  Casual:       { icon: '🎯', color: '#4ECDC4' },
+  Action:       { icon: '🔥', color: '#FF6B6B' },
+  Kata:         { icon: '📝', color: '#A29BFE' },
+  Logika:       { icon: '🧠', color: '#FF6B6B' },
+  Pengetahuan:  { icon: '🇮🇩', color: '#0984E3' },
 }
 
-export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
-  const { darkMode } = useSettings()
+export default function Home({ games, onPlay, onContinueLast, onProfile, onShop, onStats }) {
+  const { darkMode, reduceMotion } = useSettings()
   const { play }     = useSound()
   const { progress } = useProgress()
   const { coins, isDailyClaimable, claimDaily, earnCoins } = useCoins()
@@ -82,8 +82,15 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
   const borderCol = tc.borderCol
   const surfaceCol = tc.surface
 
-  const totalDone = games.length
-  const pct = Math.round((totalDone / 25) * 100)
+  const winsMap = progress.gameWins || {}
+  const gamesWonOnce = games.filter(g => (winsMap[g.id] || 0) > 0).length
+  const gameTotal = games.length || 1
+  const pct = Math.min(100, Math.round((gamesWonOnce / gameTotal) * 100))
+  const lastPlayed = getLastPlayed()
+  const lastGameMeta = lastPlayed ? games.find(g => g.id === lastPlayed.gameId) : null
+  const lastDiffOk = lastGameMeta?.difficulties?.some(d => d.id === lastPlayed?.difficultyId)
+  const showContinue = Boolean(onContinueLast && lastGameMeta && lastDiffOk)
+  const DIFF_LABEL = { easy: 'Mudah', medium: 'Sedang', hard: 'Sulit' }
 
   // Streak combo multiplier
   const comboMultiplier = streak >= 7 ? 2.0 : streak >= 3 ? 1.5 : streak >= 1 ? 1.2 : 1.0
@@ -261,6 +268,34 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
         .scroll-top-btn.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
         .scroll-top-btn:hover { transform: translateY(-4px) scale(1.1); }
 
+        .continue-card {
+          max-width: 420px; margin: 0 auto 28px;
+          padding: 16px 18px; border-radius: 18px; cursor: pointer;
+          display: flex; align-items: center; gap: 14px;
+          background: ${dark
+            ? 'linear-gradient(135deg, rgba(162,155,254,0.18), rgba(78,205,196,0.1))'
+            : 'linear-gradient(135deg, rgba(162,155,254,0.14), rgba(78,205,196,0.08))'};
+          border: 1.5px solid ${dark ? 'rgba(162,155,254,0.35)' : 'rgba(162,155,254,0.45)'};
+          box-shadow: 0 8px 28px ${dark ? 'rgba(0,0,0,0.35)' : 'rgba(162,155,254,0.2)'};
+          transition: transform 0.2s, box-shadow 0.2s;
+          animation: slide-up 0.45s 0.15s ease both;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .continue-card:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(162,155,254,0.25); }
+        .continue-card:active { transform: scale(0.98); }
+
+        @media (prefers-reduced-motion: reduce) {
+          .hero-title, .hero-tag, .hero-sub, .combo-badge, .progress-fill { animation: none !important; }
+        }
+        body.bp-reduce-motion .hero-title,
+        body.bp-reduce-motion .hero-tag,
+        body.bp-reduce-motion .hero-sub,
+        body.bp-reduce-motion .combo-badge,
+        body.bp-reduce-motion .progress-fill,
+        body.bp-reduce-motion .continue-card { animation: none !important; }
+        body.bp-reduce-motion .gcard { animation: none !important; }
+        body.bp-reduce-motion .carousel-row .gcard:hover { transform: translateY(-2px); }
+
         @media (max-width: 600px) {
           .home-content { padding: 24px 16px 60px; }
           .hero-section { margin-bottom: 36px; }
@@ -335,32 +370,53 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
       <div className="home-root" style={{ background: tc.bg }}>
 
         {/* Interactive particle background */}
-        <ParticleBackground dark={dark} />
+        <ParticleBackground dark={dark} reduceMotion={reduceMotion} />
 
         <div className="home-content">
 
           {/* ── Hero ── */}
           <div className="hero-section">
-            <div className="hero-tag">🏆 30 Hari · 25 Game · 1 Tujuan</div>
+            <div className="hero-tag">🏆 {gameTotal} game · misi harian · streak &amp; koin</div>
             <h1 className="hero-title">Selamat Datang<br/>di BrainPlay! 🎉</h1>
-            <p className="hero-sub">Kumpulan game santai & mengasah otak yang bertambah setiap hari. Main, asah otak, dan cetak rekormu!</p>
+            <p className="hero-sub">Santai sejenak, tantang otakmu, klaim hadiah harian. Tiap game punya vibe beda — geser katalog di bawah!</p>
 
-            {/* Progress 30 hari */}
+            {/* Progress koleksi */}
             <div className="progress-wrap">
               <div className="progress-header">
-                <span className="progress-label">🗓 Progress 30 Hari</span>
-                <span className="progress-value">{totalDone}/25 game</span>
+                <span className="progress-label">🎯 Koleksi — pernah menang</span>
+                <span className="progress-value">{gamesWonOnce}/{gameTotal} game</span>
               </div>
               <div className="progress-track">
                 <div className="progress-fill" />
               </div>
               <div className="progress-dots">
                 {Array.from({ length: 10 }).map((_, i) => (
-                  <div key={i} className={`progress-dot${i < Math.floor(totalDone / 2.5) ? ' done' : ''}`} />
+                  <div key={i} className={`progress-dot${i < Math.ceil((gamesWonOnce / gameTotal) * 10) ? ' done' : ''}`} />
                 ))}
               </div>
             </div>
           </div>
+
+          {showContinue && (
+            <div
+              className="continue-card"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); play('click'); onContinueLast() } }}
+              onClick={() => { play('click'); onContinueLast() }}
+            >
+              <div style={{ fontSize: 40, lineHeight: 1 }}>{lastGameMeta.emoji}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 15, color: textMain, marginBottom: 2 }}>
+                  Lanjut main 🎮
+                </div>
+                <div style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>
+                  {lastGameMeta.title} · {DIFF_LABEL[lastPlayed.difficultyId] || lastPlayed.difficultyId}
+                </div>
+              </div>
+              <span style={{ fontSize: 22, color: '#A29BFE' }}>▶</span>
+            </div>
+          )}
 
           {/* ── Dashboard Grid ── */}
           <div className="dashboard-grid">
@@ -512,7 +568,7 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                   <span style={{ fontSize: 10, color: textMuted, fontWeight: 800, padding: '3px 8px', background: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)', borderRadius: 100 }}>
-                    v1.0.0
+                    v0.9.8
                   </span>
                 </div>
               </div>
@@ -838,16 +894,16 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
             )
           })}
 
-          {/* ── Coming soon ── */}
-          {COMING_SOON.length > 0 && (
+          {/* ── Roadmap (ide mendatang) ── */}
+          {ROADMAP_FUTURE.length > 0 && (
             <section style={{ position: 'relative', animation: 'slide-up 0.5s 0.8s ease both', marginBottom: 48 }}>
               <div className="section-head">
                 <h2 className="section-title" style={{ display:'flex', alignItems:'center', gap:10 }}>
-                  <span style={{ fontSize:28, filter:'drop-shadow(0 0 10px #A29BFE66)' }}>🔒</span>
-                  Segera Hadir
+                  <span style={{ fontSize:28, filter:'drop-shadow(0 0 10px #A29BFE66)' }}>🚀</span>
+                  Ide ke depan
                 </h2>
                 <span style={{ background: '#A29BFE22', color: '#A29BFE', borderRadius: 100, padding: '4px 14px', fontSize: 13, fontWeight: 800, border: '1px solid #A29BFE44', display: 'flex', alignItems: 'center' }}>
-                  {COMING_SOON.length} Game <span style={{ opacity: 0.6, marginLeft: 6, fontSize: 10 }}>geser ➔</span>
+                  wishlist <span style={{ opacity: 0.6, marginLeft: 6, fontSize: 10 }}>geser ➔</span>
                 </span>
                 <div className="section-line" />
               </div>
@@ -856,13 +912,14 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
                 ‹
               </button>
               <div className="carousel-row" style={{ minHeight: 140 }}>
-                {COMING_SOON.map((g, i) => (
-                  <div key={g.day} className="cs-card" style={{ flexShrink: 0, width: 160, scrollSnapAlign: 'start', opacity: 0.6 }}>
-                    <div style={{ position: 'absolute', top: 10, right: 10, background: `${g.color}22`, color: g.color, fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 100, fontFamily: "'Fredoka One',cursive", border: `1px solid ${g.color}44` }}>
-                      Hari {g.day}
+                {ROADMAP_FUTURE.map((g) => (
+                  <div key={g.title} className="cs-card" style={{ flexShrink: 0, width: 168, scrollSnapAlign: 'start', opacity: 0.75 }}>
+                    <div style={{ position: 'absolute', top: 10, right: 10, background: `${g.color}22`, color: g.color, fontSize: 9, fontWeight: 800, padding: '2px 8px', borderRadius: 100, fontFamily: "'Nunito',sans-serif", border: `1px solid ${g.color}44`, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      konsep
                     </div>
-                    <div style={{ fontSize: 34, marginBottom: 10, filter: 'grayscale(30%)' }}>{g.emoji}</div>
-                    <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 14, color: textMain, marginBottom: 6 }}>{g.title}</div>
+                    <div style={{ fontSize: 34, marginBottom: 8 }}>{g.emoji}</div>
+                    <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 14, color: textMain, marginBottom: 4 }}>{g.title}</div>
+                    <div style={{ fontSize: 10, color: textMuted, marginBottom: 8, lineHeight: 1.3 }}>{g.blurb}</div>
                     <span style={{ background: `${g.color}22`, color: g.color, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 100 }}>{g.tag}</span>
                   </div>
                 ))}
@@ -881,12 +938,12 @@ export default function Home({ games, onPlay, onProfile, onShop, onStats }) {
                 <div className="footer-logo-icon">🎮</div>
                 <span className="footer-logo-text">BrainPlay</span>
               </div>
-              <p className="footer-tagline">Santai & Mengasah Otak — 30 Hari, 25 Game, 1 Tujuan</p>
+              <p className="footer-tagline">Santai & mengasah otak — {gameTotal} game, misi harian, dan tema yang bisa dikoleksi</p>
               <div className="footer-credit">
                 <span className="footer-credit-label">Dibuat dengan ❤️ oleh</span>
                 <span className="footer-credit-name">Dwi Agus Hidayat</span>
               </div>
-              <p className="footer-copy">© 2025 BrainPlay v0.9.2 — Semua hak dilindungi.</p>
+              <p className="footer-copy">© 2026 BrainPlay v0.9.8 — Semua hak dilindungi.</p>
             </div>
           </footer>
 

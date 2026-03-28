@@ -537,7 +537,7 @@ export default function SudokuGame({ onBack, game, difficulty }) {
 
 function WinModal({ errors, time, diffLabel, onRestart, onBack, darkMode, game, difficulty }) {
   const stars = errors <= (difficulty.id === 'hard' ? 1 : difficulty.id === 'medium' ? 2 : 3) ? 3 : errors <= 5 ? 2 : 1
-  const bg = dark ? '#1a1a2e' : '#fff'
+  const bg = darkMode ? '#1a1a2e' : '#fff'
   const textMain = darkMode ? '#e8e8f0' : '#2D3436'
   const textMuted = darkMode ? '#8892b0' : '#636E72'
 
@@ -564,7 +564,7 @@ function WinModal({ errors, time, diffLabel, onRestart, onBack, darkMode, game, 
 
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={onRestart} style={{ flex: 1, background: '#0984E3', color: '#fff', border: 'none', borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', boxShadow: '0 4px 14px #0984E344' }}>🔄 Main Lagi</button>
-          <button onClick={onBack} style={{ flex: 1, background: dark ? '#1e2a4a' : '#F8F9FA', color: textMuted, border: `2px solid ${dark ? '#2d3561' : '#DFE6E9'}`, borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>🎯 Ganti Level</button>
+          <button onClick={onBack} style={{ flex: 1, background: darkMode ? '#1e2a4a' : '#F8F9FA', color: textMuted, border: `2px solid ${darkMode ? '#2d3561' : '#DFE6E9'}`, borderRadius: 100, padding: '13px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>🎯 Ganti Level</button>
         </div>
       </div>
       <style>{`

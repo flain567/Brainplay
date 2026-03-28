@@ -20,6 +20,14 @@ const GAME_TABS = [
   { id:'neon-dash',       emoji:'💎', label:'Neon' },
   { id:'brick-breaker',   emoji:'🧱', label:'Brick' },
   { id:'voxel-racer',    emoji:'🚗', label:'Voxel' },
+  { id:'wordle',         emoji:'💬', label:'Wordle' },
+  { id:'math-challenge', emoji:'🧮', label:'Math' },
+  { id:'number-sequence',emoji:'🔢', label:'Sequence' },
+  { id:'quiz-trivia',   emoji:'🇮🇩', label:'Trivia' },
+  { id:'binary-puzzle', emoji:'🔲', label:'Binary' },
+  { id:'sliding-puzzle',emoji:'🧩', label:'Slide' },
+  { id:'tower-hanoi',   emoji:'🗼', label:'Hanoi' },
+  { id:'minesweeper',   emoji:'💣', label:'Mines' },
 ]
 
 const DIFF_TABS = [
@@ -251,6 +259,25 @@ export default function Leaderboard({ onBack, games }) {
           overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:4px;
         }
         .lb-game-row::-webkit-scrollbar { display:none; }
+        .lb-scroll-btn {
+          position:absolute; top:0; bottom:4px; width:28px;
+          border:none; display:flex; align-items:center; justify-content:center;
+          font-size:16px; font-weight:700; color:#A29BFE; cursor:pointer;
+          z-index:2; opacity:0.9; transition:opacity 0.2s;
+        }
+        .lb-scroll-btn:hover { opacity:1; }
+        .lb-scroll-btn:active { transform:scale(0.9); }
+        .lb-scroll-btn.left {
+          left:0; border-radius:10px 0 0 10px;
+          background:linear-gradient(to right, ${bg} 40%, transparent);
+        }
+        .lb-scroll-btn.right {
+          right:0; border-radius:0 10px 10px 0;
+          background:linear-gradient(to left, ${bg} 40%, transparent);
+        }
+        .lb-swipe-hint {
+          text-align:right; font-size:10px; color:${textMuted}; margin:-10px 0 10px; opacity:0.7;
+        }
         .lb-game-tab {
           flex:0 0 auto; padding:8px 14px; border-radius:14px;
           border:2px solid ${borderCol}; background:transparent;
@@ -365,14 +392,19 @@ export default function Leaderboard({ onBack, games }) {
           )}
 
           {/* Game tabs */}
-          <div className="lb-game-row">
-            {GAME_TABS.map(g => (
-              <button key={g.id} className={`lb-game-tab ${gameTab===g.id?'active':''}`}
-                onClick={() => { play('click'); setGameTab(g.id); setScores([]) }}>
-                {g.emoji} {g.label}
-              </button>
-            ))}
+          <div style={{ position:'relative' }}>
+            <button className="lb-scroll-btn left" onClick={() => document.getElementById('lb-game-row').scrollBy({ left: -200, behavior: 'smooth' })}>‹</button>
+            <div className="lb-game-row" id="lb-game-row" style={{ padding:'0 28px' }}>
+              {GAME_TABS.map(g => (
+                <button key={g.id} className={`lb-game-tab ${gameTab===g.id?'active':''}`}
+                  onClick={() => { play('click'); setGameTab(g.id); setScores([]) }}>
+                  {g.emoji} {g.label}
+                </button>
+              ))}
+            </div>
+            <button className="lb-scroll-btn right" onClick={() => document.getElementById('lb-game-row').scrollBy({ left: 200, behavior: 'smooth' })}>›</button>
           </div>
+          <div className="lb-swipe-hint">geser untuk game lainnya ➔</div>
 
           {/* Difficulty tabs */}
           <div className="lb-diff-row">

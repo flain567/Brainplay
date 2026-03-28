@@ -5,6 +5,7 @@ import { useProgress, ACHIEVEMENTS, getLevelInfo, getBorderForLevel, getTitleCol
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCloudSave } from '../context/CloudSaveContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
+import { ADMIN_IDS } from '../config/admin.js'
 
 const CATEGORY_META = {
   milestone: { label: 'Milestone',  icon: '🎮', color: '#4ECDC4' },
@@ -34,9 +35,7 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
   const tc = useThemeColors()
   const [achFilter, setAchFilter] = useState('all')
   const dark = tc.dark
-  
-  // Admin IDs - must match App.jsx
-  const ADMIN_IDS = ['CzLx5RmjKBNpN3JqVxVY9qVwQQd2', 'QoUpY8YdDgUdRvyAOPRgA2hKzD53']
+
   const isAdmin = userId && ADMIN_IDS.includes(userId)
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)

@@ -148,6 +148,16 @@ export default function GameCard({ game, onPlay }) {
 
         {/* Top Right Badges */}
         <div className="gcard-top-right">
+          {best > 0 && (
+            <div style={{
+              background: 'rgba(253,203,110,0.35)', backdropFilter: 'blur(4px)',
+              color: '#fff', fontSize: 10, fontWeight: 800,
+              padding: '2px 8px', borderRadius: 100, border: '1px solid rgba(253,203,110,0.5)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.25)',
+            }} title="Rekor terbaik (agregat)">
+              🏆 {best >= 1000 ? `${(best / 1000).toFixed(1)}k` : best}
+            </div>
+          )}
           {wins > 0 && (
             <div style={{
               background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(4px)',

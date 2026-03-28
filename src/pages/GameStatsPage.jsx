@@ -20,6 +20,12 @@ const GAME_DATA = [
   { id: 'voxel-racer', emoji: '🚗', name: 'Voxel Racer' },
   { id: 'wordle', emoji: '💬', name: 'Wordle Indonesia' },
   { id: 'math-challenge', emoji: '🧮', name: 'Math Challenge' },
+  { id: 'number-sequence', emoji: '🔢', name: 'Number Sequence' },
+  { id: 'quiz-trivia', emoji: '🇮🇩', name: 'Quiz Trivia' },
+  { id: 'binary-puzzle', emoji: '🔲', name: 'Binary Puzzle' },
+  { id: 'sliding-puzzle', emoji: '🧩', name: 'Sliding Puzzle' },
+  { id: 'tower-hanoi', emoji: '🗼', name: 'Tower of Hanoi' },
+  { id: 'minesweeper', emoji: '💣', name: 'Minesweeper' },
 ]
 
 export default function GameStatsPage({ onBack }) {

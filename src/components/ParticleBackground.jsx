@@ -1,12 +1,13 @@
 import { useEffect, useRef } from 'react'
 
-const PARTICLE_COUNT = 35
+const PARTICLE_COUNT_DEFAULT = 35
+const PARTICLE_COUNT_REDUCE = 10
 const COLORS = ['#FF6B6B', '#A29BFE', '#4ECDC4', '#FFE66D', '#FD79A8', '#FDCB6E', '#00B894']
 const SHAPES = ['circle', 'ring', 'diamond', 'star']
 
 function randomBetween(a, b) { return a + Math.random() * (b - a) }
 
-export default function ParticleBackground({ dark = false }) {
+export default function ParticleBackground({ dark = false, reduceMotion = false }) {
   const canvasRef = useRef(null)
   const mouseRef = useRef({ x: -999, y: -999 })
   const particlesRef = useRef([])
@@ -20,6 +21,7 @@ export default function ParticleBackground({ dark = false }) {
     const resize = () => {
       canvas.width = canvas.offsetWidth * window.devicePixelRatio
       canvas.height = canvas.offsetHeight * window.devicePixelRatio
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio)
     }
     resize()
@@ -28,19 +30,20 @@ export default function ParticleBackground({ dark = false }) {
     const W = () => canvas.offsetWidth
     const H = () => canvas.offsetHeight
 
-    particlesRef.current = Array.from({ length: PARTICLE_COUNT }, () => ({
+    const n = reduceMotion ? PARTICLE_COUNT_REDUCE : PARTICLE_COUNT_DEFAULT
+    particlesRef.current = Array.from({ length: n }, () => ({
       x: randomBetween(0, W()),
       y: randomBetween(0, H()),
-      vx: randomBetween(-0.3, 0.3),
-      vy: randomBetween(-0.15, -0.4),
+      vx: randomBetween(-0.3, 0.3) * (reduceMotion ? 0.35 : 1),
+      vy: randomBetween(-0.15, -0.4) * (reduceMotion ? 0.35 : 1),
       size: randomBetween(4, 14),
       color: COLORS[Math.floor(Math.random() * COLORS.length)],
       shape: SHAPES[Math.floor(Math.random() * SHAPES.length)],
       rotation: randomBetween(0, Math.PI * 2),
-      rotSpeed: randomBetween(-0.01, 0.01),
+      rotSpeed: randomBetween(-0.01, 0.01) * (reduceMotion ? 0.4 : 1),
       opacity: randomBetween(0.08, 0.22),
       pulse: randomBetween(0, Math.PI * 2),
-      pulseSpeed: randomBetween(0.01, 0.03),
+      pulseSpeed: randomBetween(0.01, 0.03) * (reduceMotion ? 0.35 : 1),
     }))
 
     const drawShape = (p) => {
@@ -91,27 +94,25 @@ export default function ParticleBackground({ dark = false }) {
       ctx.clearRect(0, 0, w, h)
 
       particlesRef.current.forEach(p => {
-        // Mouse interaction — gentle push away
-        const dx = p.x - mouseRef.current.x
-        const dy = p.y - mouseRef.current.y
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        if (dist < 120) {
-          const force = (120 - dist) / 120 * 0.8
-          p.vx += (dx / dist) * force * 0.1
-          p.vy += (dy / dist) * force * 0.1
+        if (!reduceMotion) {
+          const dx = p.x - mouseRef.current.x
+          const dy = p.y - mouseRef.current.y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          if (dist < 120 && dist > 0.01) {
+            const force = (120 - dist) / 120 * 0.8
+            p.vx += (dx / dist) * force * 0.1
+            p.vy += (dy / dist) * force * 0.1
+          }
         }
 
-        // Dampen velocity
-        p.vx *= 0.995
-        p.vy *= 0.995
+        p.vx *= reduceMotion ? 0.99 : 0.995
+        p.vy *= reduceMotion ? 0.99 : 0.995
 
-        // Move
         p.x += p.vx
         p.y += p.vy
         p.rotation += p.rotSpeed
         p.pulse += p.pulseSpeed
 
-        // Wrap around
         if (p.y < -20) { p.y = h + 20; p.x = randomBetween(0, w) }
         if (p.y > h + 20) { p.y = -20 }
         if (p.x < -20) p.x = w + 20
@@ -156,7 +157,7 @@ export default function ParticleBackground({ dark = false }) {
       canvas.removeEventListener('touchmove', onTouch)
       canvas.removeEventListener('mouseleave', onLeave)
     }
-  }, [dark])
+  }, [dark, reduceMotion])
 
   return (
     <canvas

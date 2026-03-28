@@ -151,7 +151,7 @@ export default function MathChallenge({ onBack, game, difficulty }) {
   const { reportGameResult } = useProgress()
   const { earnCoins } = useCoins()
   const tc = useThemeColors()
-  const diff = CFG[difficulty] || CFG.easy
+  const diff = CFG[difficulty?.id] || CFG.easy
 
   // ─── State ──────────────────────────────────────────────────────────
   const [phase, setPhase] = useState('tutorial') // tutorial | ready | playing | result
@@ -176,7 +176,7 @@ export default function MathChallenge({ onBack, game, difficulty }) {
   const levelUpTimerRef = useRef(null)
 
   // ─── Best scores from localStorage ──────────────────────────────────
-  const bestKey = `math-challenge-best-${difficulty}`
+  const bestKey = `math-challenge-best-${difficulty?.id || 'easy'}`
   const [bestScore, setBestScore] = useState(() => {
     try { return parseInt(localStorage.getItem(bestKey)) || 0 } catch { return 0 }
   })
@@ -334,9 +334,8 @@ export default function MathChallenge({ onBack, game, difficulty }) {
     }
     if (coinReward > 0) earnCoins(coinReward, 'Math Challenge')
     reportGameResult({
-      gameId: 'math-challenge', difficulty,
-      score, stars, won,
-      stats: { level, totalCorrect, totalAnswered, bestStreak, accuracy: totalAnswered > 0 ? Math.round(totalCorrect/totalAnswered*100) : 0 }
+      gameId: 'math-challenge', difficultyId: difficulty?.id || 'easy',
+      score, stars, won, timeSec: 0,
     })
   }, [phase])
 
@@ -380,7 +379,7 @@ export default function MathChallenge({ onBack, game, difficulty }) {
       <TutorialModal
         steps={TUTORIAL_STEPS}
         gameName="Math Challenge"
-        onComplete={() => setPhase('ready')}
+        onClose={() => setPhase('ready')}
       />
     )
   }

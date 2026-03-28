@@ -20,11 +20,13 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 import ThemeApplicator from './components/ThemeApplicator.jsx'
 import Home from './pages/Home.jsx'
 import { migrateOldStorage } from './utils/storage.js'
+import { saveLastPlayed, getLastPlayed } from './utils/lastPlayed.js'
 import { useMusic } from './hooks/useMusic.js'
 import { preloadFirestore } from './firebase.js'
 import { preloadAnalytics, trackSessionStart, trackSessionEnd, trackScreenView, trackGameStart, trackGameComplete, trackGameDropoff, trackDailyActive, trackLimitedModeGameComplete, sendGameAnalyticsToFirestore } from './utils/analytics.js'
 import { useLocalAnalytics } from './context/LocalAnalyticsContext.jsx'
 import { initNative, setupBackButton, hideStatusBar, showStatusBar, isNative } from './utils/native.js'
+import { ADMIN_IDS } from './config/admin.js'
 
 // ─── Lazy-loaded pages (split into separate chunks) ──────────────────────────
 const Profile     = lazy(() => import('./pages/Profile.jsx'))
@@ -35,9 +37,6 @@ const AnalyticsDashboard = lazy(() => import('./pages/AnalyticsDashboard.jsx'))
 const AdminAnalyticsDashboard = lazy(() => import('./pages/AdminAnalyticsDashboard.jsx'))
 const LoginModal  = lazy(() => import('./components/LoginModal.jsx'))
 const OnboardingModal = lazy(() => import('./components/OnboardingModal.jsx'))
-
-// Admin user IDs - update with your actual admin UID
-const ADMIN_IDS = ['CzLx5RmjKBNpN3JqVxVY9qVwQQd2', 'QoUpY8YdDgUdRvyAOPRgA2hKzD53']
 
 // ─── Lazy-loaded game components (split into separate chunks) ────────────────
 const MemoryCardMatch = lazy(() => import('./pages/games/MemoryCardMatch.jsx'))
@@ -56,6 +55,12 @@ const MemoryPatternPro = lazy(() => import('./pages/games/MemoryPatternPro.jsx')
 const WordleIndonesia = lazy(() => import('./pages/games/WordleIndonesia.jsx'))
 const VoxelRacer      = lazy(() => import('./pages/games/VoxelRacer.jsx'))
 const MathChallenge   = lazy(() => import('./pages/games/MathChallenge.jsx'))
+const NumberSequence  = lazy(() => import('./pages/games/NumberSequence.jsx'))
+const QuizTrivia      = lazy(() => import('./pages/games/QuizTrivia.jsx'))
+const BinaryPuzzle    = lazy(() => import('./pages/games/BinaryPuzzle.jsx'))
+const SlidingPuzzle   = lazy(() => import('./pages/games/SlidingPuzzle.jsx'))
+const TowerOfHanoi    = lazy(() => import('./pages/games/TowerOfHanoi.jsx'))
+const MinesweeperGame = lazy(() => import('./pages/games/Minesweeper.jsx'))
 
 // ─── Game loading fallback ──────────────────────────────────────────────────
 function GameLoader() {
@@ -281,6 +286,84 @@ export const GAMES = [
       { id:'hard',   description:'7 detik per soal, 3 nyawa, mulai Level 2, target Level 12 — extreme!',  stats:['7s/soal','3 nyawa','Target Lv12'] },
     ],
   },
+  {
+    id: 'number-sequence',
+    title: 'Number Sequence',
+    emoji: '🔢',
+    description: 'Temukan pola dalam deret angka! Dari aritmatika sederhana hingga fibonacci dan kuadrat.',
+    color: '#E17055', bg: '#FFF3F0', tag: 'Logika',
+    component: NumberSequence, day: 17,
+    difficulties: [
+      { id:'easy',   description:'20 detik, 5 nyawa, 5 angka — pola sederhana',           stats:['20s/soal','5 nyawa','Target Lv7'] },
+      { id:'medium', description:'15 detik, 4 nyawa, 5 angka — pola lebih kompleks',       stats:['15s/soal','4 nyawa','Target Lv9'] },
+      { id:'hard',   description:'10 detik, 3 nyawa, 6 angka — master pola!',              stats:['10s/soal','3 nyawa','Target Lv11'] },
+    ],
+  },
+  {
+    id: 'quiz-trivia',
+    title: 'Quiz Trivia Indonesia',
+    emoji: '🇮🇩',
+    description: 'Uji pengetahuan umummu tentang Indonesia! Geografi, sejarah, budaya, makanan, dan alam.',
+    color: '#0984E3', bg: '#E8F4FD', tag: 'Pengetahuan',
+    component: QuizTrivia, day: 18,
+    difficulties: [
+      { id:'easy',   description:'15 soal, 20 detik, 5 nyawa — santai untuk pemula',       stats:['15 soal','20s','5 nyawa'] },
+      { id:'medium', description:'20 soal, 15 detik, 4 nyawa — butuh pengetahuan luas!',   stats:['20 soal','15s','4 nyawa'] },
+      { id:'hard',   description:'25 soal, 10 detik, 3 nyawa — ahli Indonesia!',           stats:['25 soal','10s','3 nyawa'] },
+    ],
+  },
+  {
+    id: 'binary-puzzle',
+    title: 'Binary Puzzle',
+    emoji: '🔲',
+    description: 'Isi grid dengan 0 dan 1 mengikuti aturan logika! Mirip Sudoku tapi hanya dua angka.',
+    color: '#00B894', bg: '#E8FFF8', tag: 'Logika',
+    component: BinaryPuzzle, day: 19,
+    difficulties: [
+      { id:'easy',   description:'Grid 6×6, banyak petunjuk — logika dasar',               stats:['6×6','14 terisi'] },
+      { id:'medium', description:'Grid 8×8, lebih sedikit petunjuk — perlu deduksi',        stats:['8×8','20 terisi'] },
+      { id:'hard',   description:'Grid 10×10, minimal petunjuk — master logika!',           stats:['10×10','28 terisi'] },
+    ],
+  },
+  {
+    id: 'sliding-puzzle',
+    title: 'Sliding Puzzle',
+    emoji: '🧩',
+    description: 'Geser tile angka untuk menyusun urutan yang benar! Semakin besar grid, semakin menantang.',
+    color: '#E84393', bg: '#FFF0F8', tag: 'Puzzle',
+    component: SlidingPuzzle, day: 20,
+    difficulties: [
+      { id:'easy',   description:'Grid 3×3, 8 tile — cocok untuk pemanasan',               stats:['3×3','8 tile'] },
+      { id:'medium', description:'Grid 4×4, 15 tile — butuh strategi!',                    stats:['4×4','15 tile'] },
+      { id:'hard',   description:'Grid 5×5, 24 tile — tantangan extreme!',                 stats:['5×5','24 tile'] },
+    ],
+  },
+  {
+    id: 'tower-hanoi',
+    title: 'Tower of Hanoi',
+    emoji: '🗼',
+    description: 'Pindahkan semua disk ke tiang kanan! Disk besar tidak boleh di atas yang kecil.',
+    color: '#F39C12', bg: '#FFF8E1', tag: 'Logika',
+    component: TowerOfHanoi, day: 21,
+    difficulties: [
+      { id:'easy',   description:'Mulai 3 disk → 5 disk, 3 level',                        stats:['3→5 disk','3 level'] },
+      { id:'medium', description:'Mulai 4 disk → 7 disk, 4 level',                        stats:['4→7 disk','4 level'] },
+      { id:'hard',   description:'Mulai 5 disk → 8 disk, 4 level — master!',              stats:['5→8 disk','4 level'] },
+    ],
+  },
+  {
+    id: 'minesweeper',
+    title: 'Minesweeper',
+    emoji: '💣',
+    description: 'Buka semua kotak tanpa kena bom! Gunakan angka dan logika untuk menghindari bom.',
+    color: '#636E72', bg: '#F0F0F5', tag: 'Logika',
+    component: MinesweeperGame, day: 22,
+    difficulties: [
+      { id:'easy',   description:'9×9 grid, 10 bom — untuk pemula',                       stats:['9×9','10 bom'] },
+      { id:'medium', description:'12×10 grid, 25 bom — butuh logika!',                    stats:['12×10','25 bom'] },
+      { id:'hard',   description:'14×12 grid, 45 bom — hanya ahli!',                      stats:['14×12','45 bom'] },
+    ],
+  },
 ]
 
 function AppInner() {
@@ -412,11 +495,25 @@ function AppInner() {
     setScreen('difficulty')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+  const continueLastSession = () => {
+    const lp = getLastPlayed()
+    if (!lp) return
+    const g = GAMES.find(x => x.id === lp.gameId)
+    if (!g || !g.difficulties?.some(d => d.id === lp.difficultyId)) return
+    setCurrentGame(g)
+    setDifficulty(lp.difficultyId)
+    setScreen('game')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    trackGameStart(g.id, lp.difficultyId)
+  }
   const selectDifficulty = (diffId) => {
     setDifficulty(diffId)
     setScreen('game')
     window.scrollTo({ top: 0 })
-    if (currentGame) trackGameStart(currentGame.id, diffId)
+    if (currentGame) {
+      saveLastPlayed(currentGame.id, diffId)
+      trackGameStart(currentGame.id, diffId)
+    }
   }
   const goHome            = () => {
     // Track dropoff if leaving a game
@@ -484,7 +581,7 @@ function AppInner() {
       <main style={{ flex:1 }}>
         <PageTransition pageKey={`${screen}-${currentGame?.id}-${difficulty}`}>
           {screen === 'home' && (
-            <Home games={GAMES} onPlay={openGame} onProfile={goProfile} onShop={goShop} onStats={goStats} />
+            <Home games={GAMES} onPlay={openGame} onContinueLast={continueLastSession} onProfile={goProfile} onShop={goShop} onStats={goStats} />
           )}
           {screen === 'profile' && (
             <Suspense fallback={<GameLoader />}>
@@ -524,7 +621,7 @@ function AppInner() {
           {screen === 'admin' && !isAdmin && (
             <div style={{ padding: '20px', textAlign: 'center', color: '#A29BFE' }}>
               <h1>❌ Access Denied</h1>
-              <p>You don't have permission to view admin analytics</p>
+              <p>You do not have permission to view admin analytics</p>
               <button onClick={goHome} style={{ marginTop: '20px', padding: '10px 20px', background: '#A29BFE', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
                 Back to Home
               </button>

@@ -1,0 +1,338 @@
+import TutorialModal from '../../components/TutorialModal.jsx'
+import Confetti from '../../components/Confetti.jsx'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSettings } from '../../context/SettingsContext.jsx'
+import { useSound } from '../../hooks/useSound.js'
+import { useProgress } from '../../context/ProgressContext.jsx'
+import { useCoins } from '../../context/CoinContext.jsx'
+import { useThemeColors } from '../../hooks/useThemeColors.js'
+
+const TUTORIAL_STEPS = [
+  { emoji:'🇮🇩', title:'Quiz Trivia Indonesia', desc:'Uji pengetahuan umummu tentang Indonesia! Geografi, sejarah, budaya, dan lainnya.', tip:'Jawab secepat mungkin untuk bonus waktu!' },
+  { emoji:'📚', title:'Kategori Beragam', desc:'Pertanyaan dari berbagai topik — ibukota, sejarah, makanan, tradisi, alam, dan sains.', tip:'Setiap level menambah kesulitan soal!' },
+  { emoji:'🏆', title:'Skor & Nyawa', desc:'Jawaban benar = poin + bonus waktu. Salah = kehilangan nyawa. Capai target untuk menang!', tip:'Combo streak memberi multiplier hingga 3×!' },
+]
+
+const CFG = {
+  easy:   { timePerQ: 20, lives: 5, totalQ: 15 },
+  medium: { timePerQ: 15, lives: 4, totalQ: 20 },
+  hard:   { timePerQ: 10, lives: 3, totalQ: 25 },
+}
+
+// ─── Question Bank ────────────────────────────────────────────────────────
+const QUESTIONS = [
+  // Geografi
+  { q:'Ibukota provinsi Jawa Barat adalah?', o:['Bandung','Semarang','Surabaya','Serang'], a:0, cat:'🌍' },
+  { q:'Gunung tertinggi di Indonesia adalah?', o:['Puncak Jaya','Gunung Semeru','Gunung Rinjani','Gunung Kerinci'], a:0, cat:'🏔️' },
+  { q:'Pulau terbesar di Indonesia adalah?', o:['Kalimantan','Sumatra','Papua','Sulawesi'], a:0, cat:'🌍' },
+  { q:'Danau terbesar di Indonesia adalah?', o:['Danau Toba','Danau Sentani','Danau Maninjau','Danau Singkarak'], a:0, cat:'🌊' },
+  { q:'Provinsi paling barat Indonesia adalah?', o:['Aceh','Sumatra Barat','Riau','Bengkulu'], a:0, cat:'🌍' },
+  { q:'Ibukota provinsi Sulawesi Selatan?', o:['Makassar','Manado','Palu','Kendari'], a:0, cat:'🌍' },
+  { q:'Sungai terpanjang di Indonesia ada di pulau?', o:['Kalimantan','Sumatra','Papua','Jawa'], a:0, cat:'🌊' },
+  { q:'Provinsi dengan jumlah pulau terbanyak?', o:['Maluku','Papua','NTT','Kepulauan Riau'], a:0, cat:'🌍' },
+  { q:'Gunung Bromo terletak di provinsi?', o:['Jawa Timur','Jawa Tengah','Jawa Barat','Bali'], a:0, cat:'🏔️' },
+  { q:'Ibukota provinsi Bali?', o:['Denpasar','Singaraja','Ubud','Tabanan'], a:0, cat:'🌍' },
+  // Sejarah
+  { q:'Indonesia merdeka pada tanggal?', o:['17 Agustus 1945','17 Agustus 1950','1 Juni 1945','10 November 1945'], a:0, cat:'📜' },
+  { q:'Presiden pertama Indonesia adalah?', o:['Soekarno','Soeharto','B.J. Habibie','Megawati'], a:0, cat:'📜' },
+  { q:'Peristiwa Bandung Lautan Api terjadi tahun?', o:['1946','1945','1947','1948'], a:0, cat:'📜' },
+  { q:'Hari Sumpah Pemuda diperingati tanggal?', o:['28 Oktober','17 Agustus','1 Juni','10 November'], a:0, cat:'📜' },
+  { q:'Siapa tokoh penggagas Pancasila?', o:['Soekarno','Mohammad Hatta','Soepomo','M. Yamin'], a:0, cat:'📜' },
+  { q:'Konferensi Asia-Afrika berlangsung di?', o:['Bandung','Jakarta','Surabaya','Yogyakarta'], a:0, cat:'📜' },
+  { q:'Hari Pahlawan diperingati tanggal?', o:['10 November','28 Oktober','1 Juni','17 Agustus'], a:0, cat:'📜' },
+  { q:'Siapa proklamator selain Soekarno?', o:['Mohammad Hatta','Sutan Sjahrir','Soepomo','Ki Hajar Dewantara'], a:0, cat:'📜' },
+  // Budaya & Tradisi
+  { q:'Tarian Kecak berasal dari?', o:['Bali','Jawa','Sumatra','Sulawesi'], a:0, cat:'💃' },
+  { q:'Batik Indonesia diakui UNESCO tahun?', o:['2009','2010','2008','2011'], a:0, cat:'🎨' },
+  { q:'Alat musik Angklung berasal dari?', o:['Jawa Barat','Jawa Tengah','Bali','Sumatra Barat'], a:0, cat:'🎵' },
+  { q:'Wayang kulit paling terkenal dari daerah?', o:['Jawa','Bali','Sumatra','Kalimantan'], a:0, cat:'🎭' },
+  { q:'Lagu "Indonesia Raya" diciptakan oleh?', o:['W.R. Supratman','Ismail Marzuki','Kusbini','C. Simanjuntak'], a:0, cat:'🎵' },
+  { q:'Rumah adat Gadang berasal dari?', o:['Sumatra Barat','Sumatra Utara','Riau','Aceh'], a:0, cat:'🏠' },
+  { q:'Tari Saman berasal dari provinsi?', o:['Aceh','Sumatra Utara','Jawa','Bali'], a:0, cat:'💃' },
+  { q:'Reog Ponorogo berasal dari?', o:['Jawa Timur','Jawa Tengah','Jawa Barat','Bali'], a:0, cat:'🎭' },
+  // Makanan
+  { q:'Rendang berasal dari daerah?', o:['Sumatra Barat','Jawa','Bali','Sulawesi'], a:0, cat:'🍛' },
+  { q:'Gudeg adalah makanan khas?', o:['Yogyakarta','Solo','Semarang','Malang'], a:0, cat:'🍛' },
+  { q:'Papeda adalah makanan khas?', o:['Papua','Maluku','NTT','Sulawesi'], a:0, cat:'🍛' },
+  { q:'Pempek berasal dari?', o:['Palembang','Lampung','Bengkulu','Jambi'], a:0, cat:'🍛' },
+  { q:'Soto Betawi berasal dari?', o:['Jakarta','Bandung','Surabaya','Semarang'], a:0, cat:'🍛' },
+  { q:'Kerak Telor adalah makanan khas?', o:['Betawi/Jakarta','Bandung','Semarang','Surabaya'], a:0, cat:'🍛' },
+  // Alam & Sains
+  { q:'Komodo hanya ditemukan di?', o:['NTT','Bali','Jawa','Sulawesi'], a:0, cat:'🦎' },
+  { q:'Rafflesia Arnoldii paling banyak di?', o:['Bengkulu','Aceh','Papua','Kalimantan'], a:0, cat:'🌺' },
+  { q:'Orangutan Kalimantan termasuk hewan?', o:['Dilindungi/langka','Biasa','Invasif','Peliharaan'], a:0, cat:'🐵' },
+  { q:'Candi Borobudur terletak di provinsi?', o:['Jawa Tengah','Jawa Timur','DIY','Jawa Barat'], a:0, cat:'🏛️' },
+  { q:'Indonesia terletak di garis?', o:['Khatulistiwa','Balik utara','Balik selatan','Kutub'], a:0, cat:'🌍' },
+  { q:'Berapa jumlah provinsi Indonesia (2024)?', o:['38','34','36','40'], a:0, cat:'🌍' },
+  { q:'Mata uang Indonesia adalah?', o:['Rupiah','Ringgit','Baht','Peso'], a:0, cat:'💰' },
+  { q:'Hari Kartini diperingati tanggal?', o:['21 April','17 Agustus','1 Juni','2 Mei'], a:0, cat:'📜' },
+  // Harder
+  { q:'Selat antara Jawa dan Sumatra?', o:['Selat Sunda','Selat Malaka','Selat Bali','Selat Lombok'], a:0, cat:'🌊' },
+  { q:'Taman Nasional Ujung Kulon melindungi?', o:['Badak Jawa','Harimau Sumatra','Orangutan','Komodo'], a:0, cat:'🦏' },
+  { q:'Bahasa daerah terbanyak penuturnya?', o:['Jawa','Sunda','Melayu','Batak'], a:0, cat:'📚' },
+  { q:'Ibukota baru Indonesia bernama?', o:['Nusantara','Palangkaraya','Balikpapan','Samarinda'], a:0, cat:'🌍' },
+  { q:'Candi Prambanan adalah candi agama?', o:['Hindu','Buddha','Islam','Konghucu'], a:0, cat:'🏛️' },
+  { q:'Raja Ampat terletak di provinsi?', o:['Papua Barat Daya','Papua','Maluku','NTT'], a:0, cat:'🌊' },
+  { q:'Gunung Krakatau terletak di?', o:['Selat Sunda','Selat Bali','Selat Lombok','Selat Malaka'], a:0, cat:'🏔️' },
+  { q:'Presiden ke-3 Indonesia?', o:['B.J. Habibie','Megawati','Gus Dur','SBY'], a:0, cat:'📜' },
+  { q:'Taman Laut Bunaken ada di?', o:['Sulawesi Utara','Maluku','NTT','Papua'], a:0, cat:'🌊' },
+  { q:'Filosofi Pancasila sila ke-3?', o:['Persatuan Indonesia','Keadilan Sosial','Kemanusiaan','Ketuhanan'], a:0, cat:'📜' },
+]
+
+function shuffleArray(arr) {
+  const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]] }; return a
+}
+
+function prepareQuestions(count) {
+  const shuffled = shuffleArray(QUESTIONS)
+  return shuffled.slice(0, count).map(q => {
+    // Shuffle options but track correct answer
+    const correctText = q.o[q.a]
+    const shuffledOpts = shuffleArray(q.o)
+    return { ...q, o: shuffledOpts, a: shuffledOpts.indexOf(correctText) }
+  })
+}
+
+function getComboMulti(s) { return s >= 10 ? 3 : s >= 5 ? 2 : s >= 3 ? 1.5 : 1 }
+function getComboLabel(s) { return s >= 10 ? '🔥 UNSTOPPABLE ×3' : s >= 5 ? '⚡ ON FIRE ×2' : s >= 3 ? '✨ COMBO ×1.5' : '' }
+function getComboColor(s) { return s >= 10 ? '#FF3838' : s >= 5 ? '#E17055' : s >= 3 ? '#FDCB6E' : '#888' }
+
+export default function QuizTrivia({ onBack, game, difficulty }) {
+  const { play } = useSound()
+  const { reportGameResult } = useProgress()
+  const { earnCoins } = useCoins()
+  const tc = useThemeColors()
+  const diff = CFG[difficulty?.id] || CFG.easy
+
+  const [phase, setPhase] = useState('tutorial')
+  const [questions, setQuestions] = useState([])
+  const [qIndex, setQIndex] = useState(0)
+  const [lives, setLives] = useState(diff.lives)
+  const [score, setScore] = useState(0)
+  const [streak, setStreak] = useState(0)
+  const [bestStreak, setBestStreak] = useState(0)
+  const [totalCorrect, setTotalCorrect] = useState(0)
+  const [timeLeft, setTimeLeft] = useState(diff.timePerQ)
+  const [feedback, setFeedback] = useState(null)
+  const [selectedAnswer, setSelectedAnswer] = useState(null)
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [gameOverReason, setGameOverReason] = useState('')
+  const timerRef = useRef(null)
+  const fbRef = useRef(null)
+
+  const bestKey = `quiz-trivia-best-${difficulty?.id || 'easy'}`
+  const [bestScore, setBestScore] = useState(() => { try { return parseInt(localStorage.getItem(bestKey)) || 0 } catch { return 0 } })
+
+  useEffect(() => () => { clearInterval(timerRef.current); clearTimeout(fbRef.current) }, [])
+
+  const startTimer = useCallback((q) => {
+    clearInterval(timerRef.current)
+    setTimeLeft(diff.timePerQ)
+    const start = Date.now()
+    timerRef.current = setInterval(() => {
+      const rem = diff.timePerQ - (Date.now() - start) / 1000
+      if (rem <= 0) { clearInterval(timerRef.current); setTimeLeft(0); handleWrong(q, true) }
+      else setTimeLeft(rem)
+    }, 50)
+  }, [diff.timePerQ])
+
+  const handleWrong = useCallback((q, timeout = false) => {
+    clearInterval(timerRef.current); play('error')
+    setFeedback({ type: timeout ? 'timeout' : 'wrong', answer: q.o[q.a] }); setStreak(0)
+    setLives(p => {
+      const n = p - 1
+      if (n <= 0) fbRef.current = setTimeout(() => endGame('lives'), 1200)
+      else fbRef.current = setTimeout(() => advance(), 1200)
+      return n
+    })
+  }, [play])
+
+  const advance = useCallback(() => {
+    setQIndex(i => {
+      const next = i + 1
+      if (next >= questions.length) { endGame('complete'); return i }
+      setFeedback(null); setSelectedAnswer(null)
+      setTimeout(() => startTimer(questions[next]), 50)
+      return next
+    })
+  }, [questions, startTimer])
+
+  const handleAnswer = useCallback((idx) => {
+    if (feedback || selectedAnswer !== null) return
+    clearInterval(timerRef.current); setSelectedAnswer(idx)
+    const q = questions[qIndex]
+    if (idx === q.a) {
+      play('success'); const ns = streak + 1; const m = getComboMulti(ns)
+      const pts = Math.round((200 + Math.round(timeLeft * 15)) * m)
+      setStreak(ns); setBestStreak(p => Math.max(p, ns)); setScore(p => p + pts); setTotalCorrect(p => p + 1)
+      setFeedback({ type: 'correct', points: pts, multi: m })
+      fbRef.current = setTimeout(() => advance(), 800)
+    } else handleWrong(q)
+  }, [feedback, selectedAnswer, questions, qIndex, streak, timeLeft, play, advance, handleWrong])
+
+  const endGame = useCallback((reason) => {
+    clearInterval(timerRef.current); clearTimeout(fbRef.current)
+    setGameOverReason(reason); setPhase('result')
+    if (reason === 'complete') { setShowConfetti(true); play('win') } else play('gameOver')
+  }, [play])
+
+  const won = gameOverReason === 'complete'
+  const answered = qIndex + (phase === 'result' ? 0 : 0)
+  const accuracy = (qIndex > 0 || phase === 'result') ? Math.round(totalCorrect / Math.max(qIndex + (won ? 1 : 0), 1) * 100) : 0
+  const stars = won ? (lives >= diff.lives ? 3 : lives >= Math.ceil(diff.lives / 2) ? 2 : 1) : 0
+  const coinReward = won ? Math.floor(score / 50) + stars * 5 : Math.floor(score / 100)
+  const isNewBest = score > bestScore
+
+  useEffect(() => {
+    if (phase !== 'result') return
+    if (isNewBest) { localStorage.setItem(bestKey, score.toString()); setBestScore(score) }
+    if (coinReward > 0) earnCoins(coinReward, 'Quiz Trivia')
+    reportGameResult({ gameId: 'quiz-trivia', difficultyId: difficulty?.id || 'easy', score, stars, won, timeSec: 0 })
+  }, [phase])
+
+  const startGame = useCallback(() => {
+    const qs = prepareQuestions(diff.totalQ)
+    setQuestions(qs); setQIndex(0); setLives(diff.lives); setScore(0); setStreak(0); setBestStreak(0)
+    setTotalCorrect(0); setFeedback(null); setSelectedAnswer(null); setShowConfetti(false); setGameOverReason('')
+    setPhase('playing')
+    setTimeout(() => startTimer(qs[0]), 100)
+  }, [diff, startTimer])
+
+  const accent = '#0984E3'; const accentLight = '#74B9FF'
+  const bg = tc.bg; const surface = tc.surface; const textMain = tc.text; const textMuted = tc.muted
+  const timerPct = (timeLeft / diff.timePerQ) * 100
+  const timerColor = timerPct > 50 ? '#00B894' : timerPct > 25 ? '#FDCB6E' : '#FF6B6B'
+
+  if (phase === 'tutorial') return <TutorialModal steps={TUTORIAL_STEPS} onClose={() => setPhase('ready')} />
+
+  if (phase === 'ready') return (
+    <div style={{ minHeight:'100dvh', background:bg, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:20 }}>
+      <div style={{ textAlign:'center', maxWidth:400 }}>
+        <div style={{ fontSize:72, marginBottom:12 }}>🇮🇩</div>
+        <h1 style={{ fontFamily:"'Fredoka One',cursive", color:accent, fontSize:26, margin:'0 0 8px' }}>Quiz Trivia Indonesia</h1>
+        <p style={{ color:textMuted, fontSize:14, marginBottom:24, lineHeight:1.5 }}>Uji pengetahuan umummu!<br/>{diff.totalQ} pertanyaan, {diff.lives} nyawa.</p>
+        <div style={{ display:'flex', gap:16, justifyContent:'center', marginBottom:24, flexWrap:'wrap' }}>
+          <div style={{ background:surface, borderRadius:12, padding:'12px 20px', textAlign:'center' }}>
+            <div style={{ fontSize:20, fontWeight:700, color:accent }}>{diff.totalQ}</div>
+            <div style={{ fontSize:11, color:textMuted }}>soal</div>
+          </div>
+          <div style={{ background:surface, borderRadius:12, padding:'12px 20px', textAlign:'center' }}>
+            <div style={{ fontSize:20, fontWeight:700, color:'#FF6B6B' }}>{'❤️'.repeat(diff.lives)}</div>
+            <div style={{ fontSize:11, color:textMuted }}>{diff.lives} nyawa</div>
+          </div>
+          <div style={{ background:surface, borderRadius:12, padding:'12px 20px', textAlign:'center' }}>
+            <div style={{ fontSize:20, fontWeight:700, color:'#FDCB6E' }}>{diff.timePerQ}s</div>
+            <div style={{ fontSize:11, color:textMuted }}>per soal</div>
+          </div>
+        </div>
+        {bestScore > 0 && <div style={{ color:textMuted, fontSize:13, marginBottom:16 }}>🏆 Best: {bestScore.toLocaleString()}</div>}
+        <button onClick={startGame} style={{ fontFamily:"'Fredoka One',cursive", fontSize:18, padding:'14px 48px', background:`linear-gradient(135deg,${accent},${accentLight})`, color:'#fff', border:'none', borderRadius:14, cursor:'pointer' }}>MULAI! 🚀</button>
+        <div style={{ marginTop:16 }}><button onClick={onBack} style={{ background:'none', border:'none', color:textMuted, cursor:'pointer', fontSize:14 }}>← Kembali</button></div>
+      </div>
+    </div>
+  )
+
+  if (phase === 'result') return (
+    <div style={{ minHeight:'100dvh', background:bg, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:20 }}>
+      {showConfetti && <Confetti />}
+      <div style={{ textAlign:'center', maxWidth:420, width:'100%' }}>
+        <div style={{ fontSize:64, marginBottom:8 }}>{won ? '🎉' : '💔'}</div>
+        <h1 style={{ fontFamily:"'Fredoka One',cursive", color:won?'#00B894':'#FF6B6B', fontSize:26, margin:'0 0 4px' }}>{won ? 'SELAMAT!' : 'GAME OVER'}</h1>
+        <p style={{ color:textMuted, fontSize:14, marginBottom:20 }}>{won ? 'Kamu ahli trivia Indonesia!' : `Sampai soal ${qIndex + 1}/${diff.totalQ}`}</p>
+        {isNewBest && <div style={{ background:'linear-gradient(135deg,#FFD700,#FFA500)', color:'#fff', borderRadius:12, padding:'8px 16px', fontSize:14, fontWeight:700, marginBottom:16, display:'inline-block' }}>🏆 SKOR BARU TERBAIK!</div>}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:20, background:surface, borderRadius:16, padding:16 }}>
+          {[{ l:'Skor',v:score.toLocaleString(),i:'🎯'},{ l:'Benar',v:`${totalCorrect}/${won ? diff.totalQ : qIndex+1}`,i:'✅'},{ l:'Akurasi',v:`${accuracy}%`,i:'📊'},{ l:'Best Streak',v:bestStreak,i:'🔥'},{ l:'Koin',v:`+${coinReward}`,i:'🪙'},{ l:'Nyawa',v:`${lives}/${diff.lives}`,i:'❤️'}].map((s,i) => (
+            <div key={i} style={{ textAlign:'center', padding:8 }}><div style={{ fontSize:20 }}>{s.i}</div><div style={{ fontSize:18, fontWeight:700, color:textMain }}>{s.v}</div><div style={{ fontSize:11, color:textMuted }}>{s.l}</div></div>
+          ))}
+        </div>
+        {won && <div style={{ fontSize:32, marginBottom:16 }}>{[1,2,3].map(s=><span key={s} style={{opacity:s<=stars?1:0.2}}>⭐</span>)}</div>}
+        <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap' }}>
+          <button onClick={() => setPhase('ready')} style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, padding:'12px 32px', background:`linear-gradient(135deg,${accent},${accentLight})`, color:'#fff', border:'none', borderRadius:12, cursor:'pointer' }}>Main Lagi 🔄</button>
+          <button onClick={onBack} style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, padding:'12px 32px', background:surface, color:textMain, border:`2px solid ${tc.border}`, borderRadius:12, cursor:'pointer' }}>Kembali</button>
+        </div>
+      </div>
+    </div>
+  )
+
+  // ─── Playing ────────────────────────────────────────────────────────────
+  const q = questions[qIndex]
+  if (!q) return null
+  const comboLabel = getComboLabel(streak)
+  const progPct = ((qIndex) / diff.totalQ) * 100
+
+  return (
+    <div style={{ minHeight:'100dvh', background:bg, display:'flex', flexDirection:'column' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', gap:8 }}>
+        <button onClick={onBack} style={{ background:'none', border:'none', color:textMuted, fontSize:20, cursor:'pointer' }}>←</button>
+        <div style={{ display:'flex', gap:4 }}>{Array.from({ length: diff.lives }, (_, i) => <span key={i} style={{ fontSize:18, opacity:i<lives?1:0.2 }}>❤️</span>)}</div>
+        <div style={{ fontFamily:"'Fredoka One',cursive", color:accent, fontSize:16 }}>{score.toLocaleString()}</div>
+      </div>
+
+      {/* Timer */}
+      <div style={{ height:6, background:surface, margin:'0 16px', borderRadius:3, overflow:'hidden' }}>
+        <div style={{ height:'100%', width:`${timerPct}%`, background:timerColor, borderRadius:3, transition:feedback?'none':'width 0.1s linear' }} />
+      </div>
+
+      {/* Progress */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 16px 4px' }}>
+        <div style={{ fontSize:13, color:textMuted }}>Soal <span style={{ fontWeight:700, color:accent }}>{qIndex + 1}</span>/{diff.totalQ}</div>
+        <div style={{ fontSize:12, color:textMuted }}>{q.cat}</div>
+      </div>
+      <div style={{ height:4, background:surface, margin:'0 16px 8px', borderRadius:2, overflow:'hidden' }}>
+        <div style={{ height:'100%', width:`${progPct}%`, background:accentLight, borderRadius:2, transition:'width 0.3s' }} />
+      </div>
+
+      {/* Combo */}
+      <div style={{ textAlign:'center', height:24, display:'flex', alignItems:'center', justifyContent:'center' }}>
+        {comboLabel && <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:15, color:getComboColor(streak), animation:'qtPulse 0.6s ease infinite alternate' }}>{comboLabel}</div>}
+        {streak > 0 && streak < 3 && <div style={{ fontSize:13, color:textMuted }}>🔥 Streak: {streak}</div>}
+      </div>
+
+      <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'0 20px', gap:16 }}>
+        {/* Question */}
+        <div style={{ background:surface, borderRadius:20, padding:'24px 20px', width:'100%', maxWidth:420, textAlign:'center',
+          border: feedback?.type==='correct'?'2px solid #00B894' : feedback?.type==='wrong'||feedback?.type==='timeout'?'2px solid #FF6B6B' : `2px solid ${tc.border}`,
+          animation: feedback?.type==='wrong'||feedback?.type==='timeout'?'qtShake 0.4s ease' : feedback?.type==='correct'?'qtPop 0.3s ease' : 'none',
+        }}>
+          <div style={{ fontSize:32, marginBottom:8 }}>{q.cat}</div>
+          <div style={{ fontFamily:"'Nunito',sans-serif", fontSize:16, fontWeight:700, color:textMain, lineHeight:1.5 }}>{q.q}</div>
+        </div>
+
+        {/* Feedback */}
+        {feedback && (
+          <div style={{ textAlign:'center', animation:'qtFade 0.3s ease' }}>
+            {feedback.type === 'correct' && <div style={{ color:'#00B894', fontWeight:700, fontSize:16 }}>✓ Benar! +{feedback.points} {feedback.multi > 1 ? `(×${feedback.multi})` : ''}</div>}
+            {feedback.type === 'wrong' && <div style={{ color:'#FF6B6B', fontWeight:700, fontSize:16 }}>✗ Salah! Jawaban: {feedback.answer}</div>}
+            {feedback.type === 'timeout' && <div style={{ color:'#FF6B6B', fontWeight:700, fontSize:16 }}>⏰ Waktu habis! Jawaban: {feedback.answer}</div>}
+          </div>
+        )}
+
+        {/* Options */}
+        <div style={{ display:'flex', flexDirection:'column', gap:10, width:'100%', maxWidth:420 }}>
+          {q.o.map((opt, i) => {
+            const isSel = selectedAnswer === i; const isAns = i === q.a
+            let btnBg = surface, btnColor = textMain, btnBorder = tc.border
+            if (feedback) {
+              if (isAns) { btnBg = '#00B894'; btnColor = '#fff'; btnBorder = '#00B894' }
+              else if (isSel) { btnBg = '#FF6B6B'; btnColor = '#fff'; btnBorder = '#FF6B6B' }
+              else { btnColor = textMuted }
+            }
+            return (
+              <button key={i} onClick={() => handleAnswer(i)} disabled={!!feedback}
+                style={{ fontFamily:"'Nunito',sans-serif", fontSize:15, fontWeight:700, padding:'14px 16px', background:btnBg, color:btnColor, border:`2px solid ${btnBorder}`, borderRadius:14, cursor:feedback?'default':'pointer', transition:'all 0.15s', opacity:feedback&&!isAns&&!isSel?0.5:1, textAlign:'left' }}>
+                <span style={{ marginRight:8, opacity:0.6 }}>{String.fromCharCode(65+i)}.</span> {opt}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes qtShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+        @keyframes qtPop { 0%{transform:scale(1)} 50%{transform:scale(1.03)} 100%{transform:scale(1)} }
+        @keyframes qtPulse { from{transform:scale(1)} to{transform:scale(1.08)} }
+        @keyframes qtFade { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+      `}</style>
+    </div>
+  )
+}

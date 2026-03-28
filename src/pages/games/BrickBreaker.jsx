@@ -553,7 +553,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
         case 'magnet':
           g.effects.magnet = Date.now() + pu.duration
           break
-        case 'multi':
+        case 'multi': {
           // Add 2 extra balls
           const mainBall = g.balls[0]
           if (mainBall) {
@@ -567,6 +567,7 @@ export default function BrickBreaker({ onBack, game, difficulty }) {
             }
           }
           break
+        }
         case 'life':
           g.lives = Math.min(g.lives + 1, cfg.lives + 2)
           setLives(g.lives)

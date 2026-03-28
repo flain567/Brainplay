@@ -141,6 +141,12 @@ const MAX_SCORES = {
   'voxel-racer':   15000,
   'wordle':        1500,
   'math-challenge':50000,
+  'number-sequence':50000,
+  'quiz-trivia':    20000,
+  'binary-puzzle':  5000,
+  'sliding-puzzle': 10000,
+  'tower-hanoi':    15000,
+  'minesweeper':    10000,
 }
 
 // Rate limiter: 1 submit per 5 seconds per game

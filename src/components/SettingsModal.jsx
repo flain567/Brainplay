@@ -5,7 +5,7 @@ import { useNotifications, requestNotifPermission } from './NotificationManager.
 import { useEffect } from 'react'
 
 export default function SettingsModal({ onClose }) {
-  const { darkMode, muted, musicOff, notifEnabled, hapticsEnabled, toggle } = useSettings()
+  const { darkMode, muted, musicOff, notifEnabled, hapticsEnabled, reduceMotion, toggle } = useSettings()
   const { play } = useSound()
   const tc = useThemeColors()
   
@@ -144,6 +144,18 @@ export default function SettingsModal({ onClose }) {
                   </div>
                 </div>
                 <button className={`set-switch ${darkMode ? 'on' : 'off'}`} onClick={() => { play('toggle'); toggle.darkMode() }}>
+                  <div className="set-knob" />
+                </button>
+              </div>
+              <div className="settings-row">
+                <div className="settings-label">
+                  <span>🎬</span>
+                  <div className="settings-label-text">
+                    <h4>Kurangi animasi</h4>
+                    <p>Partikel &amp; gerakan lebih tenang (juga mengikuti pengaturan sistem)</p>
+                  </div>
+                </div>
+                <button className={`set-switch ${reduceMotion ? 'on' : 'off'}`} onClick={() => { play('toggle'); toggle.reduceMotion() }}>
                   <div className="set-knob" />
                 </button>
               </div>
