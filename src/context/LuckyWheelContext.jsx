@@ -62,9 +62,12 @@ const WHEEL_ROTATION = [
 ]
 
 function getWeekOfYear() {
+  // ISO week: Senin = hari pertama minggu
   const now = new Date()
-  const start = new Date(now.getFullYear(), 0, 1)
-  return Math.floor((now - start) / (7 * 24 * 60 * 60 * 1000))
+  const jan4 = new Date(now.getFullYear(), 0, 4) // Jan 4 is always in ISO week 1
+  const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 1)) / 86400000) + 1
+  const dayOfWeek = now.getDay() || 7 // Mon=1 ... Sun=7
+  return Math.floor((dayOfYear - dayOfWeek + 10) / 7)
 }
 
 export function getCurrentWeekGames() {

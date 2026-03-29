@@ -4,6 +4,7 @@ import { useSound } from '../hooks/useSound.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, PATTERN_THEMES, REACTION_THEMES, DASH_THEMES, BREAKER_THEMES, WORDLE_THEMES, RACER_THEMES, RACER_MAP_CATALOG, MATH_THEMES, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
+import { WHEEL_EXCLUSIVES } from '../context/LuckyWheelContext.jsx'
 
 // ─── Generic cosmetic list renderer ─────────────────────────────────────────
 function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMain, textMuted, borderCol, coins, onBuy, onEquip, buyingId, previewId, setPreviewId, renderPreview }) {
@@ -164,13 +165,28 @@ export default function Shop({ onBack }) {
         showToast('🔑 Admin: +9,999 coin!')
         play('levelUp')
       }
+      if (cheatBuf.current.includes('wheelunlock')) {
+        cheatBuf.current = ''
+        if (hashEmail(email) !== ADMIN_HASH) {
+          showToast('⛔ Akses ditolak')
+          return
+        }
+        // Unlock ALL wheel exclusives
+        let count = 0
+        WHEEL_EXCLUSIVES.forEach(item => {
+          window.dispatchEvent(new CustomEvent('bp-wheel-unlock', { detail: { item } }))
+          count++
+        })
+        showToast(`🔓 Admin: ${count} wheel items unlocked!`)
+        play('levelUp')
+      }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [email])
 
   const handleBuyCosmetic = async (type, item) => {
-    if (item.exclusive) { play('mismatch'); showToast('Item ini hanya dari Lucky Wheel! 🎰'); return }
+    if (item.exclusive || item.wheelOnly) { play('mismatch'); showToast('Item ini hanya dari Lucky Wheel! 🎰'); return }
     if (coins < item.price) { play('mismatch'); showToast('Coin tidak cukup! 😅'); return }
     setBuyingId(item.id); play('click')
     setTimeout(async () => {
