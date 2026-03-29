@@ -253,12 +253,13 @@ export function LuckyWheelProvider({ children }) {
         color: RARITY_COLORS[r.rarity],
         img: null,
       }
-      // For exclusive slots, show items from this week's featured games
+      // For exclusive slots, show items from this week's featured games (stable pick)
       if (r.type === 'exclusive') {
         const weekItems = WHEEL_EXCLUSIVES.filter(e => weekGames.includes(e.game) && e.rarity === r.rarity)
         const allItems = weekItems.length > 0 ? weekItems : WHEEL_EXCLUSIVES.filter(e => e.rarity === r.rarity)
         if (allItems.length > 0) {
-          const pick = allItems[Math.floor(Date.now() / 10000) % allItems.length]
+          // Stable pick: use week number so it only changes on Monday, not during spin
+          const pick = allItems[getWeekOfYear() % allItems.length]
           slot.img = pick.img
           slot.label = pick.name
           slot.icon = pick.icon
