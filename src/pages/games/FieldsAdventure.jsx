@@ -16,44 +16,112 @@ import { WinModal, LoseModal } from '../../components/GameLayout.jsx'
 
 // ═══════════════════════════════════════════════
 // TILE DEFINITIONS — source rects from tileset.png (256×752, 16px tiles)
-// Format: [srcX, srcY, width, height]
+// [col, row] → pixel position = [col*16, row*16]
 // ═══════════════════════════════════════════════
-const T = {
-  GRASS1:      [0, 0, 16, 16],
-  GRASS2:      [16, 0, 16, 16],
-  GRASS3:      [0, 16, 16, 16],
-  GRASS_STONE: [32, 0, 16, 16],
-  DIRT1:       [48, 0, 16, 16],
-  DIRT2:       [64, 0, 16, 16],
-  ROCK1:       [80, 16, 16, 16],
-  ROCK2:       [96, 16, 16, 16],
-  PATH_H:      [48, 16, 16, 16],
-  PATH_V:      [64, 16, 16, 16],
-  BUSH:        [16, 32, 16, 16],
-  TREE_TL:     [0, 64, 16, 16],
-  TREE_TR:     [16, 64, 16, 16],
-  TREE_BL:     [0, 80, 16, 16],
-  TREE_BR:     [16, 80, 16, 16],
-  FENCE_H:     [128, 96, 16, 16],
-  FENCE_V:     [112, 96, 16, 16],
-  FENCE_POST:  [144, 96, 16, 16],
-  WATER1:      [64, 320, 16, 16],
-  WATER2:      [80, 320, 16, 16],
-  WATER_EDGE:  [48, 320, 16, 16],
-  BRIDGE_H:    [128, 144, 16, 16],
-  CHEST_CLOSED:[192, 0, 16, 16],
-  CHEST_OPEN:  [208, 0, 16, 16],
-  SPIKE:       [96, 0, 16, 16],
-  FLOWER1:     [16, 0, 16, 16],
-  FLOWER2:     [32, 16, 16, 16],
-  STUMP:       [0, 0, 16, 16],
-  CLIFF_TOP:   [0, 192, 16, 16],
-  CLIFF_MID:   [0, 208, 16, 16],
-  SIGN:        [224, 80, 16, 16],
-  WELL_T:      [224, 640, 16, 16],
-  WELL_B:      [224, 656, 16, 16],
-  BARREL:      [192, 48, 16, 16],
-}
+const TS = 16 // tile pixel size in tileset
+const t = (c, r) => [c * TS, r * TS, TS, TS] // helper
+
+// Grass variants
+const T_GRASS     = t(0, 0)   // plain grass with stump
+const T_GRASS2    = t(1, 0)   // grass + white flowers
+const T_GRASS3    = t(2, 0)   // plain grass
+const T_GRASS4    = t(3, 0)   // grass + dirt bits
+const T_GRASS5    = t(4, 0)   // grass variant
+const T_GRASSCLEAN= t(0, 3)   // clean bright grass
+
+// Dirt/path
+const T_DIRT      = t(10, 0)  // brown dirt
+const T_DIRT2     = t(11, 0)  // dirt variant
+const T_PATH_TL   = t(0, 19)  // path corner
+const T_PATH_T    = t(1, 19)  // path top edge
+const T_PATH_TR   = t(2, 19)  // path corner
+
+// Rocks
+const T_ROCK_TL   = t(6, 0)   // rock cluster top-left
+const T_ROCK_TR   = t(7, 0)   // rock cluster top-right
+const T_ROCK_BL   = t(6, 1)   // rock cluster bottom-left
+const T_ROCK_BR   = t(7, 1)   // rock cluster bottom-right
+const T_ROCK_SM   = t(8, 0)   // small rock
+const T_ROCK_SM2  = t(9, 0)   // small rock variant
+
+// Trees (2×3 multi-tile)
+const T_TREE_TL   = t(3, 3)   // tree canopy top-left
+const T_TREE_TR   = t(4, 3)   // tree canopy top-right
+const T_TREE_ML   = t(3, 4)   // tree canopy mid-left
+const T_TREE_MR   = t(4, 4)   // tree canopy mid-right
+const T_TREE_BL   = t(3, 5)   // tree trunk left (SOLID)
+const T_TREE_BR   = t(2, 5)   // tree trunk right
+
+// Bush/Shrub
+const T_BUSH_TL   = t(0, 4)   // large bush TL
+const T_BUSH_TR   = t(1, 4)   // large bush TR
+const T_BUSH_BL   = t(0, 5)   // large bush BL
+const T_BUSH_BR   = t(1, 5)   // large bush BR
+const T_BUSH_SM   = t(2, 2)   // small bush
+
+// Cliff/Cave
+const T_CAVE_TL   = t(0, 8)   // cave entrance top-left
+const T_CAVE_TR   = t(1, 8)   // cave entrance top-right
+const T_CAVE_ML   = t(0, 9)   // cave mid-left
+const T_CAVE_MR   = t(1, 9)   // cave mid-right
+const T_CAVE_BL   = t(0, 10)  // cave bottom-left
+const T_CAVE_BR   = t(1, 10)  // cave bottom-right
+const T_CAVE_D    = t(2, 8)   // cave dark interior
+
+// Fence
+const T_FENCE_V   = t(5, 7)   // fence vertical
+const T_FENCE_H   = t(6, 7)   // fence horizontal
+const T_FENCE_TL  = t(5, 8)   // fence corner TL
+const T_FENCE_TR  = t(7, 8)   // fence corner TR
+const T_GATE      = t(6, 8)   // gate opening
+
+// Bridge
+const T_BRIDGE    = t(5, 11)  // bridge horizontal
+const T_BRIDGE2   = t(6, 11)  // bridge variant
+
+// Water
+const T_WATER     = t(8, 28)  // deep water center
+const T_WATER_TL  = t(0, 27)  // water edge top-left
+const T_WATER_T   = t(1, 27)  // water edge top
+const T_WATER_TR  = t(2, 27)  // water edge top-right
+const T_WATER_L   = t(0, 28)  // water edge left
+const T_WATER_R   = t(2, 28)  // water edge right
+const T_WATER_BL  = t(0, 29)  // water edge bottom-left
+const T_WATER_B   = t(1, 29)  // water edge bottom
+const T_WATER_BR  = t(2, 29)  // water edge bottom-right
+const T_STONES    = t(12, 27) // stepping stones in water
+
+// Flowers / Decorative
+const T_FLOWER1   = t(0, 11)  // flower patch
+const T_FLOWER2   = t(2, 11)  // flower patch 2
+const T_SUNFLWR   = t(2, 6)   // sunflower
+const T_SUNFLWR2  = t(3, 6)   // sunflower base
+
+// Objects
+const T_CHEST_C   = t(13, 0)  // chest closed
+const T_CHEST_O   = t(14, 0)  // chest open
+const T_BARREL    = t(9, 44)  // barrel
+const T_SIGN      = t(9, 37)  // sign post
+const T_SPIKE     = t(13, 2)  // spike/trap
+
+// Well (3×4 multi-tile area)
+const T_WELL_TL   = t(11, 42)
+const T_WELL_TM   = t(12, 42)
+const T_WELL_TR   = t(13, 42)
+const T_WELL_ML   = t(11, 43)
+const T_WELL_MM   = t(12, 43)
+const T_WELL_MR   = t(13, 43)
+const T_WELL_BL   = t(11, 44)
+const T_WELL_BM   = t(12, 44)
+const T_WELL_BR   = t(13, 44)
+
+// House 1: Thatch roof 8×6 tiles [row 33-38, col 0-7]
+const HOUSE1 = []
+for (let r = 0; r < 6; r++) for (let c = 0; c < 8; c++) HOUSE1.push(t(c, 33 + r))
+
+// House 2: Red tile roof 9×6 tiles [row 40-45, col 0-8]
+const HOUSE2 = []
+for (let r = 0; r < 6; r++) for (let c = 0; c < 9; c++) HOUSE2.push(t(c, 40 + r))
 
 // Tile type IDs for map
 const _ = 0  // grass
@@ -75,24 +143,62 @@ const WE = 14 // well
 // Which tiles block movement
 const SOLID = new Set([R, W, B, F, TT, TL, WE])
 
-// Tile ID → tileset source mapping
+// Tile ID → tileset source mapping (single tiles)
 const TILE_SRC = {
-  [_]:  T.GRASS1,
-  [G]:  T.GRASS2,
-  [D]:  T.DIRT1,
-  [R]:  T.ROCK1,
-  [W]:  T.WATER1,
-  [B]:  T.BUSH,
-  [F]:  T.FENCE_H,
-  [TT]: T.TREE_BL,
-  [TL]: T.TREE_TL,
-  [C]:  T.CHEST_CLOSED,
-  [S]:  T.SPIKE,
-  [BR]: T.BRIDGE_H,
-  [FL]: T.FLOWER1,
-  [ST]: T.SIGN,
-  [WE]: T.WELL_T,
+  [_]:  T_GRASS3,
+  [G]:  T_GRASS2,
+  [D]:  T_DIRT,
+  [R]:  T_ROCK_SM,
+  [W]:  T_WATER,
+  [B]:  T_BUSH_SM,
+  [F]:  T_FENCE_H,
+  [TT]: T_TREE_BL,
+  [TL]: T_TREE_TL,
+  [C]:  T_CHEST_C,
+  [S]:  T_SPIKE,
+  [BR]: T_BRIDGE,
+  [FL]: T_FLOWER1,
+  [ST]: T_SIGN,
+  [WE]: T_WELL_BM,
 }
+
+// ─── Multi-tile structures placed on map ───
+// { x, y (tile coords), w, h (in tiles), tiles: flat array of [srcX,srcY,16,16], solid: array of relative [col,row] that block }
+const STRUCTURES = [
+  // House 1 (thatch) in village left — 8×6 tiles
+  { x: 5, y: 11, w: 8, h: 6, tiles: HOUSE1, solid: Array.from({length:8*2}, (_,i) => [i%8, 4+Math.floor(i/8)]) },
+  // House 2 (red roof) in village right — 9×6 tiles
+  { x: 29, y: 11, w: 9, h: 6, tiles: HOUSE2, solid: Array.from({length:9*2}, (_,i) => [i%9, 4+Math.floor(i/9)]) },
+  // Well in village center
+  { x: 22, y: 12, w: 3, h: 3, tiles: [T_WELL_TL,T_WELL_TM,T_WELL_TR, T_WELL_ML,T_WELL_MM,T_WELL_MR, T_WELL_BL,T_WELL_BM,T_WELL_BR], solid: [[0,1],[1,1],[2,1],[0,2],[1,2],[2,2]] },
+  // Large tree north-west
+  { x: 1, y: 1, w: 2, h: 3, tiles: [T_TREE_TL,T_TREE_TR, T_TREE_ML,T_TREE_MR, T_TREE_BL,T_TREE_BR], solid: [[0,2],[1,2]] },
+  // Large tree north-center
+  { x: 8, y: 0, w: 2, h: 3, tiles: [T_TREE_TL,T_TREE_TR, T_TREE_ML,T_TREE_MR, T_TREE_BL,T_TREE_BR], solid: [[0,2],[1,2]] },
+  // Large tree north-right
+  { x: 16, y: 1, w: 2, h: 3, tiles: [T_TREE_TL,T_TREE_TR, T_TREE_ML,T_TREE_MR, T_TREE_BL,T_TREE_BR], solid: [[0,2],[1,2]] },
+  // Large trees south
+  { x: 0, y: 36, w: 2, h: 3, tiles: [T_TREE_TL,T_TREE_TR, T_TREE_ML,T_TREE_MR, T_TREE_BL,T_TREE_BR], solid: [[0,2],[1,2]] },
+  { x: 7, y: 36, w: 2, h: 3, tiles: [T_TREE_TL,T_TREE_TR, T_TREE_ML,T_TREE_MR, T_TREE_BL,T_TREE_BR], solid: [[0,2],[1,2]] },
+  { x: 21, y: 36, w: 2, h: 3, tiles: [T_TREE_TL,T_TREE_TR, T_TREE_ML,T_TREE_MR, T_TREE_BL,T_TREE_BR], solid: [[0,2],[1,2]] },
+  { x: 44, y: 36, w: 2, h: 3, tiles: [T_TREE_TL,T_TREE_TR, T_TREE_ML,T_TREE_MR, T_TREE_BL,T_TREE_BR], solid: [[0,2],[1,2]] },
+  // Bush clusters
+  { x: 25, y: 2, w: 2, h: 2, tiles: [T_BUSH_TL,T_BUSH_TR, T_BUSH_BL,T_BUSH_BR], solid: [[0,0],[1,0],[0,1],[1,1]] },
+  { x: 40, y: 3, w: 2, h: 2, tiles: [T_BUSH_TL,T_BUSH_TR, T_BUSH_BL,T_BUSH_BR], solid: [[0,0],[1,0],[0,1],[1,1]] },
+]
+
+// Build structure solid lookup: "tx,ty" → true
+const structureSolidSet = new Set()
+const structureTileMap = {} // "tx,ty" → [srcX,srcY,16,16]
+STRUCTURES.forEach(s => {
+  s.solid.forEach(([cx, cy]) => structureSolidSet.add(`${s.x+cx},${s.y+cy}`))
+  for (let r = 0; r < s.h; r++) {
+    for (let c = 0; c < s.w; c++) {
+      const tile = s.tiles[r * s.w + c]
+      if (tile) structureTileMap[`${s.x+c},${s.y+r}`] = tile
+    }
+  }
+})
 
 // ═══════════════════════════════════════════════
 // MAP DATA — 50×40 tiles open world
@@ -174,6 +280,7 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
   const rafRef = useRef(null)
   const keysRef = useRef({})
   const tilesetRef = useRef(null)
+  const charRef = useRef(null) // character spritesheet
   const joystickRef = useRef({ active: false, dx: 0, dy: 0 })
   const tc = useThemeColors()
   const dark = tc.dark
@@ -214,6 +321,8 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
       chestStates,
       steps: 0,
       facing: 'down',
+      animFrame: 0,
+      animTimer: 0,
       iframeCooldown: 0, // invincibility after spike hit
       interactCooldown: 0,
       camX: 0, camY: 0,
@@ -225,18 +334,20 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
     setGameState('playing')
   }, [cfg, totalChests])
 
-  // Load tileset
+  // Load tileset + character sprite
   useEffect(() => {
-    const img = new Image()
-    img.onload = () => {
-      tilesetRef.current = img
-      initGame()
-    }
-    img.onerror = () => {
-      console.error('Failed to load tileset')
-      initGame()
-    }
-    img.src = '/adventure/tileset.png'
+    let loaded = 0
+    const checkDone = () => { if (++loaded >= 2) initGame() }
+
+    const timg = new Image()
+    timg.onload = () => { tilesetRef.current = timg; checkDone() }
+    timg.onerror = () => { checkDone() }
+    timg.src = '/adventure/tileset.png'
+
+    const cimg = new Image()
+    cimg.onload = () => { charRef.current = cimg; checkDone() }
+    cimg.onerror = () => { checkDone() }
+    cimg.src = '/adventure/character.png'
   }, [initGame])
 
   // Keyboard
@@ -263,12 +374,17 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
 
   // Check if position is blocked
   const isBlocked = (x, y, w, h) => {
-    // Check all 4 corners
     const points = [
       [x + 1, y + 1], [x + w - 1, y + 1],
       [x + 1, y + h - 1], [x + w - 1, y + h - 1],
     ]
-    return points.some(([px, py]) => SOLID.has(getTile(px, py)))
+    return points.some(([px, py]) => {
+      const tx = Math.floor(px / TILE_SIZE)
+      const ty = Math.floor(py / TILE_SIZE)
+      if (SOLID.has(getTile(px, py))) return true
+      if (structureSolidSet.has(`${tx},${ty}`)) return true
+      return false
+    })
   }
 
   // Main game loop
@@ -303,8 +419,13 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
         dx = (dx / len) * MOVE_SPEED
         dy = (dy / len) * MOVE_SPEED
         g.steps++
+        g.animTimer++
+        if (g.animTimer >= 8) { g.animTimer = 0; g.animFrame = (g.animFrame + 1) % 5 }
         if (Math.abs(dx) > Math.abs(dy)) g.facing = dx > 0 ? 'right' : 'left'
         else g.facing = dy > 0 ? 'down' : 'up'
+      } else {
+        g.animFrame = 0 // idle = first frame
+        g.animTimer = 0
       }
 
       // ── Movement with collision ──
@@ -405,10 +526,11 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
           const src = TILE_SRC[tileId]
           const dx = tx * TILE_SIZE
           const dy = ty * TILE_SIZE
+          const key = `${tx},${ty}`
 
-          // Draw grass base
+          // Draw grass base everywhere
           if (tilesetRef.current) {
-            ctx.drawImage(tilesetRef.current, T.GRASS1[0], T.GRASS1[1], 16, 16, dx, dy, 16, 16)
+            ctx.drawImage(tilesetRef.current, T_GRASS3[0], T_GRASS3[1], 16, 16, dx, dy, 16, 16)
           } else {
             ctx.fillStyle = '#7ec850'
             ctx.fillRect(dx, dy, TILE_SIZE, TILE_SIZE)
@@ -417,18 +539,21 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
           // Draw opened chest differently
           if (tileId === C && g.chestStates[idx]) {
             if (tilesetRef.current) {
-              ctx.drawImage(tilesetRef.current, T.CHEST_OPEN[0], T.CHEST_OPEN[1], 16, 16, dx, dy, 16, 16)
+              ctx.drawImage(tilesetRef.current, T_CHEST_O[0], T_CHEST_O[1], 16, 16, dx, dy, 16, 16)
             }
-            continue
           }
-
-          // Draw tile overlay
-          if (tileId !== _ && src && tilesetRef.current) {
+          // Draw tile overlay from map
+          else if (tileId !== _ && src && tilesetRef.current) {
             ctx.drawImage(tilesetRef.current, src[0], src[1], src[2], src[3], dx, dy, 16, 16)
           } else if (tileId !== _ && !tilesetRef.current) {
-            // Fallback colors
             const colors = { [D]:'#c4a44a', [R]:'#888', [W]:'#4488cc', [B]:'#2d8c3e', [F]:'#8b6914', [TT]:'#5a3a1a', [TL]:'#2d8c3e', [C]:'#daa520', [S]:'#cc3333', [BR]:'#8b6914', [FL]:'#e8a0d0', [ST]:'#8b6914', [WE]:'#667788' }
             if (colors[tileId]) { ctx.fillStyle = colors[tileId]; ctx.fillRect(dx, dy, TILE_SIZE, TILE_SIZE) }
+          }
+
+          // Draw structure tile on top (houses, trees, well, etc.)
+          const structTile = structureTileMap[key]
+          if (structTile && tilesetRef.current) {
+            ctx.drawImage(tilesetRef.current, structTile[0], structTile[1], 16, 16, dx, dy, 16, 16)
           }
 
           // Interaction prompt near chest
@@ -437,7 +562,6 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
             ctx.font = 'bold 6px sans-serif'
             ctx.textAlign = 'center'
             ctx.fillText('E', dx + 8, dy - 2)
-            // Glow effect
             ctx.strokeStyle = '#FFD700'
             ctx.lineWidth = 0.5
             ctx.strokeRect(dx, dy, 16, 16)
@@ -451,18 +575,40 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
       const blink = g.iframeCooldown > 0 && Math.floor(g.iframeCooldown / 4) % 2 === 0
 
       if (!blink) {
-        // Body
-        ctx.fillStyle = '#3498db'
-        ctx.fillRect(px + 2, py + 2, PLAYER_SIZE - 4, PLAYER_SIZE - 4)
-        // Head
-        ctx.fillStyle = '#f5c27a'
-        ctx.fillRect(px + 3, py + 1, PLAYER_SIZE - 6, 5)
-        // Eyes (direction)
-        ctx.fillStyle = '#222'
-        if (g.facing === 'down') { ctx.fillRect(px + 4, py + 4, 1, 1); ctx.fillRect(px + 7, py + 4, 1, 1) }
-        else if (g.facing === 'up') { ctx.fillRect(px + 4, py + 2, 1, 1); ctx.fillRect(px + 7, py + 2, 1, 1) }
-        else if (g.facing === 'left') { ctx.fillRect(px + 3, py + 3, 1, 1); ctx.fillRect(px + 3, py + 5, 1, 1) }
-        else { ctx.fillRect(px + 8, py + 3, 1, 1); ctx.fillRect(px + 8, py + 5, 1, 1) }
+        if (charRef.current) {
+          // Character spritesheet: 320×448, 64×64 per frame, 5 cols × 7 rows
+          // Row 0: walk DOWN (facing camera, skin visible)
+          // Row 1: walk RIGHT (side view) — flip for LEFT
+          // Row 2: walk UP (back view, skin hidden)
+          // Row 3: walk UP variant
+          // Row 4-5: alternate outfit/action
+          const CHAR_FRAME = 64
+          const dirRow = { down: 0, up: 2, right: 1, left: 1 }
+          const row = dirRow[g.facing]
+          const frame = g.animFrame % 5
+          const srcX = frame * CHAR_FRAME
+          const srcY = row * CHAR_FRAME
+          const drawSize = 20
+          const drawX = px + PLAYER_SIZE / 2 - drawSize / 2
+          const drawY = py + PLAYER_SIZE / 2 - drawSize / 2 - 4
+
+          ctx.save()
+          if (g.facing === 'left') {
+            // Flip horizontally for left-facing
+            ctx.translate(drawX + drawSize / 2, drawY + drawSize / 2)
+            ctx.scale(-1, 1)
+            ctx.drawImage(charRef.current, srcX, srcY, CHAR_FRAME, CHAR_FRAME, -drawSize / 2, -drawSize / 2, drawSize, drawSize)
+          } else {
+            ctx.drawImage(charRef.current, srcX, srcY, CHAR_FRAME, CHAR_FRAME, drawX, drawY, drawSize, drawSize)
+          }
+          ctx.restore()
+        } else {
+          // Fallback colored rectangle
+          ctx.fillStyle = '#3498db'
+          ctx.fillRect(px + 2, py + 2, PLAYER_SIZE - 4, PLAYER_SIZE - 4)
+          ctx.fillStyle = '#f5c27a'
+          ctx.fillRect(px + 3, py + 1, PLAYER_SIZE - 6, 5)
+        }
       }
 
       ctx.restore()
