@@ -8,6 +8,8 @@ const TUTORIAL_STEPS = [
 ]
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useAuth } from '../../context/AuthContext.jsx'
+import { trackGameStart, trackGameComplete, sendGameAnalyticsToFirestore } from '../../utils/analytics.js'
 import { useSettings } from '../../context/SettingsContext.jsx'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
@@ -93,6 +95,8 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
 
   const timerRunning = !won && moves > 0
   const time = useTimer(timerRunning, resetKey)
+  const startedRef = useRef(false)
+  const { userId, playerName } = useAuth()
 
   useEffect(() => {
     if (deck.length > 0 && deck.every(c => c.matched)) {
@@ -114,6 +118,22 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
         stars,
         timeSec: time,
       })
+      // Analytics: track completion and send event to Firestore for admin dashboard
+      try {
+        const score = Math.max(0, pairs * 100 - moves * 10)
+        trackGameComplete('memory-card', difficulty.id, score, stars, time)
+        const coinReward = { easy: 15, medium: 25, hard: 40 }
+        let coinAmount = coinReward[difficulty.id] || 15
+        if (stars === 3) coinAmount += 20
+        const xpEarned = (stars || 1) * 10
+        if (userId) {
+          import('../../utils/analytics.js').then(({ sendGameAnalyticsToFirestore }) => {
+            try { sendGameAnalyticsToFirestore(userId, playerName || '', 'memory-card', difficulty.id, score, stars, coinAmount, xpEarned) } catch (e) {}
+          })
+        }
+      } catch (e) {
+        // analytics should not break game
+      }
       // Coin reward
       const coinReward = { easy: 15, medium: 25, hard: 40 }
       let coinAmount = coinReward[difficulty.id] || 15
@@ -129,6 +149,11 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
     if (selected.length === 1 && selected[0].id === id) return
 
     play('flip')
+    // Track first interaction as game start
+    if (!startedRef.current) {
+      startedRef.current = true
+      try { trackGameStart('memory-card', difficulty.id) } catch (e) {}
+    }
     vibrateLight()
     const newDeck     = deck.map(c => c.id === id ? { ...c, flipped: true } : c)
     const newSelected = [...selected, { ...card }]

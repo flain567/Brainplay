@@ -1,6 +1,24 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 
+// Optional: initialize Sentry (error reporting) if DSN provided via Vite env
+(async function initSentry() {
+  try {
+    const dsn = import.meta.env.VITE_SENTRY_DSN
+    if (!dsn) return
+    const Sentry = await import('@sentry/react')
+    const Tracing = await import('@sentry/tracing')
+    Sentry.init({
+      dsn,
+      integrations: [new Tracing.BrowserTracing()],
+      tracesSampleRate: 0.1,
+    })
+    console.info('[Sentry] initialized')
+  } catch (err) {
+    console.warn('[Sentry] init failed', err?.message || err)
+  }
+})()
+
 const firebaseConfig = {
   apiKey: "AIzaSyApf_nnK0DWKd9f90hGjdGDjYPqugfiieY",
   authDomain: "brainplay-83395.firebaseapp.com",
