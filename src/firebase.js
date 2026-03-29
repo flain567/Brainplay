@@ -12,6 +12,8 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth'
       dsn,
       integrations: [new Tracing.BrowserTracing()],
       tracesSampleRate: 0.1,
+      // Use Vite-provided release (set in CI to `github.sha`) so Sentry can map sourcemaps
+      release: import.meta.env.VITE_SENTRY_RELEASE || undefined,
     })
     console.info('[Sentry] initialized')
   } catch (err) {

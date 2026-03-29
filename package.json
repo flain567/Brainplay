@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build --sourcemap",
     "preview": "vite preview",
     "lint": "eslint src --ext .js,.jsx",
     "cap:sync": "vite build && npx cap sync android",

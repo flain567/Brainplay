@@ -1,0 +1,43 @@
+name: Upload Sentry Source Maps
+
+on:
+  push:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (with sourcemaps)
+        env:
+          VITE_SENTRY_RELEASE: ${{ github.sha }}
+        run: npm run build
+
+      - name: Create Sentry release and upload sourcemaps
+        uses: getsentry/action-release@v1
+        with:
+          # Provide these via repository secrets:
+          # SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT
+          sentry_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          org: ${{ secrets.SENTRY_ORG }}
+          project: ${{ secrets.SENTRY_PROJECT }}
+          version: ${{ github.sha }}
+          environment: production
+          upload_sourcemaps: dist
+          url_prefix: ~/
+
+      - name: Notify
+        run: echo "Sentry release ${{ github.sha }} created and sourcemaps uploaded"
