@@ -147,6 +147,7 @@ const MAX_SCORES = {
   'sliding-puzzle': 10000,
   'tower-hanoi':    15000,
   'minesweeper':    10000,
+  'fields-adventure': 15000,
 }
 
 // Rate limiter: 1 submit per 5 seconds per game

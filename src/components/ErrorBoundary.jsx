@@ -12,13 +12,6 @@ export default class ErrorBoundary extends Component {
 
   componentDidCatch(error, info) {
     console.error('[ErrorBoundary] Game crashed:', error, info?.componentStack)
-    try {
-      import('@sentry/react').then((Sentry) => {
-        try { Sentry.captureException(error, { extra: info }) } catch (e) { /* noop */ }
-      })
-    } catch (e) {
-      // dynamic import failed or Sentry not available — ignore
-    }
   }
 
   render() {

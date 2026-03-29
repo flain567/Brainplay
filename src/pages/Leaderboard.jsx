@@ -28,6 +28,7 @@ const GAME_TABS = [
   { id:'sliding-puzzle',emoji:'🧩', label:'Slide' },
   { id:'tower-hanoi',   emoji:'🗼', label:'Hanoi' },
   { id:'minesweeper',   emoji:'💣', label:'Mines' },
+  { id:'fields-adventure', emoji:'🗺️', label:'Fields' },
 ]
 
 const DIFF_TABS = [

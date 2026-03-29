@@ -61,6 +61,7 @@ const BinaryPuzzle    = lazy(() => import('./pages/games/BinaryPuzzle.jsx'))
 const SlidingPuzzle   = lazy(() => import('./pages/games/SlidingPuzzle.jsx'))
 const TowerOfHanoi    = lazy(() => import('./pages/games/TowerOfHanoi.jsx'))
 const MinesweeperGame = lazy(() => import('./pages/games/Minesweeper.jsx'))
+const FieldsAdventure = lazy(() => import('./pages/games/FieldsAdventure.jsx'))
 
 // ─── Game loading fallback ──────────────────────────────────────────────────
 function GameLoader() {
@@ -362,6 +363,19 @@ export const GAMES = [
       { id:'easy',   description:'9×9 grid, 10 bom — untuk pemula',                       stats:['9×9','10 bom'] },
       { id:'medium', description:'12×10 grid, 25 bom — butuh logika!',                    stats:['12×10','25 bom'] },
       { id:'hard',   description:'14×12 grid, 45 bom — hanya ahli!',                      stats:['14×12','45 bom'] },
+    ],
+  },
+  {
+    id: 'fields-adventure',
+    title: 'Fields of Adventure',
+    emoji: '🗺️',
+    description: 'Jelajahi dunia open-world pixel art! Cari peti harta, hindari jebakan, kumpulkan koin!',
+    color: '#7ec850', bg: '#E8F5E9', tag: 'Action',
+    component: FieldsAdventure, day: 23,
+    difficulties: [
+      { id:'easy',   description:'5 HP, jebakan ringan — santai explore',                     stats:['5 HP','Reward ++'] },
+      { id:'medium', description:'3 HP, jebakan sedang — butuh hati-hati!',                   stats:['3 HP','Reward +'] },
+      { id:'hard',   description:'2 HP, jebakan mematikan — petualang sejati!',                stats:['2 HP','Reward +++'] },
     ],
   },
 ]

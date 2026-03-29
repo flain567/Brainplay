@@ -26,6 +26,7 @@ const GAME_DATA = [
   { id: 'sliding-puzzle', emoji: '🧩', name: 'Sliding Puzzle' },
   { id: 'tower-hanoi', emoji: '🗼', name: 'Tower of Hanoi' },
   { id: 'minesweeper', emoji: '💣', name: 'Minesweeper' },
+  { id: 'fields-adventure', emoji: '🗺️', name: 'Fields of Adventure' },
 ]
 
 export default function GameStatsPage({ onBack }) {
