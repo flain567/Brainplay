@@ -540,6 +540,43 @@ export function CoinProvider({ children }) {
     try { window.dispatchEvent(new CustomEvent('bp-coin-change')) } catch(e) {}
   }, [state])
 
+  // ── Startup reconciliation ────────────────────────────────────────────────
+  // Pastikan semua item di wonExclusives (Lucky Wheel) sudah masuk ke ownedList
+  // yang sesuai. Ini menangani kasus di mana event bp-wheel-unlock terlewat.
+  useEffect(() => {
+    try {
+      const wheelData = JSON.parse(localStorage.getItem('bp_lucky_wheel')) || {}
+      const wonExclusives = wheelData.wonExclusives || []
+      if (wonExclusives.length === 0) return
+
+      // Mapping hard-coded (menghindari circular import dengan LuckyWheelContext)
+      const EXCLUSIVE_MAP = {
+        'wheel-ship-ice':      { ownedKey: 'ownedShips' },
+        'wheel-racer-monster': { ownedKey: 'ownedRacerThemes' },
+        'wheel-racer-beetle':  { ownedKey: 'ownedRacerThemes' },
+        'wheel-dash-robot':    { ownedKey: 'ownedDashThemes' },
+        'wheel-dash-graffiti': { ownedKey: 'ownedDashThemes' },
+        'wheel-card-pixel':    { ownedKey: 'ownedPacks' },
+        'wheel-sudoku-pastel': { ownedKey: 'ownedSudokuThemes' },
+      }
+
+      setState(s => {
+        let changed = false
+        const next = { ...s }
+        wonExclusives.forEach(id => {
+          const map = EXCLUSIVE_MAP[id]
+          if (!map) return
+          const list = next[map.ownedKey] || []
+          if (!list.includes(id)) {
+            next[map.ownedKey] = [...list, id]
+            changed = true
+          }
+        })
+        return changed ? next : s
+      })
+    } catch {}
+  }, []) // Jalankan sekali saat mount
+
   // Reload from localStorage when cloud sync completes
   useEffect(() => {
     const handler = () => {
