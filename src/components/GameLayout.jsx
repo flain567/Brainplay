@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useProgress } from '../context/ProgressContext.jsx'
@@ -7,6 +7,7 @@ import { useThemeColors } from '../hooks/useThemeColors.js'
 import Confetti from './Confetti.jsx'
 import TutorialModal from './TutorialModal.jsx'
 import { scrambleOnce } from '../hooks/useScrambleNumber.js'
+import gsap from 'gsap'
 
 // ─── Reusable timer hook ─────────────────────────────────────────────────────
 export function useGameTimer(running, resetKey) {
@@ -198,8 +199,60 @@ export function WinModal({
   const textMuted = tc.textMuted
   const noAnim = reduceMotion
 
-  const coinRef  = useRef(null)
-  const statsRefs = useRef([])
+  const coinRef   = useRef(null)
+  const statsRefs  = useRef([])
+  // GSAP Timeline refs
+  const overlayRef = useRef(null)
+  const cardRef    = useRef(null)
+  const emojiRef   = useRef(null)
+  const titleRef   = useRef(null)
+  const starsRef   = useRef([])
+  const coinBadgeRef = useRef(null)
+  const btnsRef    = useRef(null)
+  const tlRef      = useRef(null)
+
+  // ── GSAP Timeline entrance ─────────────────────────────────────────────
+  useLayoutEffect(() => {
+    if (noAnim) return
+    const ctx = gsap.context(() => {
+      gsap.set(overlayRef.current, { opacity: 0 })
+      gsap.set(cardRef.current,    { scale: 0.65, opacity: 0, y: 24 })
+      gsap.set(emojiRef.current,   { scale: 0, rotation: -30 })
+      gsap.set(titleRef.current,   { opacity: 0, y: 14 })
+      if (starsRef.current.length) gsap.set(starsRef.current, { scale: 0, opacity: 0 })
+      if (coinBadgeRef.current)    gsap.set(coinBadgeRef.current, { opacity: 0, y: 10 })
+      gsap.set(statsRefs.current.filter(Boolean), { opacity: 0, y: 10 })
+      if (btnsRef.current)         gsap.set(btnsRef.current, { opacity: 0, y: 10 })
+
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+      tlRef.current = tl
+
+      tl
+        .to(overlayRef.current,   { opacity: 1, duration: 0.3 }, 0)
+        .to(cardRef.current,      { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.5)' }, 0.05)
+        .to(emojiRef.current,     { scale: 1, rotation: 0, duration: 0.55, ease: 'back.out(2.5)' }, 0.3)
+        .to(titleRef.current,     { opacity: 1, y: 0, duration: 0.3 }, 0.45)
+        .to(starsRef.current.filter(Boolean), {
+            scale: 1, opacity: 1, duration: 0.3, ease: 'back.out(2)',
+            stagger: 0.09,
+          }, 0.55)
+        .to(coinBadgeRef.current, { opacity: 1, y: 0, duration: 0.3 }, 0.65)
+        .to(statsRefs.current.filter(Boolean), {
+            opacity: 1, y: 0, duration: 0.3,
+            stagger: 0.07,
+          }, 0.7)
+        .to(btnsRef.current,      { opacity: 1, y: 0, duration: 0.35 }, 0.82)
+    })
+    return () => { ctx.revert(); if (tlRef.current) tlRef.current.kill() }
+  }, [noAnim])
+
+  // Helper: play outro then call callback
+  const withOutro = (cb) => {
+    if (!noAnim && cardRef.current) {
+      gsap.to(cardRef.current,    { scale: 0.85, opacity: 0, y: 16, duration: 0.22, ease: 'power2.in', onComplete: cb })
+      gsap.to(overlayRef.current, { opacity: 0, duration: 0.28 })
+    } else cb()
+  }
 
   // Scramble coinReward saat modal mount
   useEffect(() => {
@@ -234,14 +287,19 @@ export function WinModal({
   }, [])
 
   return (
-    <div style={{
+    <div ref={overlayRef} style={{
       position: 'fixed', inset: 0,
       background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       zIndex: 999, padding: 24,
-      animation: noAnim ? 'none' : 'winFadeIn 0.3s ease',
     }}>
-      <div style={{
+      <div ref={cardRef} style={{
+        background: bg, borderRadius: 28,
+        padding: '36px 32px', textAlign: 'center',
+        maxWidth: 380, width: '100%',
+        boxShadow: `0 24px 80px rgba(0,0,0,0.35), 0 0 0 1px ${gameColor}22`,
+        position: 'relative', overflow: 'hidden',
+      }}>
         background: bg, borderRadius: 28,
         padding: '36px 32px', textAlign: 'center',
         maxWidth: 380, width: '100%',
@@ -255,9 +313,11 @@ export function WinModal({
           background: `linear-gradient(90deg, ${gameColor}, #A29BFE, #4ECDC4)`,
         }} />
 
-        <div style={{ fontSize: 60, marginBottom: 8, animation: noAnim ? 'none' : 'winBounce 0.6s ease' }}>{emoji}</div>
-        <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 30, color: textMain, marginBottom: 4 }}>{title}</h2>
-        {subtitle && <p style={{ color: textMuted, fontSize: 14, marginBottom: 6 }}>{subtitle}</p>}
+        <div ref={emojiRef} style={{ fontSize: 60, marginBottom: 8 }}>{emoji}</div>
+        <div ref={titleRef}>
+          <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 30, color: textMain, marginBottom: 4 }}>{title}</h2>
+          {subtitle && <p style={{ color: textMuted, fontSize: 14, marginBottom: 6 }}>{subtitle}</p>}
+        </div>
 
         {highlight && (
           <div style={{
@@ -283,9 +343,8 @@ export function WinModal({
         {stars > 0 && (
           <div style={{ fontSize: 34, marginBottom: 14, letterSpacing: 6 }}>
             {Array.from({ length: 3 }).map((_, i) => (
-              <span key={i} style={{
+              <span key={i} ref={el => starsRef.current[i] = el} style={{
                 display: 'inline-block',
-                animation: noAnim || i >= stars ? 'none' : `winStarPop 0.4s ${0.2 + i * 0.15}s cubic-bezier(0.34,1.56,0.64,1) both`,
                 opacity: i < stars ? 1 : 0.25,
                 filter: i < stars ? 'none' : 'grayscale(1)',
               }}>
@@ -297,7 +356,7 @@ export function WinModal({
 
         {/* Coin reward */}
         {coinReward > 0 && (
-          <div style={{
+          <div ref={coinBadgeRef} style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
             background: dark ? 'rgba(253,203,110,0.12)' : '#FFFDE7',
             border: '1.5px solid #FDCB6E44',
@@ -334,9 +393,9 @@ export function WinModal({
         )}
 
         {/* Buttons */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div ref={btnsRef} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={() => { play('click'); onRestart() }} style={{
+            <button onClick={() => withOutro(() => { play('click'); onRestart() })} style={{
               flex: 1, background: gameColor, color: '#fff',
               border: 'none', borderRadius: 100, padding: '13px 18px',
               fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive",
@@ -350,7 +409,7 @@ export function WinModal({
             >
               {restartLabel}
             </button>
-            <button onClick={() => { play('click'); onBack() }} style={{
+            <button onClick={() => withOutro(() => { play('click'); onBack() })} style={{
               flex: 1, background: dark ? '#1e2a4a' : '#F8F9FA',
               color: textMuted, border: `2px solid ${tc.borderCol}`,
               borderRadius: 100, padding: '13px 18px',

@@ -112,7 +112,7 @@ const RARITY_LABELS = {
 }
 
 const EXTRA_SPIN_COST = 150
-const FREE_SPINS_PER_DAY = 1
+const FREE_SPINS_PER_WEEK = 5   // 5 spin gratis per minggu, reset Senin 07:00 WIB
 const PITY_THRESHOLD = 50
 const DUPE_COIN_EPIC = 300
 const DUPE_COIN_LEGENDARY = 800
@@ -120,13 +120,44 @@ const DUPE_COIN_SHOP = 50
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function getTodayKey() {
-  // Pakai waktu LOKAL (bukan UTC) supaya reset tepat tengah malam WIB
-  const now = new Date()
-  const yyyy = now.getFullYear()
-  const mm   = String(now.getMonth() + 1).padStart(2, '0')
-  const dd   = String(now.getDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}`
+// Kembalikan key unik per "pekan wheel" — pekan baru dimulai Senin 07:00 WIB
+function getWeekKey() {
+  const now  = new Date()
+  const day  = now.getDay()   // 0=Min … 6=Sab
+  const hour = now.getHours()
+
+  // Hari ke belakang sejak Senin terakhir (0 kalau hari ini Senin)
+  const daysBack = day === 0 ? 6 : day - 1
+  const monday   = new Date(now)
+  monday.setDate(now.getDate() - daysBack)
+
+  // Senin sebelum jam 07:00 masih masuk pekan lalu
+  if (daysBack === 0 && hour < 7) monday.setDate(monday.getDate() - 7)
+
+  const yyyy = monday.getFullYear()
+  const mm   = String(monday.getMonth() + 1).padStart(2, '0')
+  const dd   = String(monday.getDate()).padStart(2, '0')
+  return `week-${yyyy}-${mm}-${dd}`
+}
+
+// Ekspor: kapan reset berikutnya (Senin 07:00 waktu lokal)
+export function getNextResetTime() {
+  const now  = new Date()
+  const day  = now.getDay()
+  const hour = now.getHours()
+  const next = new Date(now)
+
+  if (day === 1 && hour < 7) {
+    // Hari ini Senin sebelum 07:00 — reset hari ini jam 07:00
+    next.setHours(7, 0, 0, 0)
+  } else {
+    // Senin depan jam 07:00
+    const daysUntil = day === 0 ? 1 : (8 - day) % 7 || 7
+    next.setDate(now.getDate() + daysUntil)
+    next.setHours(7, 0, 0, 0)
+  }
+  next.setSeconds(0); next.setMilliseconds(0)
+  return next
 }
 
 function loadWheelState() {
@@ -165,9 +196,9 @@ export function LuckyWheelProvider({ children }) {
   const [state, setState] = useState(() => {
     const saved = loadWheelState()
     const def = getDefaultWheelState()
-    // Reset free spins if new day
-    if (saved.lastSpinDate !== getTodayKey()) {
-      return { ...def, ...saved, freeSpinsUsed: 0, lastSpinDate: getTodayKey() }
+    // Reset free spins kalau masuk pekan baru (Senin 07:00)
+    if (saved.lastSpinDate !== getWeekKey()) {
+      return { ...def, ...saved, freeSpinsUsed: 0, lastSpinDate: getWeekKey() }
     }
     return { ...def, ...saved }
   })
@@ -176,7 +207,8 @@ export function LuckyWheelProvider({ children }) {
     saveWheelState(state)
   }, [state])
 
-  const hasFreeSpins = state.freeSpinsUsed < FREE_SPINS_PER_DAY
+  const hasFreeSpins       = state.freeSpinsUsed < FREE_SPINS_PER_WEEK
+  const freeSpinsRemaining  = Math.max(0, FREE_SPINS_PER_WEEK - state.freeSpinsUsed)
 
   // Resolve what the player actually gets from a reward type
   const resolveReward = useCallback((rewardSlot, ownedExclusives) => {
@@ -206,7 +238,7 @@ export function LuckyWheelProvider({ children }) {
   }, [])
 
   const spin = useCallback((isFreeSpin) => {
-    const today = getTodayKey()
+    const today = getWeekKey()
 
     // Pity system: guarantee epic+ after threshold
     let pool = [...REWARD_POOL]
@@ -278,6 +310,8 @@ export function LuckyWheelProvider({ children }) {
     <LuckyWheelContext.Provider value={{
       hasFreeSpins,
       freeSpinsUsed: state.freeSpinsUsed,
+      freeSpinsRemaining,
+      freeSpinsPerWeek: FREE_SPINS_PER_WEEK,
       pityCounter: state.pityCounter,
       wonExclusives: state.wonExclusives,
       spinHistory: state.spinHistory,

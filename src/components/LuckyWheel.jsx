@@ -1,9 +1,14 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useLuckyWheel } from '../context/LuckyWheelContext.jsx'
+import { getNextResetTime } from '../context/LuckyWheelContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useThemeColors } from '../hooks/useThemeColors.js'
+import gsap from 'gsap'
+import { Draggable } from 'gsap/Draggable'
+import { InertiaPlugin } from 'gsap/InertiaPlugin'
+gsap.registerPlugin(Draggable, InertiaPlugin)
 
 const SPIN_DURATION = 4000
 const SLOT_COUNT = 8
@@ -13,6 +18,7 @@ export default function LuckyWheel({ open, onClose }) {
     hasFreeSpins, spin, getWheelSlots, extraSpinCost,
     wonExclusives, spinHistory, totalSpins, pityCounter,
     RARITY_COLORS, RARITY_LABELS, WHEEL_EXCLUSIVES,
+    freeSpinsRemaining, freeSpinsPerWeek,
   } = useLuckyWheel()
   const { coins, earnCoins, spendCoins } = useCoins()
   const { play } = useSound()
@@ -23,9 +29,12 @@ export default function LuckyWheel({ open, onClose }) {
   const [multiResults, setMultiResults] = useState(null) // final 5× summary
   const [rotation, setRotation] = useState(0)
   const [tab, setTab] = useState('spin') // 'spin' | 'collection' | 'history'
-  const wheelRef = useRef(null)
-  const tickRef = useRef(null)
-  const rotationRef = useRef(0) // always-fresh rotation for setTimeout
+  const wheelRef      = useRef(null)
+  const tickRef       = useRef(null)
+  const rotationRef   = useRef(0)        // always-fresh rotation for setTimeout
+  const dragOverlayRef = useRef(null)    // transparent div — Draggable target
+  const draggableRef   = useRef(null)    // GSAP Draggable instance
+  const isDraggingRef  = useRef(false)   // guard: block spin-btn during drag
 
   // ── Sequential Multi-Spin — State Machine ──
   // multiPhase: null | 'spin' | 'reveal' | 'done'
@@ -35,6 +44,31 @@ export default function LuckyWheel({ open, onClose }) {
   const [multiCurrentReward, setMultiCurrentReward] = useState(null)
   const [multiPhase, setMultiPhase] = useState(null)
   const isMultiActive = multiPhase !== null
+
+  // ── Reset countdown timer — update tiap detik ────────────────────────────
+  const [countdown, setCountdown] = useState({ label: '', ticking: false })
+  useEffect(() => {
+    const pad = n => String(n).padStart(2, '0')
+    const update = () => {
+      const diff = getNextResetTime() - new Date()
+      if (diff <= 0) {
+        setCountdown({ label: 'Segera reset!', ticking: false })
+        return
+      }
+      const d = Math.floor(diff / 86400000)
+      const h = Math.floor((diff % 86400000) / 3600000)
+      const m = Math.floor((diff % 3600000)  / 60000)
+      const s = Math.floor((diff % 60000)    / 1000)
+      // Selalu tampilkan detik agar terlihat berjalan
+      const label = d > 0
+        ? `${d}h ${pad(h)}:${pad(m)}:${pad(s)}`
+        : `${pad(h)}:${pad(m)}:${pad(s)}`
+      setCountdown({ label, ticking: true })
+    }
+    update()
+    const id = setInterval(update, 1000)
+    return () => clearInterval(id)
+  }, [])
 
   const MULTI_COUNT = 5
   const multiCost = extraSpinCost * MULTI_COUNT
@@ -235,6 +269,110 @@ export default function LuckyWheel({ open, onClose }) {
       document.documentElement.style.overflow = prevHtml
     }
   }, [open])
+
+  // ── Refs to avoid stale closures inside Draggable callbacks ────────────────
+  const spinningRef     = useRef(spinning)
+  const hasFreeSpinsRef = useRef(hasFreeSpins)
+  const doSpinRef       = useRef(doSpin)
+  useEffect(() => { spinningRef.current     = spinning    }, [spinning])
+  useEffect(() => { hasFreeSpinsRef.current = hasFreeSpins }, [hasFreeSpins])
+  useEffect(() => { doSpinRef.current       = doSpin      }, [doSpin])
+
+  // ── GSAP Draggable + Inertia — created ONCE on open ──────────────────────
+  useEffect(() => {
+    if (!open) return
+
+    // Retry until refs are populated (React commits DOM after effect fires)
+    let retries = 0
+    let d = null
+
+    const init = () => {
+      if (!dragOverlayRef.current || !wheelRef.current) {
+        if (retries++ < 10) { setTimeout(init, 50); return }
+        return
+      }
+
+      const overlay    = dragOverlayRef.current
+      const MIN_DRAG   = 25   // degrees — minimum drag to count as spin intent
+
+      gsap.set(overlay, { rotation: 0 })
+      let dragStartRot = 0
+
+      d = Draggable.create(overlay, {
+        type:     'rotation',
+        inertia:  true,
+        allowNativeTouchScrolling: false,
+        cursor:   'grab',
+        activeCursor: 'grabbing',
+
+        onDragStart() {
+          if (spinningRef.current) { this.endDrag(); return }
+          isDraggingRef.current = true
+          dragStartRot = this.rotation
+          if (wheelRef.current) wheelRef.current.style.transition = 'none'
+        },
+
+        onDrag() {
+          if (!wheelRef.current) return
+          wheelRef.current.style.transform =
+            `rotate(${rotationRef.current + this.rotation}deg)`
+        },
+
+        onThrowUpdate() {
+          if (!wheelRef.current) return
+          wheelRef.current.style.transform =
+            `rotate(${rotationRef.current + this.rotation}deg)`
+        },
+
+        onDragEnd() {
+          isDraggingRef.current = false
+          const totalDrag = Math.abs(this.rotation - dragStartRot)
+
+          if (totalDrag >= MIN_DRAG && !spinningRef.current) {
+            // ── Dragged enough → trigger real spin ────────────────────────
+            gsap.set(overlay, { rotation: 0 })
+            if (wheelRef.current) {
+              wheelRef.current.style.transform  = ''
+              wheelRef.current.style.transition = ''
+            }
+            doSpinRef.current(hasFreeSpinsRef.current)
+
+          } else {
+            // ── Too small → bounce back, no spin result ────────────────────
+            gsap.to(overlay, {
+              rotation: 0,
+              duration: 0.4,
+              ease: 'back.out(1.6)',
+              onUpdate: () => {
+                if (!wheelRef.current) return
+                wheelRef.current.style.transform =
+                  `rotate(${rotationRef.current + gsap.getProperty(overlay, 'rotation')}deg)`
+              },
+              onComplete: () => {
+                gsap.set(overlay, { rotation: 0 })
+                if (wheelRef.current) {
+                  wheelRef.current.style.transform  = ''
+                  wheelRef.current.style.transition = ''
+                }
+              },
+            })
+          }
+        },
+      })[0]
+
+      draggableRef.current = d
+    }
+
+    init()
+
+    return () => {
+      if (draggableRef.current) { draggableRef.current.kill(); draggableRef.current = null }
+      if (wheelRef.current) {
+        wheelRef.current.style.transform  = ''
+        wheelRef.current.style.transition = ''
+      }
+    }
+  }, [open])   // ← only open; live values read via refs
 
   if (!open) return null
 
@@ -502,6 +640,65 @@ export default function LuckyWheel({ open, onClose }) {
             <button className="wheel-close" onClick={onClose}>✕</button>
           </div>
 
+          {/* ── Reset Info Banner ── */}
+          <div style={{
+            background: dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+            border: `1px solid ${borderCol}`,
+            borderRadius: 14, padding: '10px 14px',
+            marginBottom: 14,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: 10, flexWrap: 'wrap',
+          }}>
+            {/* Spin progress */}
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, color: textMuted, fontWeight: 700, marginBottom: 5 }}>
+                SPIN GRATIS MINGGU INI
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ flex: 1, height: 6, borderRadius: 100, background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)', overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%', borderRadius: 100,
+                    background: freeSpinsRemaining > 0
+                      ? 'linear-gradient(90deg,#FFD700,#FF8C00)'
+                      : dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
+                    width: `${Math.round((freeSpinsRemaining / (freeSpinsPerWeek || 5)) * 100)}%`,
+                    transition: 'width 0.5s ease',
+                  }} />
+                </div>
+                <span style={{
+                  fontFamily: "'Fredoka One',cursive",
+                  fontSize: 14,
+                  color: freeSpinsRemaining > 0 ? '#FFD700' : textMuted,
+                  flexShrink: 0,
+                }}>
+                  {freeSpinsRemaining}/{freeSpinsPerWeek || 5}
+                </span>
+              </div>
+            </div>
+
+            {/* Countdown */}
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontSize: 10, color: textMuted, fontWeight: 700, marginBottom: 3 }}>
+                RESET BERIKUTNYA
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ fontSize: 11 }}>🕐</span>
+                <span style={{
+                  fontFamily: "'Fredoka One',cursive",
+                  fontSize: 13,
+                  color: !countdown.ticking ? '#4ECDC4' : textMain,
+                  fontVariantNumeric: 'tabular-nums',
+                  letterSpacing: countdown.ticking ? '0.5px' : 0,
+                }}>
+                  {countdown.label || '...'}
+                </span>
+              </div>
+              <div style={{ fontSize: 9, color: textMuted, marginTop: 2 }}>
+                Senin 07:00 WIB
+              </div>
+            </div>
+          </div>
+
           {/* Tabs */}
           <div className="wheel-tabs">
             {['spin','collection','history'].map(t => (
@@ -518,11 +715,13 @@ export default function LuckyWheel({ open, onClose }) {
               {/* Wheel */}
               <div className="wheel-stage" style={{
                 position: 'relative', width: 280, height: 280,
-                margin: '0 auto 24px', overflow: 'visible',
+                margin: '0 auto 8px', overflow: 'visible',
               }}>
                 <div className="wheel-pointer" />
                 {slots && slots.length > 0 ? (
-                  <svg className={`wheel-disc ${spinning?'spinning':''}`}
+                  <svg
+                    ref={wheelRef}
+                    className={`wheel-disc ${spinning?'spinning':''}`}
                     viewBox="0 0 300 300"
                     width="280" height="280"
                     overflow="visible"
@@ -619,6 +818,32 @@ export default function LuckyWheel({ open, onClose }) {
                     Loading wheel...
                   </div>
                 )}
+
+                {/* Transparent drag overlay — always in DOM, Draggable target */}
+                <div
+                  ref={dragOverlayRef}
+                  style={{
+                    position: 'absolute',
+                    top: 0, left: 0,
+                    width: 280, height: 280,
+                    borderRadius: '50%',
+                    zIndex: 4,
+                    cursor: spinning ? 'not-allowed' : 'grab',
+                    WebkitTapHighlightColor: 'transparent',
+                    touchAction: 'none',
+                    pointerEvents: spinning ? 'none' : 'auto',
+                  }}
+                />
+              </div>
+
+              {/* Drag hint */}
+              <div style={{
+                textAlign: 'center', fontSize: 11, color: textMuted,
+                marginBottom: 16, fontWeight: 600,
+                opacity: spinning ? 0 : 0.7, transition: 'opacity 0.3s',
+                userSelect: 'none',
+              }}>
+                {hasFreeSpins ? '👆 Putar atau seret roda' : '👆 Seret cepat untuk spin'}
               </div>
 
               {/* Spin buttons */}
