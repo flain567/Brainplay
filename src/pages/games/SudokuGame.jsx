@@ -400,12 +400,13 @@ export default function SudokuGame({ onBack, onHome, game, difficulty }) {
           display: 'grid',
           gridTemplateColumns: 'repeat(9, 1fr)',
           gap: 0,
-          border: `3px solid ${dark ? '#4a4a6a' : '#2D3436'}`,
+          border: `3px solid ${isCustomTheme ? accent : (dark ? '#4a4a6a' : '#2D3436')}`,
           borderRadius: 12,
           overflow: 'hidden',
           width: '100%',
           maxWidth: 400,
           aspectRatio: '1',
+          background: isCustomTheme ? gameBg : surface,
         }}>
           {board.map((row, r) => row.map((val, c) => {
             const isInitial = initialCells.has(`${r}-${c}`)
@@ -421,11 +422,11 @@ export default function SudokuGame({ onBack, onHome, game, difficulty }) {
             const rightBorder = (c + 1) % 3 === 0 && c < 8
             const bottomBorder = (r + 1) % 3 === 0 && r < 8
 
-            let cellBg = isCustomTheme ? `${gameBg}` : surface
-            if (isSelected) cellBg = sudokuTheme?.selected ? `${sudokuTheme.selected}55` : (dark ? '#2a3a6e' : '#D4E6FF')
-            else if (isError) cellBg = isCustomTheme ? `${errorColor}22` : (dark ? '#3a1a1a' : '#FFE0E0')
-            else if (isSameNum) cellBg = isCustomTheme ? `${accent}22` : (dark ? '#1e2e5e' : '#E8F0FE')
-            else if (isHighlighted) cellBg = isCustomTheme ? `${accent}14` : (dark ? '#1a2240' : '#F0F4FF')
+            let cellBg = isCustomTheme ? gameBg : surface
+            if (isSelected)      cellBg = sudokuTheme?.selected ? `${sudokuTheme.selected}88` : (dark ? '#2a3a6e' : '#D4E6FF')
+            else if (isError)    cellBg = isCustomTheme ? `${errorColor}33` : (dark ? '#3a1a1a' : '#FFE0E0')
+            else if (isSameNum)  cellBg = isCustomTheme ? `${accent}28` : (dark ? '#1e2e5e' : '#E8F0FE')
+            else if (isHighlighted) cellBg = isCustomTheme ? `${accent}18` : (dark ? '#1a2240' : '#F0F4FF')
 
             return (
               <div key={`${r}-${c}`}
