@@ -550,17 +550,22 @@ export function CoinProvider({ children }) {
     return () => window.removeEventListener('bp-cloud-sync', handler)
   }, [])
 
-  // Lucky Wheel unlock handler: auto-add exclusive items to owned list
+  // Lucky Wheel unlock handler: auto-add exclusive items to owned list + auto-equip
   useEffect(() => {
     const handler = (e) => {
       const { item } = e.detail || {}
       if (!item) return
-      const typeToKey = { ships:'ownedShips', racerThemes:'ownedRacerThemes', dashThemes:'ownedDashThemes', packs:'ownedPacks', sudokuThemes:'ownedSudokuThemes' }
-      const key = typeToKey[item.type]
+      const typeToKey  = { ships:'ownedShips', racerThemes:'ownedRacerThemes', dashThemes:'ownedDashThemes', packs:'ownedPacks', sudokuThemes:'ownedSudokuThemes' }
+      const activeToKey = { ships:'activeShip', racerThemes:'activeRacerTheme', dashThemes:'activeDashTheme', packs:'activePack', sudokuThemes:'activeSudokuTheme' }
+      const key  = typeToKey[item.type]
+      const aKey = activeToKey[item.type]
       if (!key) return
       setState(s => {
         if ((s[key] || []).includes(item.id)) return s // already owned
-        return { ...s, [key]: [...(s[key] || []), item.id] }
+        const next = { ...s, [key]: [...(s[key] || []), item.id] }
+        // Auto-aktifkan item yang baru dimenangkan
+        if (aKey) next[aKey] = item.id
+        return next
       })
     }
     window.addEventListener('bp-wheel-unlock', handler)
@@ -711,7 +716,9 @@ export function CoinProvider({ children }) {
 
   const getActiveSudokuTheme = useCallback(() => {
     const t = SUDOKU_THEMES.find(h => h.id === state.activeSudokuTheme)
-    return t ? t.style : SUDOKU_THEMES[0].style
+    const theme = t || SUDOKU_THEMES[0]
+    // Kembalikan style + id + bg + assets agar SudokuGame bisa gunakan semuanya
+    return { ...theme.style, id: theme.id, bg: theme.style.bg, assets: theme.assets || null }
   }, [state.activeSudokuTheme])
 
   const getActiveJigsawTheme = useCallback(() => {

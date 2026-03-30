@@ -329,6 +329,16 @@ export default function SudokuGame({ onBack, onHome, game, difficulty }) {
   const borderCol = tc.borderCol
   const accent    = sudokuTheme?.grid || '#0984E3'
 
+  // Warna dari tema aktif — fallback ke default jika tidak ada tema
+  const themeId       = sudokuTheme?.id || 'default'
+  const isCustomTheme = themeId !== 'default'
+  const gameBg        = isCustomTheme && sudokuTheme?.bg   ? sudokuTheme.bg   : bg
+  const givenColor    = isCustomTheme && sudokuTheme?.given ? sudokuTheme.given : textMain
+  const inputColor    = isCustomTheme && sudokuTheme?.input ? sudokuTheme.input : accent
+  const errorColor    = sudokuTheme?.error || '#FF6B6B'
+  const boxBorderColor = isCustomTheme ? `${accent}88` : (dark ? '#4a4a6a' : '#2D3436')
+  const cellBorderColor = isCustomTheme ? `${accent}44` : (dark ? '#2a2a4a' : '#DFE6E9')
+
   const selectedNum = selectedCell ? board[selectedCell[0]][selectedCell[1]] : null
 
   const winStarsDisplay = useMemo(() => {
@@ -347,7 +357,7 @@ export default function SudokuGame({ onBack, onHome, game, difficulty }) {
   }, [won, difficulty.id, winStarsDisplay])
 
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100dvh', transition: 'background 0.3s' }}>
+    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: gameBg, minHeight: '100dvh', transition: 'background 0.3s' }}>
       {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_sudoku","1") }} />}
       <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
 
@@ -411,11 +421,11 @@ export default function SudokuGame({ onBack, onHome, game, difficulty }) {
             const rightBorder = (c + 1) % 3 === 0 && c < 8
             const bottomBorder = (r + 1) % 3 === 0 && r < 8
 
-            let cellBg = surface
-            if (isSelected) cellBg = sudokuTheme?.selected ? `${sudokuTheme.selected}33` : (dark ? '#2a3a6e' : '#D4E6FF')
-            else if (isError) cellBg = dark ? '#3a1a1a' : '#FFE0E0'
-            else if (isSameNum) cellBg = dark ? '#1e2e5e' : '#E8F0FE'
-            else if (isHighlighted) cellBg = dark ? '#1a2240' : '#F0F4FF'
+            let cellBg = isCustomTheme ? `${gameBg}` : surface
+            if (isSelected) cellBg = sudokuTheme?.selected ? `${sudokuTheme.selected}55` : (dark ? '#2a3a6e' : '#D4E6FF')
+            else if (isError) cellBg = isCustomTheme ? `${errorColor}22` : (dark ? '#3a1a1a' : '#FFE0E0')
+            else if (isSameNum) cellBg = isCustomTheme ? `${accent}22` : (dark ? '#1e2e5e' : '#E8F0FE')
+            else if (isHighlighted) cellBg = isCustomTheme ? `${accent}14` : (dark ? '#1a2240' : '#F0F4FF')
 
             return (
               <div key={`${r}-${c}`}
@@ -423,8 +433,8 @@ export default function SudokuGame({ onBack, onHome, game, difficulty }) {
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: cellBg,
-                  borderRight: rightBorder ? `2px solid ${dark ? '#4a4a6a' : '#2D3436'}` : `1px solid ${dark ? '#2a2a4a' : '#DFE6E9'}`,
-                  borderBottom: bottomBorder ? `2px solid ${dark ? '#4a4a6a' : '#2D3436'}` : `1px solid ${dark ? '#2a2a4a' : '#DFE6E9'}`,
+                  borderRight: rightBorder ? `2px solid ${boxBorderColor}` : `1px solid ${cellBorderColor}`,
+                  borderBottom: bottomBorder ? `2px solid ${boxBorderColor}` : `1px solid ${cellBorderColor}`,
                   cursor: won ? 'default' : 'pointer',
                   transition: 'background 0.15s',
                   position: 'relative',
@@ -434,7 +444,7 @@ export default function SudokuGame({ onBack, onHome, game, difficulty }) {
                   <span style={{
                     fontFamily: "'Fredoka One',cursive",
                     fontSize: 'min(4.5vw, 22px)',
-                    color: isError ? '#FF6B6B' : isInitial ? textMain : accent,
+                    color: isError ? errorColor : isInitial ? givenColor : inputColor,
                     fontWeight: isInitial ? 800 : 700,
                     opacity: isInitial ? 1 : 0.9,
                     transition: 'all 0.2s',
