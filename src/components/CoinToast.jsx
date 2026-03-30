@@ -1,9 +1,26 @@
+import { useEffect, useRef } from 'react'
 import { useCoins } from '../context/CoinContext.jsx'
 import { useSettings } from '../context/SettingsContext.jsx'
+import { scrambleOnce } from '../hooks/useScrambleNumber.js'
 
 export default function CoinToast() {
   const { coinAnim } = useCoins()
   const { darkMode } = useSettings()
+  const amountRef = useRef(null)
+
+  // Scramble angka +amount setiap kali toast baru muncul
+  useEffect(() => {
+    if (!coinAnim || !amountRef.current) return
+    const final = `+${coinAnim.amount}`
+    amountRef.current.textContent = '+...'
+    scrambleOnce(amountRef.current, final, {
+      chars:       '0123456789+',
+      duration:    0.65,
+      speed:       0.5,
+      revealDelay: 0.2,
+      delay:       0.1,
+    })
+  }, [coinAnim])
 
   if (!coinAnim) return null
 
@@ -41,12 +58,17 @@ export default function CoinToast() {
         pointerEvents: 'none',
       }}>
         <span style={{ fontSize: 22, animation: 'coinSpin 0.6s ease', display: 'inline-block' }}>🪙</span>
-        <span style={{
-          fontFamily: "'Fredoka One',cursive",
-          fontSize: 18,
-          color: '#F9A825',
-          textShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        }}>
+        <span
+          ref={amountRef}
+          style={{
+            fontFamily: "'Fredoka One',cursive",
+            fontSize: 18,
+            color: '#F9A825',
+            textShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            minWidth: 40,
+            display: 'inline-block',
+          }}
+        >
           +{coinAnim.amount}
         </span>
         {coinAnim.desc && (

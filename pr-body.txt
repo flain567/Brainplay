@@ -1,0 +1,25 @@
+Summary
+Add GitHub Actions workflow to build with sourcemaps and upload them to Sentry.
+
+What changed
+- .github/workflows/sentry-sourcemaps.yml (new): builds and uploads sourcemaps to Sentry
+- package.json: build script now emits sourcemaps
+- src/firebase.js: non-blocking Sentry init (controlled by Vite env)
+- src/components/ErrorBoundary.jsx: report caught exceptions to Sentry if available
+- src/pages/games/MemoryCardMatch.jsx: example analytics events and Firestore send
+
+Why
+Sourcemaps allow readable stack traces in Sentry for production builds. This workflow
+creates a Sentry release and uploads sourcemaps automatically so errors in production
+map back to original source lines.
+
+How to test
+1. Add repository secrets in GitHub: `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`.
+2. Merge this PR — CI will build and upload sourcemaps for the commit SHA as a Sentry release.
+3. Set `VITE_SENTRY_DSN` in your environment for the runtime project to send events to Sentry.
+4. Trigger a test error in the app and verify the event shows a readable stacktrace in Sentry.
+
+Notes
+- No secret or DSN is committed to the repo.
+- CI requires the Sentry secrets to be present for uploads; please add them before merging.
+- If you prefer, I can remove the example analytics change and only keep CI + Sentry init.

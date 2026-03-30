@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useProgress } from '../context/ProgressContext.jsx'
@@ -6,6 +6,7 @@ import { useCoins } from '../context/CoinContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import Confetti from './Confetti.jsx'
 import TutorialModal from './TutorialModal.jsx'
+import { scrambleOnce } from '../hooks/useScrambleNumber.js'
 
 // ─── Reusable timer hook ─────────────────────────────────────────────────────
 export function useGameTimer(running, resetKey) {
@@ -197,6 +198,41 @@ export function WinModal({
   const textMuted = tc.textMuted
   const noAnim = reduceMotion
 
+  const coinRef  = useRef(null)
+  const statsRefs = useRef([])
+
+  // Scramble coinReward saat modal mount
+  useEffect(() => {
+    if (noAnim || !coinRef.current || coinReward <= 0) return
+    coinRef.current.textContent = '+...'
+    scrambleOnce(coinRef.current, `+${coinReward}`, {
+      chars: '0123456789+',
+      duration: 0.7,
+      speed: 0.5,
+      revealDelay: 0.25,
+      delay: 0.35,
+    })
+  }, [])
+
+  // Scramble tiap stat value — stagger per index
+  useEffect(() => {
+    if (noAnim) return
+    statsRefs.current.forEach((el, i) => {
+      if (!el) return
+      const raw = String(stats[i]?.value ?? '')
+      const hasNum = /\d/.test(raw)
+      if (!hasNum) return
+      el.textContent = '...'
+      scrambleOnce(el, raw, {
+        chars: '0123456789:.',
+        duration: 0.6,
+        speed: 0.45,
+        revealDelay: 0.2,
+        delay: 0.4 + i * 0.12,
+      })
+    })
+  }, [])
+
   return (
     <div style={{
       position: 'fixed', inset: 0,
@@ -269,7 +305,7 @@ export function WinModal({
             animation: noAnim ? 'none' : 'winSlideUp 0.4s 0.3s ease both',
           }}>
             <span style={{ fontSize: 16 }}>🪙</span>
-            <span style={{ fontFamily: "'Fredoka One',cursive", fontSize: 16, color: '#F9A825' }}>+{coinReward}</span>
+            <span ref={coinRef} style={{ fontFamily: "'Fredoka One',cursive", fontSize: 16, color: '#F9A825' }}>+{coinReward}</span>
           </div>
         )}
 
@@ -285,7 +321,10 @@ export function WinModal({
                 borderRadius: 14, padding: '12px 8px',
                 animation: noAnim ? 'none' : `winSlideUp 0.4s ${0.35 + i * 0.12}s ease both`,
               }}>
-                <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 22, color: s.color || '#A29BFE' }}>
+                <div
+                  ref={el => statsRefs.current[i] = el}
+                  style={{ fontFamily: "'Fredoka One',cursive", fontSize: 22, color: s.color || '#A29BFE' }}
+                >
                   {s.value}
                 </div>
                 <div style={{ fontSize: 11, color: textMuted, fontWeight: 600, marginTop: 2 }}>{s.label}</div>

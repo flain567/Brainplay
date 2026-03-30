@@ -121,7 +121,12 @@ const DUPE_COIN_SHOP = 50
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function getTodayKey() {
-  return new Date().toISOString().slice(0, 10)
+  // Pakai waktu LOKAL (bukan UTC) supaya reset tepat tengah malam WIB
+  const now = new Date()
+  const yyyy = now.getFullYear()
+  const mm   = String(now.getMonth() + 1).padStart(2, '0')
+  const dd   = String(now.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
 }
 
 function loadWheelState() {

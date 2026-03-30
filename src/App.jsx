@@ -378,6 +378,7 @@ export const GAMES = [
       { id:'hard',   description:'2 HP, jebakan mematikan — petualang sejati!',                stats:['2 HP','Reward +++'] },
     ],
   },
+  
 ]
 
 function AppInner() {
