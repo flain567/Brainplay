@@ -11,6 +11,8 @@ export default function CoinToast() {
   // Scramble angka +amount setiap kali toast baru muncul
   useEffect(() => {
     if (!coinAnim || !amountRef.current) return
+
+    // Scramble teks
     const final = `+${coinAnim.amount}`
     amountRef.current.textContent = '+...'
     scrambleOnce(amountRef.current, final, {
@@ -20,6 +22,16 @@ export default function CoinToast() {
       revealDelay: 0.2,
       delay:       0.1,
     })
+
+    // Dispatch event agar CoinFlyManager spawn koin terbang
+    // fromY: 110 = posisi perkiraan toast (top:72 + tinggi toast ~38px)
+    window.dispatchEvent(new CustomEvent('bp-coin-fly', {
+      detail: {
+        fromX:  window.innerWidth / 2,
+        fromY:  110,
+        amount: coinAnim.amount,
+      },
+    }))
   }, [coinAnim])
 
   if (!coinAnim) return null

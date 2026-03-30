@@ -15,6 +15,7 @@ import DifficultySelector from './components/DifficultySelector.jsx'
 import PageTransition from './components/PageTransition.jsx'
 import AchievementToast from './components/AchievementToast.jsx'
 import CoinToast from './components/CoinToast.jsx'
+import CoinFlyManager from './components/CoinFlyManager.jsx'
 import LevelUpModal from './components/LevelUpModal.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import ThemeApplicator from './components/ThemeApplicator.jsx'
@@ -378,7 +379,6 @@ export const GAMES = [
       { id:'hard',   description:'2 HP, jebakan mematikan — petualang sejati!',                stats:['2 HP','Reward +++'] },
     ],
   },
-  
 ]
 
 function AppInner() {
@@ -590,6 +590,7 @@ function AppInner() {
       )}
       <AchievementToast />
       <CoinToast />
+      <CoinFlyManager />
       {progress.levelUpData && (
         <LevelUpModal data={progress.levelUpData} onClose={clearLevelUp} />
       )}

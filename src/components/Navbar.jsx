@@ -262,6 +262,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
               </div>
             )}
             <button className="nav-btn" title="Shop" onClick={() => nav(onShop)}
+              data-coin-counter
               style={{ display:'flex', alignItems:'center', gap:4, width:'auto', minWidth:60, padding:'0 10px', borderRadius:100, background:dark?'rgba(253,203,110,0.08)':'rgba(253,203,110,0.12)', border:`1.5px solid ${dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.35)'}` }}>
               <span style={{ fontSize:14 }}>🪙</span>
               <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#F9A825' }}>{coins}</span>
@@ -282,6 +283,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
           <div className="nav-actions-mobile">
             {/* Coins — always visible on mobile */}
             <button className="nav-btn" onClick={() => nav(onShop)}
+              data-coin-counter
               style={{ display:'flex', alignItems:'center', gap:4, width:'auto', minWidth:52, padding:'0 8px', borderRadius:100, background:dark?'rgba(253,203,110,0.08)':'rgba(253,203,110,0.12)', border:`1.5px solid ${dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.35)'}`, height:36 }}>
               <span style={{ fontSize:12 }}>🪙</span>
               <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:12, color:'#F9A825' }}>{coins}</span>
