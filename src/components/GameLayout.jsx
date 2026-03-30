@@ -300,13 +300,6 @@ export function WinModal({
         boxShadow: `0 24px 80px rgba(0,0,0,0.35), 0 0 0 1px ${gameColor}22`,
         position: 'relative', overflow: 'hidden',
       }}>
-        background: bg, borderRadius: 28,
-        padding: '36px 32px', textAlign: 'center',
-        maxWidth: 380, width: '100%',
-        boxShadow: `0 24px 80px rgba(0,0,0,0.35), 0 0 0 1px ${gameColor}22`,
-        animation: noAnim ? 'none' : 'winPopIn 0.45s cubic-bezier(0.34,1.56,0.64,1)',
-        position: 'relative', overflow: 'hidden',
-      }}>
         {/* Top accent */}
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, height: 4,
