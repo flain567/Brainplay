@@ -4,12 +4,13 @@ import { useSound } from '../hooks/useSound.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, PATTERN_THEMES, REACTION_THEMES, DASH_THEMES, BREAKER_THEMES, WORDLE_THEMES, RACER_THEMES, RACER_MAP_CATALOG, MATH_THEMES, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
-import { WHEEL_EXCLUSIVES } from '../context/LuckyWheelContext.jsx'
+import { WHEEL_EXCLUSIVES, useLuckyWheel } from '../context/LuckyWheelContext.jsx'
 
 // ─── Generic cosmetic list renderer ─────────────────────────────────────────
-function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMain, textMuted, borderCol, coins, onBuy, onEquip, buyingId, previewId, setPreviewId, renderPreview }) {
+function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMain, textMuted, borderCol, coins, onBuy, onEquip, buyingId, previewId, setPreviewId, renderPreview, wonExclusives = [] }) {
   return items.map((item, i) => {
-    const owned = ownedList.includes(item.id)
+    // Cek owned dari CoinContext ATAU dari wonExclusives Lucky Wheel
+    const owned = ownedList.includes(item.id) || wonExclusives.includes(item.id)
     const isActive = activeId === item.id
     const expanded = previewId === item.id
     const isLocked = (item.exclusive || item.wheelOnly) && !owned
@@ -105,6 +106,8 @@ export default function Shop({ onBack }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { email } = useAuth()
+  // wonExclusives dari Lucky Wheel — dipakai untuk cek ownership item wheel
+  const { wonExclusives = [] } = useLuckyWheel()
   const {
     coins, ownedPacks, activePack, ownedSkins, activeSkin,
     ownedTileThemes, activeTileTheme, ownedHighlights, activeHighlight,
@@ -395,6 +398,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('packs', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(pack) => (
                   <div className="pack-preview">
                     {pack.icons.slice(0,6).map((icon, j) => (
@@ -421,6 +425,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('skins', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:14, justifyContent:'center' }}>
                     {item.skin.isImage ? (
@@ -467,6 +472,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('tileThemes', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:6, padding:10, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)' }}>
                     {[2,4,8,16,32,64,128,256,512,1024,2048].map(v => {
@@ -500,6 +506,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('highlights', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, display:'flex', gap:4, flexWrap:'wrap', padding:10, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)' }}>
                     {item.colors.slice(0,10).map((c, j) => (
@@ -639,6 +646,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('hangmanThemes', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:16 }}>
                     <svg width="60" height="70" viewBox="0 0 60 70">
@@ -671,6 +679,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('tubeThemes', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)', display:'flex', gap:8, justifyContent:'center' }}>
                     {['#FF6B6B','#4ECDC4','#A29BFE','#FDCB6E'].map((c, j) => (
@@ -701,6 +710,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('sudokuThemes', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, padding:14, borderRadius:12, background:item.style.bg, display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:3, maxWidth:100, margin:'0 auto' }}>
                     {[5,null,8,null,3,null,7,null,1].map((n, j) => (
@@ -734,6 +744,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('jigsawThemes', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:4, maxWidth:180, margin:'0 auto' }}>
                     {item.style.colors.map((c, j) => (
@@ -761,6 +772,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('patternThemes', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, padding:14, borderRadius:12, background:item.style.bg, display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, maxWidth:200, margin:'0 auto' }}>
                     {[0,1,2,3,4,5,6,7].map(j => (
@@ -790,6 +802,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('reactionThemes', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)', display:'flex', gap:8, justifyContent:'center' }}>
                     {Object.values(item.style).map((c, j) => (
@@ -817,6 +830,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('dashThemes', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, padding:14, borderRadius:12, background:'#1a0a3a', position:'relative', height:60, overflow:'hidden' }}>
                     <div style={{ position:'absolute', left:20, top:'50%', transform:'translateY(-50%)', width:20, height:20, background:item.style.player, border:`2px solid ${item.style.playerOutline}`, boxShadow:`0 0 12px ${item.style.glow}` }} />
@@ -841,6 +855,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('breakerThemes', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, padding:14, borderRadius:12, background:'#0a0a2e', position:'relative', height:70 }}>
                     <div style={{ position:'absolute', bottom:10, left:'50%', transform:'translateX(-50%)', width:80, height:12, borderRadius:6, background:`linear-gradient(${item.style.paddleTop}, ${item.style.paddleBot})`, boxShadow:`0 0 10px ${item.style.paddleTop}66` }} />
@@ -864,6 +879,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('wordleThemes', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)', display:'flex', gap:6, justifyContent:'center' }}>
                     {['B','R','A','I','N'].map((l, j) => (
@@ -892,6 +908,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('racerThemes', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, padding:14, borderRadius:12, background:'#1a1a3e', display:'flex', alignItems:'center', justifyContent:'center', gap:10 }}>
                     <svg width="80" height="40" viewBox="0 0 80 40">
@@ -921,6 +938,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('racerMaps', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, padding:14, borderRadius:12, background:item.style.skyLight, display:'flex', alignItems:'flex-end', justifyContent:'center', position:'relative', height:80, overflow:'hidden' }}>
                     <div style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', background:`linear-gradient(${item.style.skyLight}, ${item.style.skyDark})` }} />
@@ -946,6 +964,7 @@ export default function Shop({ onBack }) {
                 onBuy={(item) => handleBuyCosmetic('mathThemes', item)}
                 onEquip={handleEquip} buyingId={buyingId}
                 previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
                 renderPreview={(item) => (
                   <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?'#1A1A2E':'#F8F9FA', display:'flex', alignItems:'center', justifyContent:'center', gap:8, flexWrap:'wrap' }}>
                     {Object.entries(item.style).map(([k,v]) => (
