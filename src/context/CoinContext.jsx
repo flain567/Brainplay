@@ -540,13 +540,6 @@ export function CoinProvider({ children }) {
     try { window.dispatchEvent(new CustomEvent('bp-coin-change')) } catch(e) {}
   }, [state])
 
-  // ── Startup reconciliation ────────────────────────────────────────────────
-  // Pastikan semua item di wonExclusives sudah masuk ke ownedList
-  // Jalan sekali saat mount (sebelum cloud sync) dan sekali lagi setelah cloud sync via handler di atas
-  useEffect(() => {
-    setState(s => reconcileWheelItems(s))
-  }, [reconcileWheelItems])
-
   // ── Helper: reconcile wonExclusives ke ownedList ─────────────────────────
   const EXCLUSIVE_MAP = {
     'wheel-ship-ice':      'ownedShips',
@@ -577,6 +570,12 @@ export function CoinProvider({ children }) {
       return changed ? next : baseState
     } catch { return baseState }
   }, [])
+
+  // ── Startup reconciliation ────────────────────────────────────────────────
+  // Harus setelah reconcileWheelItems dideklarasi (hindari temporal dead zone)
+  useEffect(() => {
+    setState(s => reconcileWheelItems(s))
+  }, [reconcileWheelItems])
 
   // Reload from localStorage when cloud sync completes
   // — lalu langsung reconcile agar wonExclusives tidak teroverwrite
