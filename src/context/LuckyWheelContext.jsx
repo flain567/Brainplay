@@ -55,8 +55,8 @@ export const WHEEL_EXCLUSIVES = [
 const WHEEL_ROTATION = [
   ['space-shooter', 'voxel-racer'],  // Minggu 1
   ['neon-dash',     'memory-card'],  // Minggu 2
-  ['space-shooter', 'neon-dash'],    // Minggu 3
-  ['voxel-racer',   'memory-card'],  // Minggu 4 — lalu repeat
+  ['memory-card',   'sudoku'],       // Minggu 3 ← minggu ini (week 14)
+  ['voxel-racer',   'memory-card'],  // Minggu 4
   ['space-shooter', 'sudoku'],       // Minggu 5
   ['neon-dash',     'voxel-racer'],  // Minggu 6
 ]
