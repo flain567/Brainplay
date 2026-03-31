@@ -11,13 +11,21 @@ import { WinModal } from '../../components/GameLayout.jsx'
 const TUTORIAL_STEPS = [
   { emoji:'🇮🇩', title:'Quiz Trivia Indonesia', desc:'Uji pengetahuan umummu tentang Indonesia! Geografi, sejarah, budaya, dan lainnya.', tip:'Jawab secepat mungkin untuk bonus waktu!' },
   { emoji:'📚', title:'Kategori Beragam', desc:'Pertanyaan dari berbagai topik — ibukota, sejarah, makanan, tradisi, alam, dan sains.', tip:'Setiap level menambah kesulitan soal!' },
-  { emoji:'🏆', title:'Skor & Nyawa', desc:'Jawaban benar = poin + bonus waktu. Salah = kehilangan nyawa. Capai target untuk menang!', tip:'Combo streak memberi multiplier hingga 3×!' },
+  { emoji:'🏆', title:'Skor & Bintang', desc:'Jawab semua soal, benar = poin + bonus waktu, salah = 0 poin. Akurasi ≥80% = ⭐⭐⭐!', tip:'Combo streak memberi multiplier hingga 3×!' },
 ]
 
 const CFG = {
-  easy:   { timePerQ: 20, lives: 5, totalQ: 15 },
-  medium: { timePerQ: 15, lives: 4, totalQ: 20 },
-  hard:   { timePerQ: 10, lives: 3, totalQ: 25 },
+  easy:   { timePerQ: 20, totalQ: 15, star3: 80, star2: 60, star1: 40 },
+  medium: { timePerQ: 15, totalQ: 20, star3: 80, star2: 60, star1: 40 },
+  hard:   { timePerQ: 10, totalQ: 25, star3: 75, star2: 55, star1: 35 },
+}
+// Hitung bintang berdasarkan akurasi (%)
+function calcStars(correct, total, cfg) {
+  const pct = Math.round((correct / Math.max(total, 1)) * 100)
+  if (pct >= cfg.star3) return 3
+  if (pct >= cfg.star2) return 2
+  if (pct >= cfg.star1) return 1
+  return 0
 }
 
 // ─── Question Bank ────────────────────────────────────────────────────────
@@ -108,7 +116,7 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty }) {
   const [phase, setPhase] = useState('tutorial')
   const [questions, setQuestions] = useState([])
   const [qIndex, setQIndex] = useState(0)
-  const [lives, setLives] = useState(diff.lives)
+  const [totalWrong, setTotalWrong] = useState(0)
   const [score, setScore] = useState(0)
   const [streak, setStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
@@ -137,16 +145,7 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty }) {
     }, 50)
   }, [diff.timePerQ])
 
-  const handleWrong = useCallback((q, timeout = false) => {
-    clearInterval(timerRef.current); play('error')
-    setFeedback({ type: timeout ? 'timeout' : 'wrong', answer: q.o[q.a] }); setStreak(0)
-    setLives(p => {
-      const n = p - 1
-      if (n <= 0) fbRef.current = setTimeout(() => endGame('lives'), 1200)
-      else fbRef.current = setTimeout(() => advance(), 1200)
-      return n
-    })
-  }, [play])
+
 
   const advance = useCallback(() => {
     setQIndex(i => {
@@ -157,6 +156,15 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty }) {
       return next
     })
   }, [questions, startTimer])
+
+  const handleWrong = useCallback((q, timeout = false) => {
+    clearInterval(timerRef.current); play('error')
+    setFeedback({ type: timeout ? 'timeout' : 'wrong', answer: q.o[q.a] })
+    setStreak(0)
+    setTotalWrong(p => p + 1)
+    // Tidak ada nyawa — langsung lanjut ke soal berikutnya
+    fbRef.current = setTimeout(() => advance(), 1400)
+  }, [play, advance])
 
   const handleAnswer = useCallback((idx) => {
     if (feedback || selectedAnswer !== null) return
@@ -178,10 +186,10 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty }) {
   }, [play])
 
   const won = gameOverReason === 'complete'
-  const answered = qIndex + (phase === 'result' ? 0 : 0)
-  const accuracy = (qIndex > 0 || phase === 'result') ? Math.round(totalCorrect / Math.max(qIndex + (won ? 1 : 0), 1) * 100) : 0
-  const stars = won ? (lives >= diff.lives ? 3 : lives >= Math.ceil(diff.lives / 2) ? 2 : 1) : 0
-  const coinReward = won ? Math.floor(score / 50) + stars * 5 : Math.floor(score / 100)
+  const totalAnswered = won ? diff.totalQ : qIndex + 1
+  const accuracy = Math.round((totalCorrect / Math.max(totalAnswered, 1)) * 100)
+  const stars = won ? calcStars(totalCorrect, diff.totalQ, diff) : 0
+  const coinReward = Math.floor(score / 50) + stars * 5
   const isNewBest = score > bestScore
 
   useEffect(() => {
@@ -193,7 +201,7 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty }) {
 
   const startGame = useCallback(() => {
     const qs = prepareQuestions(diff.totalQ)
-    setQuestions(qs); setQIndex(0); setLives(diff.lives); setScore(0); setStreak(0); setBestStreak(0)
+    setQuestions(qs); setQIndex(0); setTotalWrong(0); setScore(0); setStreak(0); setBestStreak(0)
     setTotalCorrect(0); setFeedback(null); setSelectedAnswer(null); setShowConfetti(false); setGameOverReason('')
     setPhase('playing')
     setTimeout(() => startTimer(qs[0]), 100)
@@ -211,15 +219,15 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty }) {
       <div style={{ textAlign:'center', maxWidth:400 }}>
         <div style={{ fontSize:72, marginBottom:12 }}>🇮🇩</div>
         <h1 style={{ fontFamily:"'Fredoka One',cursive", color:accent, fontSize:26, margin:'0 0 8px' }}>Quiz Trivia Indonesia</h1>
-        <p style={{ color:textMuted, fontSize:14, marginBottom:24, lineHeight:1.5 }}>Uji pengetahuan umummu!<br/>{diff.totalQ} pertanyaan, {diff.lives} nyawa.</p>
+        <p style={{ color:textMuted, fontSize:14, marginBottom:24, lineHeight:1.5 }}>Jawab semua soal, raih skor terbaik!<br/>⭐⭐⭐ = akurasi ≥{diff.star3}%</p>
         <div style={{ display:'flex', gap:16, justifyContent:'center', marginBottom:24, flexWrap:'wrap' }}>
           <div style={{ background:surface, borderRadius:12, padding:'12px 20px', textAlign:'center' }}>
             <div style={{ fontSize:20, fontWeight:700, color:accent }}>{diff.totalQ}</div>
             <div style={{ fontSize:11, color:textMuted }}>soal</div>
           </div>
           <div style={{ background:surface, borderRadius:12, padding:'12px 20px', textAlign:'center' }}>
-            <div style={{ fontSize:20, fontWeight:700, color:'#FF6B6B' }}>{'❤️'.repeat(diff.lives)}</div>
-            <div style={{ fontSize:11, color:textMuted }}>{diff.lives} nyawa</div>
+            <div style={{ fontSize:20, fontWeight:700, color:'#00B894' }}>≥{diff.star3}%</div>
+            <div style={{ fontSize:11, color:textMuted }}>target ⭐⭐⭐</div>
           </div>
           <div style={{ background:surface, borderRadius:12, padding:'12px 20px', textAlign:'center' }}>
             <div style={{ fontSize:20, fontWeight:700, color:'#FDCB6E' }}>{diff.timePerQ}s</div>
@@ -239,18 +247,18 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty }) {
       <div style={{ minHeight:'100dvh', background:bg }}>
         {showConfetti && <Confetti />}
         <WinModal
-          emoji={won ? '🎉' : '💔'}
-          title={won ? 'SELAMAT!' : 'Game over'}
-          subtitle={won ? 'Kamu ahli trivia Indonesia!' : `Sampai soal ${qIndex + 1}/${diff.totalQ}`}
+          emoji={stars >= 3 ? '🏆' : stars >= 2 ? '🎉' : stars >= 1 ? '😊' : '😔'}
+          title={stars >= 3 ? 'LUAR BIASA!' : stars >= 2 ? 'BAGUS!' : stars >= 1 ? 'LUMAYAN!' : 'KEEP TRYING!'}
+          subtitle={won ? `Akurasi ${accuracy}% — ${totalCorrect} dari ${diff.totalQ} benar!` : `Selesai! ${totalCorrect} dari ${diff.totalQ} benar.`}
           diffLabel={diffLabel}
           stats={[
             { label: 'Skor', value: score.toLocaleString(), color: '#6C5CE7' },
             { label: 'Benar', value: `${totalCorrect}/${won ? diff.totalQ : qIndex + 1}`, color: '#00B894' },
             { label: 'Akurasi', value: `${accuracy}%`, color: '#FDCB6E' },
             { label: 'Best streak', value: String(bestStreak), color: '#FD79A8' },
-            { label: 'Nyawa', value: `${lives}/${diff.lives}`, color: '#FF6B6B' },
+            { label: 'Salah', value: String(totalWrong), color: '#FF6B6B' },
           ]}
-          stars={won ? stars : 0}
+          stars={stars}
           coinReward={coinReward}
           highlight={isNewBest ? '🏆 Skor baru terbaik!' : ''}
           onRestart={() => setPhase('ready')}
@@ -273,7 +281,11 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty }) {
     <div style={{ minHeight:'100dvh', background:bg, display:'flex', flexDirection:'column' }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', gap:8 }}>
         <button onClick={onBack} style={{ background:'none', border:'none', color:textMuted, fontSize:20, cursor:'pointer' }}>←</button>
-        <div style={{ display:'flex', gap:4 }}>{Array.from({ length: diff.lives }, (_, i) => <span key={i} style={{ fontSize:18, opacity:i<lives?1:0.2 }}>❤️</span>)}</div>
+        <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+          <span style={{ fontSize:13, fontWeight:700, color:'#00B894' }}>✓ {totalCorrect}</span>
+          <span style={{ fontSize:12, color:tc.muted }}>|</span>
+          <span style={{ fontSize:13, fontWeight:700, color:'#FF6B6B' }}>✗ {totalWrong}</span>
+        </div>
         <div style={{ fontFamily:"'Fredoka One',cursive", color:accent, fontSize:16 }}>{score.toLocaleString()}</div>
       </div>
 
