@@ -541,51 +541,61 @@ export function CoinProvider({ children }) {
   }, [state])
 
   // ── Startup reconciliation ────────────────────────────────────────────────
-  // Pastikan semua item di wonExclusives (Lucky Wheel) sudah masuk ke ownedList
-  // yang sesuai. Ini menangani kasus di mana event bp-wheel-unlock terlewat.
+  // Pastikan semua item di wonExclusives sudah masuk ke ownedList
+  // Jalan sekali saat mount (sebelum cloud sync) dan sekali lagi setelah cloud sync via handler di atas
   useEffect(() => {
+    setState(s => reconcileWheelItems(s))
+  }, [reconcileWheelItems])
+
+  // ── Helper: reconcile wonExclusives ke ownedList ─────────────────────────
+  const EXCLUSIVE_MAP = {
+    'wheel-ship-ice':      'ownedShips',
+    'wheel-racer-monster': 'ownedRacerThemes',
+    'wheel-racer-beetle':  'ownedRacerThemes',
+    'wheel-dash-robot':    'ownedDashThemes',
+    'wheel-dash-graffiti': 'ownedDashThemes',
+    'wheel-card-pixel':    'ownedPacks',
+    'wheel-sudoku-pastel': 'ownedSudokuThemes',
+  }
+
+  const reconcileWheelItems = useCallback((baseState) => {
     try {
       const wheelData = JSON.parse(localStorage.getItem('bp_lucky_wheel')) || {}
       const wonExclusives = wheelData.wonExclusives || []
-      if (wonExclusives.length === 0) return
-
-      // Mapping hard-coded (menghindari circular import dengan LuckyWheelContext)
-      const EXCLUSIVE_MAP = {
-        'wheel-ship-ice':      { ownedKey: 'ownedShips' },
-        'wheel-racer-monster': { ownedKey: 'ownedRacerThemes' },
-        'wheel-racer-beetle':  { ownedKey: 'ownedRacerThemes' },
-        'wheel-dash-robot':    { ownedKey: 'ownedDashThemes' },
-        'wheel-dash-graffiti': { ownedKey: 'ownedDashThemes' },
-        'wheel-card-pixel':    { ownedKey: 'ownedPacks' },
-        'wheel-sudoku-pastel': { ownedKey: 'ownedSudokuThemes' },
-      }
-
-      setState(s => {
-        let changed = false
-        const next = { ...s }
-        wonExclusives.forEach(id => {
-          const map = EXCLUSIVE_MAP[id]
-          if (!map) return
-          const list = next[map.ownedKey] || []
-          if (!list.includes(id)) {
-            next[map.ownedKey] = [...list, id]
-            changed = true
-          }
-        })
-        return changed ? next : s
+      if (wonExclusives.length === 0) return baseState
+      let changed = false
+      const next = { ...baseState }
+      wonExclusives.forEach(id => {
+        const ownedKey = EXCLUSIVE_MAP[id]
+        if (!ownedKey) return
+        const list = next[ownedKey] || []
+        if (!list.includes(id)) {
+          next[ownedKey] = [...list, id]
+          changed = true
+        }
       })
-    } catch {}
-  }, []) // Jalankan sekali saat mount
+      return changed ? next : baseState
+    } catch { return baseState }
+  }, [])
 
   // Reload from localStorage when cloud sync completes
+  // — lalu langsung reconcile agar wonExclusives tidak teroverwrite
   useEffect(() => {
     const handler = () => {
       const saved = getJSON(StorageKeys.COINS)
-      if (saved) setState(s => ({ ...getDefaultCoinState(), ...saved }))
+      if (saved) {
+        const merged = { ...getDefaultCoinState(), ...saved }
+        const reconciled = reconcileWheelItems(merged)
+        setState(reconciled)
+        // Kalau reconciliation nambah item baru, simpan balik ke localStorage
+        if (reconciled !== merged) {
+          setJSON(StorageKeys.COINS, reconciled)
+        }
+      }
     }
     window.addEventListener('bp-cloud-sync', handler)
     return () => window.removeEventListener('bp-cloud-sync', handler)
-  }, [])
+  }, [reconcileWheelItems])
 
   // Lucky Wheel unlock handler: auto-add exclusive items to owned list + auto-equip
   useEffect(() => {
