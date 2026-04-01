@@ -1,34 +1,38 @@
 import { useEffect, useRef, useState } from 'react'
 
 /**
- * SplashScreen — Anime.js SVG morphing logo
- * Shape morphs: circle → brain → gamepad → star, with spring bounce + glow rings
+ * SplashScreen — Two-phase splash:
+ * Phase 0: AKSA Interactive studio logo (cinematic intro)
+ * Phase 1: BrainPlay game logo with SVG morphing
  */
 export default function SplashScreen({ onDone }) {
+  const [phase, setPhase] = useState(0)   // 0 = studio, 1 = game logo
   const [step, setStep] = useState(0)
   const svgRef = useRef(null)
   const animRef = useRef(null)
 
-  // Polygon points (same count = 8 points each, for smooth morphing)
+  // Polygon points for morphing
   const SHAPES = [
-    '50,5 80,20 95,50 80,80 50,95 20,80 5,50 20,20',    // circle-ish
-    '50,2 78,15 98,45 85,75 55,98 18,82 2,48 22,12',     // brain blob
-    '40,10 60,10 80,35 80,65 60,90 40,90 20,65 20,35',    // gamepad rect
-    '50,2 65,30 98,38 75,62 80,95 50,78 20,95 25,62',     // star
+    '50,5 80,20 95,50 80,80 50,95 20,80 5,50 20,20',
+    '50,2 78,15 98,45 85,75 55,98 18,82 2,48 22,12',
+    '40,10 60,10 80,35 80,65 60,90 40,90 20,65 20,35',
+    '50,2 65,30 98,38 75,62 80,95 50,78 20,95 25,62',
   ]
   const COLORS = ['#A29BFE', '#FF6B6B', '#4ECDC4', '#FDCB6E']
 
+  // Phase 0: Studio logo (2.5s) → Phase 1: Game logo (2.3s) → done
   useEffect(() => {
-    const t1 = setTimeout(() => setStep(1), 200)
-    const t2 = setTimeout(() => setStep(2), 900)
-    const t3 = setTimeout(() => setStep(3), 1800)
-    const t4 = setTimeout(() => onDone(), 2300)
-    return () => [t1, t2, t3, t4].forEach(clearTimeout)
+    const t1 = setTimeout(() => setPhase(1), 2500)
+    const t2 = setTimeout(() => setStep(1), 2700)
+    const t3 = setTimeout(() => setStep(2), 3400)
+    const t4 = setTimeout(() => setStep(3), 4300)
+    const t5 = setTimeout(() => onDone(), 4800)
+    return () => [t1, t2, t3, t4, t5].forEach(clearTimeout)
   }, [])
 
-  // Anime.js morphing — lazy loaded
+  // Anime.js morphing for game logo phase
   useEffect(() => {
-    if (step < 1 || !svgRef.current) return
+    if (phase !== 1 || step < 1 || !svgRef.current) return
     let cancelled = false
 
     ;(async () => {
@@ -41,7 +45,6 @@ export default function SplashScreen({ onDone }) {
         const poly = svgRef.current.querySelector('#morph-poly')
         if (!poly) return
 
-        // Morph through shapes sequentially
         let idx = 0
         const morphNext = () => {
           if (cancelled) return
@@ -58,7 +61,6 @@ export default function SplashScreen({ onDone }) {
         }
         setTimeout(morphNext, 350)
 
-        // Glow ring pulses
         const rings = svgRef.current.querySelectorAll('.glow-ring')
         if (rings.length) {
           animate(rings, {
@@ -77,7 +79,7 @@ export default function SplashScreen({ onDone }) {
       cancelled = true
       if (animRef.current) try { animRef.current.pause() } catch {}
     }
-  }, [step])
+  }, [phase, step])
 
   return (
     <div style={{
@@ -89,73 +91,155 @@ export default function SplashScreen({ onDone }) {
       opacity: step === 3 ? 0 : 1,
     }}>
       <style>{`
-        @keyframes splashSlide{ from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes splashDot  { 0%,80%,100%{transform:scale(0)} 40%{transform:scale(1)} }
-        @keyframes splashPop  { from{transform:scale(0.3) rotate(-20deg);opacity:0} to{transform:scale(1) rotate(0deg);opacity:1} }
+        @keyframes splashSlide  { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes splashDot    { 0%,80%,100%{transform:scale(0)} 40%{transform:scale(1)} }
+        @keyframes splashPop    { from{transform:scale(0.3) rotate(-20deg);opacity:0} to{transform:scale(1) rotate(0deg);opacity:1} }
+        @keyframes studioFadeIn { from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
+        @keyframes studioGlow   { 0%{box-shadow:0 0 20px rgba(255,107,107,0)} 50%{box-shadow:0 0 40px rgba(255,107,107,0.3)} 100%{box-shadow:0 0 20px rgba(255,107,107,0)} }
+        @keyframes studioShine  { from{left:-100%} to{left:200%} }
+        @keyframes studioPulse  { 0%,100%{opacity:0.3} 50%{opacity:0.6} }
+        @keyframes studioFadeOut { from{opacity:1;transform:scale(1)} to{opacity:0;transform:scale(1.05)} }
       `}</style>
 
-      {/* SVG Morphing Logo */}
-      <div style={{
-        width: 120, height: 120, marginBottom: 20,
-        opacity: step >= 1 ? 1 : 0,
-        animation: step >= 1 ? 'splashPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both' : 'none',
-      }}>
-        <svg ref={svgRef} viewBox="0 0 100 100" width="120" height="120">
-          <circle className="glow-ring" cx="50" cy="50" r="44" fill="none" stroke="#A29BFE" strokeWidth="1" opacity="0.4" style={{ transformOrigin: '50px 50px' }} />
-          <circle className="glow-ring" cx="50" cy="50" r="48" fill="none" stroke="#4ECDC4" strokeWidth="0.5" opacity="0.3" style={{ transformOrigin: '50px 50px' }} />
-          <polygon
-            id="morph-poly"
-            points={SHAPES[0]}
-            fill="#A29BFE"
-            style={{ filter: 'drop-shadow(0 0 10px rgba(162,155,254,0.6))' }}
-          />
-          <text x="50" y="58" textAnchor="middle" fontSize="30" style={{ pointerEvents: 'none' }}>🎮</text>
-        </svg>
-      </div>
-
-      {/* Name */}
-      <div style={{
-        fontFamily: "'Fredoka One', cursive", fontSize: 42,
-        background: 'linear-gradient(135deg,#FF6B6B,#A29BFE,#4ECDC4)',
-        WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-        opacity: step >= 1 ? 1 : 0,
-        animation: step >= 1 ? 'splashSlide 0.4s 0.2s ease both' : 'none',
-        marginBottom: 8,
-      }}>
-        BrainPlay
-      </div>
-
-      {/* Tagline */}
-      <div style={{
-        fontSize: 14, color: 'rgba(255,255,255,0.4)', fontWeight: 600, letterSpacing: '1px',
-        opacity: step >= 2 ? 1 : 0,
-        animation: step >= 2 ? 'splashSlide 0.4s ease both' : 'none',
-        marginBottom: 48,
-      }}>
-        Santai & Mengasah Otak
-      </div>
-
-      {/* Loading dots */}
-      <div style={{ display: 'flex', gap: 8, opacity: step >= 2 ? 1 : 0 }}>
-        {[0, 1, 2].map(i => (
-          <div key={i} style={{
-            width: 10, height: 10, borderRadius: '50%',
-            background: ['#FF6B6B', '#A29BFE', '#4ECDC4'][i],
-            animation: `splashDot 1s ${i * 0.16}s ease-in-out infinite`,
+      {/* ── Phase 0: AKSA Interactive Studio Logo ── */}
+      {phase === 0 && (
+        <div style={{
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          animation: 'studioFadeIn 0.8s cubic-bezier(0.34,1.56,0.64,1) both',
+          position: 'relative',
+        }}>
+          {/* Ambient glow behind logo */}
+          <div style={{
+            position: 'absolute',
+            width: 200, height: 200,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(232,93,47,0.15) 0%, transparent 70%)',
+            animation: 'studioPulse 2s ease infinite',
+            pointerEvents: 'none',
           }} />
-        ))}
-      </div>
 
-      {/* Creator credit */}
-      <div style={{
-        position: 'absolute', bottom: 32, left: 0, right: 0, textAlign: 'center',
-        opacity: step >= 2 ? 1 : 0,
-        animation: step >= 2 ? 'splashSlide 0.4s 0.15s ease both' : 'none',
-      }}>
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontWeight: 600, letterSpacing: '0.5px' }}>
-          by Dwi Agus Hidayat
+          {/* Logo image */}
+          <div style={{
+            position: 'relative',
+            width: 220,
+            animation: 'studioGlow 2s ease infinite',
+            borderRadius: 20,
+            overflow: 'hidden',
+          }}>
+            <img
+              src="/aksa_logo.png"
+              alt="AKSA Interactive"
+              style={{
+                width: '100%',
+                height: 'auto',
+                display: 'block',
+                filter: 'drop-shadow(0 4px 20px rgba(232,93,47,0.3))',
+                borderRadius: 16,
+              }}
+            />
+            {/* Shine sweep effect */}
+            <div style={{
+              position: 'absolute',
+              top: 0, bottom: 0,
+              width: '50%',
+              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)',
+              animation: 'studioShine 2s 0.5s ease-in-out',
+              pointerEvents: 'none',
+            }} />
+          </div>
+
+          {/* Studio tagline */}
+          <div style={{
+            marginTop: 20,
+            fontSize: 11,
+            fontWeight: 700,
+            color: 'rgba(255,255,255,0.3)',
+            letterSpacing: 3,
+            textTransform: 'uppercase',
+            animation: 'splashSlide 0.6s 0.4s ease both',
+          }}>
+            Game Studio
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* ── Phase 1: BrainPlay Game Logo ── */}
+      {phase === 1 && (
+        <>
+          {/* SVG Morphing Logo */}
+          <div style={{
+            width: 120, height: 120, marginBottom: 20,
+            opacity: step >= 1 ? 1 : 0,
+            animation: step >= 1 ? 'splashPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both' : 'none',
+          }}>
+            <svg ref={svgRef} viewBox="0 0 100 100" width="120" height="120">
+              <circle className="glow-ring" cx="50" cy="50" r="44" fill="none" stroke="#A29BFE" strokeWidth="1" opacity="0.4" style={{ transformOrigin: '50px 50px' }} />
+              <circle className="glow-ring" cx="50" cy="50" r="48" fill="none" stroke="#4ECDC4" strokeWidth="0.5" opacity="0.3" style={{ transformOrigin: '50px 50px' }} />
+              <polygon
+                id="morph-poly"
+                points={SHAPES[0]}
+                fill="#A29BFE"
+                style={{ filter: 'drop-shadow(0 0 10px rgba(162,155,254,0.6))' }}
+              />
+              <text x="50" y="58" textAnchor="middle" fontSize="30" style={{ pointerEvents: 'none' }}>🎮</text>
+            </svg>
+          </div>
+
+          {/* Name */}
+          <div style={{
+            fontFamily: "'Fredoka One', cursive", fontSize: 42,
+            background: 'linear-gradient(135deg,#FF6B6B,#A29BFE,#4ECDC4)',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+            opacity: step >= 1 ? 1 : 0,
+            animation: step >= 1 ? 'splashSlide 0.4s 0.2s ease both' : 'none',
+            marginBottom: 8,
+          }}>
+            BrainPlay
+          </div>
+
+          {/* Tagline */}
+          <div style={{
+            fontSize: 14, color: 'rgba(255,255,255,0.4)', fontWeight: 600, letterSpacing: '1px',
+            opacity: step >= 2 ? 1 : 0,
+            animation: step >= 2 ? 'splashSlide 0.4s ease both' : 'none',
+            marginBottom: 48,
+          }}>
+            Santai & Mengasah Otak
+          </div>
+
+          {/* Loading dots */}
+          <div style={{ display: 'flex', gap: 8, opacity: step >= 2 ? 1 : 0 }}>
+            {[0, 1, 2].map(i => (
+              <div key={i} style={{
+                width: 10, height: 10, borderRadius: '50%',
+                background: ['#FF6B6B', '#A29BFE', '#4ECDC4'][i],
+                animation: `splashDot 1s ${i * 0.16}s ease-in-out infinite`,
+              }} />
+            ))}
+          </div>
+
+          {/* Creator credit with studio name */}
+          <div style={{
+            position: 'absolute', bottom: 32, left: 0, right: 0, textAlign: 'center',
+            opacity: step >= 2 ? 1 : 0,
+            animation: step >= 2 ? 'splashSlide 0.4s 0.15s ease both' : 'none',
+          }}>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+            }}>
+              <img
+                src="/aksa_logo.png"
+                alt="AKSA"
+                style={{ width: 18, height: 18, borderRadius: 4, objectFit: 'contain' }}
+              />
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontWeight: 600, letterSpacing: '0.5px' }}>
+                AKSA Interactive
+              </span>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

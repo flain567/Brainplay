@@ -749,6 +749,30 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
               <p className="footer-tagline">
                 Santai &amp; mengasah otak — {gameTotal} game, misi harian, dan tema yang bisa dikoleksi
               </p>
+
+              {/* AKSA Interactive Studio Badge */}
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 10,
+                background: dark ? 'rgba(232,93,47,0.06)' : 'rgba(232,93,47,0.04)',
+                border: `1.5px solid ${dark ? 'rgba(232,93,47,0.18)' : 'rgba(232,93,47,0.14)'}`,
+                borderRadius: 14, padding: '8px 18px', marginBottom: 10,
+                transition: 'all 0.2s',
+              }}>
+                <img
+                  src="/aksa_logo.png"
+                  alt="AKSA Interactive"
+                  style={{
+                    height: 28, width: 'auto', objectFit: 'contain',
+                    borderRadius: 6,
+                    filter: dark ? 'brightness(1.1)' : 'none',
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: 10 }}>
+                <span style={{ fontSize: 11, color: S.muted, fontWeight: 600 }}>Developed by </span>
+                <span style={{ fontFamily: "'Fredoka One',cursive", fontSize: 12, color: dark ? '#E85D2F' : '#D4441A' }}>AKSA Interactive</span>
+              </div>
+
               <div className="footer-credit">
                 <span style={{ fontSize: 12, color: S.muted, fontWeight: 600 }}>Dibuat dengan ❤️ oleh</span>
                 <span className="footer-credit-name">Dwi Agus Hidayat</span>
