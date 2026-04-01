@@ -24,7 +24,11 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+html { 
+  scroll-behavior: smooth; 
+  -webkit-tap-highlight-color: transparent; 
+  touch-action: manipulation; /* Prevents double-tap zoom delay */
+}
 
 body {
   font-family: var(--font-body);
@@ -139,4 +143,33 @@ div[tabindex]:focus:not(:focus-visible) {
   0%, 100% { transform: translateX(0); }
   25%      { transform: translateX(-4px); }
   75%      { transform: translateX(4px); }
+}
+/* ── Mobile Performance Enhancements ── */
+.gpu-accel {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform, opacity;
+}
+
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Optimize all active scales for mobile touch */
+@media (hover: none) {
+  button:active, .gcard:active, .mini-card:active {
+    transform: scale(0.96) translateZ(0) !important;
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+}
+
+/* Smoother scroll rows */
+.scroll-row {
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll-row > * {
+  scroll-snap-align: start;
 }

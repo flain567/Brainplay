@@ -19,6 +19,7 @@ import CoinFlyManager from './components/CoinFlyManager.jsx'
 import LevelUpModal from './components/LevelUpModal.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import ThemeApplicator from './components/ThemeApplicator.jsx'
+import QuickSettings from './components/QuickSettings.jsx'
 import Home from './pages/Home.jsx'
 import { migrateOldStorage } from './utils/storage.js'
 import { saveLastPlayed, getLastPlayed } from './utils/lastPlayed.js'
@@ -519,9 +520,18 @@ function AppInner() {
   const isLobby = screen === 'home' || screen === 'profile' || screen === 'difficulty' || screen === 'shop' || screen === 'leaderboard'
   useMusic(isLobby, muted || musicOff)
 
-  const openGame = (gameId) => {
-    setCurrentGame(GAMES.find(g => g.id === gameId))
-    setScreen('difficulty')
+  const openGame = (gameId, diffId = null) => {
+    const g = GAMES.find(x => x.id === gameId)
+    if (!g) return
+    setCurrentGame(g)
+    if (diffId) {
+      setDifficulty(diffId)
+      setScreen('game')
+      saveLastPlayed(gameId, diffId)
+      trackGameStart(gameId, diffId)
+    } else {
+      setScreen('difficulty')
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   const continueLastSession = () => {
@@ -669,6 +679,7 @@ function AppInner() {
           )}
         </PageTransition>
       </main>
+      <QuickSettings isFullscreen={isFullscreen} />
     </div>
   )
 }

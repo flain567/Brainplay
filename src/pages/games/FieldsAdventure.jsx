@@ -228,7 +228,7 @@ const createPathMap = () => {
   return map
 }
 
-const BASE_MAP = createPathMap()
+const BASE_PATH_MAP = createPathMap()
 
 // Helper to place clusters
 const cluster = (map, tile, x, y, density = 0.6) => {
@@ -377,11 +377,69 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
   const [showTut, setShowTut] = useState(true)
   const [stats, setStats] = useState({ chestsFound: 0, totalChests: 0, coinsEarned: 0, hp: 0, maxHp: 0, steps: 0 })
   const [showConfetti, setShowConfetti] = useState(false)
+  // ─── Map Generation (Pre-calculated for performance) ───
+  const { MAP, TILE_SRC_MAP, totalChests } = useMemo(() => {
+    const newMap = [...BASE_PATH_MAP]
+    const chests = []
+    
+    // Add variations & decorations
+    for (let i = 0; i < MAP_W * MAP_H; i++) {
+      const tx = i % MAP_W, ty = Math.floor(i / MAP_W)
+      if (newMap[i] === _) {
+        if (Math.random() < 0.15) newMap[i] = G
+        else if (Math.random() < 0.02) newMap[i] = R
+        else if (Math.random() < 0.01) newMap[i] = FL
+      }
+    }
 
-  const cfg = DIFF_CFG[difficulty.id] || DIFF_CFG.easy
+    // Place Water River (South)
+    for (let y = 30; y < 35; y++) {
+      for (let x = 0; x < MAP_W; x++) {
+        const i = y * MAP_W + x
+        if (newMap[i] === _) newMap[i] = W
+      }
+    }
+    // Pond (North East)
+    for (let y = 5; y < 10; y++) {
+      for (let x = 38; x < 48; x++) {
+        newMap[y * MAP_W + x] = W
+      }
+    }
+
+    // Add Chests
+    const potential = []
+    for (let i = 0; i < MAP_W * MAP_H; i++) if (newMap[i] === G) potential.push(i)
+    for (let i = 0; i < cfg.totalChests; i++) {
+        const idx = potential[Math.floor(Math.random() * potential.length)]
+        newMap[idx] = C
+    }
+
+    // Add Spikes
+    for (let i = 0; i < MAP_W * MAP_H; i++) {
+      if (newMap[i] === D && Math.random() < 0.02) newMap[i] = S
+    }
+
+    // Build final rendering source map (pre-calculated auto-tiling)
+    const renderSrcs = Array(MAP_W * MAP_H).fill(null)
+    for (let ty = 0; ty < MAP_H; ty++) {
+      for (let tx = 0; tx < MAP_W; tx++) {
+        const id = newMap[ty * MAP_W + tx]
+        let s = TILE_SRC[id]
+        if (id === W) s = getAutoTile(newMap, tx, ty, W)
+        if (id === D) s = getAutoTile(newMap, tx, ty, D)
+        renderSrcs[ty * MAP_W + tx] = s
+      }
+    }
+
+    return { 
+      MAP: newMap, 
+      TILE_SRC_MAP: renderSrcs, 
+      totalChests: cfg.totalChests 
+    }
+  }, [cfg.totalChests])
 
   // Count total chests in map
-  const totalChests = MAP.filter(t => t === C).length
+  // const totalChests = MAP.filter(t => t === C).length
 
   // Init game state
   const initGame = useCallback(() => {
@@ -389,34 +447,25 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
     const startX = 22 * TILE_SIZE + 2
     const startY = 10 * TILE_SIZE + 2
 
-    // Track which chests are opened (by map index)
+    // Track which chests are opened
     const chestStates = {}
-    MAP.forEach((tile, i) => {
-      if (tile === C) chestStates[i] = false
-    })
+    MAP.forEach((tile, i) => { if (tile === C) chestStates[i] = false })
 
     gameRef.current = {
       px: startX, py: startY,
       vx: 0, vy: 0,
-      hp: cfg.hp,
-      maxHp: cfg.hp,
-      chestsFound: 0,
-      coinsEarned: 0,
-      chestStates,
-      steps: 0,
-      facing: 'down',
-      animFrame: 0,
-      animTimer: 0,
-      iframeCooldown: 0, // invincibility after spike hit
-      interactCooldown: 0,
+      hp: cfg.hp, maxHp: cfg.hp,
+      chestsFound: 0, coinsEarned: 0,
+      chestStates, steps: 0,
+      facing: 'down', animFrame: 0, animTimer: 0,
+      iframeCooldown: 0, interactCooldown: 0,
       camX: 0, camY: 0,
-      actionPressed: false,
-      nearChest: -1, // index of nearby chest or -1
+      actionPressed: false, nearChest: -1,
     }
 
     setStats({ chestsFound: 0, totalChests, coinsEarned: 0, hp: cfg.hp, maxHp: cfg.hp, steps: 0 })
     setGameState('playing')
-  }, [cfg, totalChests])
+  }, [cfg, totalChests, MAP])
 
   // Load tileset + character sprite
   useEffect(() => {
@@ -608,17 +657,12 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
         for (let tx = startTX; tx < endTX; tx++) {
           const idx = ty * MAP_W + tx
           const tileId = MAP[idx]
-          const src = TILE_SRC[tileId]
+          const finalTileSrc = g.TILE_SRC_MAP[idx]
           const dx = Math.round(tx * TILE_SIZE)
           const dy = Math.round(ty * TILE_SIZE)
           const key = `${tx},${ty}`
 
-          // Use auto-tiling for Path and Water
-          let finalTileSrc = src
-          if (tileId === W) finalTileSrc = getAutoTile(MAP, tx, ty, W)
-          if (tileId === D) finalTileSrc = getAutoTile(MAP, tx, ty, D)
-
-          // ── DRAW SHADOWS (for objects/structures) ──
+          // ── DRAW SHADOWS ──
           const drawShadow = (sx, sy, sw, sh, sradius = 4) => {
             ctx.fillStyle = 'rgba(0,0,0,0.12)'
             ctx.beginPath()
@@ -699,8 +743,8 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
           const srcX = frame * CHAR_FRAME
           const srcY = row * CHAR_FRAME
           const drawSize = 20
-          const drawX = px + PLAYER_SIZE / 2 - drawSize / 2
-          const drawY = py + PLAYER_SIZE / 2 - drawSize / 2 - 4
+          const drawX = Math.round(px + PLAYER_SIZE / 2 - drawSize / 2)
+          const drawY = Math.round(py + PLAYER_SIZE / 2 - drawSize / 2 - 4)
 
           ctx.save()
           if (g.facing === 'left') {
@@ -805,7 +849,11 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
       {showTut && <TutorialModal steps={TUT} onClose={() => setShowTut(false)} />}
 
       {/* Game Canvas */}
-      <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block', imageRendering: 'pixelated' }} />
+      <canvas 
+        ref={canvasRef} 
+        className="gpu-accel"
+        style={{ width: '100%', height: '100%', display: 'block', imageRendering: 'pixelated' }} 
+      />
 
       {/* Mobile Controls */}
       <div style={{ position: 'absolute', bottom: 20, left: 20, zIndex: 10 }}>

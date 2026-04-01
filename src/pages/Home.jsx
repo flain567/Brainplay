@@ -12,6 +12,7 @@ import { useThemeColors } from '../hooks/useThemeColors.js'
 import { trackLimitedModeView, trackLimitedModeBonus } from '../utils/analytics.js'
 import { useLocalAnalytics } from '../context/LocalAnalyticsContext.jsx'
 import LuckyWheel from '../components/LuckyWheel.jsx'
+import GameDetailModal from '../components/GameDetailModal.jsx'
 const AnimatedHeroText = lazy(() => import('../components/AnimatedHeroText.jsx'))
 import { getLastPlayed } from '../utils/lastPlayed.js'
 import useHomeAnimations from '../hooks/useHomeAnimations.js'
@@ -59,6 +60,8 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
   const [scrollTop, setScrollTop] = useState(false)
   const [wheelOpen, setWheelOpen] = useState(false)
   const [activeTag, setActiveTag] = useState('Semua')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedGameForModal, setSelectedGameForModal] = useState(null)
   const flipStateRef = useRef(null)
 
   // Capture Flip state BEFORE React updates DOM, then animate after
@@ -470,9 +473,9 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                   borderColor: `${flagshipGame.color}66`,
                   boxShadow: `0 8px 30px ${flagshipGame.color}20`,
                 }}
-                onClick={() => { play('click'); onPlay(flagshipGame.id) }}
+                onClick={() => { play('click'); setSelectedGameForModal(flagshipGame.id) }}
                 role="button" tabIndex={0}
-                onKeyDown={e => e.key === 'Enter' && (play('click'), onPlay(flagshipGame.id))}
+                onKeyDown={e => e.key === 'Enter' && (play('click'), setSelectedGameForModal(flagshipGame.id))}
               >
                 <div className="feat-overlay" />
                 <div className="feat-content">
@@ -489,7 +492,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                   </div>
                   <button
                     className="feat-play-btn"
-                    onClick={e => { e.stopPropagation(); play('click'); onPlay(flagshipGame.id) }}
+                    onClick={e => { e.stopPropagation(); play('click'); setSelectedGameForModal(flagshipGame.id) }}
                   >
                     ▶ Mainkan Sekarang
                   </button>
@@ -671,12 +674,45 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                 {activeTag === 'Semua' ? games.length : games.filter(g => g.tag === activeTag).length} game
               </span>
               <div className="section-line" />
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    placeholder="Cari game..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    style={{
+                      background: S.surface, border: `1.5px solid ${S.border}`,
+                      borderRadius: 10, padding: '6px 12px 6px 30px',
+                      fontSize: 12, color: S.text, width: 140,
+                      transition: 'all 0.2s',
+                    }}
+                    onFocus={e => e.target.style.borderColor = S.accent}
+                    onBlur={e => e.target.style.borderColor = S.border}
+                  />
+                  <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, opacity: 0.5 }}>🔍</span>
+                </div>
+                <button
+                  className="qa-btn"
+                  style={{ padding: '6px 12px', borderRadius: 10, borderColor: S.accent, color: S.accent, background: S.accentFill }}
+                  onClick={() => {
+                    play('click')
+                    const rng = games[Math.floor(Math.random() * games.length)]
+                    onPlay(rng.id)
+                  }}
+                  title="Mainkan game acak!"
+                >
+                  🎲 Acak
+                </button>
+              </div>
             </div>
 
             {/* All cards always in DOM — Flip tracks them by key */}
             <div className="flip-grid">
               {games.map(game => {
-                const visible = activeTag === 'Semua' || game.tag === activeTag
+                const isTagged = activeTag === 'Semua' || game.tag === activeTag
+                const isSearched = !searchQuery || game.title.toLowerCase().includes(searchQuery.toLowerCase()) || game.tag.toLowerCase().includes(searchQuery.toLowerCase())
+                const visible = isTagged && isSearched
                 const best = (progress.gameBests || {})[game.id] || 0
                 const wins = (progress.gameWins  || {})[game.id] || 0
                 const meta = TAG_META[game.tag] || { color: S.accent }
@@ -689,7 +725,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                     <div
                       className="mini-card"
                       style={{ '--mc-color': game.color }}
-                      onClick={() => { play('click'); onPlay(game.id) }}
+                      onClick={() => { play('click'); setSelectedGameForModal(game.id) }}
                     >
                       <div className="mc-emoji-bg">{game.emoji}</div>
                       <div className="mc-top">
@@ -791,6 +827,17 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
       >↑</button>
 
       <LuckyWheel open={wheelOpen} onClose={() => setWheelOpen(false)} />
+      {/* ── Game Detail Modal ── */}
+      {selectedGameForModal && (
+        <GameDetailModal 
+          game={games.find(g => g.id === selectedGameForModal)}
+          onClose={() => setSelectedGameForModal(null)}
+          onPlay={(gameId, diffId) => {
+            setSelectedGameForModal(null)
+            onPlay(gameId, diffId)
+          }}
+        />
+      )}
     </>
   )
 }
