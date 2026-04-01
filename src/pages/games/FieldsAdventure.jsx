@@ -21,6 +21,28 @@ import { WinModal, LoseModal } from '../../components/GameLayout.jsx'
 const TS = 16 // tile pixel size in tileset
 const t = (c, r) => [c * TS, r * TS, TS, TS] // helper
 
+const MAP_W = 50
+const MAP_H = 40
+const TILE_SIZE = 16
+const SCALE = 3
+
+// Tile type IDs for map
+const _ = 0  // grass
+const G = 1  // grass variant
+const D = 2  // dirt path
+const R = 3  // rock (solid)
+const W = 4  // water (solid)
+const B = 5  // bush (solid)
+const F = 6  // fence (solid)
+const TT = 7 // tree trunk (solid)
+const TL = 8 // tree leaves (solid)
+const C = 9  // chest
+const S = 10 // spike trap
+const BR = 11 // bridge
+const FL = 12 // flowers
+const ST = 13 // sign
+const WE = 14 // well
+
 // Grass variants
 const T_GRASS     = t(0, 0)   // plain grass with stump
 const T_GRASS2    = t(1, 0)   // grass + white flowers
@@ -32,9 +54,15 @@ const T_GRASSCLEAN= t(0, 3)   // clean bright grass
 // Dirt/path
 const T_DIRT      = t(10, 0)  // brown dirt
 const T_DIRT2     = t(11, 0)  // dirt variant
-const T_PATH_TL   = t(0, 19)  // path corner
-const T_PATH_T    = t(1, 19)  // path top edge
-const T_PATH_TR   = t(2, 19)  // path corner
+const T_PATH_TL   = t(0, 19)  // path corner TL
+const T_PATH_T    = t(1, 19)  // path edge T
+const T_PATH_TR   = t(2, 19)  // path corner TR
+const T_PATH_L    = t(0, 20)  // path edge L
+const T_PATH_C    = t(1, 20)  // path center
+const T_PATH_R    = t(2, 20)  // path edge R
+const T_PATH_BL   = t(0, 21)  // path corner BL
+const T_PATH_B    = t(1, 21)  // path edge B
+const T_PATH_BR   = t(2, 21)  // path corner BR
 
 // Rocks
 const T_ROCK_TL   = t(6, 0)   // rock cluster top-left
@@ -104,16 +132,19 @@ const T_BARREL    = t(9, 44)  // barrel
 const T_SIGN      = t(9, 37)  // sign post
 const T_SPIKE     = t(13, 2)  // spike/trap
 
-// Well (3×4 multi-tile area)
-const T_WELL_TL   = t(11, 42)
-const T_WELL_TM   = t(12, 42)
-const T_WELL_TR   = t(13, 42)
-const T_WELL_ML   = t(11, 43)
-const T_WELL_MM   = t(12, 43)
-const T_WELL_MR   = t(13, 43)
-const T_WELL_BL   = t(11, 44)
-const T_WELL_BM   = t(12, 44)
-const T_WELL_BR   = t(13, 44)
+// Well tiles (actual 3x4 area in tileset)
+const T_WELL_TL = t(11, 41)
+const T_WELL_TM = t(12, 41)
+const T_WELL_TR = t(13, 41)
+const T_WELL_ML = t(11, 42)
+const T_WELL_MM = t(12, 42)
+const T_WELL_MR = t(13, 42)
+const T_WELL_BL = t(11, 43)
+const T_WELL_BM = t(12, 43)
+const T_WELL_BR = t(13, 43)
+const T_WELL_SL = t(11, 44) // Stone base
+const T_WELL_SM = t(12, 44)
+const T_WELL_SR = t(13, 44)
 
 // House 1: Thatch roof 8×6 tiles [row 33-38, col 0-7]
 const HOUSE1 = []
@@ -123,25 +154,87 @@ for (let r = 0; r < 6; r++) for (let c = 0; c < 8; c++) HOUSE1.push(t(c, 33 + r)
 const HOUSE2 = []
 for (let r = 0; r < 6; r++) for (let c = 0; c < 9; c++) HOUSE2.push(t(c, 40 + r))
 
-// Tile type IDs for map
-const _ = 0  // grass
-const G = 1  // grass variant
-const D = 2  // dirt path
-const R = 3  // rock (solid)
-const W = 4  // water (solid)
-const B = 5  // bush (solid)
-const F = 6  // fence (solid)
-const TT = 7 // tree trunk (solid)
-const TL = 8 // tree leaves (solid)
-const C = 9  // chest
-const S = 10 // spike trap
-const BR = 11 // bridge
-const FL = 12 // flowers
-const ST = 13 // sign
-const WE = 14 // well
-
 // Which tiles block movement
 const SOLID = new Set([R, W, B, F, TT, TL, WE])
+
+// Auto-tiling logic helper
+const getAutoTile = (map, tx, ty, type) => {
+  const check = (x, y) => {
+    if (x < 0 || x >= MAP_W || y < 0 || y >= MAP_H) return true
+    return map[y * MAP_W + x] === type
+  }
+  const top = check(tx, ty - 1)
+  const bot = check(tx, ty + 1)
+  const lft = check(tx - 1, ty)
+  const rgt = check(tx + 1, ty)
+
+  if (type === W) {
+    if (!top && !lft) return T_WATER_TL
+    if (!top && !rgt) return T_WATER_TR
+    if (!bot && !lft) return T_WATER_BL
+    if (!bot && !rgt) return T_WATER_BR
+    if (!top) return T_WATER_T
+    if (!bot) return T_WATER_B
+    if (!lft) return T_WATER_L
+    if (!rgt) return T_WATER_R
+    return T_WATER
+  }
+  if (type === D) {
+    if (!top && !lft) return T_PATH_TL
+    if (!top && !rgt) return T_PATH_TR
+    if (!bot && !lft) return T_PATH_BL
+    if (!bot && !rgt) return T_PATH_BR
+    if (!top) return T_PATH_T
+    if (!bot) return T_PATH_B
+    if (!lft) return T_PATH_L
+    if (!rgt) return T_PATH_R
+    return T_PATH_C
+  }
+  return null
+}
+
+// Helper for generating winding paths on a 50x40 map
+const createPathMap = () => {
+  const map = Array(MAP_W * MAP_H).fill(_)
+  
+  // Create primary winding path from West to East village
+  const plot = (x, y, w = 1) => {
+    for (let dy = -w; dy <= w; dy++) {
+      for (let dx = -w; dx <= w; dx++) {
+        const nx = Math.floor(x + dx), ny = Math.floor(y + dy)
+        if (nx >= 0 && nx < MAP_W && ny >= 0 && ny < MAP_H) map[ny * MAP_W + nx] = D
+      }
+    }
+  }
+
+  // Horizontal path connecting villages
+  for (let x = 0; x < MAP_W; x++) {
+    const y = 18 + Math.sin(x * 0.2) * 2
+    plot(x, y, 1)
+  }
+  
+  // Vertical branch to forest
+  for (let y = 0; y < 18; y++) {
+    const x = 15 + Math.cos(y * 0.3) * 2
+    plot(x, y, 0)
+  }
+  
+  // Branch to cave/danger zone
+  for (let y = 18; y < 35; y++) {
+    const x = 35 + Math.sin(y * 0.1) * 3
+    plot(x, y, 0)
+  }
+
+  return map
+}
+
+const BASE_MAP = createPathMap()
+
+// Helper to place clusters
+const cluster = (map, tile, x, y, density = 0.6) => {
+  if (x < 0 || x >= MAP_W || y < 0 || y >= MAP_H) return
+  if (Math.random() < density) map[y * MAP_W + x] = tile
+}
 
 // Tile ID → tileset source mapping (single tiles)
 const TILE_SRC = {
@@ -169,95 +262,86 @@ const STRUCTURES = [
   { x: 5, y: 11, w: 8, h: 6, tiles: HOUSE1, solid: Array.from({length:8*2}, (_,i) => [i%8, 4+Math.floor(i/8)]) },
   // House 2 (red roof) in village right — 9×6 tiles
   { x: 29, y: 11, w: 9, h: 6, tiles: HOUSE2, solid: Array.from({length:9*2}, (_,i) => [i%9, 4+Math.floor(i/9)]) },
-  // Well in village center
-  { x: 22, y: 12, w: 3, h: 3, tiles: [T_WELL_TL,T_WELL_TM,T_WELL_TR, T_WELL_ML,T_WELL_MM,T_WELL_MR, T_WELL_BL,T_WELL_BM,T_WELL_BR], solid: [[0,1],[1,1],[2,1],[0,2],[1,2],[2,2]] },
-  // Large tree north-west
-  { x: 1, y: 1, w: 2, h: 3, tiles: [T_TREE_TL,T_TREE_TR, T_TREE_ML,T_TREE_MR, T_TREE_BL,T_TREE_BR], solid: [[0,2],[1,2]] },
-  // Large tree north-center
-  { x: 8, y: 0, w: 2, h: 3, tiles: [T_TREE_TL,T_TREE_TR, T_TREE_ML,T_TREE_MR, T_TREE_BL,T_TREE_BR], solid: [[0,2],[1,2]] },
-  // Large tree north-right
-  { x: 16, y: 1, w: 2, h: 3, tiles: [T_TREE_TL,T_TREE_TR, T_TREE_ML,T_TREE_MR, T_TREE_BL,T_TREE_BR], solid: [[0,2],[1,2]] },
-  // Large trees south
+// Large trees south
   { x: 0, y: 36, w: 2, h: 3, tiles: [T_TREE_TL,T_TREE_TR, T_TREE_ML,T_TREE_MR, T_TREE_BL,T_TREE_BR], solid: [[0,2],[1,2]] },
-  { x: 7, y: 36, w: 2, h: 3, tiles: [T_TREE_TL,T_TREE_TR, T_TREE_ML,T_TREE_MR, T_TREE_BL,T_TREE_BR], solid: [[0,2],[1,2]] },
   { x: 21, y: 36, w: 2, h: 3, tiles: [T_TREE_TL,T_TREE_TR, T_TREE_ML,T_TREE_MR, T_TREE_BL,T_TREE_BR], solid: [[0,2],[1,2]] },
-  { x: 44, y: 36, w: 2, h: 3, tiles: [T_TREE_TL,T_TREE_TR, T_TREE_ML,T_TREE_MR, T_TREE_BL,T_TREE_BR], solid: [[0,2],[1,2]] },
+  // Well (now 3x4 to include base stones)
+  { x: 22, y: 14, w: 3, h: 4, tiles: [T_WELL_TL,T_WELL_TM,T_WELL_TR, T_WELL_ML,T_WELL_MM,T_WELL_MR, T_WELL_BL,T_WELL_BM,T_WELL_BR, T_WELL_SL,T_WELL_SM,T_WELL_SR], solid: [[0,3],[1,3],[2,3],[0,2],[1,2],[2,2]] },
   // Bush clusters
   { x: 25, y: 2, w: 2, h: 2, tiles: [T_BUSH_TL,T_BUSH_TR, T_BUSH_BL,T_BUSH_BR], solid: [[0,0],[1,0],[0,1],[1,1]] },
   { x: 40, y: 3, w: 2, h: 2, tiles: [T_BUSH_TL,T_BUSH_TR, T_BUSH_BL,T_BUSH_BR], solid: [[0,0],[1,0],[0,1],[1,1]] },
+  // Decorative pots/barrels next to houses
+  { x: 4, y: 16, w: 1, h: 1, tiles: [T_BARREL], solid: [] },
+  { x: 13, y: 16, w: 1, h: 1, tiles: [T_BARREL], solid: [] },
+  { x: 37, y: 16, w: 1, h: 1, tiles: [T_BARREL], solid: [] },
 ]
 
 // Build structure solid lookup: "tx,ty" → true
 const structureSolidSet = new Set()
 const structureTileMap = {} // "tx,ty" → [srcX,srcY,16,16]
 STRUCTURES.forEach(s => {
-  s.solid.forEach(([cx, cy]) => structureSolidSet.add(`${s.x+cx},${s.y+cy}`))
+  s.solid.forEach(([cx, cy]) => structureSolidSet.add(`${s.x + cx},${s.y + cy}`))
   for (let r = 0; r < s.h; r++) {
     for (let c = 0; c < s.w; c++) {
       const tile = s.tiles[r * s.w + c]
-      if (tile) structureTileMap[`${s.x+c},${s.y+r}`] = tile
+      if (tile) structureTileMap[`${s.x + c},${s.y + r}`] = tile
     }
   }
 })
 
 // ═══════════════════════════════════════════════
-// MAP DATA — 50×40 tiles open world
+// MAP GENERATION
 // ═══════════════════════════════════════════════
-const MAP_W = 50
-const MAP_H = 40
-const TILE_SIZE = 16
-const SCALE = 3 // render 3x for visibility
+const generateFinalMap = () => {
+  const m = [...BASE_MAP]
+  
+  // Decorate with forest (top)
+  for (let y = 0; y < 10; y++) {
+    for (let x = 0; x < MAP_W; x++) {
+      if (m[y * MAP_W + x] === _) {
+        if (Math.random() < 0.2) m[y * MAP_W + x] = TL
+        else if (Math.random() < 0.05) m[y * MAP_W + x] = R
+        else if (Math.random() < 0.1) m[y * MAP_W + x] = G
+      }
+    }
+  }
 
-// prettier-ignore
-const MAP = [
-// Forest region (top)
-TL,TL,TL,TT,_,FL,_,_,TL,TL,TT,_,_,FL,_,_,TL,TL,TT,_,_,_,C,_,_,TL,TL,TL,TT,_,_,FL,_,TL,TL,TT,_,_,_,_,_,TL,TL,TT,_,_,FL,_,_,_,
-TL,TL,TT,_,_,_,_,_,TL,TT,_,_,_,_,_,_,TL,TT,_,_,FL,_,_,_,_,TL,TL,TT,_,_,_,_,_,TL,TT,_,_,FL,_,_,_,TL,TT,_,_,_,_,_,_,_,
-TT,TT,_,_,FL,_,_,_,TT,_,_,_,B,_,_,_,TT,_,_,FL,_,_,_,_,_,TT,TT,_,_,FL,_,_,_,TT,_,_,_,_,_,_,_,TT,_,_,_,B,_,_,FL,_,
-_,_,_,_,_,_,B,_,_,_,_,_,_,_,_,_,_,_,_,_,_,B,_,_,_,_,_,_,_,_,_,B,_,_,_,_,_,_,FL,_,_,_,_,FL,_,_,_,_,_,_,
-_,FL,_,_,_,_,_,_,_,FL,_,_,_,_,FL,_,_,_,_,_,_,_,_,FL,_,_,FL,_,_,_,_,_,_,FL,_,_,_,_,_,_,FL,_,_,_,_,_,_,FL,_,_,
-// Transition zone
-_,_,_,D,D,D,D,_,_,_,_,_,D,D,D,_,_,_,_,_,_,D,D,_,_,_,_,_,D,D,D,D,_,_,_,_,D,D,D,_,_,_,_,_,D,D,_,_,_,_,
-_,_,_,D,_,_,D,_,_,_,_,_,D,_,D,_,_,_,FL,_,_,D,D,_,_,_,_,_,D,_,_,D,_,_,_,_,D,_,D,_,_,_,_,_,D,D,_,_,_,_,
-_,_,_,D,_,_,D,_,_,_,_,_,D,_,D,_,_,_,_,_,_,_,D,_,_,_,FL,_,D,_,_,D,_,_,_,_,D,_,D,_,_,FL,_,_,_,D,_,_,_,_,
-// Village area (center)
-F,F,F,D,_,_,D,F,F,F,F,F,D,_,D,F,F,F,F,F,F,_,D,_,_,F,F,F,D,_,_,D,F,F,F,F,D,_,D,F,F,F,F,F,_,D,F,F,F,F,
-_,_,_,D,_,_,D,_,_,_,_,_,D,_,D,_,_,_,_,_,_,_,D,_,_,_,_,_,D,_,_,D,_,_,_,_,D,_,D,_,_,_,_,_,_,D,_,_,_,_,
-_,R,_,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,_,R,_,
-_,_,_,D,_,_,_,_,_,_,_,_,D,_,_,_,_,_,WE,_,_,_,D,_,_,_,_,_,D,_,_,_,_,_,_,_,D,_,_,_,_,_,ST,_,_,D,_,_,_,_,
-_,_,_,D,_,_,_,_,_,_,_,_,D,_,_,_,_,_,_,_,_,_,D,_,_,_,_,_,D,_,_,_,_,_,_,_,D,_,_,_,_,_,_,_,_,D,_,_,_,_,
-_,_,_,D,_,_,R,R,_,_,_,_,D,_,_,_,FL,_,_,FL,_,_,D,_,_,FL,_,_,D,_,_,R,R,_,_,_,D,_,_,FL,_,_,_,FL,_,D,_,_,_,_,
-_,_,_,D,_,_,R,R,_,_,_,_,D,_,_,_,_,_,_,_,_,_,D,_,_,_,_,_,D,_,_,R,R,_,_,_,D,_,_,_,_,_,_,_,_,D,_,_,_,_,
-_,_,_,D,_,_,_,_,_,_,C,_,D,_,_,_,_,_,_,_,_,_,D,_,_,_,C,_,D,_,_,_,_,_,_,C,D,_,_,_,_,_,_,_,_,D,_,_,_,_,
-_,_,_,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,_,_,_,
-// South transition
-_,_,_,D,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,D,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,D,_,_,_,_,
-_,FL,_,D,_,_,_,FL,_,_,_,_,_,FL,_,_,_,_,_,_,_,_,D,_,_,_,FL,_,_,_,_,_,FL,_,_,_,_,_,_,FL,_,_,_,_,_,D,_,FL,_,_,
-_,_,_,D,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,S,_,_,D,_,_,_,_,_,_,_,_,_,_,_,_,_,_,S,_,_,_,_,_,_,_,D,_,_,_,_,
-// Danger zone (spike area)
-_,_,_,D,_,_,_,_,_,S,_,_,_,_,S,_,_,_,S,_,S,_,D,_,_,_,_,S,_,_,_,_,S,_,_,_,S,_,S,_,_,_,_,_,_,D,_,_,_,_,
-_,_,_,D,_,_,S,_,_,_,_,S,_,_,_,_,S,_,_,_,_,_,D,_,_,S,_,_,_,_,S,_,_,_,_,S,_,_,_,_,_,_,_,S,_,D,_,_,_,_,
-_,_,_,D,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,C,_,_,D,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,C,_,_,_,_,_,D,_,_,_,_,
-_,_,_,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,_,_,_,
-// River area
-_,_,_,_,_,_,_,FL,_,_,_,_,_,_,_,FL,_,_,_,_,_,_,_,_,_,_,FL,_,_,_,_,_,FL,_,_,_,_,_,_,_,_,_,FL,_,_,_,_,_,_,_,
-_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
-W,W,W,W,W,W,W,W,W,W,W,W,W,BR,BR,BR,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,BR,BR,BR,W,W,W,W,W,W,W,W,W,W,W,W,W,
-W,W,W,W,W,W,W,W,W,W,W,W,W,BR,BR,BR,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,BR,BR,BR,W,W,W,W,W,W,W,W,W,W,W,W,W,
-// South island
-_,_,_,_,_,_,_,_,_,_,_,_,_,D,D,D,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,D,D,D,_,_,_,_,_,_,_,_,_,_,_,_,_,
-_,_,FL,_,_,_,_,_,_,_,FL,_,_,D,_,D,_,_,_,FL,_,_,_,_,_,_,FL,_,_,_,_,_,_,_,D,_,D,_,_,_,FL,_,_,_,_,_,FL,_,_,_,
-_,_,_,_,_,B,_,_,_,_,_,_,_,D,_,D,_,_,_,_,_,B,_,_,_,_,_,_,_,B,_,_,_,_,D,_,D,_,_,_,_,_,_,B,_,_,_,_,_,_,
-_,_,_,_,_,_,_,_,C,_,_,_,_,D,_,D,D,D,D,_,_,_,_,_,_,C,_,_,_,_,_,_,_,_,D,_,D,D,D,D,_,_,_,_,_,C,_,_,_,_,
-_,_,_,_,R,_,_,_,_,_,_,R,_,_,_,_,_,_,D,_,_,_,_,R,_,_,_,_,R,_,_,_,R,_,_,_,_,_,_,D,_,_,_,R,_,_,_,_,_,_,
-_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,D,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,D,_,_,_,_,_,_,_,_,_,_,
-_,_,FL,_,_,_,_,FL,_,_,_,_,_,_,FL,_,_,_,D,D,D,D,D,D,D,C,_,_,FL,_,_,_,_,_,FL,_,_,_,_,D,D,D,D,D,D,C,_,_,FL,_,
-_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
-TL,TL,TT,_,_,_,_,TL,TL,TT,_,_,_,_,TL,TT,_,_,_,_,_,TL,TL,TT,_,_,_,TL,TL,TT,_,_,_,TL,TT,_,_,_,_,_,TL,TT,_,_,TL,TL,TT,_,_,_,
-TL,TT,_,_,_,_,_,TL,TT,_,_,_,_,_,TT,_,_,FL,_,_,_,TL,TT,_,_,_,_,TL,TT,_,_,_,_,_,_,_,_,FL,_,_,TT,_,_,_,TL,TT,_,_,FL,_,
-TT,_,_,_,FL,_,_,TT,_,_,_,FL,_,_,_,_,_,_,_,_,_,TT,_,_,_,FL,_,TT,_,_,_,FL,_,_,_,_,_,_,_,_,_,_,_,FL,TT,_,_,_,_,_,
-_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
-]
+  // River (Horizontal strip)
+  const riverY = 30
+  for (let x = 0; x < MAP_W; x++) {
+    m[riverY * MAP_W + x] = W
+    m[(riverY + 1) * MAP_W + x] = W
+    m[(riverY + 2) * MAP_W + x] = W
+  }
+  
+  // Bridges
+  const bridgesX = [15, 35]
+  bridgesX.forEach(bx => {
+    for (let oy = 0; oy < 3; oy++) {
+      m[(riverY + oy) * MAP_W + bx] = BR
+      m[(riverY + oy) * MAP_W + bx + 1] = BR
+    }
+  })
+
+  // Spikes in danger zone (south of river)
+  for (let y = 33; y < 38; y++) {
+    for (let x = 0; x < MAP_W; x++) {
+      if (Math.random() < 0.08) m[y * MAP_W + x] = S
+      else if (Math.random() < 0.02) m[y * MAP_W + x] = C
+    }
+  }
+
+  // Village decorations
+  const villageX = [7, 24, 40]
+  villageX.forEach(vx => {
+    cluster(m, ST, vx, 17)
+    cluster(m, FL, vx + 1, 18)
+  })
+
+  return m
+}
+
+const MAP = generateFinalMap()
 
 // ═══════════════════════════════════════════════
 // GAME CONFIG
@@ -511,7 +595,8 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.save()
       ctx.scale(SCALE, SCALE)
-      ctx.translate(-g.camX, -g.camY)
+      // Round to prevent bleeding artifacts
+      ctx.translate(-Math.round(g.camX), -Math.round(g.camY))
 
       // Draw tiles
       const startTX = Math.floor(g.camX / TILE_SIZE)
@@ -524,34 +609,53 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
           const idx = ty * MAP_W + tx
           const tileId = MAP[idx]
           const src = TILE_SRC[tileId]
-          const dx = tx * TILE_SIZE
-          const dy = ty * TILE_SIZE
+          const dx = Math.round(tx * TILE_SIZE)
+          const dy = Math.round(ty * TILE_SIZE)
           const key = `${tx},${ty}`
 
-          // Draw grass base everywhere
+          // Use auto-tiling for Path and Water
+          let finalTileSrc = src
+          if (tileId === W) finalTileSrc = getAutoTile(MAP, tx, ty, W)
+          if (tileId === D) finalTileSrc = getAutoTile(MAP, tx, ty, D)
+
+          // ── DRAW SHADOWS (for objects/structures) ──
+          const drawShadow = (sx, sy, sw, sh, sradius = 4) => {
+            ctx.fillStyle = 'rgba(0,0,0,0.12)'
+            ctx.beginPath()
+            ctx.ellipse(sx + sw / 2, sy + sh - 1, sradius * 1.5, sradius, 0, 0, Math.PI * 2)
+            ctx.fill()
+          }
+
+          const structTile = structureTileMap[key]
+          if (structTile) {
+             if (structTile === T_TREE_BL || structTile === T_TREE_BR) drawShadow(dx, dy, 16, 16, 5)
+             if (structTile === T_WELL_BL || structTile === T_WELL_BM || structTile === T_WELL_BR) drawShadow(dx, dy, 16, 12, 8)
+          }
+
+          // Draw base grass everywhere
           if (tilesetRef.current) {
             ctx.drawImage(tilesetRef.current, T_GRASS3[0], T_GRASS3[1], 16, 16, dx, dy, 16, 16)
           } else {
-            ctx.fillStyle = '#7ec850'
-            ctx.fillRect(dx, dy, TILE_SIZE, TILE_SIZE)
+            ctx.fillStyle = '#7ec850'; ctx.fillRect(dx, dy, 16, 16)
           }
 
-          // Draw opened chest differently
+          // Draw opened chest
           if (tileId === C && g.chestStates[idx]) {
-            if (tilesetRef.current) {
-              ctx.drawImage(tilesetRef.current, T_CHEST_O[0], T_CHEST_O[1], 16, 16, dx, dy, 16, 16)
+            if (tilesetRef.current) ctx.drawImage(tilesetRef.current, T_CHEST_O[0], T_CHEST_O[1], 16, 16, dx, dy, 16, 16)
+          }
+          // Draw tile overlay from map (with auto-tiling)
+          else if (tileId !== _ && finalTileSrc && tilesetRef.current) {
+            ctx.drawImage(tilesetRef.current, finalTileSrc[0], finalTileSrc[1], finalTileSrc[2], finalTileSrc[3], dx, dy, 16, 16)
+            
+            // ── WATER DECORATIONS (Lilypads/Rocks in water) ──
+            const noise = Math.sin(idx * 12.98) * 1000
+            if (tileId === W && (noise - Math.floor(noise)) < 0.08 && !g.chestStates[idx]) {
+                const deco = ((noise * 10) % 2 < 1) ? T_STONES : T_GRASS2
+                ctx.drawImage(tilesetRef.current, deco[0], deco[1], 16, 16, dx + 4, dy + 4, 8, 8)
             }
           }
-          // Draw tile overlay from map
-          else if (tileId !== _ && src && tilesetRef.current) {
-            ctx.drawImage(tilesetRef.current, src[0], src[1], src[2], src[3], dx, dy, 16, 16)
-          } else if (tileId !== _ && !tilesetRef.current) {
-            const colors = { [D]:'#c4a44a', [R]:'#888', [W]:'#4488cc', [B]:'#2d8c3e', [F]:'#8b6914', [TT]:'#5a3a1a', [TL]:'#2d8c3e', [C]:'#daa520', [S]:'#cc3333', [BR]:'#8b6914', [FL]:'#e8a0d0', [ST]:'#8b6914', [WE]:'#667788' }
-            if (colors[tileId]) { ctx.fillStyle = colors[tileId]; ctx.fillRect(dx, dy, TILE_SIZE, TILE_SIZE) }
-          }
 
-          // Draw structure tile on top (houses, trees, well, etc.)
-          const structTile = structureTileMap[key]
+          // Draw structure tile
           if (structTile && tilesetRef.current) {
             ctx.drawImage(tilesetRef.current, structTile[0], structTile[1], 16, 16, dx, dy, 16, 16)
           }
@@ -575,6 +679,12 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
       const blink = g.iframeCooldown > 0 && Math.floor(g.iframeCooldown / 4) % 2 === 0
 
       if (!blink) {
+        // Draw character shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.15)'
+        ctx.beginPath()
+        ctx.ellipse(px + PLAYER_SIZE/2, py + PLAYER_SIZE-1, 6, 3, 0, 0, Math.PI*2)
+        ctx.fill()
+
         if (charRef.current) {
           // Character spritesheet: 320×448, 64×64 per frame, 5 cols × 7 rows
           // Row 0: walk DOWN (facing camera, skin visible)
