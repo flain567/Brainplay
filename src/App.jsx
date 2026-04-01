@@ -63,6 +63,7 @@ const SlidingPuzzle   = lazy(() => import('./pages/games/SlidingPuzzle.jsx'))
 const TowerOfHanoi    = lazy(() => import('./pages/games/TowerOfHanoi.jsx'))
 const MinesweeperGame = lazy(() => import('./pages/games/Minesweeper.jsx'))
 const FieldsAdventure = lazy(() => import('./pages/games/FieldsAdventure.jsx'))
+const LetterTilesGame = lazy(() => import('./pages/games/LetterTiles.jsx'))
 
 // ─── Game loading fallback ──────────────────────────────────────────────────
 function GameLoader() {
@@ -377,6 +378,19 @@ export const GAMES = [
       { id:'easy',   description:'5 HP, jebakan ringan — santai explore',                     stats:['5 HP','Reward ++'] },
       { id:'medium', description:'3 HP, jebakan sedang — butuh hati-hati!',                   stats:['3 HP','Reward +'] },
       { id:'hard',   description:'2 HP, jebakan mematikan — petualang sejati!',                stats:['2 HP','Reward +++'] },
+    ],
+  },
+  {
+    id: 'letter-tiles',
+    title: 'Letter Tiles',
+    emoji: '🔤',
+    description: 'Susun huruf-huruf acak untuk membentuk kata yang benar! Mulai dari 3 huruf sampai 7 huruf.',
+    color: '#A29BFE', bg: '#F0EFFE', tag: 'Kata',
+    component: LetterTilesGame, day: 24,
+    difficulties: [
+      { id:'easy',   description:'10 level, 60 detik, 3 hint — santai untuk pemula',           stats:['10 level','60s','3 hint'] },
+      { id:'medium', description:'20 level, 45 detik, 2 hint — butuh kecepatan!',              stats:['20 level','45s','2 hint'] },
+      { id:'hard',   description:'30 level, 30 detik, 1 hint — master kata!',                  stats:['30 level','30s','1 hint'] },
     ],
   },
 ]
