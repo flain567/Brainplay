@@ -1,7 +1,7 @@
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useCoins } from '../context/CoinContext.jsx'
-import { useProgress, getComboMultiplier } from '../context/ProgressContext.jsx'
+import { useProgress, getComboMultiplier, getLevelInfo } from '../context/ProgressContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { useEffect, useState, useRef } from 'react'
@@ -22,6 +22,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
   const streak = progress.currentStreak || 0
   const combo = getComboMultiplier(streak)
   const notifState = useNotifications()
+  const levelInfo = getLevelInfo(progress.totalXP || 0)
 
   useEffect(() => { setMuted(muted) }, [muted, setMuted])
   useEffect(() => {
@@ -209,6 +210,37 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
           box-shadow: 0 1px 4px rgba(0,0,0,0.15); transition: all 0.2s;
         }
 
+        /* Level UI */
+        .nav-level-wrap {
+          display: flex; align-items: center; gap: 8px;
+          cursor: pointer; padding-left: 12px; border-radius: 14px;
+          transition: all 0.2s; background: ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'};
+          border: 1.5px solid ${borderCol};
+        }
+        .nav-level-wrap:hover { transform: scale(1.05); background: ${dark ? 'rgba(162,155,254,0.1)' : 'rgba(162,155,254,0.05)'}; border-color: ${dark ? '#A29BFE88' : '#A29BFE'}; }
+        
+        .nav-level-info { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+        .nav-level-num { 
+          font-family: 'Fredoka One', cursive; font-size: 12px; 
+          color: ${textMain}; line-height: 1.2; margin-top: 1px;
+        }
+        .nav-xp-bar {
+          width: 50px; height: 5px; border-radius: 100px;
+          background: ${dark ? '#2d3561' : '#DFE6E9'}; overflow: hidden;
+          border: 1px solid ${dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'};
+        }
+        .nav-xp-fill {
+          height: 100%; border-radius: 100px;
+          background: linear-gradient(to right, #A29BFE, #FD79A8);
+          box-shadow: 0 0 8px rgba(162,155,254,0.5);
+          transition: width 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .nav-avatar-wrap {
+          width: 40px; height: 40px; border-radius: 11px; border: 2px solid transparent;
+          overflow: hidden; pointer-events: none;
+        }
+        .nav-avatar-img { width: 100%; height: 100%; object-fit: cover; }
+
         @keyframes nav-scale-in { from{transform:scale(0.6);opacity:0} to{transform:scale(1);opacity:1} }
         @keyframes nav-fade-in { from{opacity:0} to{opacity:1} }
         @keyframes nav-slide-in { from{transform:translateX(100%);opacity:0.5} to{transform:translateX(0);opacity:1} }
@@ -269,11 +301,26 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
             </button>
             <NotificationBell {...notifState} dark={dark} />
             <button className="nav-btn" title="Leaderboard" onClick={() => nav(onLeaderboard)}>🏆</button>
-            <button className="nav-btn" title="Profil" onClick={() => nav(onProfile)} style={{ overflow:'hidden', padding:0 }}>
-              {photoURL ? (
-                <img src={photoURL} alt="" style={{ width:40, height:40, borderRadius:12, objectFit:'cover' }} referrerPolicy="no-referrer" />
-              ) : '👤'}
-            </button>
+            
+            {/* Level Progress Section */}
+            <div 
+              className="nav-level-wrap" 
+              onClick={() => nav(onProfile)}
+              title={`${levelInfo.title} (Level ${levelInfo.level}) — ${Math.round(levelInfo.progress * 100)}%`}
+            >
+              <div className="nav-level-info">
+                <span className="nav-level-num">Lv.{levelInfo.level}</span>
+                <div className="nav-xp-bar">
+                  <div className="nav-xp-fill" style={{ width: `${Math.round(levelInfo.progress * 100)}%` }} />
+                </div>
+              </div>
+              <div className="nav-avatar-wrap">
+                {photoURL ? (
+                  <img src={photoURL} alt="" className="nav-avatar-img" referrerPolicy="no-referrer" />
+                ) : <span style={{ fontSize:16 }}>👤</span>}
+              </div>
+            </div>
+
             <button className="nav-btn" title="Pengaturan" onClick={() => { play('click'); setShowSettings(true) }}>
               ⚙️
             </button>
@@ -354,15 +401,25 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
             <div className="nav-drawer-item" onClick={() => nav(onProfile)}>
               <div className="nav-drawer-item-icon" style={{
                 background:dark?'rgba(162,155,254,0.1)':'#F0EFFE',
-                overflow:'hidden', padding:0,
+                overflow:'hidden', padding:0, position:'relative'
               }}>
                 {photoURL ? (
                   <img src={photoURL} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} referrerPolicy="no-referrer" />
                 ) : '👤'}
               </div>
-              <div>
-                <div className="nav-drawer-item-text">{isLoggedIn ? playerName : 'Profil'}</div>
-                <div className="nav-drawer-item-desc">{isLoggedIn ? 'Akun Google terhubung' : 'Achievement, XP, & statistik'}</div>
+              <div style={{ flex:1 }}>
+                <div className="nav-drawer-item-text">
+                  {isLoggedIn ? playerName : 'Profil'} 
+                  <span style={{ fontSize:10, background:dark?'#2d3561':'#f1f2f6', padding:'2px 6px', borderRadius:5, marginLeft:6 }}>Lv.{levelInfo.level}</span>
+                </div>
+                <div className="nav-drawer-xp-wrap" style={{ marginTop:4 }}>
+                  <div className="nav-xp-bar" style={{ width:'100%', height:6 }}>
+                    <div className="nav-xp-fill" style={{ width: `${Math.round(levelInfo.progress * 100)}%` }} />
+                  </div>
+                  <div style={{ fontSize:9, color:textMuted, marginTop:2, fontWeight:700 }}>
+                    {levelInfo.title} • {Math.round(levelInfo.progress * 100)}% to Lv.{levelInfo.level + 1}
+                  </div>
+                </div>
               </div>
             </div>
 
