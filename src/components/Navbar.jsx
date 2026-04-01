@@ -63,8 +63,11 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
         .nav-root {
           position: sticky; top: 0; z-index: 200;
           transition: background 0.35s, box-shadow 0.35s, border-color 0.35s;
-          backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
           padding: var(--safe-top, 0px) 28px 0 28px; border-bottom: 2px solid transparent;
+        }
+        @media (max-width: 640px) {
+          .nav-root { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
         }
         .nav-root.scrolled {
           box-shadow: 0 4px 24px rgba(0,0,0,0.08);
@@ -78,18 +81,11 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
           display: flex; align-items: center; gap: 10px;
           cursor: pointer; user-select: none; text-decoration: none;
         }
-        .nav-logo-icon {
-          width: 40px; height: 40px; border-radius: 12px;
-          background: linear-gradient(135deg,#FF6B6B,#A29BFE);
-          display: flex; align-items: center; justify-content: center;
-          font-size: 22px; box-shadow: 0 4px 12px rgba(162,155,254,0.4);
-          transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); flex-shrink: 0;
-        }
-        .nav-logo:hover .nav-logo-icon { transform: rotate(-8deg) scale(1.1); }
         .nav-logo-text {
-          font-family: 'Fredoka One', cursive; font-size: 24px;
-          background: linear-gradient(135deg,#FF6B6B,#A29BFE);
+          font-family: 'Fredoka One', cursive; font-size: 26px;
+          background: linear-gradient(135deg,#7C6FE8,#FD79A8);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+          text-transform: uppercase; letter-spacing: 1.5px;
         }
         .nav-center { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .nav-crumb { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
@@ -261,7 +257,6 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
         <div className="nav-inner">
           {/* Logo */}
           <div className="nav-logo" onClick={() => nav(onHome)}>
-            <div className="nav-logo-icon">🎮</div>
             <span className="nav-logo-text">BrainPlay</span>
           </div>
 
@@ -302,11 +297,10 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
             <NotificationBell {...notifState} dark={dark} />
             <button className="nav-btn" title="Leaderboard" onClick={() => nav(onLeaderboard)}>🏆</button>
             
-            {/* Level Progress Section */}
             <div 
               className="nav-level-wrap" 
               onClick={() => nav(onProfile)}
-              title={`${levelInfo.title} (Level ${levelInfo.level}) — ${Math.round(levelInfo.progress * 100)}%`}
+              style={{ padding: '4px 6px 4px 12px', gap: 12, borderRadius: 14 }}
             >
               <div className="nav-level-info">
                 <span className="nav-level-num">Lv.{levelInfo.level}</span>
@@ -314,10 +308,14 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
                   <div className="nav-xp-fill" style={{ width: `${Math.round(levelInfo.progress * 100)}%` }} />
                 </div>
               </div>
-              <div className="nav-avatar-wrap">
-                {photoURL ? (
-                  <img src={photoURL} alt="" className="nav-avatar-img" referrerPolicy="no-referrer" />
-                ) : <span style={{ fontSize:16 }}>👤</span>}
+              <div className="nav-avatar-wrap" style={{ 
+                borderRadius: '50%', width: 34, height: 34, 
+                background: dark ? '#252B45' : '#E2E8F0',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: "'Fredoka One',cursive", fontSize: 14, color: '#7C6FE8',
+                border: '1.5px solid rgba(124,111,232,0.3)'
+              }}>
+                {playerName ? playerName[0].toUpperCase() : 'P'}
               </div>
             </div>
 

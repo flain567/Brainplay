@@ -19,10 +19,12 @@ export default function ParticleBackground({ dark = false, reduceMotion = false 
     const ctx = canvas.getContext('2d')
 
     const resize = () => {
-      canvas.width = canvas.offsetWidth * window.devicePixelRatio
-      canvas.height = canvas.offsetHeight * window.devicePixelRatio
+      // Cap DPR to 2.0 to avoid massive canvas on high-dpi phones
+      const dpr = Math.min(window.devicePixelRatio, 2.0)
+      canvas.width = canvas.offsetWidth * dpr
+      canvas.height = canvas.offsetHeight * dpr
       ctx.setTransform(1, 0, 0, 1, 0, 0)
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio)
+      ctx.scale(dpr, dpr)
     }
     resize()
 
@@ -30,7 +32,9 @@ export default function ParticleBackground({ dark = false, reduceMotion = false 
     const W = () => canvas.offsetWidth
     const H = () => canvas.offsetHeight
 
-    const n = reduceMotion ? PARTICLE_COUNT_REDUCE : PARTICLE_COUNT_DEFAULT
+    const n = reduceMotion 
+      ? PARTICLE_COUNT_REDUCE 
+      : (window.innerWidth < 640 ? 15 : PARTICLE_COUNT_DEFAULT)
     particlesRef.current = Array.from({ length: n }, () => ({
       x: randomBetween(0, W()),
       y: randomBetween(0, H()),
@@ -127,10 +131,11 @@ export default function ParticleBackground({ dark = false, reduceMotion = false 
     animate()
 
     const onResize = () => {
-      canvas.width = canvas.offsetWidth * window.devicePixelRatio
-      canvas.height = canvas.offsetHeight * window.devicePixelRatio
+      const dpr = Math.min(window.devicePixelRatio, 2.0)
+      canvas.width = canvas.offsetWidth * dpr
+      canvas.height = canvas.offsetHeight * dpr
       ctx.setTransform(1, 0, 0, 1, 0, 0)
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio)
+      ctx.scale(dpr, dpr)
     }
 
     const onMouse = (e) => {
@@ -170,6 +175,7 @@ export default function ParticleBackground({ dark = false, reduceMotion = false 
         pointerEvents: 'auto',
         zIndex: 0,
         opacity: dark ? 0.6 : 0.8,
+        willChange: 'transform',
       }}
     />
   )

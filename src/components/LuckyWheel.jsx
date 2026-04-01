@@ -94,6 +94,7 @@ export default function LuckyWheel({ open, onClose }) {
     }
 
     setSpinning(true)
+    if (navigator.vibrate) navigator.vibrate(10)
     setResult(null)
 
     // Get result first, then animate to correct slot
@@ -146,6 +147,7 @@ export default function LuckyWheel({ open, onClose }) {
 
       // Sound & haptics
       const isEpic = reward.rarity === 'epic' || reward.rarity === 'legendary'
+      if (navigator.vibrate) navigator.vibrate(isEpic ? [30, 50, 30] : 30)
       try { play(isEpic ? 'levelUp' : 'win') } catch(e) {}
     }, SPIN_DURATION)
   }, [spinning, coins, extraSpinCost, spin, slots, spendCoins, earnCoins, play])
@@ -388,8 +390,10 @@ export default function LuckyWheel({ open, onClose }) {
         .wheel-overlay {
           position: fixed; inset: 0; z-index: 9999;
           display: flex; align-items: center; justify-content: center;
-          background: ${bg};
+          background: rgba(13, 16, 34, 0.85); backdrop-filter: blur(24px);
+          animation: fadeIn 0.4s ease both;
         }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .wheel-inner {
           max-width: 420px; width: 100%;
           max-height: 100dvh;
@@ -402,29 +406,29 @@ export default function LuckyWheel({ open, onClose }) {
           margin-bottom: 20px;
         }
         .wheel-close {
-          background: ${dark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.04)'};
-          border: 1.5px solid ${borderCol}; border-radius: 12px;
-          padding: 8px 16px; color: ${textMuted}; font-size: 14px;
+          background: rgba(255,255,255,0.06);
+          border: 1.5px solid rgba(255,255,255,0.1); border-radius: 12px;
+          padding: 8px 16px; color: rgba(255,255,255,0.6); font-size: 14px;
           cursor: pointer; font-weight: 700; font-family: 'Nunito',sans-serif;
           transition: all 0.2s;
         }
-        .wheel-close:hover { border-color: #A29BFE; color: #A29BFE; }
+        .wheel-close:hover { border-color: var(--accent-vivid); color: #fff; transform: scale(1.05); }
 
         /* Tabs */
         .wheel-tabs {
-          display: flex; gap: 4px; margin-bottom: 18px;
-          background: ${dark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.03)'};
-          border-radius: 14px; padding: 4px;
+          display: flex; gap: 4px; margin-bottom: 24px;
+          background: rgba(255,255,255,0.04);
+          border-radius: 16px; padding: 5px;
         }
         .wheel-tab {
-          flex: 1; padding: 8px 6px; border-radius: 10px;
-          background: transparent; border: none; color: ${textMuted};
+          flex: 1; padding: 10px 6px; border-radius: 12px;
+          background: transparent; border: none; color: rgba(255,255,255,0.4);
           font-size: 12px; font-weight: 700; cursor: pointer;
           font-family: 'Nunito',sans-serif; transition: all 0.2s;
         }
         .wheel-tab.active {
-          background: linear-gradient(135deg,#A29BFE,#6C5CE7);
-          color: #fff; box-shadow: 0 2px 12px rgba(162,155,254,0.3);
+          background: var(--accent-vivid);
+          color: #fff; box-shadow: 0 4px 15px rgba(124,111,232,0.3);
         }
 
         /* Wheel container */
@@ -461,21 +465,21 @@ export default function LuckyWheel({ open, onClose }) {
         }
         .spin-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .spin-btn.free {
-          background: linear-gradient(135deg,#FFD700,#FF8C00);
-          color: #fff; box-shadow: 0 4px 20px rgba(255,215,0,0.3);
+          background: linear-gradient(135deg,#FDCB6E,#F9A825);
+          color: #5D4037; box-shadow: 0 8px 25px rgba(253,203,110,0.3);
+          border: none;
         }
-        .spin-btn.free:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 6px 30px rgba(255,215,0,0.4); }
+        .spin-btn.free:not(:disabled):hover { transform: translateY(-3px); box-shadow: 0 12px 35px rgba(253,203,110,0.4); }
         .spin-btn.paid {
-          background: ${dark?'rgba(162,155,254,0.12)':'rgba(162,155,254,0.08)'};
-          color: #A29BFE; border: 1.5px solid rgba(162,155,254,0.3);
+          background: rgba(255,255,255,0.05);
+          color: var(--accent-vivid); border: 1.5px solid rgba(124,111,232,0.3);
         }
-        .spin-btn.paid:not(:disabled):hover { transform: translateY(-2px); border-color: #A29BFE; }
+        .spin-btn.paid:not(:disabled):hover { transform: translateY(-3px); border-color: var(--accent-vivid); background: rgba(124,111,232,0.1); }
         .spin-btn.multi {
-          background: linear-gradient(135deg,#E040FB,#AB47BC);
-          color: #fff; box-shadow: 0 4px 20px rgba(171,71,188,0.3);
-          font-size: 13px;
+          background: linear-gradient(135deg,#AB47BC,#7B1FA2);
+          color: #fff; box-shadow: 0 8px 25px rgba(171,71,188,0.3);
         }
-        .spin-btn.multi:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 6px 30px rgba(171,71,188,0.4); }
+        .spin-btn.multi:not(:disabled):hover { transform: translateY(-3px); box-shadow: 0 12px 35px rgba(171,71,188,0.4); }
 
         /* Multi-result modal */
         .multi-result {
@@ -1058,7 +1062,23 @@ export default function LuckyWheel({ open, onClose }) {
       {/* ── Individual Reward Reveal (during sequential 5× spin) ── */}
       {multiCurrentReward && (
         <div className="multi-result" onClick={advanceMultiSpin}>
-          <div className="result-card" onClick={e => e.stopPropagation()} style={{ padding: '28px 24px' }}>
+          {/* Confetti if high rarity */}
+          {(multiCurrentReward.rarity === 'epic' || multiCurrentReward.rarity === 'legendary') && (
+            <div className="wheel-confetti">
+              {Array.from({length: 40}).map((_, i) => (
+                <span key={i} style={{
+                  left: `${Math.random()*100}%`,
+                  background: ['#FFD700','#FF6B6B','#A29BFE','#4ECDC4','#FF8C00','#E040FB'][i%6],
+                  borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+                  width: `${6+Math.random()*8}px`,
+                  height: `${6+Math.random()*8}px`,
+                  animationDelay: `${Math.random()*1}s`,
+                  animationDuration: `${2+Math.random()*2}s`,
+                }} />
+              ))}
+            </div>
+          )}
+          <div className="result-card" onClick={e => e.stopPropagation()} style={{ padding: '36px 24px' }}>
             {/* Spin number */}
             <div style={{
               fontSize: 11, fontWeight: 800, color: textMuted, textTransform: 'uppercase',

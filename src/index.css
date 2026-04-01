@@ -8,8 +8,11 @@
   --lavender: #A29BFE;
   --pink:     #FD79A8;
   --orange:   #FDCB6E;
+  --accent-vivid: #7C6FE8;
   --bg:       #FFF9F0;
+  --bg-deep:  #0D1022;
   --surface:  #FFFFFF;
+  --surface-card: #1A1F35;
   --text:     #2D3436;
   --muted:    #636E72;
   --border:   #DFE6E9;
@@ -172,4 +175,33 @@ div[tabindex]:focus:not(:focus-visible) {
 }
 .scroll-row > * {
   scroll-snap-align: start;
+}
+
+/* Optimization for low-end mobile */
+@media (max-width: 640px) {
+  .nav-root, .modal-overlay, .gdm-overlay, .qs-item {
+    /* Reduce filter overhead on specific components only */
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
+}
+
+.gcard, .mini-card, .qs-item, .qs-trigger, .modal-content, .gdm-content, .premium-card {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.premium-card {
+  background: var(--surface-card);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.premium-card:hover {
+  border-color: var(--accent-vivid);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(124,111,232,0.25);
 }

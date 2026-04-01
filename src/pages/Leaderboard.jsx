@@ -193,6 +193,61 @@ service cloud.firestore {
   )
 }
 
+// ─── Podium Card Component ───────────────────────────────────────────────────
+
+function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname }) {
+  if (!entry) return <div style={{ flex: 1 }} />
+  
+  const isFirst = rank === 1
+  const medal = MEDALS[rank - 1]
+  const accent = isFirst ? '#FDCB6E' : (rank === 2 ? '#E0E0E0' : '#CD7F32')
+  const scale = isFirst ? 1.1 : 0.95
+  const paddingTop = isFirst ? 0 : 20
+
+  return (
+    <div style={{
+      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+      paddingTop, transform: `scale(${scale})`, animation: 'slideUp 0.6s ease both',
+      position: 'relative', zIndex: isFirst ? 2 : 1
+    }}>
+      <div style={{ position: 'relative', marginBottom: 12 }}>
+        <div style={{
+          width: isFirst ? 80 : 64, height: isFirst ? 80 : 64,
+          borderRadius: 24, border: `3px solid ${accent}`, overflow: 'hidden',
+          background: 'rgba(255,255,255,0.05)', boxShadow: `0 0 20px ${accent}44`
+        }}>
+          {entry.photoURL ? (
+            <img src={entry.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+          ) : (
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>👤</div>
+          )}
+        </div>
+        <div style={{
+          position: 'absolute', bottom: -10, left: '50%', transform: 'translateX(-50%)',
+          width: 28, height: 28, borderRadius: '50%', background: accent,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
+          boxShadow: '0 4px 10px rgba(0,0,0,0.3)', border: '2px solid rgba(255,255,255,0.2)'
+        }}>
+          {medal}
+        </div>
+      </div>
+      <div style={{ 
+        fontFamily: "'Fredoka One',cursive", fontSize: 13, color: '#fff', 
+        textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', 
+        whiteSpace: 'nowrap', marginBottom: 2
+      }}>
+        {entry.name || 'Anon'}
+      </div>
+      <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 15, color: accent }}>
+        {(entry.score || 0).toLocaleString()}
+      </div>
+      {entry.name === nickname && (
+        <div style={{ fontSize: 9, color: 'var(--accent-vivid)', fontWeight: 800, marginTop: 2 }}>KAMU</div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main Leaderboard Page ───────────────────────────────────────────────────
 
 export default function Leaderboard({ onBack, games }) {
@@ -244,17 +299,17 @@ export default function Leaderboard({ onBack, games }) {
   return (
     <>
       <style>{`
-        .lb-root { min-height:100vh; padding:32px 20px 80px; transition:background 0.4s; }
-        .lb-inner { max-width:600px; margin:0 auto; }
+        .lb-root { min-height:100vh; padding:0 20px 100px; transition:background 0.4s; background: var(--bg-deep); }
+        .lb-inner { max-width:600px; margin:0 auto; padding-top: 24px; }
         .lb-back {
           display:inline-flex; align-items:center; gap:8px;
-          background:${surface}; border:2px solid ${borderCol};
+          background: var(--surface-card); border: 1.5px solid rgba(255,255,255,0.08);
           border-radius:12px; padding:9px 18px;
-          font-size:14px; font-weight:700; color:${textMuted};
+          font-size:14px; font-weight:700; color: rgba(255,255,255,0.6);
           cursor:pointer; margin-bottom:24px; font-family:'Nunito',sans-serif;
           transition:all 0.18s;
         }
-        .lb-back:hover { border-color:#A29BFE; color:#A29BFE; transform:translateX(-3px); }
+        .lb-back:hover { border-color: var(--accent-vivid); color: #fff; transform:translateX(-3px); }
         .lb-game-row {
           display:flex; gap:6px; margin-bottom:14px; flex-wrap:nowrap;
           overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:4px;
@@ -281,36 +336,43 @@ export default function Leaderboard({ onBack, games }) {
         }
         .lb-game-tab {
           flex:0 0 auto; padding:8px 14px; border-radius:14px;
-          border:2px solid ${borderCol}; background:transparent;
+          border: 1.5px solid rgba(255,255,255,0.08); background: transparent;
           font-family:'Fredoka One',cursive; font-size:12px;
-          color:${textMuted}; cursor:pointer; transition:all 0.2s;
+          color: rgba(255,255,255,0.5); cursor:pointer; transition:all 0.2s;
           text-align:center; white-space:nowrap; display:flex; align-items:center; gap:4px;
         }
-        .lb-game-tab.active { border-color:#A29BFE; background:#A29BFE18; color:#A29BFE; }
-        .lb-diff-row { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+        .lb-game-tab.active { border-color: var(--accent-vivid); background: rgba(124,111,232,0.15); color: #fff; }
+        
+        .lb-diff-row { 
+          display:flex; gap:16px; margin-bottom:20px; overflow-x:auto; 
+          padding: 4px 0 10px; border-bottom: 1.5px solid rgba(255,255,255,0.08);
+          scrollbar-width: none;
+        }
+        .lb-diff-row::-webkit-scrollbar { display:none; }
         .lb-diff-tab {
-          flex:1; min-width:60px; padding:7px 8px; border-radius:12px;
-          border:2px solid ${borderCol}; background:transparent;
-          font-size:11px; font-weight:700; color:${textMuted};
-          cursor:pointer; transition:all 0.2s; text-align:center;
+          padding: 6px 0; border: none; background: transparent;
+          font-family: 'Fredoka One', cursive; font-size: 13px;
+          color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.2s;
+          white-space: nowrap; border-bottom: 3px solid transparent;
         }
-        .lb-diff-tab.active { border-color:#FDCB6E; background:#FDCB6E18; color:#F9A825; }
-        .lb-mode-row { display:flex; gap:6px; margin-bottom:20px; }
+        .lb-diff-tab.active { color: #FDCB6E; border-color: #FDCB6E; }
+
+        .lb-mode-row { display:flex; gap:8px; margin-bottom:24px; }
         .lb-mode-btn {
-          flex:1; padding:10px; border-radius:14px;
-          border:2px solid ${borderCol}; background:transparent;
+          flex:1; padding:12px; border-radius:16px;
+          border: 1.5px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03);
           font-family:'Fredoka One',cursive; font-size:13px;
-          color:${textMuted}; cursor:pointer; transition:all 0.2s; text-align:center;
+          color: rgba(255,255,255,0.4); cursor:pointer; transition:all 0.2s; text-align:center;
         }
-        .lb-mode-btn.active-online { border-color:#4ECDC4; background:#4ECDC418; color:#4ECDC4; }
-        .lb-mode-btn.active-local { border-color:#A29BFE; background:#A29BFE18; color:#A29BFE; }
+        .lb-mode-btn.active-online { border-color:#4ECDC4; background: rgba(78,205,196,0.1); color:#4ECDC4; }
+        .lb-mode-btn.active-local { border-color: var(--accent-vivid); background: rgba(124,111,232,0.1); color: var(--accent-vivid); }
         .lb-row {
-          display:flex; align-items:center; gap:12px; padding:12px 16px;
-          border-radius:16px; margin-bottom:8px; transition:all 0.2s;
-          background:${surface}; border:1.5px solid ${borderCol};
+          display:flex; align-items:center; gap:12px; padding:14px 18px;
+          border-radius:24px; margin-bottom:10px; transition:all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          background: var(--surface-card); border: 1.5px solid rgba(255,255,255,0.08);
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        .lb-row:hover { transform:translateY(-1px); border-color:#A29BFE44; }
-        .lb-row.top-3 { border-color:#FDCB6E66; background:${dark?'#1a1a30':('#FFFCF0')}; }
+        .lb-row:hover { transform:translateY(-2px); border-color: rgba(255,255,255,0.15); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
         @keyframes slideUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
       `}</style>
 
@@ -319,10 +381,9 @@ export default function Leaderboard({ onBack, games }) {
           <button className="lb-back" onClick={() => { play('click'); onBack() }}>← Kembali</button>
 
           {/* Header */}
-          <div style={{ textAlign:'center', marginBottom:24, animation:'slideUp 0.4s ease both' }}>
-            <div style={{ fontSize:48, marginBottom:8 }}>🏆</div>
-            <h1 style={{ fontFamily:"'Fredoka One',cursive", fontSize:28, color:textMain, marginBottom:6 }}>Leaderboard</h1>
-            <p style={{ fontSize:13, color:textMuted }}>Lihat ranking pemain terbaik di setiap game!</p>
+          <div style={{ textAlign:'center', marginBottom:32, animation:'slideUp 0.4s ease both' }}>
+            <div style={{ fontSize:56, marginBottom:12, filter: 'drop-shadow(0 0 12px rgba(253,203,110,0.3))' }}>🏆</div>
+            <h1 style={{ fontFamily:"'Fredoka One',cursive", fontSize:36, color: '#fff', marginBottom:8, letterSpacing: '1px' }}>LEADERBOARD</h1>
           </div>
 
           {/* Firebase Status Banner */}
@@ -496,61 +557,64 @@ export default function Leaderboard({ onBack, games }) {
 
           {!loading && scores.length > 0 && (
             <div style={{ animation:'slideUp 0.3s ease' }}>
-              {scores.map((entry, i) => {
-                const rank = entry.rank || i + 1
-                const isTop3 = rank <= 3
+              {/* Top 3 Podium */}
+              {scores.length >= 1 && (
+                <div style={{ 
+                  display: 'flex', gap: 10, alignItems: 'flex-end', 
+                  marginBottom: 32, padding: '20px 0', 
+                  minHeight: 180, position: 'relative'
+                }}>
+                  {/* Rank 2 (Left) */}
+                  <PodiumCard entry={scores[1]} rank={2} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} />
+                  {/* Rank 1 (Center) */}
+                  <PodiumCard entry={scores[0]} rank={1} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} />
+                  {/* Rank 3 (Right) */}
+                  <PodiumCard entry={scores[2]} rank={3} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} />
+                </div>
+              )}
+
+              {/* Rest of the list (Rank 4+) */}
+              {scores.slice(3).map((entry, i) => {
+                const rank = entry.rank || i + 4
                 return (
                   <div key={entry.id || `${i}-${entry.score}`}
-                    className={`lb-row ${isTop3 ? 'top-3' : ''}`}
+                    className="lb-row"
                     style={{ animation: `slideUp 0.3s ${i * 0.03}s ease both` }}>
                     {/* Rank */}
                     <div style={{
-                      width:36, height:36, borderRadius:10, flexShrink:0,
-                      background: isTop3
-                        ? 'linear-gradient(135deg,#FDCB6E,#F9A825)'
-                        : (dark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.04)'),
+                      width:36, height:36, borderRadius:12, flexShrink:0,
+                      background: 'rgba(255,255,255,0.06)',
                       display:'flex', alignItems:'center', justifyContent:'center',
-                      fontFamily:"'Fredoka One',cursive",
-                      fontSize: isTop3 ? 18 : 14,
-                      color: isTop3 ? '#fff' : textMuted,
-                      boxShadow: isTop3 ? '0 3px 10px rgba(253,203,110,0.3)' : 'none',
+                      fontFamily:"'Fredoka One',cursive", fontSize: 13, color: 'rgba(255,255,255,0.4)'
                     }}>
-                      {isTop3 ? MEDALS[rank-1] : rank}
+                      {rank}
                     </div>
                     {/* Name + photo + date */}
                     {entry.photoURL && (
                       <img src={entry.photoURL} alt="" style={{
-                        width:28, height:28, borderRadius:8, objectFit:'cover', flexShrink:0,
+                        width:32, height:32, borderRadius:10, objectFit:'cover', flexShrink:0,
                       }} referrerPolicy="no-referrer" />
                     )}
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{
-                        fontFamily:"'Fredoka One',cursive", fontSize:14, color:textMain,
+                        fontFamily:"'Fredoka One',cursive", fontSize:14, color:'#fff',
                         overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
                         display:'flex', alignItems:'center', gap:4,
                       }}>
                         {entry.name || 'Anon'}
-                        {entry.uid && (
-                          <span style={{ fontSize:9, color:'#4ECDC4', opacity:0.7 }} title="Verified account">✓</span>
-                        )}
                         {entry.name === nickname && (
-                          <span style={{ fontSize:10, color:'#A29BFE', marginLeft:4 }}>← Kamu</span>
+                          <span style={{ fontSize:10, color: 'var(--accent-vivid)', marginLeft:4 }}>← Kamu</span>
                         )}
                       </div>
-                      <div style={{ fontSize:10, color:textMuted, marginTop:1 }}>
+                      <div style={{ fontSize:10, color:'rgba(255,255,255,0.4)', marginTop:1 }}>
                         {formatDate(entry.updatedAt || entry.createdAt || entry.date)}
-                        {entry.gamesPlayed > 1 ? ` • ${entry.gamesPlayed}x main` : ''}
-                        {entry.wave ? ` • Wave ${entry.wave}` : ''}
                         {entry.level ? ` • Lv${entry.level}` : ''}
                         {entry.time ? ` • ${formatTime(entry.time)}` : ''}
-                        {entry.diffId ? ` • ${entry.diffId}` : ''}
                       </div>
                     </div>
                     {/* Score */}
                     <div style={{
-                      fontFamily:"'Fredoka One',cursive", fontSize:isTop3?18:16,
-                      color: isTop3 ? '#F9A825' : '#4ECDC4',
-                      flexShrink:0,
+                      fontFamily:"'Fredoka One',cursive", fontSize:16, color: '#4ECDC4', flexShrink:0,
                     }}>
                       {(entry.score || 0).toLocaleString()}
                     </div>

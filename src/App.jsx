@@ -20,6 +20,8 @@ import LevelUpModal from './components/LevelUpModal.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import ThemeApplicator from './components/ThemeApplicator.jsx'
 import QuickSettings from './components/QuickSettings.jsx'
+import BottomNav from './components/BottomNav.jsx'
+import LuckyWheel from './components/LuckyWheel.jsx'
 import Home from './pages/Home.jsx'
 import { migrateOldStorage } from './utils/storage.js'
 import { saveLastPlayed, getLastPlayed } from './utils/lastPlayed.js'
@@ -34,6 +36,7 @@ import { ADMIN_IDS } from './config/admin.js'
 const Profile     = lazy(() => import('./pages/Profile.jsx'))
 const Shop        = lazy(() => import('./pages/Shop.jsx'))
 const Leaderboard = lazy(() => import('./pages/Leaderboard.jsx'))
+const GamesPage   = lazy(() => import('./pages/Games.jsx'))
 const GameStatsPage = lazy(() => import('./pages/GameStatsPage.jsx'))
 const AnalyticsDashboard = lazy(() => import('./pages/AnalyticsDashboard.jsx'))
 const AdminAnalyticsDashboard = lazy(() => import('./pages/AdminAnalyticsDashboard.jsx'))
@@ -400,6 +403,7 @@ function AppInner() {
   const [currentGame, setCurrentGame] = useState(null)
   const [difficulty,  setDifficulty]  = useState(null)
   const [screen,      setScreen]      = useState('home')
+  const [isWheelOpen, setIsWheelOpen] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const screenRef = useRef('home')
   const navRef = useRef({ goHome: null, goBackToDifficulty: null })
@@ -554,8 +558,8 @@ function AppInner() {
       trackGameStart(currentGame.id, diffId)
     }
   }
-  const goHome            = () => {
-    // Track dropoff if leaving a game
+  const goHome = () => {
+    setIsWheelOpen(false)
     if (screenRef.current === 'game' && currentGame) trackGameDropoff(currentGame.id, difficulty, 'back_to_home')
     setScreen('home'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -568,12 +572,15 @@ function AppInner() {
   screenRef.current = screen
   navRef.current.goHome = goHome
   navRef.current.goBackToDifficulty = goBackToDifficulty
-  const goProfile         = () => { setScreen('profile'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const goShop            = () => { setScreen('shop'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const goLeaderboard     = () => { setScreen('leaderboard'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const goStats           = () => { setScreen('stats'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const goAnalytics       = () => { setScreen('analytics'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const goAdmin           = () => { setScreen('admin'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  
+  const goProfile     = () => { setIsWheelOpen(false); setScreen('profile'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goShop        = () => { setIsWheelOpen(false); setScreen('shop'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goLeaderboard = () => { setIsWheelOpen(false); setScreen('leaderboard'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goStats       = () => { setIsWheelOpen(false); setScreen('stats'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goAnalytics   = () => { setIsWheelOpen(false); setScreen('analytics'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goGames       = () => { setIsWheelOpen(false); setScreen('games'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goAdmin       = () => { setIsWheelOpen(false); setScreen('admin'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const openWheel     = () => setIsWheelOpen(true)
   
   // Check if current user is admin
   const isAdmin = ADMIN_IDS.includes(userId)
@@ -618,10 +625,19 @@ function AppInner() {
       {progress.levelUpData && (
         <LevelUpModal data={progress.levelUpData} onClose={clearLevelUp} />
       )}
-      <main style={{ flex:1 }}>
+      <LuckyWheel open={isWheelOpen} onClose={() => setIsWheelOpen(false)} />
+      <main style={{ flex:1, paddingBottom: isFullscreen ? 0 : 'calc(68px + env(safe-area-inset-bottom, 0px))' }}>
         <PageTransition pageKey={`${screen}-${currentGame?.id}-${difficulty}`}>
           {screen === 'home' && (
-            <Home games={GAMES} onPlay={openGame} onContinueLast={continueLastSession} onProfile={goProfile} onShop={goShop} onStats={goStats} />
+            <Home 
+              games={GAMES} 
+              onPlay={openGame} 
+              onContinueLast={continueLastSession} 
+              onProfile={goProfile} 
+              onShop={goShop} 
+              onStats={goStats} 
+              onOpenWheel={openWheel}
+            />
           )}
           {screen === 'profile' && (
             <Suspense fallback={<GameLoader />}>
@@ -638,6 +654,12 @@ function AppInner() {
               <Shop onBack={goHome} />
             </Suspense>
           )}
+          {screen === 'games' && (
+            <Suspense fallback={<GameLoader />}>
+              <GamesPage games={GAMES} onOpenGame={openGame} onBack={goHome} />
+            </Suspense>
+          )}
+
           {screen === 'leaderboard' && (
             <Suspense fallback={<GameLoader />}>
               <Leaderboard onBack={goHome} games={GAMES} />
@@ -679,7 +701,18 @@ function AppInner() {
           )}
         </PageTransition>
       </main>
-      <QuickSettings isFullscreen={isFullscreen} />
+      {!isFullscreen && (
+        <BottomNav 
+          activeScreen={isWheelOpen ? 'wheel' : screen} 
+          onNavigate={(target) => {
+            if (target === 'wheel') setIsWheelOpen(true)
+            else if (target === 'home') goHome()
+            else if (target === 'shop') goShop()
+            else if (target === 'profile') goProfile()
+            else if (target === 'games') goGames()
+          }} 
+        />
+      )}
     </div>
   )
 }

@@ -19,16 +19,23 @@ function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMai
       <div
         key={item.id}
         className={`shop-pack ${owned?'owned':''} ${isActive?'active':''}`}
-        style={{ animation:`slide-up 0.3s ${i*0.04}s ease both`, background:surface, borderColor: isActive ? '#4ECDC4' : owned ? (dark?'#4ECDC444':'#4ECDC4') : borderCol, opacity: isLocked ? 0.75 : 1 }}
+        style={{ animation:`slide-up 0.3s ${i*0.04}s ease both`, opacity: isLocked ? 0.75 : 1 }}
         onClick={() => setPreviewId(expanded ? null : item.id)}
       >
         {isActive && (
-          <div style={{ position:'absolute', top:12, right:12, background:'#4ECDC4', color:'#fff', fontSize:10, fontWeight:800, padding:'3px 10px', borderRadius:100, fontFamily:"'Fredoka One',cursive" }}>
+          <div style={{ position:'absolute', top:16, right:16, background:'#4ECDC4', color:'#fff', fontSize:10, fontWeight:800, padding:'3px 12px', borderRadius:100, fontFamily:"'Fredoka One',cursive" }}>
             AKTIF
           </div>
         )}
         {(item.exclusive || item.wheelOnly) && !isActive && (
-          <div style={{ position:'absolute', top:12, right:12, background: owned ? '#4ECDC422' : `${item.rarity==='legendary'?'#FFD700':'#AB47BC'}22`, color: owned ? '#4ECDC4' : (item.rarity==='legendary'?'#FFD700':'#AB47BC'), fontSize:9, fontWeight:800, padding:'3px 8px', borderRadius:100, fontFamily:"'Fredoka One',cursive", border:`1px solid ${owned ? '#4ECDC444' : (item.rarity==='legendary'?'#FFD700':'#AB47BC')+'44'}` }}>
+          <div style={{ 
+            position:'absolute', top:16, right:16, 
+            background: owned ? 'rgba(78,205,196,0.1)' : `${item.rarity==='legendary'?'rgba(255,215,0,0.1)':'rgba(171,71,188,0.1)'}`, 
+            color: owned ? '#4ECDC4' : (item.rarity==='legendary'?'#FFD700':'#AB47BC'), 
+            fontSize:9, fontWeight:800, padding:'4px 10px', borderRadius:100, 
+            fontFamily:"'Fredoka One',cursive", 
+            border:`1.5px solid ${owned ? 'rgba(78,205,196,0.3)' : (item.rarity==='legendary'?'rgba(255,215,0,0.3)':'rgba(171,71,188,0.3)')}` 
+          }}>
             {owned ? '🎰 WHEEL' : item.rarity==='legendary'?'★ LEGENDARY':'🎰 WHEEL ONLY'}
           </div>
         )}
@@ -246,8 +253,8 @@ export default function Shop({ onBack }) {
   return (
     <>
       <style>{`
-        .shop-root { min-height:100vh; padding:32px 20px 80px; transition:background 0.4s; }
-        .shop-inner { max-width:600px; margin:0 auto; }
+        .shop-root { min-height:100vh; padding:0 20px 100px; transition:background 0.4s; background: var(--bg-deep); }
+        .shop-inner { max-width:600px; margin:0 auto; padding-top: 24px; }
         .shop-back {
           display:inline-flex; align-items:center; gap:8px;
           background:${surface}; border:2px solid ${borderCol};
@@ -265,13 +272,14 @@ export default function Shop({ onBack }) {
         }
         @keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(-10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
         .shop-pack {
-          background:${surface}; border:2px solid ${borderCol};
-          border-radius:20px; padding:20px; margin-bottom:14px;
-          transition:all 0.2s; cursor:pointer; position:relative; overflow:hidden;
+          background: var(--surface-card); border: 1.5px solid rgba(255,255,255,0.08);
+          border-radius:24px; padding:20px; margin-bottom:16px;
+          transition:all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); cursor:pointer; position:relative; overflow:hidden;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
-        .shop-pack:hover { transform:translateY(-2px); border-color:#FDCB6E44; }
-        .shop-pack.owned { border-color:${dark?'#4ECDC444':'#4ECDC4'}; }
-        .shop-pack.active { border-color:#4ECDC4; box-shadow:0 0 16px #4ECDC422; }
+        .shop-pack:hover { transform:translateY(-4px); border-color: var(--accent-vivid); box-shadow: 0 8px 30px rgba(124,111,232,0.2); }
+        .shop-pack.owned { border-color: rgba(78,205,196,0.25); }
+        .shop-pack.active { border-color:#4ECDC4; box-shadow:0 0 20px rgba(78,205,196,0.25); }
         .pack-preview {
           display:grid; grid-template-columns:repeat(6,1fr); gap:6px;
           margin-top:12px; padding:10px; border-radius:12px;
@@ -285,19 +293,19 @@ export default function Shop({ onBack }) {
         }
         .pack-icon-cell:hover { transform:scale(1.2); }
         @keyframes buyPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
-        .shop-tab-row { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+        .shop-tab-row { 
+          display:flex; gap:20px; margin-bottom:24px; overflow-x:auto; 
+          padding: 4px 0 12px; border-bottom: 1.5px solid rgba(255,255,255,0.08);
+          scrollbar-width: none; -webkit-overflow-scrolling: touch;
+        }
+        .shop-tab-row::-webkit-scrollbar { display:none; }
         .shop-tab {
-          flex:1; min-width:80px; padding:9px 6px; border-radius:14px; border:2px solid ${borderCol};
-          background:transparent; font-family:'Fredoka One',cursive; font-size:12px;
-          color:${textMuted}; cursor:pointer; transition:all 0.2s; text-align:center; white-space:nowrap;
+          padding: 8px 0; border: none; background: transparent;
+          font-family: 'Fredoka One', cursive; font-size: 14px;
+          color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.2s;
+          white-space: nowrap; border-bottom: 3px solid transparent;
         }
-        .shop-tab.active { border-color:#FDCB6E; background:#FDCB6E18; color:#F9A825; }
-
-        @media (max-width: 500px) {
-          .shop-tab-row { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:4px; }
-          .shop-tab-row::-webkit-scrollbar { display:none; }
-          .shop-tab { flex:0 0 auto; min-width:auto; padding:9px 14px; }
-        }
+        .shop-tab.active { color: var(--accent-vivid); border-color: var(--accent-vivid); }
         .tx-row {
           display:flex; align-items:center; gap:12px; padding:10px 14px;
           border-radius:12px; margin-bottom:6px;
@@ -313,19 +321,17 @@ export default function Shop({ onBack }) {
           <button className="shop-back" onClick={() => { play('click'); onBack() }}>← Kembali</button>
 
           {/* Header */}
-          <div style={{ textAlign:'center', marginBottom:28, animation:'slide-up 0.4s ease both' }}>
-            <div style={{ fontSize:48, marginBottom:8 }}>🏪</div>
-            <h1 style={{ fontFamily:"'Fredoka One',cursive", fontSize:30, color:textMain, marginBottom:6 }}>Shop</h1>
+          <div style={{ textAlign:'center', marginBottom:32, animation:'slide-up 0.4s ease both' }}>
+            <div style={{ fontSize:56, marginBottom:12, filter: 'drop-shadow(0 0 12px rgba(253,203,110,0.3))' }}>🏪</div>
+            <h1 style={{ fontFamily:"'Fredoka One',cursive", fontSize:36, color: '#fff', marginBottom:8, letterSpacing: '1px' }}>MARKETPLACE</h1>
             <div style={{
-              display:'inline-flex', alignItems:'center', gap:8,
-              background: dark
-                ? 'linear-gradient(135deg, rgba(253,203,110,0.12), rgba(249,168,37,0.08))'
-                : 'linear-gradient(135deg,#FFF8E1,#FFFDE7)',
-              border:`2px solid ${dark ? 'rgba(253,203,110,0.3)' : '#FDCB6E'}`, borderRadius:100, padding:'8px 22px',
-              boxShadow: dark ? '0 4px 14px rgba(253,203,110,0.1)' : '0 4px 14px rgba(253,203,110,0.2)',
+              display:'inline-flex', alignItems:'center', gap:10,
+              background: 'rgba(253,203,110,0.1)',
+              border:'1.5px solid rgba(253,203,110,0.3)', borderRadius:100, padding:'10px 28px',
+              backdropFilter: 'blur(8px)'
             }}>
-              <span style={{ fontSize:22 }}>🪙</span>
-              <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:22, color:'#F9A825' }}>{coins.toLocaleString()}</span>
+              <span style={{ fontSize:24 }}>🪙</span>
+              <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:24, color:'#FDCB6E' }}>{coins.toLocaleString()}</span>
             </div>
           </div>
 

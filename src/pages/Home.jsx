@@ -4,6 +4,7 @@ import ParticleBackground from '../components/ParticleBackground.jsx'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useProgress, getLevelInfo, getBorderForLevel, getTitleColorForLevel } from '../context/ProgressContext.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
 import { useDailyChallenge } from '../context/DailyChallengeContext.jsx'
 import { useLimitedMode } from '../context/LimitedModeContext.jsx'
@@ -11,7 +12,6 @@ import { useLuckyWheel } from '../context/LuckyWheelContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { trackLimitedModeView, trackLimitedModeBonus } from '../utils/analytics.js'
 import { useLocalAnalytics } from '../context/LocalAnalyticsContext.jsx'
-import LuckyWheel from '../components/LuckyWheel.jsx'
 import GameDetailModal from '../components/GameDetailModal.jsx'
 const AnimatedHeroText = lazy(() => import('../components/AnimatedHeroText.jsx'))
 import { getLastPlayed } from '../utils/lastPlayed.js'
@@ -43,10 +43,11 @@ const TAG_META  = {
   Pengetahuan:  { icon: '🇮🇩', color: '#0984E3' },
 }
 
-export default function Home({ games, onPlay, onContinueLast, onProfile, onShop, onStats }) {
+export default function Home({ games, onPlay, onContinueLast, onProfile, onShop, onStats, onOpenWheel }) {
   const { darkMode, reduceMotion } = useSettings()
   const { play }     = useSound()
   const { progress } = useProgress()
+  const { playerName } = useAuth()
   const { coins, isDailyClaimable, claimDaily, earnCoins } = useCoins()
   const {
     challenges, getChallengeProgress, isChallengeComplete,
@@ -58,7 +59,6 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
   const tc = useThemeColors()
   const { trackEvent } = useLocalAnalytics()
   const [scrollTop, setScrollTop] = useState(false)
-  const [wheelOpen, setWheelOpen] = useState(false)
   const [activeTag, setActiveTag] = useState('Semua')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedGameForModal, setSelectedGameForModal] = useState(null)
@@ -161,8 +161,8 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
   return (
     <>
       <style>{`
-        .home-root { min-height:100vh; position:relative; overflow:hidden; transition:background 0.4s; }
-        .home-content { position:relative; z-index:1; max-width:860px; margin:0 auto; padding:20px 20px 80px; }
+        .home-root { min-height:100vh; position:relative; overflow:hidden; transition:background 0.4s; padding-top: 0; }
+        .home-content { position:relative; z-index:1; max-width:860px; margin:0 auto; padding:0 20px 100px; }
 
         /* Profile Banner */
         .profile-banner {
@@ -206,31 +206,29 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         .qa-btn:active { transform:scale(0.97); }
         .qa-free { background:#EF4444; color:#fff; font-size:8px; font-weight:800; padding:1px 5px; border-radius:5px; }
 
-        /* Featured Card */
-        .featured-wrap { margin-bottom:12px; animation:slide-up 0.4s 0.1s ease both; }
-        .featured-card {
-          border-radius:20px; padding:20px; position:relative; overflow:hidden;
-          border:1.5px solid; cursor:pointer; transition:all 0.25s;
-          display:flex; align-items:center; min-height:150px;
-          -webkit-tap-highlight-color:transparent;
+        /* Flagship Design (v2) */
+        .flagship-banner {
+          background: ${dark ? 'linear-gradient(135deg,rgba(124,111,232,0.15),rgba(13,16,34,0))' : 'linear-gradient(135deg,rgba(124,111,232,0.1),#fff)'};
+          border-radius: 28px; padding: 24px; margin-bottom: 24px;
+          border: 1.5px solid ${dark ? 'rgba(124,111,232,0.25)' : 'rgba(124,111,232,0.15)'};
+          position: relative; overflow: hidden;
         }
-        .featured-card:hover { transform:translateY(-3px); }
-        .featured-card:active { transform:scale(0.99); }
-        .feat-overlay { position:absolute; inset:0; z-index:1; background:linear-gradient(to right,rgba(0,0,0,0.3) 0%,transparent 65%); pointer-events:none; }
-        .feat-content { position:relative; z-index:2; flex:1; max-width:280px; }
-        .feat-badges { display:flex; gap:5px; margin-bottom:8px; flex-wrap:wrap; }
-        .feat-badge { font-size:9px; font-weight:800; padding:2px 8px; border-radius:7px; background:rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.3); letter-spacing:0.3px; }
-        .feat-badge-accent { background:${S.accent}; border-color:${S.accent}; color:#E0D9FF; }
-        .feat-title { font-family:'Fredoka One',cursive; font-size:22px; color:#fff; margin:0 0 4px; line-height:1.1; text-shadow:0 2px 6px rgba(0,0,0,0.35); }
-        .feat-tag-line { font-size:11px; color:rgba(255,255,255,0.65); margin-bottom:12px; font-weight:600; }
-        .feat-play-btn {
-          display:inline-flex; align-items:center; gap:6px; background:#fff; color:#2D3436;
-          border:none; border-radius:10px; padding:8px 18px; font-size:12px; font-weight:800;
-          cursor:pointer; font-family:'Nunito',sans-serif; transition:all 0.2s; box-shadow:0 4px 12px rgba(0,0,0,0.25);
+        .fs-tag { background: ${S.accent}; color: #fff; font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 8px; text-transform: uppercase; margin-bottom: 12px; display: inline-block; }
+        .fs-title { font-family: 'Fredoka One', cursive; font-size: 28px; color: ${S.text}; margin-bottom: 8px; }
+        .fs-stats { display: flex; gap: 20px; margin-bottom: 20px; border-top: 1px solid ${S.border}; padding-top: 16px; }
+        .fs-stat { display: flex; flex-direction: column; gap: 2px; }
+        .fs-stat-label { font-size: 10px; color: ${S.muted}; font-weight: 700; text-transform: uppercase; }
+        .fs-stat-val { font-size: 15px; font-weight: 800; color: ${S.text}; font-family: 'Fredoka One', cursive; }
+        .fs-btn {
+          width: 100%; background: ${S.accent}; color: #fff; padding: 14px; border-radius: 16px; border: none;
+          font-family: 'Fredoka One', cursive; font-size: 16px; cursor: pointer; transition: all 0.2s;
+          box-shadow: 0 8px 24px ${S.accent}44;
         }
-        .feat-play-btn:hover { transform:scale(1.05); }
-        .feat-emoji { position:absolute; right:-10px; bottom:-20px; font-size:120px; pointer-events:none; z-index:1; opacity:0.2; transition:all 0.4s ease; }
-        .featured-card:hover .feat-emoji { transform:scale(1.1) rotate(-8deg); opacity:0.28; }
+        .fs-btn:active { transform: scale(0.96); }
+        .fs-emoji { 
+          position: absolute; right: -20px; top: -10px; font-size: 120px; 
+          opacity: 0.15; filter: blur(2px); pointer-events: none; transform: rotate(15deg);
+        }
 
         /* Wheel Strip */
         .wheel-strip {
@@ -386,40 +384,22 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
 
         <div className="home-content">
 
-          {/* ── Profile Banner ── */}
-          <div
-            className="profile-banner"
-            onClick={() => { play('click'); onProfile?.() }}
-            role="button" tabIndex={0}
-            onKeyDown={e => e.key === 'Enter' && (play('click'), onProfile?.())}
-          >
-            <div className="pb-avatar">
-              {levelInfo.level < 5 ? '🌱' : levelInfo.level < 10 ? '⚔️' : '👑'}
-            </div>
-            <div className="pb-info">
-              <div className="pb-name">
-                <span className="pb-level-badge">Lv.{levelInfo.level}</span>
-                <span className="pb-title">{levelInfo.title}</span>
-              </div>
-              <div className="pb-xp-row">
-                <div className="pb-xp-track">
-                  <div className="pb-xp-fill" style={{ width: `${Math.round(levelInfo.progress * 100)}%` }} />
+          {/* ── Welcome & Progress ── */}
+          <div style={{ padding: '16px 0 24px', animation: 'slide-up 0.4s ease both' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 13, color: S.muted, fontWeight: 700, marginBottom: 4 }}>Selamat datang, {playerName || 'Pemain'}!</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span className="pb-level-badge">LV. {levelInfo.level}</span>
+                  <span style={{ fontSize: 13, color: S.muted, fontWeight: 700 }}>{levelInfo.nextThreshold - (progress.totalXP || 0)} XP lagi ke Lv.{levelInfo.level + 1}</span>
                 </div>
-                <span className="pb-xp-label">
-                  <span ref={xpRef}>{(progress.totalXP || 0).toLocaleString()}</span>{' XP · '}{Math.round(levelInfo.progress * 100)}% → Lv.{levelInfo.level + 1}
-                </span>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 20, fontFamily: "'Fredoka One',cursive", color: S.accent }}>{coins.toLocaleString()} 🪙</div>
               </div>
             </div>
-            <div className="pb-stats">
-              <div className="pb-stat">
-                <span style={{ fontSize: 12 }}>🪙</span>
-                <span ref={coinsRef} className="pb-stat-val">{coins.toLocaleString()}</span>
-              </div>
-              <div className="pb-stat">
-                <span style={{ fontSize: 12 }}>🔥</span>
-                <span ref={streakRef} className="pb-stat-val">{streak}</span>
-                {comboLabel && <span className="combo-badge">{comboLabel}</span>}
-              </div>
+            <div className="pb-xp-track" style={{ height: 8 }}>
+              <div className="pb-xp-fill" style={{ width: `${Math.round(levelInfo.progress * 100)}%` }} />
             </div>
           </div>
 
@@ -437,7 +417,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             <button
               className="qa-btn"
               style={{ borderColor: `${S.accent}55`, color: S.accent, background: S.accentFill }}
-              onClick={() => { play('click'); setWheelOpen(true) }}
+              onClick={() => { play('click'); onOpenWheel() }}
             >
               🎡 Lucky Wheel
               {hasFreeSpins && <span className="qa-free">FREE</span>}
@@ -461,74 +441,71 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             )}
           </div>
 
-          {/* ── Featured Flagship Game ── */}
+          {/* ── Flagship Design (v2) ── */}
           {flagshipGame && (
-            <div className="featured-wrap" data-anime-reveal>
-              <div
-                className="featured-card"
-                style={{
-                  background: dark
-                    ? `linear-gradient(145deg, color-mix(in srgb,${flagshipGame.color} 20%,#1A1F35), #0D1022)`
-                    : `linear-gradient(145deg, color-mix(in srgb,${flagshipGame.color} 28%,#fff), ${flagshipGame.bg || '#F8F9FC'})`,
-                  borderColor: `${flagshipGame.color}66`,
-                  boxShadow: `0 8px 30px ${flagshipGame.color}20`,
-                }}
-                onClick={() => { play('click'); setSelectedGameForModal(flagshipGame.id) }}
-                role="button" tabIndex={0}
-                onKeyDown={e => e.key === 'Enter' && (play('click'), setSelectedGameForModal(flagshipGame.id))}
-              >
-                <div className="feat-overlay" />
-                <div className="feat-content">
-                  <div className="feat-badges">
-                    <span className="feat-badge feat-badge-accent">TERBARU</span>
-                    <span className="feat-badge">Day {flagshipGame.day}</span>
-                    <span className="feat-badge" style={{ background: `${flagshipGame.color}33`, color: flagshipGame.color, borderColor: `${flagshipGame.color}55` }}>
-                      {flagshipGame.tag}
-                    </span>
-                  </div>
-                  <h2 className="feat-title">{flagshipGame.title}</h2>
-                  <div className="feat-tag-line">
-                    {flagshipGame.description?.slice(0, 62)}{flagshipGame.description?.length > 62 ? '…' : ''}
-                  </div>
-                  <button
-                    className="feat-play-btn"
-                    onClick={e => { e.stopPropagation(); play('click'); setSelectedGameForModal(flagshipGame.id) }}
-                  >
-                    ▶ Mainkan Sekarang
-                  </button>
+            <div className="flagship-banner" data-anime-reveal>
+              <div className="fs-emoji">{flagshipGame.emoji}</div>
+              <div className="fs-tag">Game Favorit</div>
+              <h2 className="fs-title">{flagshipGame.title}</h2>
+              <div style={{ fontSize: 13, color: S.muted, marginBottom: 20, fontWeight: 600 }}>{flagshipGame.description}</div>
+              
+              <div className="fs-stats">
+                <div className="fs-stat">
+                  <span className="fs-stat-label">Terbaik</span>
+                  <span className="fs-stat-val">{(progress.gameBests?.[flagshipGame.id] || 0).toLocaleString()}</span>
                 </div>
-                <div className="feat-emoji">{flagshipGame.emoji}</div>
+                <div className="fs-stat">
+                  <span className="fs-stat-label">Rank</span>
+                  <span className="fs-stat-val">#12</span>
+                </div>
+                <div className="fs-stat">
+                  <span className="fs-stat-label">XP</span>
+                  <span className="fs-stat-val" style={{ color: S.accent }}>+500</span>
+                </div>
               </div>
+
+              <button className="fs-btn" onClick={() => { play('click'); setSelectedGameForModal(flagshipGame.id) }}>
+                MAINKAN SEKARANG
+              </button>
             </div>
           )}
 
-          {/* ── Lucky Wheel Strip (when free spins available) ── */}
+          {/* ── Main Lagi (Carousel v2) ── */}
+          <div style={{ marginBottom: 28, animation: 'slide-up 0.4s 0.12s ease both' }}>
+            <div className="section-head" style={{ marginBottom: 14 }}>
+              <h2 className="section-title"><span>🕒</span>Main Lagi</h2>
+              <div className="section-line" />
+            </div>
+            <div className="carousel-row" style={{ gap: 12 }}>
+              {games.slice(0, 5).map(g => (
+                <div 
+                  key={g.id} 
+                  className="premium-card"
+                  style={{ 
+                    flexShrink: 0, width: 100, height: 100, 
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    gap: 8, cursor: 'pointer', background: S.surfaceDeep
+                  }}
+                  onClick={() => { play('click'); setSelectedGameForModal(g.id) }}
+                >
+                  <span style={{ fontSize: 32 }}>{g.emoji}</span>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: S.muted, textAlign: 'center', width: '90%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.title}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Lucky Wheel Strip ── */}
           {hasFreeSpins && (
-            <div className="wheel-strip" onClick={() => { play('click'); setWheelOpen(true) }}>
+            <div className="wheel-strip" onClick={() => { play('click'); onOpenWheel() }}>
               <div>
                 <div className="wheel-strip-title">🎰 Lucky Wheel — Spin Gratis Tersedia!</div>
-                <div className="wheel-strip-sub">Spin gratis minggu ini belum dipakai — jangan hangus!</div>
               </div>
-              <span style={{ fontSize: 26, animation: 'spin 3s linear infinite', flexShrink: 0 }}>🎡</span>
+              <span style={{ fontSize: 22, animation: 'spin 3s linear infinite' }}>🎡</span>
             </div>
           )}
 
-          {/* ── Continue Card ── */}
-          {showContinue && (
-            <div
-              className="continue-card"
-              onClick={() => { play('click'); onContinueLast() }}
-              role="button" tabIndex={0}
-              onKeyDown={e => e.key === 'Enter' && (play('click'), onContinueLast())}
-            >
-              <span style={{ fontSize: 34, flexShrink: 0 }}>{lastGameMeta.emoji}</span>
-              <div style={{ flex: 1 }}>
-                <div className="continue-title">Lanjutkan Permainan</div>
-                <div className="continue-sub">{lastGameMeta.title} · {DIFF_LABEL[lastPlayed?.difficultyId] || lastPlayed?.difficultyId}</div>
-              </div>
-              <span style={{ fontSize: 18, color: S.accent }}>▶</span>
-            </div>
-          )}
+          {/* Daily Challenges are now standalone in the new layout */}
 
           {/* ── Misi Harian ── */}
           <div className="section-card" data-anime-reveal>
@@ -649,16 +626,19 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             </div>
           )}
 
-          {/* ── Tag Filter ── */}
-          <div className="tag-filter-row">
+          {/* ── Tag Filter (v2) ── */}
+          <div className="tag-filter-row" style={{ padding: '4px 0 12px', marginBottom: 20, borderBottom: `1.5px solid ${S.border}` }}>
             {ALL_TAGS.map(tag => (
               <button
                 key={tag}
                 className={`tag-btn${activeTag === tag ? ' active' : ''}`}
-                style={activeTag === tag ? { background: TAG_META[tag]?.color || S.accent, borderColor: TAG_META[tag]?.color || S.accent } : {}}
+                style={activeTag === tag 
+                  ? { background: 'transparent', color: S.accent, border: 'none', borderBottom: `3px solid ${S.accent}`, borderRadius: 0, paddingBottom: 10 } 
+                  : { background: 'transparent', color: S.muted, border: 'none', paddingBottom: 10 }
+                }
                 onClick={() => handleTagChange(tag)}
               >
-                {TAG_META[tag]?.icon} {tag}
+                {tag}
               </button>
             ))}
           </div>
@@ -711,7 +691,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             <div className="flip-grid">
               {games.map(game => {
                 const isTagged = activeTag === 'Semua' || game.tag === activeTag
-                const isSearched = !searchQuery || game.title.toLowerCase().includes(searchQuery.toLowerCase()) || game.tag.toLowerCase().includes(searchQuery.toLowerCase())
+                const isSearched = !searchQuery || (game.title || '').toLowerCase().includes(searchQuery.toLowerCase()) || (game.tag || '').toLowerCase().includes(searchQuery.toLowerCase())
                 const visible = isTagged && isSearched
                 const best = (progress.gameBests || {})[game.id] || 0
                 const wins = (progress.gameWins  || {})[game.id] || 0
@@ -826,7 +806,6 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         aria-label="Scroll ke atas"
       >↑</button>
 
-      <LuckyWheel open={wheelOpen} onClose={() => setWheelOpen(false)} />
       {/* ── Game Detail Modal ── */}
       {selectedGameForModal && (
         <GameDetailModal 
