@@ -195,6 +195,9 @@ async function submitOnlineScore(gameId, diffId, entry) {
 
     const existing = await getDoc(docRef)
 
+    const progress = JSON.parse(localStorage.getItem('bp_progress') || '{}')
+    const selectedTitle = progress.selectedTitle || null
+
     if (existing.exists()) {
       const oldData = existing.data()
       if (entry.score <= (oldData.score || 0)) {
@@ -204,6 +207,7 @@ async function submitOnlineScore(gameId, diffId, entry) {
         gameId,
         diffId,
         name: entry.name || 'Pemain',
+        selectedTitle,
         score: entry.score,
         wave: entry.wave || null,
         time: entry.time || null,
@@ -222,6 +226,7 @@ async function submitOnlineScore(gameId, diffId, entry) {
         gameId,
         diffId,
         name: entry.name || 'Pemain',
+        selectedTitle,
         score: entry.score,
         wave: entry.wave || null,
         time: entry.time || null,

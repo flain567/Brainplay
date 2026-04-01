@@ -79,49 +79,49 @@ export const ACHIEVEMENTS = [
   { id: 'first_game',     icon: '🎮', title: 'Langkah Pertama',   desc: 'Selesaikan 1 game',           category: 'milestone', check: (s) => s.totalGamesPlayed >= 1, progress: (s) => ({ cur: s.totalGamesPlayed || 0, max: 1 }) },
   { id: 'gamer_5',        icon: '🕹️', title: 'Gamer Sejati',      desc: 'Selesaikan 5 game',           category: 'milestone', check: (s) => s.totalGamesPlayed >= 5, progress: (s) => ({ cur: Math.min(s.totalGamesPlayed || 0, 5), max: 5 }) },
   { id: 'gamer_25',       icon: '🏅', title: 'Tidak Bisa Berhenti',desc: 'Selesaikan 25 game',          category: 'milestone', check: (s) => s.totalGamesPlayed >= 25, progress: (s) => ({ cur: Math.min(s.totalGamesPlayed || 0, 25), max: 25 }) },
-  { id: 'gamer_100',      icon: '👑', title: 'Centurion',          desc: 'Selesaikan 100 game',          category: 'milestone', check: (s) => s.totalGamesPlayed >= 100, progress: (s) => ({ cur: Math.min(s.totalGamesPlayed || 0, 100), max: 100 }) },
+  { id: 'gamer_100',      icon: '👑', title: 'Centurion',          desc: 'Selesaikan 100 game',          category: 'milestone', check: (s) => s.totalGamesPlayed >= 100, progress: (s) => ({ cur: Math.min(s.totalGamesPlayed || 0, 100), max: 100 }), reward: { coins: 1000, title: 'Ancient One' } },
 
   // Variety - different games
-  { id: 'explorer_2',     icon: '🧭', title: 'Penjelajah',         desc: 'Mainkan 2 game berbeda',       category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 2, progress: (s) => ({ cur: Math.min(s.uniqueGamesPlayed || 0, 2), max: 2 }) },
-  { id: 'explorer_4',     icon: '🌍', title: 'Petualang Dunia',    desc: 'Mainkan semua 14 game',        category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 14, progress: (s) => ({ cur: Math.min(s.uniqueGamesPlayed || 0, 14), max: 14 }) },
+  { id: 'explorer_2',     icon: '🧭', title: 'Penjelajah',         desc: 'Mainkan 2 game berbeda',       category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 2, progress: (s) => ({ cur: Math.min(s.uniqueGamesPlayed || 0, 2), max: 2 }), reward: { coins: 50 } },
+  { id: 'explorer_4',     icon: '🌍', title: 'Petualang Dunia',    desc: 'Mainkan semua 14 game',        category: 'variety',   check: (s) => s.uniqueGamesPlayed >= 14, progress: (s) => ({ cur: Math.min(s.uniqueGamesPlayed || 0, 14), max: 14 }), reward: { coins: 500, title: 'World Traveler' } },
 
   // Difficulty - hard mode
-  { id: 'brave',          icon: '🦁', title: 'Pemberani',          desc: 'Selesaikan 1 game di mode Sulit', category: 'skill',  check: (s) => s.hardGamesWon >= 1, progress: (s) => ({ cur: Math.min(s.hardGamesWon || 0, 1), max: 1 }) },
-  { id: 'fearless',       icon: '⚔️', title: 'Tanpa Takut',        desc: 'Selesaikan 10 game di mode Sulit',category: 'skill',  check: (s) => s.hardGamesWon >= 10, progress: (s) => ({ cur: Math.min(s.hardGamesWon || 0, 10), max: 10 }) },
+  { id: 'brave',          icon: '🦁', title: 'Pemberani',          desc: 'Selesaikan 1 game di mode Sulit', category: 'skill',  check: (s) => s.hardGamesWon >= 1, progress: (s) => ({ cur: Math.min(s.hardGamesWon || 0, 1), max: 1 }), reward: { coins: 100 } },
+  { id: 'fearless',       icon: '⚔️', title: 'Tanpa Takut',        desc: 'Selesaikan 10 game di mode Sulit',category: 'skill',  check: (s) => s.hardGamesWon >= 10, progress: (s) => ({ cur: Math.min(s.hardGamesWon || 0, 10), max: 10 }), reward: { coins: 500, title: 'Demon Slayer' } },
 
   // Streak
-  { id: 'streak_3',       icon: '🔥', title: 'Tiga Hari Berturut', desc: 'Main 3 hari berturut-turut',   category: 'streak',  check: (s) => s.currentStreak >= 3, progress: (s) => ({ cur: Math.min(s.currentStreak || 0, 3), max: 3 }) },
-  { id: 'streak_7',       icon: '💥', title: 'Seminggu Penuh',     desc: 'Main 7 hari berturut-turut',   category: 'streak',  check: (s) => s.currentStreak >= 7, progress: (s) => ({ cur: Math.min(s.currentStreak || 0, 7), max: 7 }) },
-  { id: 'streak_14',      icon: '🌟', title: 'Dua Minggu Nonstop', desc: 'Main 14 hari berturut-turut',  category: 'streak',  check: (s) => s.currentStreak >= 14, progress: (s) => ({ cur: Math.min(s.currentStreak || 0, 14), max: 14 }) },
-  { id: 'streak_30',      icon: '🏆', title: 'Legenda 30 Hari',   desc: 'Main 30 hari berturut-turut',  category: 'streak',  check: (s) => s.currentStreak >= 30, progress: (s) => ({ cur: Math.min(s.currentStreak || 0, 30), max: 30 }) },
+  { id: 'streak_3',       icon: '🔥', title: 'Tiga Hari Berturut', desc: 'Main 3 hari berturut-turut',   category: 'streak',  check: (s) => s.currentStreak >= 3, progress: (s) => ({ cur: Math.min(s.currentStreak || 0, 3), max: 3 }), reward: { coins: 50 } },
+  { id: 'streak_7',       icon: '💥', title: 'Seminggu Penuh',     desc: 'Main 7 hari berturut-turut',   category: 'streak',  check: (s) => s.currentStreak >= 7, progress: (s) => ({ cur: Math.min(s.currentStreak || 0, 7), max: 7 }), reward: { coins: 150 } },
+  { id: 'streak_14',      icon: '🌟', title: 'Dua Minggu Nonstop', desc: 'Main 14 hari berturut-turut',  category: 'streak',  check: (s) => s.currentStreak >= 14, progress: (s) => ({ cur: Math.min(s.currentStreak || 0, 14), max: 14 }), reward: { coins: 300 } },
+  { id: 'streak_30',      icon: '🏆', title: 'Legenda 30 Hari',   desc: 'Main 30 hari berturut-turut',  category: 'streak',  check: (s) => s.currentStreak >= 30, progress: (s) => ({ cur: Math.min(s.currentStreak || 0, 30), max: 30 }), reward: { coins: 1000, title: 'The Immortal' } },
 
   // Score
-  { id: 'score_1k',       icon: '💰', title: 'Seribu Pertama',     desc: 'Kumpulkan total 1.000 XP',     category: 'score',   check: (s) => s.totalXP >= 1000, progress: (s) => ({ cur: Math.min(s.totalXP || 0, 1000), max: 1000 }) },
-  { id: 'score_5k',       icon: '💎', title: 'Kolektor XP',        desc: 'Kumpulkan total 5.000 XP',     category: 'score',   check: (s) => s.totalXP >= 5000, progress: (s) => ({ cur: Math.min(s.totalXP || 0, 5000), max: 5000 }) },
-  { id: 'score_20k',      icon: '🌈', title: 'XP Miliader',        desc: 'Kumpulkan total 20.000 XP',    category: 'score',   check: (s) => s.totalXP >= 20000, progress: (s) => ({ cur: Math.min(s.totalXP || 0, 20000), max: 20000 }) },
+  { id: 'score_1k',       icon: '💰', title: 'Seribu Pertama',     desc: 'Kumpulkan total 1.000 XP',     category: 'score',   check: (s) => s.totalXP >= 1000, progress: (s) => ({ cur: Math.min(s.totalXP || 0, 1000), max: 1000 }), reward: { coins: 100 } },
+  { id: 'score_5k',       icon: '💎', title: 'Kolektor XP',        desc: 'Kumpulkan total 5.000 XP',     category: 'score',   check: (s) => s.totalXP >= 5000, progress: (s) => ({ cur: Math.min(s.totalXP || 0, 5000), max: 5000 }), reward: { coins: 500 } },
+  { id: 'score_20k',      icon: '🌈', title: 'XP Miliader',        desc: 'Kumpulkan total 20.000 XP',    category: 'score',   check: (s) => s.totalXP >= 20000, progress: (s) => ({ cur: Math.min(s.totalXP || 0, 20000), max: 20000 }), reward: { coins: 2000, title: 'XP Tycoon' } },
 
   // Perfect
   { id: 'perfect_star',   icon: '⭐', title: 'Bintang Sempurna',   desc: 'Dapatkan 3 bintang di game apapun', category: 'perfect', check: (s) => s.threeStarCount >= 1, progress: (s) => ({ cur: Math.min(s.threeStarCount || 0, 1), max: 1 }) },
   { id: 'star_collector',  icon: '🌟', title: 'Kolektor Bintang',  desc: 'Dapatkan 3 bintang 10 kali',   category: 'perfect', check: (s) => s.threeStarCount >= 10, progress: (s) => ({ cur: Math.min(s.threeStarCount || 0, 10), max: 10 }) },
 
   // Speed
-  { id: 'speedster',      icon: '⚡', title: 'Secepat Kilat',      desc: 'Selesaikan game dalam < 30 detik', category: 'speed', check: (s) => s.fastestGame <= 30 && s.fastestGame > 0, progress: (s) => ({ cur: s.fastestGame > 0 ? 1 : 0, max: 1 }) },
+  { id: 'speedster',      icon: '⚡', title: 'Secepat Kilat',      desc: 'Selesaikan game dalam < 30 detik', category: 'speed', check: (s) => s.fastestGame <= 30 && s.fastestGame > 0, progress: (s) => ({ cur: s.fastestGame > 0 ? 1 : 0, max: 1 }), reward: { coins: 500, title: 'The Lightning' } },
 
   // Per-game specific
-  { id: 'memory_master',  icon: '🧠', title: 'Memori Sempurna',    desc: 'Menangkan Memory Card Match 3x', category: 'game',  check: (s) => (s.gameWins['memory-card'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['memory-card'] || 0, 3), max: 3 }) },
-  { id: 'snake_king',     icon: '🐍', title: 'Raja Ular',          desc: 'Capai skor 50+ di Slither Worm',  category: 'game',  check: (s) => (s.gameBests['slither-worm'] || 0) >= 50, progress: (s) => ({ cur: Math.min(s.gameBests?.['slither-worm'] || 0, 50), max: 50 }) },
-  { id: 'block_master',   icon: '🔗', title: 'Master Blok',        desc: 'Capai 1024+ di Connect Blocks',   category: 'game',  check: (s) => (s.gameBests['2048'] || 0) >= 1024, progress: (s) => ({ cur: Math.min(s.gameBests?.['2048'] || 0, 1024), max: 1024 }) },
-  { id: 'word_hunter',    icon: '🔍', title: 'Pemburu Kata',       desc: 'Selesaikan Word Search 5 kali',   category: 'game',  check: (s) => (s.gameWins['word-search'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['word-search'] || 0, 5), max: 5 }) },
-  { id: 'space_ace',      icon: '🚀', title: 'Ace Pilot',          desc: 'Menangkan Space Shooter 3x',      category: 'game',  check: (s) => (s.gameWins['space-shooter'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['space-shooter'] || 0, 3), max: 3 }) },
-  { id: 'hangman_hero',   icon: '💀', title: 'Penyelamat Kata',    desc: 'Menangkan Hangman 5 kali',        category: 'game',  check: (s) => (s.gameWins['hangman'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['hangman'] || 0, 5), max: 5 }) },
-  { id: 'sort_master',    icon: '🧪', title: 'Master Sortir',      desc: 'Menangkan Color Sort 5 kali',     category: 'game',  check: (s) => (s.gameWins['color-sort'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['color-sort'] || 0, 5), max: 5 }) },
-  { id: 'sudoku_sage',    icon: '🔢', title: 'Ahli Sudoku',        desc: 'Menangkan Sudoku 3 kali',         category: 'game',  check: (s) => (s.gameWins['sudoku'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['sudoku'] || 0, 3), max: 3 }) },
-  { id: 'jigsaw_pro',     icon: '🧩', title: 'Tukang Puzzle',      desc: 'Menangkan Jigsaw Puzzle 5 kali',  category: 'game',  check: (s) => (s.gameWins['jigsaw'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['jigsaw'] || 0, 5), max: 5 }) },
-  { id: 'pattern_pro',    icon: '🧠', title: 'Pattern Master',     desc: 'Menangkan Memory Pattern Pro 3x', category: 'game',  check: (s) => (s.gameWins['memory-pattern'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['memory-pattern'] || 0, 3), max: 3 }) },
-  { id: 'brick_master',   icon: '🧱', title: 'Master Penghancur',  desc: 'Menangkan Brick Breaker 3 kali',  category: 'game',  check: (s) => (s.gameWins['brick-breaker'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['brick-breaker'] || 0, 3), max: 3 }) },
-  { id: 'reflex_king',    icon: '⚡', title: 'Raja Refleks',       desc: 'Menangkan Reaction Test 5 kali',  category: 'game',  check: (s) => (s.gameWins['reaction-test'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['reaction-test'] || 0, 5), max: 5 }) },
-  { id: 'neon_runner',     icon: '💎', title: 'Pelari Neon',       desc: 'Menangkan Neon Dash 5 kali',      category: 'game',  check: (s) => (s.gameWins['neon-dash'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['neon-dash'] || 0, 5), max: 5 }) },
-  { id: 'voxel_racer',    icon: '🚗', title: 'Pembalap Voxel',    desc: 'Menangkan Voxel Racer 3 kali',    category: 'game',  check: (s) => (s.gameWins['voxel-racer'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['voxel-racer'] || 0, 3), max: 3 }) },
+  { id: 'memory_master',  icon: '🧠', title: 'Memori Sempurna',    desc: 'Menangkan Memory Card Match 3x', category: 'game',  check: (s) => (s.gameWins['memory-card'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['memory-card'] || 0, 3), max: 3 }), reward: { coins: 150 } },
+  { id: 'snake_king',     icon: '🐍', title: 'Raja Ular',          desc: 'Capai skor 50+ di Slither Worm',  category: 'game',  check: (s) => (s.gameBests['slither-worm'] || 0) >= 50, progress: (s) => ({ cur: Math.min(s.gameBests?.['slither-worm'] || 0, 50), max: 50 }), reward: { coins: 300, title: 'King of Slither' } },
+  { id: 'block_master',   icon: '🔗', title: 'Master Blok',        desc: 'Capai 1024+ di Connect Blocks',   category: 'game',  check: (s) => (s.gameBests['2048'] || 0) >= 1024, progress: (s) => ({ cur: Math.min(s.gameBests?.['2048'] || 0, 1024), max: 1024 }), reward: { coins: 300, title: 'Block Legend' } },
+  { id: 'word_hunter',    icon: '🔍', title: 'Pemburu Kata',       desc: 'Selesaikan Word Search 5 kali',   category: 'game',  check: (s) => (s.gameWins['word-search'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['word-search'] || 0, 5), max: 5 }), reward: { coins: 250 } },
+  { id: 'space_ace',      icon: '🚀', title: 'Ace Pilot',          desc: 'Menangkan Space Shooter 3x',      category: 'game',  check: (s) => (s.gameWins['space-shooter'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['space-shooter'] || 0, 3), max: 3 }), reward: { coins: 500, title: 'Star Lord' } },
+  { id: 'hangman_hero',   icon: '💀', title: 'Penyelamat Kata',    desc: 'Menangkan Hangman 5 kali',        category: 'game',  check: (s) => (s.gameWins['hangman'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['hangman'] || 0, 5), max: 5 }), reward: { coins: 200 } },
+  { id: 'sort_master',    icon: '🧪', title: 'Master Sortir',      desc: 'Menangkan Color Sort 5 kali',     category: 'game',  check: (s) => (s.gameWins['color-sort'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['color-sort'] || 0, 5), max: 5 }), reward: { coins: 200 } },
+  { id: 'sudoku_sage',    icon: '🔢', title: 'Ahli Sudoku',        desc: 'Menangkan Sudoku 3 kali',         category: 'game',  check: (s) => (s.gameWins['sudoku'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['sudoku'] || 0, 3), max: 3 }), reward: { coins: 500, title: 'Number Sage' } },
+  { id: 'jigsaw_pro',     icon: '🧩', title: 'Tukang Puzzle',      desc: 'Menangkan Jigsaw Puzzle 5 kali',  category: 'game',  check: (s) => (s.gameWins['jigsaw'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['jigsaw'] || 0, 5), max: 5 }), reward: { coins: 250 } },
+  { id: 'pattern_pro',    icon: '🧠', title: 'Pattern Master',     desc: 'Menangkan Memory Pattern Pro 3x', category: 'game',  check: (s) => (s.gameWins['memory-pattern'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['memory-pattern'] || 0, 3), max: 3 }), reward: { coins: 500, title: 'The Architect' } },
+  { id: 'brick_master',   icon: '🧱', title: 'Master Penghancur',  desc: 'Menangkan Brick Breaker 3 kali',  category: 'game',  check: (s) => (s.gameWins['brick-breaker'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['brick-breaker'] || 0, 3), max: 3 }), reward: { coins: 400 } },
+  { id: 'reflex_king',    icon: '⚡', title: 'Raja Refleks',       desc: 'Menangkan Reaction Test 5 kali',  category: 'game',  check: (s) => (s.gameWins['reaction-test'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['reaction-test'] || 0, 5), max: 5 }), reward: { coins: 300, title: 'Flash' } },
+  { id: 'neon_runner',     icon: '💎', title: 'Pelari Neon',       desc: 'Menangkan Neon Dash 5 kali',      category: 'game',  check: (s) => (s.gameWins['neon-dash'] || 0) >= 5, progress: (s) => ({ cur: Math.min(s.gameWins?.['neon-dash'] || 0, 5), max: 5 }), reward: { coins: 500, title: 'Neon Phantom' } },
+  { id: 'voxel_racer',    icon: '🚗', title: 'Pembalap Voxel',    desc: 'Menangkan Voxel Racer 3 kali',    category: 'game',  check: (s) => (s.gameWins['voxel-racer'] || 0) >= 3, progress: (s) => ({ cur: Math.min(s.gameWins?.['voxel-racer'] || 0, 3), max: 3 }), reward: { coins: 400, title: 'Ghost Racer' } },
 ]
 
 // ─── Default state ───────────────────────────────────────────────────────────
@@ -142,6 +142,8 @@ function getDefaultProgress() {
     totalPlayTime: 0,       // seconds
     unlockedAchievements: [],
     newAchievements: [],    // achievements just unlocked (for notification)
+    selectedTitle: null,    // User-selected custom title
+    unlockedTitles: [],      // List of unlocked titles (strings)
   }
 }
 
@@ -297,11 +299,54 @@ export function ProgressProvider({ children }) {
       next.unlockedAchievements = [...alreadyUnlocked]
       next.newAchievements = newlyUnlocked
 
+      // Grant rewards for new achievements
+      if (newlyUnlocked.length > 0) {
+        newlyUnlocked.forEach(achId => {
+          const ach = ACHIEVEMENTS.find(a => a.id === achId)
+          if (ach && ach.reward) {
+            // Reward Coins
+            if (ach.reward.coins) {
+              window.dispatchEvent(new CustomEvent('bp-add-coins', {
+                detail: { amount: ach.reward.coins, desc: `Achievement: ${ach.title}` }
+              }))
+            }
+            // Reward Title
+            if (ach.reward.title) {
+              const currentTitles = new Set(next.unlockedTitles || [])
+              currentTitles.add(ach.reward.title)
+              next.unlockedTitles = [...currentTitles]
+            }
+          }
+        })
+      }
+
+      // Automatically unlock Level Titles
+      const allLevelTitles = LEVEL_TITLES.slice(0, newLevel + 1)
+      const currentTitlesCount = (next.unlockedTitles || []).length
+      const updatedTitlesSet = new Set(next.unlockedTitles || [])
+      allLevelTitles.forEach(t => updatedTitlesSet.add(t))
+      if (updatedTitlesSet.size > currentTitlesCount) {
+        next.unlockedTitles = [...updatedTitlesSet]
+      }
+
       return next
     })
   }, [currentMode])
 
-  // Clear new achievement notifications
+  // Title management
+  const setSelectedTitle = useCallback((title) => {
+    setProgress(p => ({ ...p, selectedTitle: title }))
+  }, [])
+
+  const unlockTitle = useCallback((title) => {
+    setProgress(p => {
+      const set = new Set(p.unlockedTitles || [])
+      if (set.has(title)) return p
+      set.add(title)
+      return { ...p, unlockedTitles: [...set] }
+    })
+  }, [])
+
   const clearNewAchievements = useCallback(() => {
     setProgress(p => ({ ...p, newAchievements: [] }))
   }, [])
@@ -311,7 +356,12 @@ export function ProgressProvider({ children }) {
   }, [])
 
   return (
-    <ProgressContext.Provider value={{ progress, reportGameResult, clearNewAchievements, clearLevelUp, getLevelInfo: () => getLevelInfo(progress.totalXP) }}>
+    <ProgressContext.Provider value={{ 
+      progress, reportGameResult, 
+      clearNewAchievements, clearLevelUp, 
+      setSelectedTitle, unlockTitle,
+      getLevelInfo: () => getLevelInfo(progress.totalXP) 
+    }}>
       {children}
     </ProgressContext.Provider>
   )

@@ -571,53 +571,6 @@ export function CoinProvider({ children }) {
     } catch { return baseState }
   }, [])
 
-  // ── Startup reconciliation ────────────────────────────────────────────────
-  // Harus setelah reconcileWheelItems dideklarasi (hindari temporal dead zone)
-  useEffect(() => {
-    setState(s => reconcileWheelItems(s))
-  }, [reconcileWheelItems])
-
-  // Reload from localStorage when cloud sync completes
-  // — lalu langsung reconcile agar wonExclusives tidak teroverwrite
-  useEffect(() => {
-    const handler = () => {
-      const saved = getJSON(StorageKeys.COINS)
-      if (saved) {
-        const merged = { ...getDefaultCoinState(), ...saved }
-        const reconciled = reconcileWheelItems(merged)
-        setState(reconciled)
-        // Kalau reconciliation nambah item baru, simpan balik ke localStorage
-        if (reconciled !== merged) {
-          setJSON(StorageKeys.COINS, reconciled)
-        }
-      }
-    }
-    window.addEventListener('bp-cloud-sync', handler)
-    return () => window.removeEventListener('bp-cloud-sync', handler)
-  }, [reconcileWheelItems])
-
-  // Lucky Wheel unlock handler: auto-add exclusive items to owned list + auto-equip
-  useEffect(() => {
-    const handler = (e) => {
-      const { item } = e.detail || {}
-      if (!item) return
-      const typeToKey  = { ships:'ownedShips', racerThemes:'ownedRacerThemes', dashThemes:'ownedDashThemes', packs:'ownedPacks', sudokuThemes:'ownedSudokuThemes' }
-      const activeToKey = { ships:'activeShip', racerThemes:'activeRacerTheme', dashThemes:'activeDashTheme', packs:'activePack', sudokuThemes:'activeSudokuTheme' }
-      const key  = typeToKey[item.type]
-      const aKey = activeToKey[item.type]
-      if (!key) return
-      setState(s => {
-        if ((s[key] || []).includes(item.id)) return s // already owned
-        const next = { ...s, [key]: [...(s[key] || []), item.id] }
-        // Auto-aktifkan item yang baru dimenangkan
-        if (aKey) next[aKey] = item.id
-        return next
-      })
-    }
-    window.addEventListener('bp-wheel-unlock', handler)
-    return () => window.removeEventListener('bp-wheel-unlock', handler)
-  }, [])
-
   const earnCoins = useCallback((amount, desc='') => {
     if (amount <= 0) return
 
@@ -653,7 +606,61 @@ export function CoinProvider({ children }) {
     })
   }, [])
 
-  // Generic buy cosmetic
+  // ── Side Effects ─────────────────────────────────────────────────────────
+
+  // Startup reconciliation
+  useEffect(() => {
+    setState(s => reconcileWheelItems(s))
+  }, [reconcileWheelItems])
+
+  // Reload from localStorage when cloud sync completes
+  useEffect(() => {
+    const handler = () => {
+      const saved = getJSON(StorageKeys.COINS)
+      if (saved) {
+        const merged = { ...getDefaultCoinState(), ...saved }
+        const reconciled = reconcileWheelItems(merged)
+        setState(reconciled)
+        if (reconciled !== merged) setJSON(StorageKeys.COINS, reconciled)
+      }
+    }
+    window.addEventListener('bp-cloud-sync', handler)
+    return () => window.removeEventListener('bp-cloud-sync', handler)
+  }, [reconcileWheelItems])
+
+  // Lucky Wheel unlock handler
+  useEffect(() => {
+    const handler = (e) => {
+      const { item } = e.detail || {}
+      if (!item) return
+      const typeToKey  = { ships:'ownedShips', racerThemes:'ownedRacerThemes', dashThemes:'ownedDashThemes', packs:'ownedPacks', sudokuThemes:'ownedSudokuThemes' }
+      const activeToKey = { ships:'activeShip', racerThemes:'activeRacerTheme', dashThemes:'activeDashTheme', packs:'activePack', sudokuThemes:'activeSudokuTheme' }
+      const key  = typeToKey[item.type]
+      const aKey = activeToKey[item.type]
+      if (!key) return
+      setState(s => {
+        if ((s[key] || []).includes(item.id)) return s
+        const next = { ...s, [key]: [...(s[key] || []), item.id] }
+        if (aKey) next[aKey] = item.id
+        return next
+      })
+    }
+    window.addEventListener('bp-wheel-unlock', handler)
+    return () => window.removeEventListener('bp-wheel-unlock', handler)
+  }, [])
+
+  // Achievement coins handler
+  useEffect(() => {
+    const handler = (e) => {
+      const { amount, desc } = e.detail || {}
+      if (amount) earnCoins(amount, desc)
+    }
+    window.addEventListener('bp-add-coins', handler)
+    return () => window.removeEventListener('bp-add-coins', handler)
+  }, [earnCoins])
+
+  // ── Functions ─────────────────────────────────────────────────────────────
+
   const buyCosmetic = useCallback(async (type, itemId) => {
     const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS, ships:SHIP_CATALOG, hangmanThemes:HANGMAN_THEMES, tubeThemes:TUBE_THEMES, sudokuThemes:SUDOKU_THEMES, jigsawThemes:JIGSAW_THEMES, webThemes:WEBSITE_THEMES, patternThemes:PATTERN_THEMES, reactionThemes:REACTION_THEMES, dashThemes:DASH_THEMES, breakerThemes:BREAKER_THEMES, wordleThemes:WORDLE_THEMES, racerThemes:RACER_THEMES, racerMaps:RACER_MAP_CATALOG, mathThemes:MATH_THEMES }
     const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', webThemes:'ownedWebThemes', patternThemes:'ownedPatternThemes', reactionThemes:'ownedReactionThemes', dashThemes:'ownedDashThemes', breakerThemes:'ownedBreakerThemes', wordleThemes:'ownedWordleThemes', racerThemes:'ownedRacerThemes', racerMaps:'ownedRacerMaps', mathThemes:'ownedMathThemes' }
@@ -666,7 +673,7 @@ export function CoinProvider({ children }) {
     const ok = await spendCoins(item.price, `Beli ${item.name}`)
     if (ok) { setState(s => ({ ...s, [key]:[...(s[key]||[]), itemId] })); return { success:true } }
     return { success:false, reason:'Gagal membeli' }
-  }, [state, spendCoins])
+  }, [state.balance, spendCoins])
 
   const buyPack = useCallback((packId) => buyCosmetic('packs', packId), [buyCosmetic])
 
@@ -763,7 +770,6 @@ export function CoinProvider({ children }) {
   const getActiveSudokuTheme = useCallback(() => {
     const t = SUDOKU_THEMES.find(h => h.id === state.activeSudokuTheme)
     const theme = t || SUDOKU_THEMES[0]
-    // Kembalikan style + id + bg + assets agar SudokuGame bisa gunakan semuanya
     return { ...theme.style, id: theme.id, bg: theme.style.bg, assets: theme.assets || null }
   }, [state.activeSudokuTheme])
 

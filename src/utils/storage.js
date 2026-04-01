@@ -10,6 +10,7 @@ export const StorageKeys = {
   ACHIEVEMENTS:`${PREFIX}achievements`,
   XP:          `${PREFIX}xp`,
   DAILY:       `${PREFIX}daily`,
+  PROGRESS:    `${PREFIX}progress`,
   // Coin & Shop
   COINS:       `${PREFIX}coins`,
   SHOP:        `${PREFIX}shop`,       // { ownedPacks: [...], activePack: 'default' }

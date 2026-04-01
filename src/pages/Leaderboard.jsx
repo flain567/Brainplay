@@ -238,6 +238,15 @@ function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname }) {
       }}>
         {entry.name || 'Anon'}
       </div>
+      {entry.selectedTitle && (
+        <div style={{ 
+          fontSize: 8, fontWeight: 800, color: '#A29BFE', 
+          background: 'rgba(162, 155, 254, 0.15)', padding: '1px 6px', borderRadius: 4,
+          textTransform: 'uppercase', marginBottom: 6, letterSpacing: '0.5px'
+        }}>
+          {entry.selectedTitle}
+        </div>
+      )}
       <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 15, color: accent }}>
         {(entry.score || 0).toLocaleString()}
       </div>
@@ -601,7 +610,23 @@ export default function Leaderboard({ onBack, games }) {
                         overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
                         display:'flex', alignItems:'center', gap:4,
                       }}>
-                        {entry.name || 'Anon'}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          <div style={{
+                            fontFamily: "'Fredoka One',cursive", fontSize: 13, color: '#fff',
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                          }}>
+                            {entry.name || 'Anon'}
+                          </div>
+                          {entry.selectedTitle && (
+                            <div style={{ 
+                              fontSize: 8, fontWeight: 800, color: '#A29BFE', 
+                              background: 'rgba(162,155,254,0.1)', padding: '1px 5px', borderRadius: 4,
+                              width: 'fit-content', textTransform: 'uppercase', letterSpacing: '0.5px'
+                            }}>
+                              {entry.selectedTitle}
+                            </div>
+                          )}
+                        </div>
                         {entry.name === nickname && (
                           <span style={{ fontSize:10, color: 'var(--accent-vivid)', marginLeft:4 }}>← Kamu</span>
                         )}

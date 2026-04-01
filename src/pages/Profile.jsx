@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useCloudSave } from '../context/CloudSaveContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { ADMIN_IDS } from '../config/admin.js'
+import TitleSelector from '../components/TitleSelector.jsx'
 
 const CATEGORY_META = {
   milestone: { label: 'Milestone',  icon: '🎮', color: '#4ECDC4' },
@@ -34,6 +35,7 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
   const { syncStatus, lastSync, forceSync } = useCloudSave()
   const tc = useThemeColors()
   const [achFilter, setAchFilter] = useState('all')
+  const [showTitleSelector, setShowTitleSelector] = useState(false)
   const dark = tc.dark
 
   const isAdmin = userId && ADMIN_IDS.includes(userId)
@@ -188,6 +190,25 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
                 <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 13, color: borderData.color, letterSpacing: '0.5px', marginBottom: 2 }}>
                   LEVEL {levelInfo.level}
                 </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: -2 }}>
+                  <span style={{ 
+                    fontFamily: "'Fredoka One',cursive", fontSize: 13, color: '#A29BFE',
+                    background: dark ? 'rgba(162,155,254,0.1)' : 'rgba(162,155,254,0.06)',
+                    padding: '2px 8px', borderRadius: 6
+                  }}>
+                    {progress.selectedTitle || levelInfo.title}
+                  </span>
+                  <button 
+                    onClick={() => { play('click'); setShowTitleSelector(true) }}
+                    style={{ 
+                      fontSize: 10, background: 'transparent', border: 'none', 
+                      color: tc.textMuted, cursor: 'pointer', textDecoration: 'underline',
+                      fontWeight: 700
+                    }}
+                  >
+                    Ganti Gelar
+                  </button>
+                </div>
                 <div style={{ 
                   fontFamily: "'Fredoka One',cursive", fontSize: 24, lineHeight: 1.1,
                   background: titleStyle.bg !== 'transparent' ? titleStyle.bg : 'none',
@@ -196,7 +217,7 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
                   color: textMain,
                   marginBottom: 4
                 }}>
-                  {playerName || levelInfo.title}
+                  {playerName || 'Player'}
                 </div>
                 <div style={{ fontSize: 12, color: textMuted, marginTop: 4 }}>
                   {isLoggedIn ? `${email}` : isGuest ? 'Mode Tamu' : ''} • <strong style={{color: borderData.color}}>{(progress.totalXP || 0).toLocaleString()} XP</strong>
@@ -427,9 +448,31 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
                       </div>
                     )}
                   </div>
-                  {unlocked && (
-                    <span style={{ fontSize: 11, fontWeight: 800, color: '#4ECDC4', whiteSpace: 'nowrap' }}>✓ Unlocked</span>
-                  )}
+                  {/* Achievement Rewards */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                    {unlocked ? (
+                      <span style={{ fontSize: 11, fontWeight: 800, color: '#4ECDC4', whiteSpace: 'nowrap' }}>✓ Unlocked</span>
+                    ) : ach.reward ? (
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        {ach.reward.coins && (
+                          <div style={{ 
+                            fontSize: 10, fontWeight: 800, background: '#FDCB6E22', color: '#F9A825', 
+                            padding: '2px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 3
+                          }}>
+                            🪙 {ach.reward.coins}
+                          </div>
+                        )}
+                        {ach.reward.title && (
+                          <div style={{ 
+                            fontSize: 10, fontWeight: 800, background: '#A29BFE22', color: '#A29BFE', 
+                            padding: '2px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 3
+                          }}>
+                            🎖️ Title
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               )
             })}
@@ -587,6 +630,9 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
 
         </div>
       </div>
+      {showTitleSelector && (
+        <TitleSelector onClose={() => setShowTitleSelector(false)} />
+      )}
     </>
   )
 }

@@ -407,7 +407,19 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
               </div>
               <div style={{ flex:1 }}>
                 <div className="nav-drawer-item-text">
-                  {isLoggedIn ? playerName : 'Profil'} 
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1 }}>
+                    <div style={{ 
+                      fontSize: 9, fontWeight: 800, color: '#A29BFE', 
+                      background: dark ? 'rgba(162,155,254,0.1)' : 'rgba(162,155,254,0.06)',
+                      padding: '2px 6px', borderRadius: 4, marginBottom: 2,
+                      textTransform: 'uppercase', letterSpacing: '0.5px'
+                    }}>
+                      {progress.selectedTitle || levelInfo.title}
+                    </div>
+                    <div style={{ fontWeight: 800, fontSize: 13 }}>
+                      {isLoggedIn ? playerName : 'Profil'}
+                    </div>
+                  </div>
                   <span style={{ fontSize:10, background:dark?'#2d3561':'#f1f2f6', padding:'2px 6px', borderRadius:5, marginLeft:6 }}>Lv.{levelInfo.level}</span>
                 </div>
                 <div className="nav-drawer-xp-wrap" style={{ marginTop:4 }}>
