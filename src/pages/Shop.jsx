@@ -900,12 +900,20 @@ export default function Shop({ onBack }) {
                     {[1,2,3,4,5,6,7,8,''].map((n, j) => {
                       const STYLES = ['#FF6B6B','#FDCB6E','#00B894','#74B9FF','#A29BFE','#FD79A8','#E17055','#00CEC9']
                       const isGrad = item.style.type === 'gradient'
+                      const isImage = item.style.type === 'image'
+                      const size = 3
+                      const correctRow = n === '' ? 0 : Math.floor((n - 1) / size)
+                      const correctCol = n === '' ? 0 : (n - 1) % size
+                      const bgPos = `${correctCol * (100 / (size - 1))}% ${correctRow * (100 / (size - 1))}%`
                       return (
                         <div key={j} style={{
                           width:32, height:32, borderRadius:6,
-                          background: n === '' ? 'transparent' : isGrad ? STYLES[j] : item.style.bg,
+                          backgroundColor: n === '' || isImage ? 'transparent' : isGrad ? STYLES[j] : item.style.bg,
+                          backgroundImage: n !== '' && isImage ? `url("${item.style.bgUrl}")` : 'none',
+                          backgroundSize: isImage ? `${size * 100}% ${size * 100}%` : 'auto',
+                          backgroundPosition: isImage ? bgPos : '0 0',
                           border: n === '' ? 'none' : isGrad ? '2px solid transparent' : `2px solid ${item.style.border}`,
-                          color: isGrad ? '#fff' : item.style.color || '#fff',
+                          color: isGrad || isImage ? '#fff' : item.style.color || '#fff',
                           textShadow: isGrad ? '0 1px 3px rgba(0,0,0,0.3)' : item.style.textShadow,
                           boxShadow: n === '' ? 'none' : isGrad ? '0 2px 8px rgba(0,0,0,0.15)' : item.style.shadow,
                           display:'flex', alignItems:'center', justifyContent:'center',

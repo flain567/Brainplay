@@ -386,6 +386,14 @@ export const SLIDING_THEMES = [
     style:{ type:'solid', bg:'#8B4513', border:'#5C2E0B', color:'#FFEeba', shadow:'0 4px 6px rgba(0,0,0,0.3)', textShadow:'none' } },
   { id:'gold', name:'Royal Gold', desc:'Emas batangan murni', price:250, icon:'👑', color:'#FFD700',
     style:{ type:'solid', bg:'linear-gradient(135deg, #FFD700, #DAA520)', border:'#B8860B', color:'#fff', shadow:'0 4px 10px rgba(218,165,32,0.4)', textShadow:'0 1px 2px rgba(0,0,0,0.5)' } },
+  { id:'img1', name:'Cyberpunk City', desc:'Pemandangan kota neon futuristik di malam hari', price:300, icon:'🌃', color:'#FF00FF',
+    style:{ type:'image', bgUrl:'/sliding/img1.png', border:'transparent', color:'#fff', shadow:'0 2px 5px rgba(0,0,0,0.5)', textShadow:'0 2px 4px rgba(0,0,0,0.8)' } },
+  { id:'img2', name:'Enchanted Forest', desc:'Hutan sihir penuh cahaya ajaib', price:300, icon:'🌿', color:'#00B894',
+    style:{ type:'image', bgUrl:'/sliding/img2.png', border:'transparent', color:'#fff', shadow:'0 2px 5px rgba(0,0,0,0.5)', textShadow:'0 2px 4px rgba(0,0,0,0.8)' } },
+  { id:'img3', name:'Golden Dragon', desc:'Mitologi naga emas yang epik', price:300, icon:'🐉', color:'#FFD700',
+    style:{ type:'image', bgUrl:'/sliding/img3.png', border:'transparent', color:'#fff', shadow:'0 2px 5px rgba(0,0,0,0.5)', textShadow:'0 2px 4px rgba(0,0,0,0.8)' } },
+  { id:'img4', name:'Treasure Map', desc:'Peta rahasia peninggalan kuno', price:300, icon:'🗺️', color:'#E17055',
+    style:{ type:'image', bgUrl:'/sliding/img4.png', border:'transparent', color:'#fff', shadow:'0 2px 5px rgba(0,0,0,0.5)', textShadow:'0 2px 4px rgba(0,0,0,0.8)' } },
 ]
 
 // ─── Minesweeper Themes (Day 22) ────────────────────────────────────────────

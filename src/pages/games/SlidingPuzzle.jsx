@@ -194,13 +194,20 @@ export default function SlidingPuzzle({ onBack, onHome, game, difficulty }) {
           {tiles.map((val, idx) => {
             const isCorrect = val !== 0 && val === idx + 1
             const isGrad = theme.style.type === 'gradient'
+            const isImage = theme.style.type === 'image'
+            const correctRow = Math.floor((val - 1) / size)
+            const correctCol = (val - 1) % size
+            const bgPos = `${correctCol * (100 / (size - 1))}% ${correctRow * (100 / (size - 1))}%`
             return (
               <button key={idx} onClick={() => moveTile(idx)}
                 style={{
                   width:cellSize, height:cellSize, borderRadius:10,
                   border: val === 0 ? 'none' : isGrad ? (isCorrect ? '2px solid #00B894' : '2px solid transparent') : `2px solid ${theme.style.border}`,
-                  background: val === 0 ? 'transparent' : isGrad ? TILE_COLORS[(val - 1) % TILE_COLORS.length] + (tc.dark ? 'cc' : '') : theme.style.bg,
-                  color: isGrad ? '#fff' : theme.style.color || '#fff', fontFamily:"'Fredoka One',cursive",
+                  backgroundColor: val === 0 || isImage ? 'transparent' : isGrad ? TILE_COLORS[(val - 1) % TILE_COLORS.length] + (tc.dark ? 'cc' : '') : theme.style.bg,
+                  backgroundImage: val !== 0 && isImage ? `url("${theme.style.bgUrl}")` : 'none',
+                  backgroundSize: isImage ? `${size * 100}% ${size * 100}%` : 'auto',
+                  backgroundPosition: isImage ? bgPos : '0 0',
+                  color: isGrad || isImage ? '#fff' : theme.style.color || '#fff', fontFamily:"'Fredoka One',cursive",
                   fontSize: size <= 3 ? 28 : size <= 4 ? 22 : 18,
                   cursor: val === 0 ? 'default' : 'pointer',
                   transition:'transform 0.12s ease',
