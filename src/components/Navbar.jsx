@@ -9,7 +9,7 @@ import { NotificationBell, useNotifications } from './NotificationManager.jsx'
 import SettingsModal from './SettingsModal.jsx'
 import BattlePass from './BattlePass.jsx'
 
-export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, currentGame }) {
+export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGames, currentGame }) {
   const { darkMode, muted } = useSettings()
   const { play, setMuted } = useSound()
   const { coins } = useCoins()
@@ -340,6 +340,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
               {seasonInfo.hasRewardToClaim && <div className="nav-bp-alert" />}
             </div>
             <button className="nav-btn" title="Leaderboard" onClick={() => nav(onLeaderboard)}>🏆</button>
+            <button className="nav-btn" title="Semua Game" onClick={() => nav(onGames)}>🎮</button>
             
             <div 
               className="nav-level-wrap" 
@@ -428,6 +429,14 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
               <div>
                 <div className="nav-drawer-item-text">Home</div>
                 <div className="nav-drawer-item-desc">Pilih game & mulai main</div>
+              </div>
+            </div>
+
+            <div className="nav-drawer-item" onClick={() => nav(onGames)}>
+              <div className="nav-drawer-item-icon" style={{ background:dark?'rgba(162,155,254,0.1)':'#F0EFFE' }}>🎮</div>
+              <div>
+                <div className="nav-drawer-item-text">Katalog Game</div>
+                <div className="nav-drawer-item-desc">Cari dan temukan semua game</div>
               </div>
             </div>
 

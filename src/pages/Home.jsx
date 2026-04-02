@@ -43,7 +43,7 @@ const TAG_META  = {
   Pengetahuan:  { icon: '🇮🇩', color: '#0984E3' },
 }
 
-export default function Home({ games, onPlay, onContinueLast, onProfile, onShop, onStats, onOpenWheel }) {
+export default function Home({ games, onPlay, onContinueLast, onProfile, onShop, onStats, onOpenWheel, onGames }) {
   const { darkMode, reduceMotion } = useSettings()
   const { play }     = useSound()
   const { progress, getSeasonInfo } = useProgress()
@@ -335,29 +335,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         .scroll-top-btn.visible { opacity:1; pointer-events:auto; transform:translateY(0); }
         .scroll-top-btn:hover { transform:translateY(-4px) scale(1.1); }
 
-        /* ── Flip Grid ── */
-        .flip-grid { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:36px; position:relative; min-height:80px; }
-        .flip-item { width:calc(50% - 6px); flex-shrink:0; }
-        @media(min-width:540px) { .flip-item { width:calc(33.333% - 8px); } }
-        @media(min-width:800px) { .flip-item { width:calc(25% - 9px); } }
-        .mini-card {
-          background:${S.surface}; border:1.5px solid ${S.border};
-          border-radius:16px; padding:14px 12px; cursor:pointer;
-          transition:border-color .2s, transform .2s; height:100%;
-          -webkit-tap-highlight-color:transparent; position:relative; overflow:hidden;
-        }
-        .mini-card:hover { border-color:var(--mc-color); transform:translateY(-3px); }
-        .mini-card:active { transform:scale(0.97); }
-        .mc-emoji-bg { position:absolute; right:-8px; bottom:-12px; font-size:64px; opacity:0.12; pointer-events:none; transition:transform .3s; }
-        .mini-card:hover .mc-emoji-bg { transform:scale(1.1) rotate(-8deg); opacity:0.2; }
-        .mc-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
-        .mc-icon { width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
-        .mc-day { font-size:9px; font-weight:800; color:${S.muted}; padding:2px 7px; background:${dark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.04)'}; border-radius:7px; }
-        .mc-title { font-size:12px; font-weight:500; color:${S.text}; margin-bottom:3px; line-height:1.3; }
-        .mc-tag { font-size:10px; font-weight:500; margin-bottom:8px; }
-        .mc-best { font-size:10px; color:${S.muted}; border-top:1px solid ${S.border}; padding-top:6px; margin-top:2px; }
-        .mc-best span { font-weight:500; }
-        .flip-label { font-size:12px; color:${S.muted}; margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+
 
         @keyframes slide-up { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
         @keyframes pulse-soft { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
@@ -422,13 +400,20 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
               🎡 Lucky Wheel
               {hasFreeSpins && <span className="qa-free">FREE</span>}
             </button>
-            <button
-              className="qa-btn"
-              style={{ borderColor: `${S.gold}55`, color: S.gold, background: dark ? 'rgba(234,179,8,0.06)' : 'rgba(249,168,37,0.04)' }}
-              onClick={() => { play('click'); onShop?.() }}
-            >
-              🏪 Shop
-            </button>
+              <button
+                className="qa-btn"
+                style={{ borderColor: `${S.accent}55`, color: S.accent, background: S.accentFill }}
+                onClick={() => { play('click'); onGames?.() }}
+              >
+                🎮 Cari Game
+              </button>
+              <button
+                className="qa-btn"
+                style={{ borderColor: `${S.gold}55`, color: S.gold, background: dark ? 'rgba(234,179,8,0.06)' : 'rgba(249,168,37,0.04)' }}
+                onClick={() => { play('click'); onShop?.() }}
+              >
+                🏪 Shop
+              </button>
             {onStats && (
               <button className="qa-btn" onClick={() => { play('click'); onStats?.() }}>
                 📊 Stats
@@ -670,110 +655,32 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             </div>
           )}
 
-          {/* ── Tag Filter (v2) ── */}
-          <div className="tag-filter-row" style={{ padding: '4px 0 12px', marginBottom: 20, borderBottom: `1.5px solid ${S.border}` }}>
-            {ALL_TAGS.map(tag => (
-              <button
-                key={tag}
-                className={`tag-btn${activeTag === tag ? ' active' : ''}`}
-                style={activeTag === tag 
-                  ? { background: 'transparent', color: S.accent, border: 'none', borderBottom: `3px solid ${S.accent}`, borderRadius: 0, paddingBottom: 10 } 
-                  : { background: 'transparent', color: S.muted, border: 'none', paddingBottom: 10 }
-                }
-                onClick={() => handleTagChange(tag)}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
 
-          {/* ── Game Flip Grid ── */}
-          <div>
-            <div className="section-head" style={{ marginBottom: 12 }}>
-              <h2 className="section-title">
-                <span>{TAG_META[activeTag]?.icon || '🎮'}</span>
-                {activeTag === 'Semua' ? 'Semua Game' : activeTag}
-              </h2>
-              <span className="section-pill">
-                {activeTag === 'Semua' ? games.length : games.filter(g => g.tag === activeTag).length} game
-              </span>
-              <div className="section-line" />
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type="text"
-                    placeholder="Cari game..."
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    style={{
-                      background: S.surface, border: `1.5px solid ${S.border}`,
-                      borderRadius: 10, padding: '6px 12px 6px 30px',
-                      fontSize: 12, color: S.text, width: 140,
-                      transition: 'all 0.2s',
-                    }}
-                    onFocus={e => e.target.style.borderColor = S.accent}
-                    onBlur={e => e.target.style.borderColor = S.border}
-                  />
-                  <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, opacity: 0.5 }}>🔍</span>
-                </div>
-                <button
-                  className="qa-btn"
-                  style={{ padding: '6px 12px', borderRadius: 10, borderColor: S.accent, color: S.accent, background: S.accentFill }}
-                  onClick={() => {
-                    play('click')
-                    const rng = games[Math.floor(Math.random() * games.length)]
-                    onPlay(rng.id)
-                  }}
-                  title="Mainkan game acak!"
-                >
-                  🎲 Acak
-                </button>
-              </div>
-            </div>
-
-            {/* All cards always in DOM — Flip tracks them by key */}
-            <div className="flip-grid">
-              {games.map(game => {
-                const isTagged = activeTag === 'Semua' || game.tag === activeTag
-                const isSearched = !searchQuery || (game.title || '').toLowerCase().includes(searchQuery.toLowerCase()) || (game.tag || '').toLowerCase().includes(searchQuery.toLowerCase())
-                const visible = isTagged && isSearched
-                const best = (progress.gameBests || {})[game.id] || 0
-                const wins = (progress.gameWins  || {})[game.id] || 0
-                const meta = TAG_META[game.tag] || { color: S.accent }
-                return (
-                  <div
-                    key={game.id}
-                    className="flip-item"
-                    style={{ display: visible ? '' : 'none' }}
-                  >
-                    <div
-                      className="mini-card"
-                      style={{ '--mc-color': game.color }}
-                      onClick={() => { play('click'); setSelectedGameForModal(game.id) }}
-                    >
-                      <div className="mc-emoji-bg">{game.emoji}</div>
-                      <div className="mc-top">
-                        <div
-                          className="mc-icon"
-                          style={{ background: `${game.color}22`, border: `1.5px solid ${game.color}44` }}
-                        >
-                          {game.emoji}
-                        </div>
-                        <span className="mc-day">Hari {game.day}</span>
-                      </div>
-                      <div className="mc-title">{game.title}</div>
-                      <div className="mc-tag" style={{ color: meta.color }}>{game.tag}</div>
-                      <div className="mc-best">
-                        {best > 0
-                          ? <>Best: <span style={{ color: game.color }}>{best >= 1000 ? `${(best/1000).toFixed(1)}k` : best}</span>{wins > 0 && <span style={{ marginLeft: 6, color: S.muted }}>· {wins}× menang</span>}</>
-                          : <span style={{ color: S.muted }}>Belum pernah main</span>
-                        }
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+          {/* ── CTA Semua Game ── */}
+          <div 
+            className="section-card" 
+            style={{ 
+              background: dark ? 'linear-gradient(135deg, #7C6FE8 0%, #FD79A8 100%)' : 'linear-gradient(135deg, #6C5CE7 0%, #FF7675 100%)',
+              color: '#fff', textAlign: 'center', padding: '36px 20px', cursor: 'pointer',
+              boxShadow: '0 10px 30px rgba(124,111,232,0.3)', border: 'none', margin: '32px 0',
+              animation: 'slide-up 0.4s ease both'
+            }}
+            onClick={() => { play('click'); onGames?.() }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            <div style={{ fontSize: 56, marginBottom: 12, animation: 'pulse-soft 2s infinite' }}>🎮🔍</div>
+            <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 26, margin: '0 0 8px 0', textShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+              Pustaka Game Lengkap!
+            </h2>
+            <p style={{ margin: 0, fontSize: 13, opacity: 0.9, fontWeight: 700, maxWidth: 400, marginInline: 'auto', lineHeight: 1.5 }}>
+              Masih banyak petualangan yang menunggumu. Jelajahi {games.length}+ game seru lainnya di menu Katalog.
+            </p>
+            <div style={{
+              display: 'inline-block', background: '#fff', color: '#6C5CE7', padding: '12px 28px',
+              borderRadius: 100, fontSize: 15, fontWeight: 800, marginTop: 24, fontFamily: "'Fredoka One',cursive",
+              boxShadow: '0 6px 16px rgba(0,0,0,0.15)'
+            }}>LIHAT SEMUA GAME ➔</div>
           </div>
 
           {/* ── Roadmap ── */}
