@@ -482,11 +482,11 @@ export function ProgressProvider({ children }) {
         const maxXP = BP_REWARDS[BP_REWARDS.length - 1].xp
 
         return { 
-          currentTier, 
-          xpInTier, 
-          xpNeededForNext, 
-          progress: Math.min(curXP / maxXP, 1),
-          hasRewardToClaim
+          currentTier: currentTier || 0, 
+          xpInTier: xpInTier || 0, 
+          xpNeededForNext: xpNeededForNext || 1, 
+          progress: Math.min(curXP / maxXP, 1) || 0,
+          hasRewardToClaim: !!hasRewardToClaim
         }
       }
     }}>

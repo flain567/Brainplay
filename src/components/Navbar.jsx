@@ -451,9 +451,9 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
               <div className="nav-drawer-item-icon" style={{ background: 'linear-gradient(135deg, #00f5ff, #a29bfe)', color: '#020118' }}>⚡</div>
               <div style={{ flex: 1 }}>
                 <div className="nav-drawer-item-text">Battle Pass</div>
-                <div className="nav-drawer-item-desc">Season 1: Neon Genesis — Tier {seasonInfo.currentTier}</div>
+                <div className="nav-drawer-item-desc">Season 1: Neon Genesis — Tier {seasonInfo?.currentTier || 0}</div>
               </div>
-              {seasonInfo.hasRewardToClaim && <div className="nav-bp-alert" style={{ position:'relative', top:0, right:0 }} />}
+              {seasonInfo?.hasRewardToClaim && <div className="nav-bp-alert" style={{ position:'relative', top:0, right:0 }} />}
             </div>
 
             <div className="nav-drawer-item" onClick={() => nav(onProfile)}>

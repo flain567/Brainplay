@@ -59,15 +59,15 @@ export default function BattlePass({ onClose }) {
   const { progress, claimBPTier, getSeasonInfo } = useProgress()
   const { play } = useSound()
   const tc = useThemeColors()
-  const seasonInfo = getSeasonInfo()
+  const seasonInfo = getSeasonInfo() || { currentTier: 0, xpInTier: 0, xpNeededForNext: 0, progress: 0, hasRewardToClaim: false }
   const [claiming, setClaiming] = useState(null)
   
   const scrollRef = useRef(null)
   const isMobile = window.innerWidth < 640
 
   useEffect(() => {
-    if (scrollRef.current) {
-      const currentTierIndex = Math.max(0, seasonInfo.currentTier - 1)
+    if (scrollRef.current && seasonInfo) {
+      const currentTierIndex = Math.max(0, (seasonInfo.currentTier || 1) - 1)
       const scrollPos = currentTierIndex * (isMobile ? 180 : 220)
       scrollRef.current.scrollTo({ left: scrollPos, behavior: 'smooth' })
     }
@@ -299,8 +299,8 @@ export default function BattlePass({ onClose }) {
 
       <div className="bp-progress-container">
         <div className="bp-progress-labels">
-          <div className="bp-level-text">TIER {seasonInfo.currentTier}</div>
-          <div className="bp-xp-text">{(seasonInfo.xpInTier || 0).toLocaleString()} / {(seasonInfo.xpNeededForNext || 0).toLocaleString()} XP</div>
+          <div className="bp-level-text">TIER {seasonInfo?.currentTier || 0}</div>
+          <div className="bp-xp-text">{Number(seasonInfo?.xpInTier || 0).toLocaleString()} / {Number(seasonInfo?.xpNeededForNext || 0).toLocaleString()} XP</div>
         </div>
         <div className="bp-progress-bg">
           <div className="bp-progress-fill" style={{ width: `${seasonInfo.progress * 100}%` }} />
@@ -310,11 +310,11 @@ export default function BattlePass({ onClose }) {
       <div className="bp-track-outer">
         <div className="bp-track-scroll" ref={scrollRef}>
           <div className="bp-line-bg">
-            <div className="bp-line-fill" style={{ width: `${(Math.min(seasonInfo.currentTier, 15) / 15) * 100}%` }} />
+            <div className="bp-line-fill" style={{ width: `${(Math.min(seasonInfo?.currentTier || 0, 15) / 15) * 100}%` }} />
           </div>
           
           {BP_REWARDS.map((item) => {
-            const isUnlocked = seasonInfo.currentTier >= item.tier
+            const isUnlocked = (seasonInfo?.currentTier || 0) >= item.tier
             const isClaimed  = progress.claimedBPTiers?.includes(item.tier)
             const isClaimable = isUnlocked && !isClaimed
             

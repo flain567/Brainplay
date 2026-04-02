@@ -19,15 +19,16 @@ import { WinModal, LoseModal } from '../../components/GameLayout.jsx'
 const CFG = {
   easy:   { spawnRate:80, enemySpeed:1.2, enemyHP:1, bossHP:18, bulletSpeed:7, lives:5, waveGoal:5, baseScore:300 },
   medium: { spawnRate:55, enemySpeed:1.8, enemyHP:2, bossHP:28, bulletSpeed:8, lives:4, waveGoal:7, baseScore:500 },
-  hard:   { spawnRate:38, enemySpeed:2.5, enemyHP:3, bossHP:40, bulletSpeed:9, lives:3, waveGoal:10, baseScore:800 },
+  hard:   { spawnRate:28, enemySpeed:2.8, enemyHP:4, bossHP:45, bulletSpeed:10, lives:3, waveGoal:20, baseScore:1200 },
 }
 
 const ENEMY_TYPES = [
   { id:'scout',   w:28, h:28, color:'#FFD93D', points:10, shootRate:0,   movePattern:'straight' },
+  { id:'phantom', w:26, h:26, color:'rgba(0,245,255,0.4)', points:35, shootRate:200, movePattern:'zigzag', phantom:true },
   { id:'fighter', w:32, h:32, color:'#FF6B6B', points:20, shootRate:180, movePattern:'wobble' },
-  { id:'bomber',  w:38, h:38, color:'#A29BFE', points:30, shootRate:130, movePattern:'zigzag' },
+  { id:'bomber',  w:38, h:38, color:'#A29BFE', points:30, shootRate:130, movePattern:'zigzag', spread:true },
   { id:'tank',    w:42, h:42, color:'#FD79A8', points:40, shootRate:160, movePattern:'slow' },
-  { id:'elite',   w:36, h:36, color:'#00CEC9', points:50, shootRate:100, movePattern:'swoop' },
+  { id:'elite',   w:36, h:36, color:'#00CEC9', points:50, shootRate:100, movePattern:'swoop', spread:true, aimed:true },
   { id:'kamikaze',w:26, h:26, color:'#FF4757', points:25, shootRate:0,   movePattern:'chase' },
 ]
 
@@ -259,7 +260,10 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
     }
 
     function spawnWaveEnemies(g) {
-      const wn = g.wave, count = Math.min(5 + Math.floor(wn*1.3), 20)
+      const wn = g.wave
+      let count = Math.min(5 + Math.floor(wn*1.3), 20)
+      if (difficulty.id === 'hard') count = Math.min(8 + Math.floor(wn*1.8), 26) // More enemies in Hard
+      
       g.waveEnemyTarget = count; g.waveEnemiesSpawned = 0; g.waveEnemiesKilled = 0; g.waveState = 'spawning'
       const formation = WAVE_FORMATIONS[wn % WAVE_FORMATIONS.length]
       const positions = getFormationPositions(formation.pattern, count, g.W)
@@ -269,10 +273,13 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
         const hpMult = 1 + Math.floor(wn/4)
         g.enemies.push({
           x:pos.x, y:pos.y-(pos.delay||0)*6, w:et.w, h:et.h, color:et.color, id:et.id,
-          hp: cfg.enemyHP*hpMult+(et.id==='tank'?2:0), maxHp: cfg.enemyHP*hpMult+(et.id==='tank'?2:0),
+          hp: Math.floor(cfg.enemyHP*hpMult+(et.id==='tank'?2:0)), 
+          maxHp: Math.floor(cfg.enemyHP*hpMult+(et.id==='tank'?2:0)),
           points: et.points+wn*3, shootRate: et.shootRate>0?Math.max(50,et.shootRate-wn*3):0,
           shootTimer: Math.floor(rand(60,200)), speed: cfg.enemySpeed+rand(-0.2,0.2)+wn*0.06+(et.id==='kamikaze'?1.5:0),
-          movePattern:et.movePattern, wobble:rand(0,Math.PI*2), wobbleAmp:rand(0.3,1.5), swoopPhase:0, enterDelay:(pos.delay||0), entered:false,
+          movePattern:et.movePattern, wobble:rand(0,Math.PI*2), wobbleAmp:rand(0.3,1.5), swoopPhase:0, 
+          enterDelay:(pos.delay||0), entered:false,
+          phantom: et.phantom, spread: et.spread, aimed: et.aimed
         })
         g.waveEnemiesSpawned++
       })
@@ -382,6 +389,15 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       const p = en.movePattern
       const timeSlow = g.timeWarpTimer > 0 ? 0.3 : 1.0
       const spd = en.speed * timeSlow
+
+      // Interactive Evasion (Hard Mode)
+      if (difficulty.id === 'hard' && g.bullets.length > 0) {
+        for (const b of g.bullets) {
+          if (Math.abs(b.x - en.x) < 40 && b.y > en.y && b.y < en.y + 150) {
+            en.x += (b.x > en.x ? -1.8 : 1.8) * timeSlow; break
+          }
+        }
+      }
 
       if (p==='straight') en.y += spd
       else if (p==='wobble') { en.y += spd; en.x += Math.sin(en.wobble)*en.wobbleAmp; en.wobble += 0.04 * timeSlow }
@@ -499,7 +515,21 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       // Enemies
       g.enemies = g.enemies.filter(en => {
         moveEnemy(en, g); if (en.y>g.H+60) return false
-        if (en.shootRate>0 && en.entered && g.cloakTimer<=0) { en.shootTimer--; if(en.shootTimer<=0){en.shootTimer=en.shootRate+Math.floor(rand(-20,20));g.enemyBullets.push({x:en.x,y:en.y+en.h/2,w:5,h:10,vy:3+g.wave*0.12})} }
+        if (en.shootRate>0 && en.entered && g.cloakTimer<=0) { 
+          en.shootTimer--; 
+          if(en.shootTimer<=0){
+            en.shootTimer=en.shootRate+Math.floor(rand(-20,20));
+            const baseVy = 3+g.wave*0.12
+            if (en.spread && difficulty.id === 'hard') {
+              for (let i = -1; i <= 1; i++) g.enemyBullets.push({x:en.x, y:en.y+en.h/2, w:5, h:10, vy:baseVy, vx:i*1})
+            } else if (en.aimed && difficulty.id === 'hard') {
+              const dx = g.player.x - en.x, dy = g.player.y - en.y, dist = Math.sqrt(dx*dx+dy*dy)||1
+              g.enemyBullets.push({x:en.x, y:en.y+en.h/2, w:6, h:6, vy:(dy/dist)*4.5, vx:(dx/dist)*4.5, aimed:true})
+            } else {
+              g.enemyBullets.push({x:en.x,y:en.y+en.h/2,w:5,h:10,vy:baseVy})
+            }
+          } 
+        }
         for (let i=g.bullets.length-1;i>=0;i--) {
           const b = g.bullets[i]
           if (Math.abs(b.x-en.x)<en.w/2+b.w/2 && Math.abs(b.y-en.y)<en.h/2+b.h/2) {
@@ -672,12 +702,17 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       // Enemies
       g.enemies.forEach(en=>{
         const ex=en.x,ey=en.y
-        ctx.globalAlpha=0.06;ctx.fillStyle=en.color;ctx.beginPath();ctx.arc(ex,ey,en.w*1.2,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1
-        if(en.id==='scout'||en.id==='kamikaze'){ctx.fillStyle=en.color;ctx.beginPath();ctx.moveTo(ex,ey+en.h/2);ctx.lineTo(ex-en.w/2,ey-en.h/3);ctx.lineTo(ex,ey-en.h/2+4);ctx.lineTo(ex+en.w/2,ey-en.h/3);ctx.closePath();ctx.fill();ctx.fillStyle='#fff';ctx.globalAlpha=0.6;ctx.beginPath();ctx.arc(ex,ey,3,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1}
+        const isPhantom = en.phantom && difficulty.id === 'hard'
+        if (isPhantom) ctx.globalAlpha = 0.35 + Math.sin(g.tick * 0.1) * 0.15
+        
+        ctx.globalAlpha *= 0.06; ctx.fillStyle=en.color; ctx.beginPath(); ctx.arc(ex,ey,en.w*1.2,0,Math.PI*2); ctx.fill(); ctx.globalAlpha = isPhantom ? (0.35 + Math.sin(g.tick * 0.1) * 0.15) : 1
+        
+        if(en.id==='scout'||en.id==='phantom'||en.id==='kamikaze'){ctx.fillStyle=en.color;ctx.beginPath();ctx.moveTo(ex,ey+en.h/2);ctx.lineTo(ex-en.w/2,ey-en.h/3);ctx.lineTo(ex,ey-en.h/2+4);ctx.lineTo(ex+en.w/2,ey-en.h/3);ctx.closePath();ctx.fill();ctx.fillStyle='#fff';ctx.globalAlpha=0.6;ctx.beginPath();ctx.arc(ex,ey,3,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1}
         else if(en.id==='tank'){ctx.fillStyle=en.color;ctx.fillRect(ex-en.w/2,ey-en.h/2,en.w,en.h);ctx.fillStyle=en.color+'99';ctx.fillRect(ex-en.w/3,ey-en.h/2-4,en.w*0.66,4);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(ex-6,ey,3,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(ex+6,ey,3,0,Math.PI*2);ctx.fill();ctx.fillStyle='#0a0a1a';ctx.beginPath();ctx.arc(ex-6,ey+1,1.5,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(ex+6,ey+1,1.5,0,Math.PI*2);ctx.fill()}
         else if(en.id==='elite'){ctx.fillStyle=en.color;ctx.beginPath();ctx.moveTo(ex,ey-en.h/2);ctx.lineTo(ex+en.w/2,ey);ctx.lineTo(ex,ey+en.h/2);ctx.lineTo(ex-en.w/2,ey);ctx.closePath();ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.globalAlpha=0.3;ctx.stroke();ctx.globalAlpha=1}
         else{ctx.fillStyle=en.color;ctx.beginPath();ctx.moveTo(ex,ey+en.h/2);ctx.lineTo(ex-en.w/2,ey-en.h/4);ctx.quadraticCurveTo(ex-en.w/3,ey-en.h/2,ex,ey-en.h/2+4);ctx.quadraticCurveTo(ex+en.w/3,ey-en.h/2,ex+en.w/2,ey-en.h/4);ctx.closePath();ctx.fill();ctx.fillStyle=en.color+'88';ctx.beginPath();ctx.moveTo(ex-en.w/2-6,ey);ctx.lineTo(ex-en.w/3,ey-en.h/4);ctx.lineTo(ex-en.w/3,ey+4);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(ex+en.w/2+6,ey);ctx.lineTo(ex+en.w/3,ey-en.h/4);ctx.lineTo(ex+en.w/3,ey+4);ctx.closePath();ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(ex-5,ey-2,3,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(ex+5,ey-2,3,0,Math.PI*2);ctx.fill();ctx.fillStyle='#0a0a1a';ctx.beginPath();ctx.arc(ex-5,ey-1,1.5,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(ex+5,ey-1,1.5,0,Math.PI*2);ctx.fill()}
         if(en.hp<en.maxHp){const bw2=en.w*0.9;ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(ex-bw2/2,ey-en.h/2-8,bw2,3);ctx.fillStyle=en.hp/en.maxHp>0.5?'#4ECDC4':en.hp/en.maxHp>0.25?'#FDCB6E':'#FF4757';ctx.fillRect(ex-bw2/2,ey-en.h/2-8,bw2*(en.hp/en.maxHp),3)}
+        ctx.globalAlpha = 1
       })
 
       // Boss
