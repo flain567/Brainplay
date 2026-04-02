@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSettings } from '../../context/SettingsContext.jsx'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
-import { useCoins } from '../../context/CoinContext.jsx'
+import { useCoins, BINARY_THEMES } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { WinModal } from '../../components/GameLayout.jsx'
 
@@ -159,7 +159,8 @@ function checkErrors(grid, size) {
 export default function BinaryPuzzle({ onBack, onHome, game, difficulty }) {
   const { play } = useSound()
   const { reportGameResult } = useProgress()
-  const { earnCoins } = useCoins()
+  const { earnCoins, activeBinaryTheme } = useCoins()
+  const theme = BINARY_THEMES.find(t => t.id === activeBinaryTheme) || BINARY_THEMES[0]
   const tc = useThemeColors()
   const diff = CFG[difficulty?.id] || CFG.easy
 
@@ -326,9 +327,9 @@ export default function BinaryPuzzle({ onBack, onHome, game, difficulty }) {
               <button key={`${r}-${c}`} onClick={() => toggleCell(r, c)}
                 style={{
                   width:cellSize, height:cellSize, borderRadius:8,
-                  border: hasError ? '2px solid #FF6B6B' : isLocked ? `2px solid ${accent}44` : `2px solid ${tc.border}`,
-                  background: val === -1 ? surface : val === 0 ? (tc.dark ? '#1a2e4a' : '#dbeafe') : (tc.dark ? '#2e1a4a' : '#ede9fe'),
-                  color: val === 0 ? '#3B82F6' : val === 1 ? '#8B5CF6' : 'transparent',
+                  border: hasError ? `2px solid ${theme.style.errorBorder}` : isLocked ? `2px solid ${accent}44` : `2px solid ${tc.border}`,
+                  background: val === -1 ? surface : val === 0 ? (tc.dark ? theme.style.bg0_dark : theme.style.bg0) : (tc.dark ? theme.style.bg1_dark : theme.style.bg1),
+                  color: val === 0 ? theme.style.text0 : val === 1 ? theme.style.text1 : 'transparent',
                   fontFamily:"'Fredoka One',cursive", fontSize: cellSize > 36 ? 20 : 16,
                   cursor: isLocked ? 'default' : 'pointer',
                   opacity: isLocked ? 0.85 : 1,

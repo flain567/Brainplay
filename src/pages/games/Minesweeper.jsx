@@ -3,7 +3,7 @@ import Confetti from '../../components/Confetti.jsx'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
-import { useCoins } from '../../context/CoinContext.jsx'
+import { useCoins, MINE_THEMES } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { WinModal, LoseModal } from '../../components/GameLayout.jsx'
 
@@ -70,7 +70,8 @@ function checkWin(board, rows, cols, mines) {
 export default function Minesweeper({ onBack, onHome, game, difficulty }) {
   const { play } = useSound()
   const { reportGameResult } = useProgress()
-  const { earnCoins } = useCoins()
+  const { earnCoins, activeMineTheme } = useCoins()
+  const theme = MINE_THEMES.find(t => t.id === activeMineTheme) || MINE_THEMES[0]
   const tc = useThemeColors()
   const diff = CFG[difficulty?.id] || CFG.easy
 
@@ -205,7 +206,7 @@ export default function Minesweeper({ onBack, onHome, game, difficulty }) {
   if (phase === 'ready') return (
     <div style={{ minHeight:'100dvh', background:bg, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:20 }}>
       <div style={{ textAlign:'center', maxWidth:400 }}>
-        <div style={{ fontSize:72, marginBottom:12 }}>💣</div>
+        <div style={{ fontSize:72, marginBottom:12 }}>{theme.style.mine}</div>
         <h1 style={{ fontFamily:"'Fredoka One',cursive", color:accent, fontSize:28, margin:'0 0 8px' }}>Minesweeper</h1>
         <p style={{ color:textMuted, fontSize:14, marginBottom:24, lineHeight:1.5 }}>Buka semua kotak tanpa kena bom!<br/>{diff.rows}×{diff.cols} grid, {diff.mines} bom tersembunyi.</p>
         {bestTime > 0 && <div style={{ color:textMuted, fontSize:13, marginBottom:16 }}>🏆 Best: {fmtTime(bestTime)}</div>}
@@ -271,7 +272,7 @@ export default function Minesweeper({ onBack, onHome, game, difficulty }) {
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px' }}>
         <button onClick={onBack} style={{ background:'none', border:'none', color:textMuted, fontSize:20, cursor:'pointer' }}>←</button>
         <div style={{ fontFamily:"'Fredoka One',cursive", color:accent, fontSize:14 }}>⏱️ {fmtTime(timeElapsed)}</div>
-        <div style={{ fontFamily:"'Fredoka One',cursive", color:'#FF6B6B', fontSize:14 }}>💣 {diff.mines - flagCount}</div>
+        <div style={{ fontFamily:"'Fredoka One',cursive", color:'#FF6B6B', fontSize:14 }}>{theme.style.mine} {diff.mines - flagCount}</div>
       </div>
 
       {/* Flag mode toggle */}
@@ -284,24 +285,25 @@ export default function Minesweeper({ onBack, onHome, game, difficulty }) {
         <button onClick={() => setFlagMode(true)}
           style={{ padding:'8px 20px', borderRadius:10, fontSize:13, fontWeight:700, cursor:'pointer', transition:'all 0.2s',
             background: flagMode ? '#FF6B6B' : surface, color: flagMode ? '#fff' : textMuted, border: flagMode ? '2px solid #FF6B6B' : `2px solid ${tc.border}` }}>
-          🚩 Tandai
+          {theme.style.flag} Tandai
         </button>
       </div>
 
       <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:8 }}>
         <div style={{ display:'grid', gridTemplateColumns:`repeat(${diff.cols}, ${cellSize}px)`, gap:1 }}>
           {board.map((row, r) => row.map((cell, c) => {
-            let bg2 = surface, content = '', color = textMain
+            let bg2 = (r+c)%2===0 ? theme.style.coveredLight : theme.style.coveredDark
+            let content = '', color = textMain
             if (cell.revealed) {
               if (cell.mine) {
-                bg2 = cell.hitMine ? '#FF6B6B' : '#FFE0E0'
-                content = '💣'
+                bg2 = cell.hitMine ? '#FF6B6B' : (tc.dark ? '#333' : '#FFCCCC')
+                content = theme.style.mine
               } else {
-                bg2 = tc.dark ? '#1a1a2e' : '#f0f0f5'
+                bg2 = (r+c)%2===0 ? theme.style.revealedLight : theme.style.revealedDark
                 if (cell.count > 0) { content = cell.count; color = NUM_COLORS[cell.count] || textMain }
               }
             } else if (cell.flagged) {
-              content = '🚩'
+              content = theme.style.flag
             }
 
             return (
@@ -322,7 +324,7 @@ export default function Minesweeper({ onBack, onHome, game, difficulty }) {
                   cursor: cell.revealed ? 'default' : 'pointer',
                   display:'flex', alignItems:'center', justifyContent:'center',
                   padding:0,
-                  boxShadow: cell.revealed ? 'none' : `inset 0 -2px 0 ${tc.dark?'rgba(0,0,0,0.3)':'rgba(0,0,0,0.1)'}`,
+                  boxShadow: cell.revealed ? 'inset 0 1px 3px rgba(0,0,0,0.1)' : 'inset 0 -2px 0 rgba(0,0,0,0.2)',
                 }}>
                 {content}
               </button>

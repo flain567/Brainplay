@@ -3,7 +3,7 @@ import Confetti from '../../components/Confetti.jsx'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
-import { useCoins } from '../../context/CoinContext.jsx'
+import { useCoins, SLIDING_THEMES } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { WinModal } from '../../components/GameLayout.jsx'
 
@@ -64,7 +64,8 @@ const TILE_COLORS = ['#FF6B6B','#FDCB6E','#00B894','#74B9FF','#A29BFE','#FD79A8'
 export default function SlidingPuzzle({ onBack, onHome, game, difficulty }) {
   const { play } = useSound()
   const { reportGameResult } = useProgress()
-  const { earnCoins } = useCoins()
+  const { earnCoins, activeSlidingTheme } = useCoins()
+  const theme = SLIDING_THEMES.find(t => t.id === activeSlidingTheme) || SLIDING_THEMES[0]
   const tc = useThemeColors()
   const diff = CFG[difficulty?.id] || CFG.easy
 
@@ -192,20 +193,21 @@ export default function SlidingPuzzle({ onBack, onHome, game, difficulty }) {
         <div style={{ display:'grid', gridTemplateColumns:`repeat(${size}, ${cellSize}px)`, gap:4, background:surface, padding:6, borderRadius:14 }}>
           {tiles.map((val, idx) => {
             const isCorrect = val !== 0 && val === idx + 1
+            const isGrad = theme.style.type === 'gradient'
             return (
               <button key={idx} onClick={() => moveTile(idx)}
                 style={{
                   width:cellSize, height:cellSize, borderRadius:10,
-                  border: val === 0 ? 'none' : isCorrect ? '2px solid #00B89444' : `2px solid ${tc.border}`,
-                  background: val === 0 ? 'transparent' : TILE_COLORS[(val - 1) % TILE_COLORS.length] + (tc.dark ? 'cc' : ''),
-                  color: '#fff', fontFamily:"'Fredoka One',cursive",
+                  border: val === 0 ? 'none' : isGrad ? (isCorrect ? '2px solid #00B894' : '2px solid transparent') : `2px solid ${theme.style.border}`,
+                  background: val === 0 ? 'transparent' : isGrad ? TILE_COLORS[(val - 1) % TILE_COLORS.length] + (tc.dark ? 'cc' : '') : theme.style.bg,
+                  color: isGrad ? '#fff' : theme.style.color || '#fff', fontFamily:"'Fredoka One',cursive",
                   fontSize: size <= 3 ? 28 : size <= 4 ? 22 : 18,
                   cursor: val === 0 ? 'default' : 'pointer',
                   transition:'transform 0.12s ease',
                   transform: animTile === idx ? 'scale(0.9)' : 'scale(1)',
                   display:'flex', alignItems:'center', justifyContent:'center',
-                  textShadow: val === 0 ? 'none' : '0 1px 3px rgba(0,0,0,0.3)',
-                  boxShadow: val === 0 ? 'none' : '0 2px 8px rgba(0,0,0,0.15)',
+                  textShadow: val === 0 ? 'none' : isGrad ? '0 1px 3px rgba(0,0,0,0.3)' : theme.style.textShadow,
+                  boxShadow: val === 0 ? 'none' : isGrad ? '0 2px 8px rgba(0,0,0,0.15)' : theme.style.shadow,
                 }}>
                 {val !== 0 ? val : ''}
               </button>

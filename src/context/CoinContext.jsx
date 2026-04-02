@@ -362,6 +362,46 @@ export const SUDOKU_THEMES = [
     assets:{ gridImg:'/sudoku/Grid.png', numberImgs:'/sudoku/', tickImgs:'/sudoku/Tick', titleImg:'/sudoku/Title.png' } },
 ]
 
+// ─── Binary Puzzle Themes (Day 19) ──────────────────────────────────────────
+export const BINARY_THEMES = [
+  { id:'default', name:'Classic Blue', desc:'Biru klasik yang menenangkan', price:0, icon:'🔲', color:'#3B82F6',
+    style:{ bg0:'#dbeafe', text0:'#3B82F6', bg1:'#ede9fe', text1:'#8B5CF6', bg0_dark:'#1a2e4a', bg1_dark:'#2e1a4a', errorBorder:'#FF6B6B' } },
+  { id:'matrix', name:'Matrix', desc:'Tema hacker terminal hijau', price:100, icon:'💻', color:'#00FF41',
+    style:{ bg0:'#0a1a0a', text0:'#00FF41', bg1:'#0a1a0a', text1:'#39FF14', bg0_dark:'#0a1a0a', bg1_dark:'#0a1a0a', errorBorder:'#FF0000' } },
+  { id:'neon', name:'Neon Cyber', desc:'Warna-warni neon mencolok', price:150, icon:'💡', color:'#FF00FF',
+    style:{ bg0:'rgba(255,0,255,0.1)', text0:'#FF00FF', bg1:'rgba(0,255,255,0.1)', text1:'#00FFFF', bg0_dark:'rgba(255,0,255,0.1)', bg1_dark:'rgba(0,255,255,0.1)', errorBorder:'#FF0000' } },
+  { id:'fire', name:'Fire & Ice', desc:'Pertarungan panas dan dingin', price:200, icon:'🔥', color:'#FF4500',
+    style:{ bg0:'rgba(255,69,0,0.15)', text0:'#FF4500', bg1:'rgba(0,191,255,0.15)', text1:'#00BFFF', bg0_dark:'rgba(255,69,0,0.15)', bg1_dark:'rgba(0,191,255,0.15)', errorBorder:'#FFD700' } },
+]
+
+// ─── Sliding Puzzle Themes (Day 20) ─────────────────────────────────────────
+export const SLIDING_THEMES = [
+  { id:'default', name:'Gradient', desc:'Warna warni pelangi', price:0, icon:'🌈', color:'#FF6B6B',
+    style:{ type:'gradient' } },
+  { id:'glass', name:'Glassmorphism', desc:'Gaya kaca transparan masa depan', price:150, icon:'🔮', color:'#74B9FF',
+    style:{ type:'glass', bg:'rgba(255,255,255,0.1)', border:'rgba(255,255,255,0.2)', shadow:'0 4px 15px rgba(0,0,0,0.1)', textShadow:'0 2px 5px rgba(0,0,0,0.2)' } },
+  { id:'neon', name:'Neon Wireframe', desc:'Garis neon tegas bernyala', price:150, icon:'💡', color:'#00FF88',
+    style:{ type:'wireframe', bg:'transparent', border:'#00FF88', color:'#00FF88', shadow:'none', textShadow:'0 0 8px #00FF88' } },
+  { id:'wood', name:'Classic Wood', desc:'Gaya klasik kayu mahoni tua', price:200, icon:'🪵', color:'#8B4513',
+    style:{ type:'solid', bg:'#8B4513', border:'#5C2E0B', color:'#FFEeba', shadow:'0 4px 6px rgba(0,0,0,0.3)', textShadow:'none' } },
+  { id:'gold', name:'Royal Gold', desc:'Emas batangan murni', price:250, icon:'👑', color:'#FFD700',
+    style:{ type:'solid', bg:'linear-gradient(135deg, #FFD700, #DAA520)', border:'#B8860B', color:'#fff', shadow:'0 4px 10px rgba(218,165,32,0.4)', textShadow:'0 1px 2px rgba(0,0,0,0.5)' } },
+]
+
+// ─── Minesweeper Themes (Day 22) ────────────────────────────────────────────
+export const MINE_THEMES = [
+  { id:'default', name:'Classic', desc:'Rumput dan ranjau standar', price:0, icon:'💣', color:'#4CAF50',
+    style:{ coveredLight:'#A2D149', coveredDark:'#AAD751', revealedLight:'#E5C29F', revealedDark:'#D7B899', flag:'🚩', mine:'💣' } },
+  { id:'ice', name:'Ice Lake', desc:'Danau beku penuh duri es', price:150, icon:'🧊', color:'#74B9FF',
+    style:{ coveredLight:'#74B9FF', coveredDark:'#0984E3', revealedLight:'#DFE6E9', revealedDark:'#B2BEC3', flag:'🔥', mine:'❄️' } },
+  { id:'lava', name:'Volcanic', desc:'Kerak lava panas membara', price:150, icon:'🌋', color:'#FF4757',
+    style:{ coveredLight:'#2d3436', coveredDark:'#1e272e', revealedLight:'#FF4757', revealedDark:'#c0392b', flag:'🗡️', mine:'🔥' } },
+  { id:'moon', name:'Lunar Base', desc:'Pangkalan rahasia di bulan', price:200, icon:'🌕', color:'#A29BFE',
+    style:{ coveredLight:'#DFE6E9', coveredDark:'#B2BEC3', revealedLight:'#636E72', revealedDark:'#2d3436', flag:'📡', mine:'👽' } },
+  { id:'gold', name:'Treasure Hunt', desc:'Mencari harta di padang pasir', price:250, icon:'👑', color:'#FDCB6E',
+    style:{ coveredLight:'#FDCB6E', coveredDark:'#e1b12c', revealedLight:'#fff200', revealedDark:'#fbc531', flag:'🗡️', mine:'🐍' } },
+]
+
 // ─── Jigsaw Themes (Jigsaw Puzzle) ──────────────────────────────────────────
 export const JIGSAW_THEMES = [
   { id:'default', name:'Gradient', desc:'Gradien warna-warni yang indah', price:0, icon:'🧩', color:'#E84393',
@@ -656,6 +696,9 @@ function getDefaultCoinState() {
     ownedRacerThemes:['default'], activeRacerTheme:'default',
     ownedRacerMaps:['default'], activeRacerMap:'default',
     ownedMathThemes:['default'], activeMathTheme:'default',
+    ownedBinaryThemes:['default'], activeBinaryTheme:'default',
+    ownedMineThemes:['default'], activeMineTheme:'default',
+    ownedSlidingThemes:['default'], activeSlidingTheme:'default',
     hints:0, timeFreezes:0,
     lastDailyClaim:null, dailyStreak:0, transactions:[],
   }
@@ -769,8 +812,8 @@ export function CoinProvider({ children }) {
     const handler = (e) => {
       const { item } = e.detail || {}
       if (!item) return
-      const typeToKey  = { ships:'ownedShips', racerThemes:'ownedRacerThemes', dashThemes:'ownedDashThemes', packs:'ownedPacks', sudokuThemes:'ownedSudokuThemes' }
-      const activeToKey = { ships:'activeShip', racerThemes:'activeRacerTheme', dashThemes:'activeDashTheme', packs:'activePack', sudokuThemes:'activeSudokuTheme' }
+      const typeToKey  = { ships:'ownedShips', racerThemes:'ownedRacerThemes', dashThemes:'ownedDashThemes', packs:'ownedPacks', sudokuThemes:'ownedSudokuThemes', binaryThemes:'ownedBinaryThemes', mineThemes:'ownedMineThemes', slidingThemes:'ownedSlidingThemes' }
+      const activeToKey = { ships:'activeShip', racerThemes:'activeRacerTheme', dashThemes:'activeDashTheme', packs:'activePack', sudokuThemes:'activeSudokuTheme', binaryThemes:'activeBinaryTheme', mineThemes:'activeMineTheme', slidingThemes:'activeSlidingTheme' }
       const key  = typeToKey[item.type]
       const aKey = activeToKey[item.type]
       if (!key) return

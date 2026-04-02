@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useAuth } from '../context/AuthContext.jsx'
-import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, BASE_SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, PATTERN_THEMES, REACTION_THEMES, DASH_THEMES, BREAKER_THEMES, WORDLE_THEMES, RACER_THEMES, RACER_MAP_CATALOG, MATH_THEMES, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
+import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, BASE_SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, PATTERN_THEMES, REACTION_THEMES, DASH_THEMES, BREAKER_THEMES, WORDLE_THEMES, RACER_THEMES, RACER_MAP_CATALOG, MATH_THEMES, BINARY_THEMES, MINE_THEMES, SLIDING_THEMES, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { WHEEL_EXCLUSIVES, useLuckyWheel } from '../context/LuckyWheelContext.jsx'
 
@@ -132,6 +132,9 @@ export default function Shop({ onBack }) {
     ownedRacerThemes, activeRacerTheme,
     ownedRacerMaps, activeRacerMap,
     ownedMathThemes, activeMathTheme,
+    ownedBinaryThemes, activeBinaryTheme,
+    ownedMineThemes, activeMineTheme,
+    ownedSlidingThemes, activeSlidingTheme,
     hints, timeFreezes, dailyStreak, isDailyClaimable,
     buyCosmetic, equipCosmetic, buyConsumable, claimDaily, transactions, earnCoins,
   } = useCoins()
@@ -246,6 +249,9 @@ export default function Shop({ onBack }) {
     { id:'racer',      label:'🚗 Racer'     },
     { id:'racermaps',  label:'⛰️ Maps'      },
     { id:'math',       label:'🧮 Math'      },
+    { id:'binary',     label:'🔲 Binary'    },
+    { id:'minesweeper',label:'💣 Minesweep' },
+    { id:'sliding',    label:'🧩 Sliding'   },
     { id:'webtheme',   label:'🎨 Tema'      },
     { id:'history',    label:'📜 Riwayat',  },
   ]
@@ -796,6 +802,119 @@ export default function Shop({ onBack }) {
                         {n || '·'}
                       </div>
                     ))}
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          {/* ── Binary Themes ── */}
+          {tab === 'binary' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                Ubah gaya grid dan angka di Binary Puzzle
+              </p>
+              <CosmeticList
+                items={BINARY_THEMES} ownedList={ownedBinaryThemes} activeId={activeBinaryTheme} type="binaryThemes"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('binaryThemes', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
+                renderPreview={(item) => (
+                  <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?item.style.bg0_dark:item.style.bg0, display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:3, maxWidth:100, margin:'0 auto' }}>
+                    {[0, 1, 0, 1, 0, 1, 0, 1, 0].map((n, j) => (
+                      <div key={j} style={{
+                        width:28, height:28, borderRadius:6,
+                        border:`2px solid ${item.style.errorBorder}`,
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        fontSize:14, fontWeight:800, fontFamily:"'Fredoka One',cursive",
+                        color: n === 0 ? item.style.text0 : item.style.text1,
+                        background: n === 0 ? (dark ? item.style.bg0_dark : item.style.bg0) : (dark ? item.style.bg1_dark : item.style.bg1),
+                      }}>
+                        {n}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          {/* ── Minesweeper Themes ── */}
+          {tab === 'minesweeper' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                Buka dunia baru penuh rintangan di Minesweeper
+              </p>
+              <CosmeticList
+                items={MINE_THEMES} ownedList={ownedMineThemes} activeId={activeMineTheme} type="mineThemes"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('mineThemes', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
+                renderPreview={(item) => (
+                  <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)', display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:1, maxWidth:100, margin:'0 auto' }}>
+                    {[{t:'covD'},{t:'covL'},{t:'flag'},{t:'covL'},{t:'revD', n:1},{t:'revL'},{t:'mine'},{t:'revL'},{t:'covD'}].map((c, j) => {
+                      let bg = c.t === 'covD' ? item.style.coveredDark :
+                               c.t === 'covL' ? item.style.coveredLight :
+                               c.t === 'revD' ? item.style.revealedDark :
+                               c.t === 'revL' ? item.style.revealedLight :
+                               c.t === 'flag' ? item.style.coveredDark :
+                               c.t === 'mine' ? '#FF6B6B' : item.style.coveredLight
+                      return (
+                        <div key={j} style={{
+                          width:28, height:28, background:bg,
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                          fontSize:14, fontWeight:800, fontFamily:"'Fredoka One',cursive", color:'#2196F3'
+                        }}>
+                          {c.t === 'mine' ? item.style.mine : c.t === 'flag' ? item.style.flag : c.n ? c.n : ''}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          {/* ── Sliding Puzzle Themes ── */}
+          {tab === 'sliding' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+                Ubah gaya piringan angka di Sliding Puzzle
+              </p>
+              <CosmeticList
+                items={SLIDING_THEMES} ownedList={ownedSlidingThemes} activeId={activeSlidingTheme} type="slidingThemes"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('slidingThemes', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
+                renderPreview={(item) => (
+                  <div style={{ marginTop:12, padding:14, borderRadius:12, background:dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)', display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:4, maxWidth:120, margin:'0 auto' }}>
+                    {[1,2,3,4,5,6,7,8,''].map((n, j) => {
+                      const STYLES = ['#FF6B6B','#FDCB6E','#00B894','#74B9FF','#A29BFE','#FD79A8','#E17055','#00CEC9']
+                      const isGrad = item.style.type === 'gradient'
+                      return (
+                        <div key={j} style={{
+                          width:32, height:32, borderRadius:6,
+                          background: n === '' ? 'transparent' : isGrad ? STYLES[j] : item.style.bg,
+                          border: n === '' ? 'none' : isGrad ? '2px solid transparent' : `2px solid ${item.style.border}`,
+                          color: isGrad ? '#fff' : item.style.color || '#fff',
+                          textShadow: isGrad ? '0 1px 3px rgba(0,0,0,0.3)' : item.style.textShadow,
+                          boxShadow: n === '' ? 'none' : isGrad ? '0 2px 8px rgba(0,0,0,0.15)' : item.style.shadow,
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                          fontSize:16, fontWeight:800, fontFamily:"'Fredoka One',cursive",
+                        }}>
+                          {n}
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
               />
