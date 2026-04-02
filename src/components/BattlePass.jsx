@@ -1,11 +1,11 @@
 import { useProgress, BP_REWARDS, BP_SEASON, CUSTOM_BORDERS } from '../context/ProgressContext.jsx'
-import { useCoins, BP_SHIP_CATALOG, DASH_THEMES } from '../context/CoinContext.jsx'
+import { useCoins, BP_SHIP_CATALOG, SHIP_CATALOG, DASH_THEMES } from '../context/CoinContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { useState, useRef, useEffect, useMemo } from 'react'
 
 function ShipSprite({ shipId, size = 80 }) {
-  const ship = useMemo(() => BP_SHIP_CATALOG.find(s => s.id === shipId), [shipId])
+  const ship = useMemo(() => SHIP_CATALOG.find(s => s.id === shipId), [shipId])
   if (!ship) return <div style={{ fontSize: size/2 }}>🚀</div>
 
   if (ship.sprite) {
@@ -43,7 +43,7 @@ function ShipSprite({ shipId, size = 80 }) {
 }
 
 function ShipStats({ shipId }) {
-  const ship = useMemo(() => BP_SHIP_CATALOG.find(s => s.id === shipId), [shipId])
+  const ship = useMemo(() => SHIP_CATALOG.find(s => s.id === shipId), [shipId])
   if (!ship) return null
   const s = ship.stats
   return (

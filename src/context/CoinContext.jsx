@@ -289,6 +289,17 @@ export const BP_SHIP_CATALOG = [
       5:{ type:'omega-ultra', count:1 }
     },
     img:'/ships/bp_v2_ultimate.png', bulletType:'omega-ultra' },
+  { id:'astra-warden', name:'Veridian Warden', desc:'Kapal penjaga galaksi dengan teknologi inti zamrud. Keseimbangan antara pertahanan dan serangan.',
+    price:0, icon:'🛡️', color:'#2ECC71', exclusive:true, rarity:'legendary',
+    stats:{ speed:6.5, fireRate:6, bulletCount:2, maxHP:8, specialType:'shield', specialCharge:240 },
+    weaponEvolution:{
+      1:{ type:'standard', count:2 },
+      2:{ type:'standard', count:3 },
+      3:{ type:'heavy', count:2 },
+      4:{ type:'heavy', count:3 },
+      5:{ type:'plasma', count:3 }
+    },
+    img:'/ships/bp_v2_ship1.png', bulletType:'heavy' },
 ]
 
 export const SHIP_CATALOG = [

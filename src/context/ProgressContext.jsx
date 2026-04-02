@@ -48,7 +48,7 @@ export const BP_REWARDS = [
   { tier: 12, xp: 9000,  reward: { type: 'border', value: 'void-overlord', label: 'Bingkai: Void Overlord' } },
   { tier: 13, xp: 10400, reward: { type: 'ship', value: 'bp-v2-3', label: 'Kapal: Cobalt Wings' } },
   { tier: 14, xp: 12000, reward: { type: 'coins', amount: 1500, label: '1.500 Koin' } },
-  { tier: 15, xp: 14000, reward: { type: 'ship', value: 'bp-v2-ultimate', label: 'Kapal: Aegis Prime - B4' } },
+  { tier: 15, xp: 14000, reward: { type: 'ship', value: 'astra-warden', label: 'Kapal: Veridian Warden' } },
   { tier: 16, xp: 15500, reward: { type: 'coins', amount: 2000, label: '2.000 Koin' } },
   { tier: 17, xp: 17100, reward: { type: 'title', value: 'Cyber Ghost', label: 'Gelar: Cyber Ghost' } },
   { tier: 18, xp: 18800, reward: { type: 'border', value: 'neon-matrix', label: 'Bingkai: Neon Matrix' } },

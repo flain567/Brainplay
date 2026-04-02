@@ -741,6 +741,18 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       // Combo
       if (g.comboTimer>0) g.comboTimer--; else if (g.combo>0) { g.combo=0; setCombo(0) }
 
+      // Garbage Collection for performance
+      g.particles = g.particles.filter(p => { p.life--; p.x += p.vx; p.y += p.vy; return p.life > 0 })
+      g.trails = g.trails.filter(t => { t.life--; return t.life > 0 })
+      g.floatingTexts = g.floatingTexts.filter(t => { t.life--; t.y -= 0.5; return t.life > 0 })
+      g.powerups = g.powerups.filter(pu => { 
+        pu.y += pu.vy; pu.pulse += 0.1; 
+        if (Math.abs(p.x - pu.x) < 30 && Math.abs(p.y - pu.y) < 30) {
+          applyPowerup(g, pu.type.id); play('powerup'); return false 
+        }
+        return pu.y < g.H + 50
+      })
+
       g.bullets = g.bullets.filter(b => {
         const timeSlow = g.timeWarpTimer > 0 ? 0.3 : 1.0
         b.y -= (b.vy || cfg.bulletSpeed) * timeSlow
@@ -793,7 +805,13 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
         g.waveTransitionTimer--; 
         if(g.waveTransitionTimer<=0){ 
           if (g.isBossRush) { spawnBoss(g) }
-          else { g.wave++;setWave(g.wave);g.bossSpawned=false;g.waveEnemiesSpawned=0;g.waveEnemiesKilled=0;g.waveState='spawning' }
+          else { 
+            if (g.wave >= cfg.waveGoal) {
+              endGame(g, true)
+            } else {
+              g.wave++;setWave(g.wave);g.bossSpawned=false;g.waveEnemiesSpawned=0;g.waveEnemiesKilled=0;g.waveState='spawning' 
+            }
+          }
         } 
       }
 

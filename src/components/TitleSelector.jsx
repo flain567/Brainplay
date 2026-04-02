@@ -1,4 +1,4 @@
-import { useProgress, LEVEL_TITLES, ACHIEVEMENTS, getTitleColorForLevel } from '../context/ProgressContext.jsx'
+import { useProgress, LEVEL_TITLES, ACHIEVEMENTS, BP_REWARDS, getTitleColorForLevel } from '../context/ProgressContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useThemeColors } from '../hooks/useThemeColors.js'
@@ -29,10 +29,19 @@ export default function TitleSelector({ onClose }) {
     rarity: idx >= 5 ? 'legendary' : idx >= 4 ? 'epic' : 'common'
   }))
 
+  const bpTitles = BP_REWARDS
+    .filter(r => r.reward?.type === 'title')
+    .map(r => ({
+      title: r.reward.value,
+      from: `Battle Pass Level ${r.tier}`,
+      rarity: r.reward.rarity || 'legendary'
+    }))
+
   const allTitles = [
     { title: 'None', from: 'Default', rarity: 'common' }, // Option to have no title
     ...levelTitles,
-    ...achievementTitles
+    ...achievementTitles,
+    ...bpTitles
   ]
 
   // Filter out duplicates (some level titles might be achievement titles, though unlikely here)
