@@ -531,8 +531,12 @@ export const DASH_THEMES = [
   { id:'wheel-dash-graffiti', name:'Graffiti Cube', desc:'Cube graffiti penuh warna. Lucky Wheel Only!', price:0, icon:'🎨', color:'#E040FB', exclusive:true, rarity:'epic',
     img: '/wheel_dash.png',
     style:{ player:'#E040FB', playerOutline:'#6A1B9A', trail:'#FF4081', glow:'#E1BEE7', wave:'#FFD740' } },
-  { id:'void-phantom', name:'Void Phantom', desc:'Cube dari dimensi hampa. Memiliki efek glitch transparan. Tier 30 Reward!', price:0, icon:'👻', color:'#A29BFE', exclusive:true, rarity:'mythic',
-    style:{ player:'#1a1a2e', playerOutline:'#6c5ce7', trail:'#00f5ff', glow:'#a29bfe', wave:'#ff0064' } },
+  { id: 'void-phantom', name: 'Void Phantom', desc: 'Cube dari dimensi hampa. Memiliki efek glitch transparan. Tier 30 Reward!', price: 0, icon: '👻', color: '#A29BFE', exclusive: true, rarity: 'mythic',
+    style: { player: '#1a1a2e', playerOutline: '#6c5ce7', trail: '#00f5ff', glow: '#a29bfe', wave: '#ff0064' } },
+  { id: 'nebula-runner', name: 'Nebula Runner', desc: 'Pelari kosmik dengan jejak nebula ungu-cyan. Tier 26 Reward!', price: 0, icon: '🌌', color: '#A29BFE', exclusive: true, rarity: 'mythic',
+    style: { player: '#a29bfe', playerOutline: '#6c5ce7', trail: '#a29bfe', glow: '#00f5ff', wave: '#ff7675' } },
+  { id: 'magma-surge', name: 'Magma Surge', desc: 'Cube berenergi lava panas dengan jejak membara. Tier 29 Reward!', price: 0, icon: '🌋', color: '#ff4757', exclusive: true, rarity: 'mythic',
+    style: { player: '#ff4757', playerOutline: '#ff6b81', trail: '#ffa502', glow: '#ff7f50', wave: '#2f3542' } },
 ]
 
 // ─── Brick Breaker Skins (Day 13) ────────────────────────────────────────────

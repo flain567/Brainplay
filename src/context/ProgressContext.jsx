@@ -59,10 +59,10 @@ export const BP_REWARDS = [
   { tier: 23, xp: 28800, reward: { type: 'border', value: 'solar-flare', label: 'Bingkai: Solar Flare' } },
   { tier: 24, xp: 31100, reward: { type: 'title', value: 'Solar Champion', label: 'Gelar: Solar Champion' } },
   { tier: 25, xp: 33500, reward: { type: 'ship', value: 'falcon', label: 'Kapal: Solar Interceptor' } },
-  { tier: 26, xp: 36000, reward: { type: 'coins', amount: 4000, label: '4.000 Koin' } },
+  { tier: 26, xp: 36000, reward: { type: 'dash-skin', value: 'nebula-runner', label: 'Skin: Nebula Runner' } },
   { tier: 27, xp: 38600, reward: { type: 'title', value: 'Zenith Pilot', label: 'Gelar: Zenith Pilot' } },
   { tier: 28, xp: 41300, reward: { type: 'border', value: 'plasma-glow', label: 'Bingkai: Transcendent Glow' } },
-  { tier: 29, xp: 44100, reward: { type: 'coins', amount: 5000, label: '5.000 Koin' } },
+  { tier: 29, xp: 44100, reward: { type: 'dash-skin', value: 'magma-surge', label: 'Skin: Magma Surge' } },
   { tier: 30, xp: 48000, reward: { 
     type: 'multi', 
     label: 'ULTIMATE REWARD',

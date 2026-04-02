@@ -203,7 +203,7 @@ export default function NeonDash({onBack,onHome,game,difficulty}){
     const bH=Math.max(2,Math.floor(H*0.2/BK))
     return{W,H,lv:1,sc:0,att:1,bH,lvD:buildLv(LVS[0],bH,H),
       px:70,py:H-bH*BK-PS,vy:0,gnd:true,mode:'cube',rot:0,hold:false,
-      cam:0,spd:dc.spd,cd:0,dieT:0,winT:0,deathFlash:0,
+      cam:0,spd:dc.spd,cd:0,dieT:0,winT:0,deathFlash:0,beat:0,bInt:468, // 128 BPM
       pts:[],rings:[],trail:[],shk:0,gOff:0,bgR:mkBgR(W,H)}
   }
 
@@ -221,7 +221,10 @@ export default function NeonDash({onBack,onHome,game,difficulty}){
       if(p==='dead'){retry();return}
       if(p!=='play')return
       g.hold=true
-      if(g.mode==='cube'&&g.gnd){g.vy=dc.jv;g.gnd=false;try{play('flip');vibrateLight()}catch(e){}}
+      if(g.mode==='cube'&&g.gnd){
+        g.vy=dc.jv;g.gnd=false;g.shk=4;
+        try{play('flip');vibrateLight()}catch(e){}
+      }
     }
     function onUp(){g.hold=false}
     const onTouchStart=e=>{e.preventDefault();onDown()}
@@ -298,6 +301,17 @@ export default function NeonDash({onBack,onHome,game,difficulty}){
       for(let i=g.trail.length-1;i>=0;i--){g.trail[i].a-=0.02*dt;if(g.trail[i].a<=0)g.trail.splice(i,1)}
       if(g.shk>0){g.shk*=0.9;if(g.shk<0.3)g.shk=0}
       if(g.deathFlash>0){g.deathFlash*=0.88;if(g.deathFlash<0.02)g.deathFlash=0}
+      
+      // Beat sync logic (simulated 128 BPM)
+      const now = performance.now()
+      if (now - g.beat > g.bInt) {
+        g.beat = now
+        // Trigger visual pulse
+        if (p==='play') {
+          g.bgPulse = 1.0
+        }
+      }
+      if (g.bgPulse > 0) g.bgPulse *= 0.92
 
       // State transitions (frame-based, no setTimeout!)
       if(p==='dying'){g.dieT-=dt;if(g.dieT<=0)sp('dead')}
@@ -325,6 +339,7 @@ export default function NeonDash({onBack,onHome,game,difficulty}){
               if(it.t!=='gnd'&&it.t!=='blk')continue
               const sx=it.x-g.cam,top=it.y
               if(g.px+PS>sx+2&&g.px<sx+it.w-2&&g.py+PS>=top-2&&g.py+PS<=top+Math.max(g.vy*dt+10,12)){
+                if (!g.gnd && g.vy > 2) g.shk = 3 // Land shake
                 g.py=top-PS;g.vy=0;g.gnd=true;break}}}
           if(g.py>H+50){die();/* fall */}
         }else{
@@ -381,7 +396,10 @@ export default function NeonDash({onBack,onHome,game,difficulty}){
       ctx.save();ctx.translate(shx,shy)
 
       // BG
-      const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#2d1b69');bg.addColorStop(1,'#1a0a3a')
+      const bp = g.bgPulse || 0
+      const bg = ctx.createLinearGradient(0,0,0,H)
+      bg.addColorStop(0, bp > 0.1 ? `rgb(${45+bp*30},${27+bp*20},${105+bp*50})` : '#2d1b69')
+      bg.addColorStop(1, bp > 0.1 ? `rgb(${26+bp*20},${10+bp*10},${58+bp*30})` : '#1a0a3a')
       ctx.fillStyle=bg;ctx.fillRect(0,0,W,H)
       // Parallax rects
       for(const r of g.bgR){const rx=(r.x-g.cam*r.sp)%(W+r.w+200)-r.w
@@ -444,7 +462,7 @@ export default function NeonDash({onBack,onHome,game,difficulty}){
         } else {
           ctx.fillStyle=currentDashTheme.playerOutline;ctx.fillRect(-PS/2-2,-PS/2-2,PS+4,PS+4)
           ctx.fillStyle=g.mode==='wave'?currentDashTheme.wave:currentDashTheme.player
-          ctx.shadowColor=g.mode==='wave'?currentDashTheme.wave:currentDashTheme.player;ctx.shadowBlur=12
+          ctx.shadowColor=g.mode==='wave'?currentDashTheme.wave:currentDashTheme.player;ctx.shadowBlur=12 + (g.bgPulse || 0) * 15
           ctx.fillRect(-PS/2,-PS/2,PS,PS);ctx.shadowBlur=0
           ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.strokeRect(-PS/2,-PS/2,PS,PS)
           ctx.fillStyle=currentDashTheme.glow;ctx.fillRect(1,-3,5,5)
