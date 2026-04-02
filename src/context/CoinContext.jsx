@@ -135,16 +135,37 @@ export const BASE_SHIP_CATALOG = [
   { id:'falcon', name:'Falcon', desc:'Pesawat standar yang seimbang — cocok untuk semua misi',
     price:0, icon:'🚀', color:'#4ECDC4',
     stats:{ speed:5, fireRate:8, bulletCount:1, maxHP:5, specialType:'bomb', specialCharge:300 },
+    weaponEvolution:{
+      1:{ type:'standard', count:1 },
+      2:{ type:'standard', count:2 },
+      3:{ type:'standard', count:3 },
+      4:{ type:'standard', count:3, spread:true },
+      5:{ type:'guided', count:3 }
+    },
     design:{ body:'#4ECDC4', wing:'#2d8a85', cockpit:'#74B9FF', engine:'#FDCB6E', accent:'#fff' }
   },
   { id:'viper', name:'Viper', desc:'Pesawat cepat dengan tembakan rapid — untuk pilot gesit',
     price:200, icon:'⚡', color:'#00FF88',
     stats:{ speed:7, fireRate:5, bulletCount:1, maxHP:4, specialType:'rapid', specialCharge:250 },
+    weaponEvolution:{
+      1:{ type:'pulse', count:1 },
+      2:{ type:'pulse', count:2 },
+      3:{ type:'pulse', count:3 },
+      4:{ type:'needle', count:2 },
+      5:{ type:'needle', count:3 }
+    },
     design:{ body:'#00FF88', wing:'#00CC6E', cockpit:'#B8FFD0', engine:'#00FF88', accent:'#fff' }
   },
   { id:'titan', name:'Titan', desc:'Pesawat berat dengan armor tebal dan tembakan menyebar',
     price:350, icon:'🛡️', color:'#FF6B6B',
     stats:{ speed:3.5, fireRate:10, bulletCount:3, maxHP:8, specialType:'shield', specialCharge:200 },
+    weaponEvolution:{
+      1:{ type:'heavy', count:2 },
+      2:{ type:'heavy', count:3 },
+      3:{ type:'heavy', count:3, spread:true },
+      4:{ type:'heavy-shock', count:2 },
+      5:{ type:'heavy-shock', count:3 }
+    },
     design:{ body:'#FF6B6B', wing:'#CC4444', cockpit:'#FFB8B8', engine:'#FF4444', accent:'#fff' }
   },
   { id:'phoenix', name:'Phoenix', desc:'Pesawat legendaris dengan jejak api yang membakar musuh',
@@ -182,10 +203,24 @@ export const BP_SHIP_CATALOG = [
   { id:'bp-v2-1', name:'Veridian Aurora', desc:'Kapal dengan ornamen hijau zamrud yang elegan. Memiliki tembakan burst.',
     price:0, icon:'🚀', color:'#00FF88', exclusive:true, rarity:'legendary',
     stats:{ speed:6, fireRate:7, bulletCount:1, maxHP:6, specialType:'emerald-barrage', specialCharge:200 },
+    weaponEvolution:{
+      1:{ type:'burst-3', count:1 },
+      2:{ type:'burst-3', count:2 },
+      3:{ type:'burst-3', count:3 },
+      4:{ type:'petal', count:3 },
+      5:{ type:'blossom', count:1 }
+    },
     img:'/ships/bp_v2_ship1.png', bulletType:'burst-3' },
   { id:'bp-v2-2', name:'Amber Horizon', desc:'Dudesain dengan warna emas hangat. Tembakan gelombang yang kuat.',
     price:0, icon:'🚀', color:'#FFD700', exclusive:true, rarity:'legendary',
     stats:{ speed:5, fireRate:8, bulletCount:1, maxHP:7, specialType:'golden-shockwave', specialCharge:220 },
+    weaponEvolution:{
+      1:{ type:'wave', count:1 },
+      2:{ type:'wave', count:2 },
+      3:{ type:'wave', count:3 },
+      4:{ type:'tsunami', count:1 },
+      5:{ type:'tsunami', count:2 }
+    },
     img:'/ships/bp_v2_ship2.png', bulletType:'wave' },
   { id:'bp-v2-3', name:'Cobalt Wings', desc:'Sayap kobalt yang tajam memberikan kelincahan maksimal di angkasa.',
     price:0, icon:'🚀', color:'#74B9FF', exclusive:true, rarity:'legendary',
@@ -194,6 +229,13 @@ export const BP_SHIP_CATALOG = [
   { id:'bp-v2-ultimate', name:'Aegis Prime - B4', desc:'Unit Mecha legendaris terkuat. Senjata Mega Beam penghancur segalanya.',
     price:0, icon:'👑', color:'#FFF200', exclusive:true, rarity:'mythic',
     stats:{ speed:8, fireRate:4, bulletCount:1, maxHP:10, specialType:'omega-beam', specialCharge:450 },
+    weaponEvolution:{
+      1:{ type:'flare', count:1 },
+      2:{ type:'flare', count:2 },
+      3:{ type:'plasma', count:2 },
+      4:{ type:'mega-beam', count:2 },
+      5:{ type:'omega-blast', count:1 }
+    },
     img:'/ships/bp_v2_ultimate.png', bulletType:'mega-beam' },
 ]
 

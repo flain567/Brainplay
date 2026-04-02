@@ -316,10 +316,59 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       const p = g.player, bw = 4, bh = 16
       const baseDmg = 1 + (g.cloakTimer > 0 && Math.random() < (shipStats.critChance||0) ? 1 : 0)
       const bulColor = shipDesign.body || activeShip.color
-      const bt = activeShip.bulletType || 'standard'
+      
+      // Get ship-specific weapon evolution
+      const weaponLv = Math.min(p.weaponLv || 1, 5)
+      const evo = activeShip.weaponEvolution?.[weaponLv] || { type: activeShip.bulletType || 'standard', count: 1 + Math.floor(weaponLv/2) }
+      const bt = evo.type
 
+      if (bt === 'guided') {
+        const cnt = evo.count || 1
+        for (let i = 0; i < cnt; i++) {
+          const spread = (i - (cnt - 1) / 2) * 15
+          g.bullets.push({ x:p.x + spread, y:p.y - p.h/2, w:6, h:12, dmg:baseDmg, type:'guided', color:'#00F5FF', vx:spread*0.1 })
+        }
+        play('shoot'); return
+      }
+
+      if (bt === 'needle') {
+        const cnt = evo.count || 1
+        for (let i = 0; i < cnt; i++) {
+          const spread = (i - (cnt - 1) / 2) * 12
+          g.bullets.push({ x:p.x + spread, y:p.y - p.h/2, w:2, h:24, dmg:baseDmg*1.2, type:'needle', color:'#00FF88', vy:-14 })
+        }
+        play('shoot'); return
+      }
+
+      if (bt === 'heavy-shock') {
+        const cnt = evo.count || 1
+        for (let i = 0; i < cnt; i++) {
+          const spread = (i - (cnt - 1) / 2) * 25
+          g.bullets.push({ x:p.x + spread, y:p.y - p.h/2, w:10, h:10, dmg:baseDmg*3, type:'heavy-shock', color:'#FF6B6B', vy:-5 })
+        }
+        play('shoot'); return
+      }
+
+      if (bt === 'blossom') {
+        for (let i = 0; i < 12; i++) {
+          const ang = (Math.PI * 2 * i) / 12
+          g.bullets.push({ x:p.x, y:p.y-p.h/2, w:10, h:10, dmg:baseDmg*2, type:'petal', vx:Math.cos(ang)*5, vy:Math.sin(ang)*5, color:'#00FF88' })
+        }
+        play('shoot'); return
+      }
+
+      if (bt === 'tsunami') {
+        g.bullets.push({ x:p.x, y:p.y-p.h/2, w:60, h:12, dmg:baseDmg*2.5, type:'wave', color:'#FFD700' })
+        play('shoot'); return
+      }
+
+      if (bt === 'omega-blast') {
+        g.bullets.push({ x:p.x, y:p.y-p.h/2, w:80, h:40, dmg:baseDmg*5, type:'flare', color:'#FFF200' })
+        play('shoot'); return
+      }
+
+      // Existing / Legacy bullet types
       if (bt === 'burst-3') {
-        // 3 focused bullets in a line
         for (let i = 0; i < 3; i++) {
           setTimeout(() => {
             if (gameRef.current && phaseRef.current === 'playing') {
@@ -332,41 +381,58 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       }
 
       if (bt === 'wave') {
-        g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw*3, h:bh, dmg:baseDmg*1.5, type:'wave', color:bulColor })
+        const cnt = evo.count || 1
+        for (let i = 0; i < cnt; i++) {
+          const spread = (i - (cnt-1)/2) * 30
+          g.bullets.push({ x:p.x + spread, y:p.y-p.h/2, w:bw*3, h:bh, dmg:baseDmg*1.5, type:'wave', color:bulColor })
+        }
       } else if (bt === 'plasma') {
         g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw*4, h:bh*2, dmg:baseDmg*2, type:'plasma', color:bulColor })
       } else if (bt === 'spiral') {
         g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw, h:bh, dmg:baseDmg, type:'spiral', phase:0, color:bulColor })
       } else if (bt === 'heavy') {
-        for (let i = -2; i <= 2; i++) {
-          g.bullets.push({ x:p.x + i*10, y:p.y-p.h/2, w:bw+2, h:bh+4, dmg:baseDmg*1.2, vx:i*0.5, color:bulColor })
+        const cnt = evo.count || 2
+        for (let i = 0; i < cnt; i++) {
+          const spread = (i - (cnt - 1) / 2) * 15
+          g.bullets.push({ x:p.x + spread, y:p.y-p.h/2, w:bw+2, h:bh+4, dmg:baseDmg*1.2, color:bulColor })
         }
       } else if (bt === 'fire') {
         g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw, h:bh, dmg:baseDmg*0.8, type:'fire', color:'#FF7675' })
       } else if (bt === 'pulse') {
-        g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw+2, h:bh, dmg:baseDmg, type:'pulse', color:bulColor })
+        const cnt = evo.count || 1
+        for (let i = 0; i < cnt; i++) {
+          const spread = (i - (cnt - 1) / 2) * 10
+          g.bullets.push({ x:p.x + spread, y:p.y-p.h/2, w:bw+2, h:bh, dmg:baseDmg, type:'pulse', color:bulColor })
+        }
       } else if (bt === 'petal') {
-        for (let i = -1; i <= 1; i++) {
-          g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw+4, h:bh-4, dmg:baseDmg, vx:i*1.5, type:'petal', color:bulColor })
+        const cnt = evo.count || 3
+        for (let i = 0; i < cnt; i++) {
+          const spread = (i - (cnt-1)/2) * 1.5
+          g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw+4, h:bh-4, dmg:baseDmg, vx:spread, type:'petal', color:bulColor })
         }
       } else if (bt === 'ghost') {
         g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw, h:bh, dmg:baseDmg*3, type:'ghost', color:'rgba(255,255,255,0.2)' })
       } else if (bt === 'flare') {
-        g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw*5, h:bh*3, dmg:baseDmg*4, type:'flare', color:'#FAB1A0' })
+        const cnt = evo.count || 1
+        for (let i = 0; i < cnt; i++) {
+          const spread = (i - (cnt-1)/2) * 20
+          g.bullets.push({ x:p.x+spread, y:p.y-p.h/2, w:bw*5, h:bh*3, dmg:baseDmg*4, type:'flare', color:'#FAB1A0' })
+        }
       } else if (bt === 'cluster') {
         g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw+2, h:bh+2, dmg:baseDmg, type:'cluster', color:bulColor })
       } else {
         // Standard / Spread logic
-        const baseCount = shipStats.bulletCount + (p.weaponLv >= 4 ? 2 : p.weaponLv >= 3 ? 2 : p.weaponLv >= 2 ? 1 : 0)
-        const cnt = Math.min(baseCount, 5)
+        const cnt = evo.count || 1
+        const isSpread = evo.spread || false
         if (cnt === 1) { g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw, h:bh, dmg:baseDmg, color:bulColor }) }
         else {
           for (let i=0;i<cnt;i++) {
-            const spread = ((i/(cnt-1))-0.5)*(8+cnt*4)
-            g.bullets.push({ x:p.x+spread, y:p.y-p.h/2+Math.abs(spread)*0.1, w:bw, h:bh, dmg:baseDmg, vx:spread*0.04, color:bulColor })
+            const spread = ((i/(cnt-1))-0.5)*(isSpread ? 24 : 12)
+            g.bullets.push({ x:p.x+spread, y:p.y-p.h/2+Math.abs(spread)*0.1, w:bw, h:bh, dmg:baseDmg, vx:isSpread ? spread*0.04 : 0, color:bulColor })
           }
         }
       }
+      play('shoot')
     }
 
     function spawnPowerup(g, x, y) {
@@ -484,14 +550,30 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       if (g.comboTimer>0) g.comboTimer--; else if (g.combo>0) { g.combo=0; setCombo(0) }
 
       g.bullets = g.bullets.filter(b => {
-        b.y -= cfg.bulletSpeed
-        if (b.vx) b.x += b.vx
+        const timeSlow = g.timeWarpTimer > 0 ? 0.3 : 1.0
+        b.y -= (b.vy || cfg.bulletSpeed) * timeSlow
+        if (b.vx) b.x += b.vx * timeSlow
         
         // Behavioral updates for specific types
-        if (b.type === 'wave') { b.w = 12 + Math.sin(g.tick * 0.2) * 10 }
+        if (b.type === 'wave') { b.w = (b.w || 12) + Math.sin(g.tick * 0.2) * (b.w ? b.w*0.3 : 10) }
         if (b.type === 'spiral') { b.x += Math.sin(g.tick * 0.3) * 3 }
         if (b.type === 'petal') { b.y += 1.5; b.vx *= 0.98 } // Slow down and fan out
         if (b.type === 'flare') { b.w *= 0.98; b.h *= 0.98; b.dmg *= 1.02 } // Condense and power up
+        
+        if (b.type === 'guided' && g.enemies.length > 0) {
+          // Find nearest enemy
+          let nearest = null, minDist = 400
+          g.enemies.forEach(en => {
+            const d = Math.sqrt((en.x-b.x)**2 + (en.y-b.y)**2)
+            if (d < minDist) { minDist = d; nearest = en }
+          })
+          if (nearest) {
+            const dx = nearest.x - b.x
+            b.vx = (b.vx || 0) + Math.sign(dx) * 0.5
+            b.vx = Math.max(-4, Math.min(4, b.vx))
+          }
+          b.y -= 2 // Guided extra speed
+        }
 
         return b.y>-20 && b.x>-20 && b.x<g.W+20
       })
