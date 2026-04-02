@@ -11,6 +11,7 @@ export const StorageKeys = {
   XP:          `${PREFIX}xp`,
   DAILY:       `${PREFIX}daily`,
   PROGRESS:    `${PREFIX}progress`,
+  BATTLE_PASS: `${PREFIX}battle_pass`,
   // Coin & Shop
   COINS:       `${PREFIX}coins`,
   SHOP:        `${PREFIX}shop`,       // { ownedPacks: [...], activePack: 'default' }

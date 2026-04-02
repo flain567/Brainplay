@@ -1,28 +1,33 @@
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useCoins } from '../context/CoinContext.jsx'
-import { useProgress, getComboMultiplier, getLevelInfo } from '../context/ProgressContext.jsx'
+import { useProgress, getComboMultiplier, getLevelInfo, CUSTOM_BORDERS, getBorderForLevel } from '../context/ProgressContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { useEffect, useState, useRef } from 'react'
 import { NotificationBell, useNotifications } from './NotificationManager.jsx'
 import SettingsModal from './SettingsModal.jsx'
+import BattlePass from './BattlePass.jsx'
 
 export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, currentGame }) {
   const { darkMode, muted } = useSettings()
   const { play, setMuted } = useSound()
   const { coins } = useCoins()
-  const { progress } = useProgress()
+  const { progress, getSeasonInfo } = useProgress()
   const { photoURL, playerName, isLoggedIn } = useAuth()
   const tc = useThemeColors()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showBP, setShowBP] = useState(false)
   const menuRef = useRef(null)
   const streak = progress.currentStreak || 0
   const combo = getComboMultiplier(streak)
   const notifState = useNotifications()
   const levelInfo = getLevelInfo(progress.totalXP || 0)
+  const seasonInfo = getSeasonInfo()
+  
+  const currentBorder = progress.selectedBorder ? CUSTOM_BORDERS[progress.selectedBorder] : getBorderForLevel(levelInfo.level)
 
   useEffect(() => { setMuted(muted) }, [muted, setMuted])
   useEffect(() => {
@@ -232,14 +237,41 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
           transition: width 0.4s cubic-bezier(0.34,1.56,0.64,1);
         }
         .nav-avatar-wrap {
-          width: 40px; height: 40px; border-radius: 11px; border: 2px solid transparent;
-          overflow: hidden; pointer-events: none;
+          width: 40px; height: 40px; border-radius: 50%; border: 3px solid transparent;
+          overflow: hidden; pointer-events: none; transition: transform 0.2s;
         }
         .nav-avatar-img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .nav-bp-pill {
+          background: linear-gradient(135deg, #00f5ff, #a29bfe);
+          padding: 5px 12px; border-radius: 100px; cursor: pointer;
+          font-family: 'Fredoka One', cursive; font-size: 11px; color: #020118;
+          display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+          box-shadow: 0 4px 15px rgba(0,245,255,0.25);
+        }
+        .nav-bp-pill:hover { transform: scale(1.05) translateY(-2px); box-shadow: 0 6px 20px rgba(0,245,255,0.4); }
+        .nav-bp-pill:active { transform: scale(0.95); }
+        .nav-bp-alert {
+          width: 8px; height: 8px; border-radius: 50%; background: #ff4757;
+          border: 1.5px solid #fff;
+        }
 
         @keyframes nav-scale-in { from{transform:scale(0.6);opacity:0} to{transform:scale(1);opacity:1} }
         @keyframes nav-fade-in { from{opacity:0} to{opacity:1} }
         @keyframes nav-slide-in { from{transform:translateX(100%);opacity:0.5} to{transform:translateX(0);opacity:1} }
+        
+        /* Border Animations */
+        @keyframes bp-border-pulse {
+          from { filter: brightness(1) drop-shadow(0 0 10px gold); }
+          to { filter: brightness(1.3) drop-shadow(0 0 25px gold); }
+        }
+        @keyframes bp-border-glitch {
+          0% { border-color: #6c5ce7; box-shadow: 0 0 30px #6c5ce7; }
+          45% { border-color: #6c5ce7; box-shadow: 0 0 30px #6c5ce7; }
+          50% { border-color: #ff0064; box-shadow: 0 0 40px #ff0064; }
+          55% { border-color: #6c5ce7; box-shadow: 0 0 30px #6c5ce7; }
+          100% { border-color: #6c5ce7; box-shadow: 0 0 30px #6c5ce7; }
+        }
 
         /* Responsive */
         @media (max-width: 640px) {
@@ -295,6 +327,11 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
               <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#F9A825' }}>{coins}</span>
             </button>
             <NotificationBell {...notifState} dark={dark} />
+            <div className="nav-bp-pill" onClick={() => { play('click'); setShowBP(true) }}>
+              <span style={{ fontSize: 13 }}>⚡</span>
+              <span>Tier {seasonInfo.currentTier}</span>
+              {seasonInfo.hasRewardToClaim && <div className="nav-bp-alert" />}
+            </div>
             <button className="nav-btn" title="Leaderboard" onClick={() => nav(onLeaderboard)}>🏆</button>
             
             <div 
@@ -312,10 +349,17 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
                 borderRadius: '50%', width: 34, height: 34, 
                 background: dark ? '#252B45' : '#E2E8F0',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: "'Fredoka One',cursive", fontSize: 14, color: '#7C6FE8',
-                border: '1.5px solid rgba(124,111,232,0.3)'
+                fontFamily: "'Fredoka One',cursive", fontSize: 14, color: currentBorder?.color || '#7C6FE8',
+                border: currentBorder?.border || '1.5px solid rgba(124,111,232,0.3)',
+                boxShadow: currentBorder?.boxShadow || 'none',
+                animation: currentBorder?.animation || 'none',
+                background: currentBorder?.bgColor || (dark ? '#252B45' : '#E2E8F0'),
               }}>
-                {playerName ? playerName[0].toUpperCase() : 'P'}
+                {photoURL ? (
+                  <img src={photoURL} alt="" className="nav-avatar-img" />
+                ) : (
+                  <span>{playerName ? playerName[0].toUpperCase() : 'P'}</span>
+                )}
               </div>
             </div>
 
@@ -403,7 +447,20 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
               }}>
                 {photoURL ? (
                   <img src={photoURL} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} referrerPolicy="no-referrer" />
-                ) : '👤'}
+                ) : (
+                  <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Fredoka One',cursive", fontSize:20, color:currentBorder?.color || '#7C6FE8' }}>
+                    {playerName ? playerName[0].toUpperCase() : 'P'}
+                  </div>
+                )}
+                {/* Custom Border overlay */}
+                <div style={{ 
+                  position:'absolute', inset:0, borderRadius:'50%', 
+                  border:currentBorder?.border, 
+                  boxShadow:currentBorder?.boxShadow, 
+                  background: currentBorder?.bgColor || 'transparent',
+                  animation: currentBorder?.animation || 'none',
+                  pointerEvents:'none' 
+                }} />
               </div>
               <div style={{ flex:1 }}>
                 <div className="nav-drawer-item-text">
@@ -466,6 +523,9 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
           </div>
         </>
       )}
+
+      {/* ── Battle Pass ── */}
+      {showBP && <BattlePass onClose={() => setShowBP(false)} />}
 
       {/* ── Settings Modal ── */}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}

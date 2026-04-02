@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
-import { useProgress, ACHIEVEMENTS, getLevelInfo, getBorderForLevel, getTitleColorForLevel } from '../context/ProgressContext.jsx'
+import { useProgress, ACHIEVEMENTS, getLevelInfo, getBorderForLevel, getTitleColorForLevel, CUSTOM_BORDERS } from '../context/ProgressContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCloudSave } from '../context/CloudSaveContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { ADMIN_IDS } from '../config/admin.js'
 import TitleSelector from '../components/TitleSelector.jsx'
+import BorderSelector from '../components/BorderSelector.jsx'
 
 const CATEGORY_META = {
   milestone: { label: 'Milestone',  icon: '🎮', color: '#4ECDC4' },
@@ -41,8 +42,10 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
   const isAdmin = userId && ADMIN_IDS.includes(userId)
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
-  const borderData = getBorderForLevel(levelInfo.level)
+  const borderData = progress.selectedBorder ? CUSTOM_BORDERS[progress.selectedBorder] : getBorderForLevel(levelInfo.level)
   const titleStyle = getTitleColorForLevel(levelInfo.level)
+  
+  const [showBorderSelector, setShowBorderSelector] = useState(false)
   
   const unlockedSet = new Set(progress.unlockedAchievements || [])
   const unlockedCount = unlockedSet.size
@@ -126,6 +129,19 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
         }
         .ach-filter-btn:hover { border-color: #A29BFE; }
 
+        /* Border Animations */
+        @keyframes bp-border-pulse {
+          from { filter: brightness(1) drop-shadow(0 0 10px gold); }
+          to { filter: brightness(1.3) drop-shadow(0 0 25px gold); }
+        }
+        @keyframes bp-border-glitch {
+          0% { border-color: #6c5ce7; box-shadow: 0 0 30px #6c5ce7; }
+          45% { border-color: #6c5ce7; box-shadow: 0 0 30px #6c5ce7; }
+          50% { border-color: #ff0064; box-shadow: 0 0 40px #ff0064; }
+          55% { border-color: #6c5ce7; box-shadow: 0 0 30px #6c5ce7; }
+          100% { border-color: #6c5ce7; box-shadow: 0 0 30px #6c5ce7; }
+        }
+
         @media (max-width: 500px) {
           .ach-filter-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
           .ach-filter-row::-webkit-scrollbar { display: none; }
@@ -177,6 +193,7 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
                 background: photoURL ? 'transparent' : borderData.bgColor,
                 border: borderData.border,
                 boxShadow: borderData.boxShadow,
+                animation: borderData.animation || 'none',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 36, flexShrink: 0, overflow: 'hidden', position: 'relative'
               }}>
@@ -207,6 +224,17 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
                     }}
                   >
                     Ganti Gelar
+                  </button>
+                  <span style={{ color: tc.borderCol }}>•</span>
+                  <button 
+                    onClick={() => { play('click'); setShowBorderSelector(true) }}
+                    style={{ 
+                      fontSize: 10, background: 'transparent', border: 'none', 
+                      color: tc.textMuted, cursor: 'pointer', textDecoration: 'underline',
+                      fontWeight: 700
+                    }}
+                  >
+                    Ganti Bingkai
                   </button>
                 </div>
                 <div style={{ 
@@ -632,6 +660,9 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
       </div>
       {showTitleSelector && (
         <TitleSelector onClose={() => setShowTitleSelector(false)} />
+      )}
+      {showBorderSelector && (
+        <BorderSelector onClose={() => setShowBorderSelector(false)} />
       )}
     </>
   )

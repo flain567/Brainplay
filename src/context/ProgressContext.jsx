@@ -26,6 +26,51 @@ export const LEVEL_REWARDS = {
   25: { id: 'dragon', name: 'Aura Naga', color: '#6c5ce7', border: '5px solid #6c5ce7', boxShadow: '0 0 28px #6c5ce7cc', bgColor: '#6c5ce722' },
 }
 
+// ─── Battle Pass Season 1 ──────────────────────────────────────────────────
+export const BP_SEASON = {
+  id: 'season_1',
+  name: 'Neon Genesis',
+  endDate: '2026-05-01',
+}
+
+export const BP_REWARDS = [
+  { tier: 1,  xp: 200,   reward: { type: 'coins', amount: 100, label: '100 Koin' } },
+  { tier: 2,  xp: 500,   reward: { type: 'title', value: 'Neon Initiate', label: 'Gelar: Neon Initiate' } },
+  { tier: 3,  xp: 900,   reward: { type: 'coins', amount: 200, label: '200 Koin' } },
+  { tier: 4,  xp: 1400,  reward: { type: 'border', value: 'neon-blue', label: 'Bingkai: Neon Blue' } },
+  { tier: 5,  xp: 2000,  reward: { type: 'ship', value: 'bp-v2-1', label: 'Kapal: Veridian Aurora' } },
+  { tier: 6,  xp: 2700,  reward: { type: 'title', value: 'Cyber Runner', label: 'Gelar: Cyber Runner' } },
+  { tier: 7,  xp: 3500,  reward: { type: 'border', value: 'mythic-celestial', label: 'Bingkai: Mythic Celestial' } },
+  { tier: 8,  xp: 4400,  reward: { type: 'coins', amount: 750, label: '750 Koin' } },
+  { tier: 9,  xp: 5400,  reward: { type: 'title', value: 'Grid Master', label: 'Gelar: Grid Master' } },
+  { tier: 10, xp: 6500,  reward: { type: 'ship', value: 'bp-v2-2', label: 'Kapal: Amber Horizon' } },
+  { tier: 11, xp: 7700,  reward: { type: 'coins', amount: 1000, label: '1.000 Koin' } },
+  { tier: 12, xp: 9000,  reward: { type: 'border', value: 'void-overlord', label: 'Bingkai: Void Overlord' } },
+  { tier: 13, xp: 10400, reward: { type: 'ship', value: 'bp-v2-3', label: 'Kapal: Cobalt Wings' } },
+  { tier: 14, xp: 12000, reward: { type: 'coins', amount: 1500, label: '1.500 Koin' } },
+  { tier: 15, xp: 14000, reward: { type: 'ship', value: 'bp-v2-ultimate', label: 'Kapal: Aegis Prime - B4' } },
+]
+
+export const CUSTOM_BORDERS = {
+  'neon-blue':   { id: 'neon-blue',   name: 'Neon Blue',   color: '#00f5ff', border: '5px solid #00f5ff', boxShadow: '0 0 15px #00f5ffaa', bgColor: '#00f5ff11' },
+  'cyber-grid':  { id: 'cyber-grid',  name: 'Cyber Grid',  color: '#a29bfe', border: '5px solid #a29bfe', boxShadow: '0 0 15px #a29bfeaa', bgColor: '#a29bfe11' },
+  'plasma-glow': { id: 'plasma-glow', name: 'Plasma Glow', color: '#ff7675', border: '5px solid #ff7675', boxShadow: '0 0 15px #ff7675aa', bgColor: '#ff767511' },
+  'mythic-celestial': { 
+    id: 'mythic-celestial', name: 'Mythic Celestial', color: '#FFD700', 
+    border: '5px double #FFD700', 
+    boxShadow: '0 0 20px #FFD700, inset 0 0 10px #ffffff', 
+    bgColor: 'linear-gradient(45deg, #ffd70033, #ffffff22)',
+    animation: 'bp-border-pulse 2s infinite alternate'
+  },
+  'void-overlord': { 
+    id: 'void-overlord', name: 'Void Overlord', color: '#a29bfe', 
+    border: '5px solid #6c5ce7', 
+    boxShadow: '0 0 30px #6c5ce7, 0 0 10px #000 inset', 
+    bgColor: '#000000bb',
+    animation: 'bp-border-glitch 3s infinite'
+  },
+}
+
 export function getBorderForLevel(level) {
   let activeRew = LEVEL_REWARDS[1]
   for (const [lvl, rew] of Object.entries(LEVEL_REWARDS)) {
@@ -144,6 +189,10 @@ function getDefaultProgress() {
     newAchievements: [],    // achievements just unlocked (for notification)
     selectedTitle: null,    // User-selected custom title
     unlockedTitles: [],      // List of unlocked titles (strings)
+    seasonXP: 0,             // Battle Pass XP
+    claimedBPTiers: [],      // List of claimed tier numbers
+    selectedBorder: null,    // Custom border ID
+    unlockedBorders: [],     // List of unlocked border IDs
   }
 }
 
@@ -329,9 +378,51 @@ export function ProgressProvider({ children }) {
         next.unlockedTitles = [...updatedTitlesSet]
       }
 
+      next.seasonXP = (next.seasonXP || 0) + xpGain
+
       return next
     })
   }, [currentMode])
+
+  // Battle Pass & Border Management
+  const claimBPTier = useCallback((tier) => {
+    const tierData = BP_REWARDS.find(r => r.tier === tier)
+    if (!tierData) return { success: false, reason: 'Tier tidak valid' }
+    
+    setProgress(p => {
+      if (p.claimedBPTiers.includes(tier)) return p
+      if (p.seasonXP < tierData.xp) return p
+      
+      const next = { ...p, claimedBPTiers: [...p.claimedBPTiers, tier] }
+      const { reward } = tierData
+      
+      // Handle Reward Types
+      if (reward.type === 'coins') {
+        window.dispatchEvent(new CustomEvent('bp-add-coins', {
+          detail: { amount: reward.amount, desc: `Battle Pass: ${tierData.label}` }
+        }))
+      } else if (reward.type === 'title') {
+        const titles = new Set(next.unlockedTitles)
+        titles.add(reward.value)
+        next.unlockedTitles = [...titles]
+      } else if (reward.type === 'border') {
+        const borders = new Set(next.unlockedBorders)
+        borders.add(reward.value)
+        next.unlockedBorders = [...borders]
+      } else if (reward.type === 'ship') {
+        window.dispatchEvent(new CustomEvent('bp-wheel-unlock', {
+          detail: { item: { type: 'ships', id: reward.value } }
+        }))
+      }
+      
+      return next
+    })
+    return { success: true }
+  }, [])
+
+  const setSelectedBorder = useCallback((borderId) => {
+    setProgress(p => ({ ...p, selectedBorder: borderId }))
+  }, [])
 
   // Title management
   const setSelectedTitle = useCallback((title) => {
@@ -360,7 +451,44 @@ export function ProgressProvider({ children }) {
       progress, reportGameResult, 
       clearNewAchievements, clearLevelUp, 
       setSelectedTitle, unlockTitle,
-      getLevelInfo: () => getLevelInfo(progress.totalXP) 
+      claimBPTier, setSelectedBorder,
+      getLevelInfo: () => getLevelInfo(progress.totalXP || 0),
+      getSeasonInfo: () => {
+        const curXP = progress.seasonXP || 0
+        let currentTier = 0
+        let xpInTier = curXP
+        let xpNeededForNext = BP_REWARDS[0].xp
+
+        for (let i = 0; i < BP_REWARDS.length; i++) {
+          const t = BP_REWARDS[i]
+          if (curXP >= t.xp) {
+            currentTier = t.tier
+            if (BP_REWARDS[i + 1]) {
+              xpInTier = curXP - t.xp
+              xpNeededForNext = BP_REWARDS[i + 1].xp - t.xp
+            } else {
+              xpInTier = 1; xpNeededForNext = 1 // Maxed
+            }
+          } else {
+            if (i === 0) {
+              xpInTier = curXP
+              xpNeededForNext = t.xp
+            }
+            break
+          }
+        }
+
+        const hasRewardToClaim = BP_REWARDS.some(r => curXP >= r.xp && !progress.claimedBPTiers?.includes(r.tier))
+        const maxXP = BP_REWARDS[BP_REWARDS.length - 1].xp
+
+        return { 
+          currentTier, 
+          xpInTier, 
+          xpNeededForNext, 
+          progress: Math.min(curXP / maxXP, 1),
+          hasRewardToClaim
+        }
+      }
     }}>
       {children}
     </ProgressContext.Provider>

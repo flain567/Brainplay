@@ -288,14 +288,56 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
     function fireBullet(g) {
       const p = g.player, bw = 4, bh = 16
       const baseDmg = 1 + (g.cloakTimer > 0 && Math.random() < (shipStats.critChance||0) ? 1 : 0)
-      const bulColor = shipDesign.body
-      const baseCount = shipStats.bulletCount + (p.weaponLv >= 4 ? 2 : p.weaponLv >= 3 ? 2 : p.weaponLv >= 2 ? 1 : 0)
-      const cnt = Math.min(baseCount, 5)
-      if (cnt === 1) { g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw, h:bh, dmg:baseDmg, color:bulColor }) }
-      else {
-        for (let i=0;i<cnt;i++) {
-          const spread = ((i/(cnt-1))-0.5)*(8+cnt*4)
-          g.bullets.push({ x:p.x+spread, y:p.y-p.h/2+Math.abs(spread)*0.1, w:bw, h:bh, dmg:baseDmg, vx:spread*0.04, color:bulColor })
+      const bulColor = shipDesign.body || activeShip.color
+      const bt = activeShip.bulletType || 'standard'
+
+      if (bt === 'burst-3') {
+        // 3 focused bullets in a line
+        for (let i = 0; i < 3; i++) {
+          setTimeout(() => {
+            if (gameRef.current && phaseRef.current === 'playing') {
+              gameRef.current.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw, h:bh, dmg:baseDmg, color:bulColor })
+              play('shoot')
+            }
+          }, i * 60)
+        }
+        return
+      }
+
+      if (bt === 'wave') {
+        g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw*3, h:bh, dmg:baseDmg*1.5, type:'wave', color:bulColor })
+      } else if (bt === 'plasma') {
+        g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw*4, h:bh*2, dmg:baseDmg*2, type:'plasma', color:bulColor })
+      } else if (bt === 'spiral') {
+        g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw, h:bh, dmg:baseDmg, type:'spiral', phase:0, color:bulColor })
+      } else if (bt === 'heavy') {
+        for (let i = -2; i <= 2; i++) {
+          g.bullets.push({ x:p.x + i*10, y:p.y-p.h/2, w:bw+2, h:bh+4, dmg:baseDmg*1.2, vx:i*0.5, color:bulColor })
+        }
+      } else if (bt === 'fire') {
+        g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw, h:bh, dmg:baseDmg*0.8, type:'fire', color:'#FF7675' })
+      } else if (bt === 'pulse') {
+        g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw+2, h:bh, dmg:baseDmg, type:'pulse', color:bulColor })
+      } else if (bt === 'petal') {
+        for (let i = -1; i <= 1; i++) {
+          g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw+4, h:bh-4, dmg:baseDmg, vx:i*1.5, type:'petal', color:bulColor })
+        }
+      } else if (bt === 'ghost') {
+        g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw, h:bh, dmg:baseDmg*3, type:'ghost', color:'rgba(255,255,255,0.2)' })
+      } else if (bt === 'flare') {
+        g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw*5, h:bh*3, dmg:baseDmg*4, type:'flare', color:'#FAB1A0' })
+      } else if (bt === 'cluster') {
+        g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw+2, h:bh+2, dmg:baseDmg, type:'cluster', color:bulColor })
+      } else {
+        // Standard / Spread logic
+        const baseCount = shipStats.bulletCount + (p.weaponLv >= 4 ? 2 : p.weaponLv >= 3 ? 2 : p.weaponLv >= 2 ? 1 : 0)
+        const cnt = Math.min(baseCount, 5)
+        if (cnt === 1) { g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw, h:bh, dmg:baseDmg, color:bulColor }) }
+        else {
+          for (let i=0;i<cnt;i++) {
+            const spread = ((i/(cnt-1))-0.5)*(8+cnt*4)
+            g.bullets.push({ x:p.x+spread, y:p.y-p.h/2+Math.abs(spread)*0.1, w:bw, h:bh, dmg:baseDmg, vx:spread*0.04, color:bulColor })
+          }
         }
       }
     }
@@ -364,7 +406,18 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       // Combo
       if (g.comboTimer>0) g.comboTimer--; else if (g.combo>0) { g.combo=0; setCombo(0) }
 
-      g.bullets = g.bullets.filter(b => { b.y -= cfg.bulletSpeed; if (b.vx) b.x += b.vx; return b.y>-20 && b.x>-20 && b.x<g.W+20 })
+      g.bullets = g.bullets.filter(b => {
+        b.y -= cfg.bulletSpeed
+        if (b.vx) b.x += b.vx
+        
+        // Behavioral updates for specific types
+        if (b.type === 'wave') { b.w = 12 + Math.sin(g.tick * 0.2) * 10 }
+        if (b.type === 'spiral') { b.x += Math.sin(g.tick * 0.3) * 3 }
+        if (b.type === 'petal') { b.y += 1.5; b.vx *= 0.98 } // Slow down and fan out
+        if (b.type === 'flare') { b.w *= 0.98; b.h *= 0.98; b.dmg *= 1.02 } // Condense and power up
+
+        return b.y>-20 && b.x>-20 && b.x<g.W+20
+      })
 
       // Wave system
       if (g.waveState === 'spawning' && g.waveEnemiesSpawned === 0) spawnWaveEnemies(g)
@@ -485,8 +538,13 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
           const fH=10+rand(0,8)+(g.rapidFireTimer>0?6:0)
           ctx.fillStyle=g.tick%4<2?'#FDCB6E':shipDesign.engine
           ctx.beginPath();ctx.moveTo(px-10,py+p.h/2-10);ctx.lineTo(px,py+p.h/2+fH*1.5);ctx.lineTo(px+10,py+p.h/2-10);ctx.closePath();ctx.fill()
-          // Render PNG Image - drawn larger than hitbox
-          ctx.drawImage(g.shipImg, px - p.w*0.8, py - p.h, p.w*1.6, p.h*2)
+          // Render PNG Image
+          if (activeShip.sprite) {
+            const s = activeShip.sprite
+            ctx.drawImage(g.shipImg, s.x, s.y, s.w, s.h, px - p.w*0.8, py - p.h, p.w*1.6, p.h*2)
+          } else {
+            ctx.drawImage(g.shipImg, px - p.w*0.8, py - p.h, p.w*1.6, p.h*2)
+          }
         } else {
           // Engines
           ctx.fillStyle=shipDesign.engine;ctx.beginPath();ctx.arc(px-10,py+p.h/2+2,7+rand(0,2),0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(px+10,py+p.h/2+2,7+rand(0,2),0,Math.PI*2);ctx.fill()

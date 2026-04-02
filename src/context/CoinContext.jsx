@@ -131,7 +131,7 @@ export const HIGHLIGHT_PACKS = [
 ]
 
 // ─── Ship Catalog (Space Shooter) ────────────────────────────────────────────
-export const SHIP_CATALOG = [
+export const BASE_SHIP_CATALOG = [
   { id:'falcon', name:'Falcon', desc:'Pesawat standar yang seimbang — cocok untuk semua misi',
     price:0, icon:'🚀', color:'#4ECDC4',
     stats:{ speed:5, fireRate:8, bulletCount:1, maxHP:5, specialType:'bomb', specialCharge:300 },
@@ -175,6 +175,31 @@ export const SHIP_CATALOG = [
     img: '/wheel_ship.png',
     design:{ body:'#00BFFF', wing:'#006994', cockpit:'#E0FFFF', engine:'#00CED1', accent:'#B0E0E6' }
   },
+]
+
+// ─── Battle Pass Ships (Season 1 - V2) ───────────────────────────────────────
+export const BP_SHIP_CATALOG = [
+  { id:'bp-v2-1', name:'Veridian Aurora', desc:'Kapal dengan ornamen hijau zamrud yang elegan. Memiliki tembakan burst.',
+    price:0, icon:'🚀', color:'#00FF88', exclusive:true, rarity:'legendary',
+    stats:{ speed:6, fireRate:7, bulletCount:1, maxHP:6, specialType:'beam', specialCharge:250 },
+    img:'/ships/bp_v2_ship1.png', bulletType:'burst-3' },
+  { id:'bp-v2-2', name:'Amber Horizon', desc:'Didesain dengan warna emas hangat. Tembakan gelombang yang kuat.',
+    price:0, icon:'🚀', color:'#FFD700', exclusive:true, rarity:'legendary',
+    stats:{ speed:5, fireRate:8, bulletCount:1, maxHP:7, specialType:'rapid', specialCharge:200 },
+    img:'/ships/bp_v2_ship2.png', bulletType:'wave' },
+  { id:'bp-v2-3', name:'Cobalt Wings', desc:'Sayap kobalt yang tajam memberikan kelincahan maksimal di angkasa.',
+    price:0, icon:'🚀', color:'#74B9FF', exclusive:true, rarity:'legendary',
+    stats:{ speed:7.5, fireRate:5, bulletCount:2, maxHP:5, specialType:'cloak', specialCharge:280 },
+    img:'/ships/bp_v2_ship3.png', bulletType:'plasma' },
+  { id:'bp-v2-ultimate', name:'Aegis Prime - B4', desc:'Unit Mecha legendaris terkuat. Senjata Mega Beam penghancur segalanya.',
+    price:0, icon:'👑', color:'#FFF200', exclusive:true, rarity:'mythic',
+    stats:{ speed:8, fireRate:4, bulletCount:1, maxHP:10, specialType:'beam', specialCharge:400 },
+    img:'/ships/bp_v2_ultimate.png', bulletType:'mega-beam' },
+]
+
+export const SHIP_CATALOG = [
+  ...BASE_SHIP_CATALOG,
+  ...BP_SHIP_CATALOG,
 ]
 
 // ─── Hangman Themes (Hangman) ────────────────────────────────────────────────

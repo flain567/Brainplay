@@ -73,7 +73,7 @@ export default function GameDetailModal({ game, onClose, onPlay }) {
           width: 100%; max-width: 480px; background: ${bg};
           border-radius: 28px; position: relative; overflow: hidden;
           box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-          cursor: default; touch-action: none;
+          cursor: default;
         }
         .gdm-header {
           padding: 40px 24px 24px; text-align: center;
@@ -87,6 +87,7 @@ export default function GameDetailModal({ game, onClose, onPlay }) {
           border: none; color: ${textMuted}; font-size: 18px;
           display: flex; align-items: center; justify-content: center;
           cursor: pointer; transition: all 0.2s;
+          z-index: 10;
         }
         .gdm-close:hover { background: ${game.color}; color: #fff; transform: rotate(90deg); }
         
