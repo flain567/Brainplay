@@ -268,17 +268,33 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       const formation = WAVE_FORMATIONS[wn % WAVE_FORMATIONS.length]
       const positions = getFormationPositions(formation.pattern, count, g.W)
       const maxTypeIdx = Math.min(Math.floor(wn/2)+1, ENEMY_TYPES.length-1)
+      
       positions.forEach((pos) => {
         const et = ENEMY_TYPES[Math.floor(rand(0, maxTypeIdx+1))]
         const hpMult = 1 + Math.floor(wn/4)
+        const entryTypes = ['standard', 'side-slide', 'spiral', 'turbo-drop']
+        const entryType = entryTypes[Math.floor(Math.random() * (wn > 2 ? 4 : 1))] // Only standard for first 2 waves
+        
+        // Initial setup based on entry type
+        let startX = pos.x, startY = pos.y - (pos.delay||0)*6
+        if (entryType === 'side-slide') {
+          startX = Math.random() < 0.5 ? -40 : g.W + 40
+          startY = pos.y
+        } else if (entryType === 'spiral') {
+          startX = pos.x + (Math.random() < 0.5 ? -100 : 100)
+          startY = -60
+        } else if (entryType === 'turbo-drop') {
+          startY = -150
+        }
+
         g.enemies.push({
-          x:pos.x, y:pos.y-(pos.delay||0)*6, w:et.w, h:et.h, color:et.color, id:et.id,
+          x:startX, y:startY, targetX: pos.x, targetY: pos.y, w:et.w, h:et.h, color:et.color, id:et.id,
           hp: Math.floor(cfg.enemyHP*hpMult+(et.id==='tank'?2:0)), 
           maxHp: Math.floor(cfg.enemyHP*hpMult+(et.id==='tank'?2:0)),
           points: et.points+wn*3, shootRate: et.shootRate>0?Math.max(50,et.shootRate-wn*3):0,
           shootTimer: Math.floor(rand(60,200)), speed: cfg.enemySpeed+rand(-0.2,0.2)+wn*0.06+(et.id==='kamikaze'?1.5:0),
           movePattern:et.movePattern, wobble:rand(0,Math.PI*2), wobbleAmp:rand(0.3,1.5), swoopPhase:0, 
-          enterDelay:(pos.delay||0), entered:false,
+          enterDelay:(pos.delay||0), entered:false, entryType, entryStep: 0,
           phantom: et.phantom, spread: et.spread, aimed: et.aimed
         })
         g.waveEnemiesSpawned++
@@ -450,20 +466,35 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
     }
 
     function moveEnemy(en, g) {
-      if (en.enterDelay > 0) { en.enterDelay--; en.y += en.speed*0.3; return }
-      en.entered = true
-      const p = en.movePattern
       const timeSlow = g.timeWarpTimer > 0 ? 0.3 : 1.0
       const spd = en.speed * timeSlow
 
-      // Interactive Evasion (Hard Mode)
-      if (difficulty.id === 'hard' && g.bullets.length > 0) {
-        for (const b of g.bullets) {
-          if (Math.abs(b.x - en.x) < 40 && b.y > en.y && b.y < en.y + 150) {
-            en.x += (b.x > en.x ? -1.8 : 1.8) * timeSlow; break
-          }
+      if (!en.entered) {
+        if (en.enterDelay > 0) { en.enterDelay--; return }
+        
+        // Entry Animations
+        if (en.entryType === 'side-slide') {
+          const dx = en.targetX - en.x
+          if (Math.abs(dx) < 5) { en.x = en.targetX; en.entered = true }
+          else en.x += Math.sign(dx) * 4 * timeSlow
+        } else if (en.entryType === 'spiral') {
+          en.entryStep += 0.05 * timeSlow
+          const dx = (en.targetX - en.x) * 0.1, dy = (en.targetY - en.y) * 0.1
+          en.x += dx + Math.cos(en.entryStep * 5) * 5
+          en.y += dy + Math.sin(en.entryStep * 5) * 2
+          if (Math.abs(en.y - en.targetY) < 5) en.entered = true
+        } else if (en.entryType === 'turbo-drop') {
+          en.y += spd * 3.5
+          if (en.y >= en.targetY) { en.y = en.targetY; en.entered = true }
+        } else {
+          // standard dive
+          en.y += spd
+          if (en.y >= en.targetY) en.entered = true
         }
+        return
       }
+
+      const p = en.movePattern
 
       if (p==='straight') en.y += spd
       else if (p==='wobble') { en.y += spd; en.x += Math.sin(en.wobble)*en.wobbleAmp; en.wobble += 0.04 * timeSlow }
