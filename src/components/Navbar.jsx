@@ -47,6 +47,13 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
     return () => { document.removeEventListener('mousedown', fn); document.removeEventListener('touchstart', fn) }
   }, [menuOpen])
 
+  // Listen for global openBP event (from Home banner)
+  useEffect(() => {
+    const fn = () => setShowBP(true)
+    window.addEventListener('openBP', fn)
+    return () => window.removeEventListener('openBP', fn)
+  }, [])
+
   // Close menu on navigation
   const nav = (action) => {
     setMenuOpen(false)
@@ -438,6 +445,15 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, curre
                 <div className="nav-drawer-item-text">Shop</div>
                 <div className="nav-drawer-item-desc">Beli pesawat, skin, & item — 🪙 {coins}</div>
               </div>
+            </div>
+
+            <div className="nav-drawer-item" onClick={() => { play('click'); setMenuOpen(false); setShowBP(true); }}>
+              <div className="nav-drawer-item-icon" style={{ background: 'linear-gradient(135deg, #00f5ff, #a29bfe)', color: '#020118' }}>⚡</div>
+              <div style={{ flex: 1 }}>
+                <div className="nav-drawer-item-text">Battle Pass</div>
+                <div className="nav-drawer-item-desc">Season 1: Neon Genesis — Tier {seasonInfo.currentTier}</div>
+              </div>
+              {seasonInfo.hasRewardToClaim && <div className="nav-bp-alert" style={{ position:'relative', top:0, right:0 }} />}
             </div>
 
             <div className="nav-drawer-item" onClick={() => nav(onProfile)}>

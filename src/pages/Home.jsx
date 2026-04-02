@@ -46,7 +46,7 @@ const TAG_META  = {
 export default function Home({ games, onPlay, onContinueLast, onProfile, onShop, onStats, onOpenWheel }) {
   const { darkMode, reduceMotion } = useSettings()
   const { play }     = useSound()
-  const { progress } = useProgress()
+  const { progress, getSeasonInfo } = useProgress()
   const { playerName } = useAuth()
   const { coins, isDailyClaimable, claimDaily, earnCoins } = useCoins()
   const {
@@ -469,6 +469,50 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
               </button>
             </div>
           )}
+
+          {/* ── Battle Pass Season Banner ── */}
+          {(() => {
+            const seasonInfo = getSeasonInfo?.()
+            if (!seasonInfo) return null
+            const pct = Math.round(seasonInfo.progress * 100)
+            return (
+              <div 
+                className="section-card" 
+                style={{ 
+                  background: 'linear-gradient(135deg, #020118, #1A1F35)', 
+                  border: '1.5px solid rgba(0,245,255,0.25)',
+                  boxShadow: '0 8px 30px rgba(0,245,255,0.1)',
+                  position: 'relative', overflow: 'hidden'
+                }}
+                onClick={() => { play('click'); onOpenBP?.() || window.dispatchEvent(new CustomEvent('openBP')) }}
+              >
+                <div style={{ position: 'absolute', top: -20, right: -20, fontSize: 80, opacity: 0.1, pointerEvents: 'none' }}>⚡</div>
+                <div className="sc-header" style={{ marginBottom: 12 }}>
+                  <span style={{ fontSize: 20 }}>⚡</span>
+                  <span className="sc-title" style={{ color: '#00f5ff' }}>Season 1: Neon Genesis</span>
+                  <span className="sc-badge" style={{ background: 'rgba(0,245,255,0.15)', color: '#00f5ff', border: '1px solid rgba(0,245,255,0.3)' }}>
+                    Tier {seasonInfo.currentTier}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                  <div className="pb-xp-track" style={{ flex: 1, height: 10, background: 'rgba(255,255,255,0.05)' }}>
+                    <div className="pb-xp-fill" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #00f5ff, #a29bfe)', boxShadow: '0 0 10px #00f5ff' }} />
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: '#00f5ff' }}>{pct}%</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', fontWeight: 700 }}>
+                    {seasonInfo.xpInTier} / {seasonInfo.xpNeededForNext} XP ke Tier {seasonInfo.currentTier + 1}
+                  </span>
+                  {seasonInfo.hasRewardToClaim && (
+                    <span style={{ fontSize: 10, color: '#FFD700', fontWeight: 800, animation: 'pulse-soft 1.5s infinite' }}>
+                      🎁 Hadiah Tersedia!
+                    </span>
+                  )}
+                </div>
+              </div>
+            )
+          })()}
 
           {/* ── Main Lagi (Carousel v2) ── */}
           <div style={{ marginBottom: 28, animation: 'slide-up 0.4s 0.12s ease both' }}>

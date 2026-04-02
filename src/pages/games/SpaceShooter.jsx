@@ -143,6 +143,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       specialCharge:0, specialActive:false,
       gameTime:0, coinsCollected:0, fireTimer:0,
       rapidFireTimer:0, cloakTimer:0, fireTrailTimer:0, beamTimer:0,
+      omegaBeamTimer:0, emeraldBarrageTimer:0, shockwaveY:-1, timeWarpTimer:0,
     }
   }
 
@@ -222,6 +223,10 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
     else if (st === 'firetrail') { g.fireTrailTimer = 360; play('click'); setTimeout(() => { if (g) g.specialActive = false }, 6000) }
     else if (st === 'cloak') { g.cloakTimer = 300; play('click'); setTimeout(() => { if (g) g.specialActive = false }, 5000) }
     else if (st === 'beam') { g.beamTimer = 180; play('levelUp'); setTimeout(() => { if (g) g.specialActive = false }, 3000) }
+    else if (st === 'emerald-barrage') { g.emeraldBarrageTimer = 60; play('levelUp'); setTimeout(() => { if (g) g.specialActive = false }, 1000) }
+    else if (st === 'golden-shockwave') { g.shockwaveY = g.player.y; play('levelUp'); setTimeout(() => { if (g) g.specialActive = false }, 1500) }
+    else if (st === 'time-warp') { g.timeWarpTimer = 300; play('levelUp'); setTimeout(() => { if (g) g.specialActive = false }, 5000) }
+    else if (st === 'omega-beam') { g.omegaBeamTimer = 240; g.shakeTimer = 240; play('levelUp'); setTimeout(() => { if (g) g.specialActive = false }, 4000) }
   }
 
   function spawnParticles(g, x, y, color, count) {
@@ -360,12 +365,15 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       if (en.enterDelay > 0) { en.enterDelay--; en.y += en.speed*0.3; return }
       en.entered = true
       const p = en.movePattern
-      if (p==='straight') en.y += en.speed
-      else if (p==='wobble') { en.y += en.speed; en.x += Math.sin(en.wobble)*en.wobbleAmp; en.wobble += 0.04 }
-      else if (p==='zigzag') { en.y += en.speed*0.8; en.x += Math.sin(en.wobble)*2.5; en.wobble += 0.06 }
-      else if (p==='slow') { en.y += en.speed*0.6; en.x += Math.sin(en.wobble)*0.5; en.wobble += 0.02 }
-      else if (p==='swoop') { en.swoopPhase+=0.03; en.y += en.speed*(en.swoopPhase<Math.PI?0.5:1.5); en.x += Math.cos(en.swoopPhase)*3 }
-      else if (p==='chase') { const dx=g.player.x-en.x; en.x+=Math.sign(dx)*Math.min(Math.abs(dx)*0.03,2); en.y+=en.speed*1.2 }
+      const timeSlow = g.timeWarpTimer > 0 ? 0.3 : 1.0
+      const spd = en.speed * timeSlow
+
+      if (p==='straight') en.y += spd
+      else if (p==='wobble') { en.y += spd; en.x += Math.sin(en.wobble)*en.wobbleAmp; en.wobble += 0.04 * timeSlow }
+      else if (p==='zigzag') { en.y += spd*0.8; en.x += Math.sin(en.wobble)*2.5; en.wobble += 0.06 * timeSlow }
+      else if (p==='slow') { en.y += spd*0.6; en.x += Math.sin(en.wobble)*0.5; en.wobble += 0.02 * timeSlow }
+      else if (p==='swoop') { en.swoopPhase += 0.03 * timeSlow; en.y += spd*(en.swoopPhase<Math.PI?0.5:1.5); en.x += Math.cos(en.swoopPhase)*3 }
+      else if (p==='chase') { const dx=g.player.x-en.x; en.x+=Math.sign(dx)*Math.min(Math.abs(dx)*0.03*timeSlow,2); en.y+=spd*1.2 }
     }
 
     function update() {
@@ -394,11 +402,49 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       if (g.rapidFireTimer>0) g.rapidFireTimer--
       if (g.cloakTimer>0) g.cloakTimer--
       if (g.fireTrailTimer>0) { g.fireTrailTimer--; if(g.tick%2===0) g.trails.push({x:p.x+rand(-8,8),y:p.y+p.h/2,r:rand(4,8),color:g.tick%4<2?'#FF4500':'#FFD700',life:30,maxLife:30,dmg:true}) }
-      if (g.beamTimer>0) {
+      
+      if (g.beamTimer > 0) {
         g.beamTimer--
-        g.enemies = g.enemies.filter(en => { if(Math.abs(en.x-p.x)<30){en.hp-=0.5;if(en.hp<=0){g.score+=en.points;g.waveEnemiesKilled++;setScore(g.score);spawnParticles(g,en.x,en.y,en.color,10);spawnPowerup(g,en.x,en.y);return false}}return true })
-        if (g.boss && Math.abs(g.boss.x-p.x)<40) g.boss.hp -= 0.3
+        g.enemies = g.enemies.filter(en => {
+          if (Math.abs(en.x - p.x) < 30) {
+            en.hp -= 0.5; if (en.hp <= 0) { g.score += en.points; g.waveEnemiesKilled++; setScore(g.score); spawnParticles(g, en.x, en.y, en.color, 10); spawnPowerup(g, en.x, en.y); return false } }
+          return true
+        })
+        if (g.boss && Math.abs(g.boss.x - p.x) < 40) g.boss.hp -= 0.3
       }
+      
+      // New V2 Abilities Logic
+      if (g.omegaBeamTimer > 0) {
+        g.omegaBeamTimer--
+        g.enemies = g.enemies.filter(en => {
+          if (Math.abs(en.x - p.x) < g.W * 0.3) {
+            en.hp -= 2.5; if (en.hp <= 0) { g.score += en.points; g.waveEnemiesKilled++; setScore(g.score); spawnParticles(g, en.x, en.y, en.color, 15); return false } }
+          return true
+        })
+        if (g.boss && Math.abs(g.boss.x - p.x) < g.W * 0.35) g.boss.hp -= 1.5
+      }
+
+      if (g.emeraldBarrageTimer > 0) {
+        g.emeraldBarrageTimer--; if (g.emeraldBarrageTimer % 3 === 0) {
+          for (let i = 0; i < 12; i++) {
+            const ang = (Math.PI * 2 * i / 12) + (g.tick * 0.2); 
+            g.bullets.push({ x: p.x, y: p.y, w: 10, h: 10, vx: Math.cos(ang) * 10, vy: Math.sin(ang) * 10, dmg: 4, color: '#00FF88' })
+          }
+        }
+      }
+
+      if (g.shockwaveY > -1) {
+        g.shockwaveY -= 12; if (g.shockwaveY < -100) g.shockwaveY = -1
+        g.enemies = g.enemies.filter(en => {
+          if (Math.abs(en.y - g.shockwaveY) < 30) {
+            en.hp -= 10; if (en.hp <= 0) { g.score += en.points; g.waveEnemiesKilled++; setScore(g.score); spawnParticles(g, en.x, en.y, en.color, 12); return false } }
+          return true
+        })
+        if (g.boss && Math.abs(g.boss.y - g.shockwaveY) < 40) g.boss.hp -= 5
+        g.enemyBullets = g.enemyBullets.filter(eb => Math.abs(eb.y - g.shockwaveY) > 40)
+      }
+
+      if (g.timeWarpTimer > 0) g.timeWarpTimer--
       g.specialCharge = Math.min(g.specialCharge, activeShip.stats.specialCharge)
       setSpecialCharge(g.specialCharge)
       if (g.specialCharge >= activeShip.stats.specialCharge && !g.specialActive) setSpecialReady(true)
@@ -479,7 +525,9 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
 
       // Enemy bullets
       g.enemyBullets = g.enemyBullets.filter(eb => {
-        eb.y+=(eb.vy||0);eb.x+=(eb.vx||0);if(eb.y>g.H+20||eb.y<-20||eb.x<-20||eb.x>g.W+20)return false
+        const timeSlow = g.timeWarpTimer > 0 ? 0.3 : 1.0
+        eb.y+=(eb.vy||0) * timeSlow; eb.x+=(eb.vx||0) * timeSlow
+        if(eb.y>g.H+20||eb.y<-20||eb.x<-20||eb.x>g.W+20)return false
         if(p.shieldTimer<=0&&p.invTimer<=0&&g.cloakTimer<=0&&Math.abs(eb.x-p.x)<p.w/2+eb.w/2&&Math.abs(eb.y-p.y)<p.h/2+eb.h/2){
           g.lives--;setLives(g.lives);g.shakeTimer=10;spawnParticles(g,p.x,p.y,'#FF6B6B',10);play('mismatch');vibrateHeavy();g.combo=0;setCombo(0)
           if(g.lives<=0){vibrateError();endGame(g,false);return false};p.invTimer=60;return false
@@ -528,6 +576,32 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
 
       // Beam
       if(g.beamTimer>0){const bW=26+Math.sin(g.tick*0.3)*8;ctx.globalAlpha=0.6;const bg2=ctx.createLinearGradient(p.x-bW/2,0,p.x+bW/2,0);bg2.addColorStop(0,'transparent');bg2.addColorStop(0.3,shipDesign.body+'CC');bg2.addColorStop(0.5,'#fff');bg2.addColorStop(0.7,shipDesign.body+'CC');bg2.addColorStop(1,'transparent');ctx.fillStyle=bg2;ctx.fillRect(p.x-bW/2,0,bW,p.y-p.h/2);ctx.globalAlpha=0.15;ctx.fillStyle=shipDesign.body;ctx.fillRect(p.x-bW,0,bW*2,p.y-p.h/2);ctx.globalAlpha=1}
+
+      // V2 Ultimate Visuals
+      if (g.omegaBeamTimer > 0) {
+        const oW = g.W * 0.6 + Math.sin(g.tick * 0.5) * 50; 
+        ctx.globalAlpha = 0.8; const og = ctx.createLinearGradient(p.x - oW/2, 0, p.x + oW/2, 0);
+        og.addColorStop(0, '#FFF20000'); og.addColorStop(0.3, '#FFF200AA'); og.addColorStop(0.5, '#FFFFFF'); og.addColorStop(0.7, '#FFF200AA'); og.addColorStop(1, '#FFF20000');
+        ctx.fillStyle = og; ctx.fillRect(p.x - oW/2, 0, oW, g.H);
+        for(let i=0; i<5; i++) { spawnParticles(g, p.x + rand(-oW/4, oW/4), rand(0, g.H), '#FFF200', 1); }
+        ctx.globalAlpha = 1;
+      }
+      if (g.shockwaveY > -1) {
+        ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 15; ctx.globalAlpha = 0.6;
+        ctx.beginPath(); ctx.moveTo(0, g.shockwaveY); ctx.lineTo(g.W, g.shockwaveY); ctx.stroke();
+        ctx.globalAlpha = 0.3; ctx.fillStyle = '#FFD700'; ctx.fillRect(0, g.shockwaveY - 10, g.W, 20);
+        ctx.globalAlpha = 1;
+      }
+      if (g.timeWarpTimer > 0) {
+        ctx.fillStyle = 'rgba(116, 185, 255, 0.15)'; ctx.fillRect(0, 0, g.W, g.H);
+        ctx.strokeStyle = 'rgba(116, 185, 255, 0.5)'; ctx.lineWidth = 10 + Math.sin(g.tick * 0.1) * 5;
+        ctx.strokeRect(5, 5, g.W-10, g.H-10);
+      }
+      if (specialReady) {
+        ctx.fillStyle = '#fff'; ctx.font = "bold 14px 'Fredoka One',cursive"; ctx.textAlign = 'center';
+        ctx.globalAlpha = 0.6 + Math.sin(g.tick * 0.2) * 0.4;
+        ctx.fillText("ULTIMATE READY!", p.x, p.y + p.h + 20); ctx.globalAlpha = 1;
+      }
 
       // Player
       const px=p.x,py=p.y,blink=p.invTimer>0&&Math.floor(p.invTimer/4)%2===0,cloaked=g.cloakTimer>0
@@ -680,7 +754,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
               <span style={{fontSize:28}}>{activeShip.icon}</span>
               <div><div style={{fontFamily:"'Fredoka One',cursive",fontSize:16,color:activeShip.color}}>{activeShip.name}</div><div style={{fontSize:11,color:'rgba(255,255,255,0.35)'}}>SPD:{activeShip.stats.speed} • ATK:{12-activeShip.stats.fireRate} • HP:{activeShip.stats.maxHP}</div></div>
             </div>
-            <div style={{fontSize:11,color:'rgba(255,255,255,0.4)',lineHeight:1.4}}>⚡ {activeShip.stats.specialType==='bomb'?'Bom Area':activeShip.stats.specialType==='rapid'?'Rapid Fire':activeShip.stats.specialType==='shield'?'Mega Shield':activeShip.stats.specialType==='firetrail'?'Fire Trail':activeShip.stats.specialType==='cloak'?'Stealth Cloak':activeShip.stats.specialType==='beam'?'Mega Beam':''} — Tap 2× atau Space/F</div>
+            <div style={{fontSize:11,color:'rgba(255,255,255,0.4)',lineHeight:1.4}}>⚡ {activeShip.stats.specialType==='bomb'?'Bom Area':activeShip.stats.specialType==='rapid'?'Rapid Fire':activeShip.stats.specialType==='shield'?'Mega Shield':activeShip.stats.specialType==='firetrail'?'Fire Trail':activeShip.stats.specialType==='cloak'?'Stealth Cloak':activeShip.stats.specialType==='beam'?'Mega Beam':activeShip.stats.specialType==='emerald-barrage'?'Emerald Barrage':activeShip.stats.specialType==='golden-shockwave'?'Golden Shockwave':activeShip.stats.specialType==='time-warp'?'Time Warp (Slow-mo)':activeShip.stats.specialType==='omega-beam'?'Omega Beam (ULTIMATE)':''} — Tap 2× atau Space/F</div>
           </div>
           <div style={{display:'flex',gap:isMobile?10:16,marginBottom:16,fontSize:isMobile?10:12,color:'rgba(255,255,255,0.3)',flexWrap:'wrap',justifyContent:'center'}}><span>🕹️ Geser/WASD</span><span>🔫 Auto-fire</span><span>⭐ Power-up</span><span>⚡ Special</span></div>
           <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap',justifyContent:'center'}}>
