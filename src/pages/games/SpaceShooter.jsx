@@ -66,19 +66,24 @@ function makeNebulae(W, H) {
 const ASSETS = {
   boss1: null,
   boss2: null,
-  boss3: null
+  boss3: null,
+  bossSkull: null,
+  bossFortress: null,
 }
 
 export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
   useEffect(() => {
     // Preload boss assets
     ['boss1.png', 'boss2.png', 'boss3.png'].forEach(src => {
-      if (!ASSETS[src]) {
+      if (!ASSETS[src.split('.')[0]]) {
         const img = new Image()
         img.src = '/' + src
-        ASSETS[src] = img
+        ASSETS[src.split('.')[0]] = img
       }
     })
+    // User assets
+    const skull = new Image(); skull.src = '/enemies/boss_skull.png'; ASSETS.bossSkull = skull
+    const fortress = new Image(); fortress.src = '/enemies/boss_fortress.png'; ASSETS.bossFortress = fortress
   }, [])
   const canvasRef = useRef(null)
   const gameRef   = useRef(null)
@@ -144,12 +149,14 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       gameTime:0, coinsCollected:0, fireTimer:0,
       rapidFireTimer:0, cloakTimer:0, fireTrailTimer:0, beamTimer:0,
       omegaBeamTimer:0, emeraldBarrageTimer:0, shockwaveY:-1, timeWarpTimer:0,
+      isBossRush: false, rushLevel: 0,
     }
   }
 
-  function startGame() {
+  function startGame(rush = false) {
     const { w, h } = sizeCanvas(); if (w === 0 || h === 0) return
     gameRef.current = initGame(w, h)
+    gameRef.current.isBossRush = rush
     inputRef.current = { left:false, right:false, up:false, down:false, touchActive:false, touchX:null, touchY:null, touchOffsetX:0, touchOffsetY:0, doubleTap:0 }
     setScore(0); setLives(gameRef.current.lives); setWeaponLv(1); setWave(1)
     setSpecialReady(false); setSpecialCharge(0); setGameTime(0); setCombo(0)
@@ -274,16 +281,24 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
     function spawnBoss(g) {
       const wn = g.wave
       const bossTypes = [
-        { name:'Scorpion', color:'#FF4757', accent:'#FF6B6B', w:90, h:70, patterns:3, imgId:'boss1.png' },
-        { name:'Hydra', color:'#6C5CE7', accent:'#A29BFE', w:120, h:80, patterns:4, imgId:'boss2.png' },
-        { name:'Inferno', color:'#FF8C00', accent:'#FFD700', w:110, h:100, patterns:5, imgId:'boss3.png' },
+        { name:'Scorpion', color:'#FF4757', accent:'#FF6B6B', w:90, h:70, patterns:3, img: ASSETS.boss1 },
+        { name:'Hydra', color:'#6C5CE7', accent:'#A29BFE', w:120, h:80, patterns:4, img: ASSETS.boss2 },
+        { name:'Skull Overlord', color:'#FFD700', accent:'#FFD700', w:100, h:100, patterns:4, img: ASSETS.bossSkull },
+        { name:'Inferno', color:'#FF8C00', accent:'#FFD700', w:110, h:100, patterns:5, img: ASSETS.boss3 },
+        { name:'Iron Fortress', color:'#74B9FF', accent:'#FFFFFF', w:160, h:110, patterns:5, img: ASSETS.bossFortress },
       ]
-      const bt = bossTypes[Math.min(Math.floor(wn/3)-1, bossTypes.length-1)] || bossTypes[0]
-      const hpScale = 1 + Math.floor(wn/3)*0.5
+      let bt
+      if (g.isBossRush) {
+        bt = bossTypes[g.rushLevel % bossTypes.length]
+        g.rushLevel++
+      } else {
+        bt = bossTypes[Math.min(Math.floor(wn/3)-1, bossTypes.length-1)] || bossTypes[0]
+      }
+      const hpScale = g.isBossRush ? (1 + (g.rushLevel-1)*0.4) : (1 + Math.floor(wn/3)*0.5)
       g.boss = {
-        x:g.W/2, y:-100, targetY:90, w:bt.w, h:bt.h, color:bt.color, accent:bt.accent, name:bt.name, img: ASSETS[bt.imgId],
+        x:g.W/2, y:-100, targetY:90, w:bt.w, h:bt.h, color:bt.color, accent:bt.accent, name:bt.name, img: bt.img,
         hp:Math.floor(cfg.bossHP*hpScale), maxHp:Math.floor(cfg.bossHP*hpScale),
-        points:300+wn*80, shootTimer:0, attackCycle:0, patterns:bt.patterns,
+        points:g.isBossRush ? 500 : (300+wn*80), shootTimer:0, attackCycle:0, patterns:bt.patterns,
         entered:false, movePhase:0, enraged:false,
       }
       g.bossSpawned = true; g.waveState = 'boss'
@@ -466,12 +481,20 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       })
 
       // Wave system
-      if (g.waveState === 'spawning' && g.waveEnemiesSpawned === 0) spawnWaveEnemies(g)
-      if ((g.waveState==='spawning'||g.waveState==='clearing') && g.enemies.length===0 && g.waveEnemiesSpawned>0) {
+      if (g.waveState === 'spawning' && g.waveEnemiesSpawned === 0 && !g.isBossRush) spawnWaveEnemies(g)
+      if (g.isBossRush && !g.boss && g.waveState !== 'transition') { g.waveState = 'transition'; g.waveTransitionTimer = 120 }
+      
+      if ((g.waveState==='spawning'||g.waveState==='clearing') && g.enemies.length===0 && g.waveEnemiesSpawned>0 && !g.isBossRush) {
         if (g.wave%3===0 && !g.bossSpawned) spawnBoss(g)
         else { g.waveState='transition'; g.waveTransitionTimer=90 }
       }
-      if (g.waveState==='transition') { g.waveTransitionTimer--; if(g.waveTransitionTimer<=0){ g.wave++;setWave(g.wave);g.bossSpawned=false;g.waveEnemiesSpawned=0;g.waveEnemiesKilled=0;g.waveState='spawning' } }
+      if (g.waveState==='transition') { 
+        g.waveTransitionTimer--; 
+        if(g.waveTransitionTimer<=0){ 
+          if (g.isBossRush) { spawnBoss(g) }
+          else { g.wave++;setWave(g.wave);g.bossSpawned=false;g.waveEnemiesSpawned=0;g.waveEnemiesKilled=0;g.waveState='spawning' }
+        } 
+      }
 
       // Enemies
       g.enemies = g.enemies.filter(en => {
@@ -730,6 +753,19 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
         </div>
       )}
 
+      {/* Boss Health Bar */}
+      {phase === 'playing' && gameRef.current?.boss && (
+        <div style={{ position:'absolute', top:isMobile?50:70, left:'50%', transform:'translateX(-50%)', width:'80%', maxWidth:400, zIndex:10, pointerEvents:'none', animation:'slide-up 0.4s ease-out' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+            <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:12, color:'#FF4757', textShadow:'0 0 10px rgba(255,71,87,0.5)' }}>{gameRef.current.boss.name}</span>
+            <span style={{ fontSize:10, color:'#FF6B6B', fontWeight:800 }}>{Math.ceil(gameRef.current.boss.hp / gameRef.current.boss.maxHp * 100)}%</span>
+          </div>
+          <div style={{ width:'100%', height:8, background:'rgba(255,255,255,0.05)', borderRadius:100, border:'1px solid rgba(255,71,87,0.2)', overflow:'hidden', boxShadow:'0 0 15px rgba(255,71,87,0.1)' }}>
+            <div style={{ width:`${(gameRef.current.boss.hp / gameRef.current.boss.maxHp) * 100}%`, height:'100%', background:'linear-gradient(90deg, #FF4757, #FF6B6B)', transition:'width 0.3s ease-out' }} />
+          </div>
+        </div>
+      )}
+
       {/* Bottom HUD */}
       {phase === 'playing' && (
         <div style={{ position:'absolute', bottom:0, left:0, right:0, zIndex:10, display:'flex', alignItems:'center', justifyContent:'space-between', padding:isMobile?'8px 10px':'10px 16px', background:'linear-gradient(to top,rgba(2,1,24,0.9),rgba(2,1,24,0.4),transparent)', pointerEvents:'none' }}>
@@ -762,7 +798,10 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
             <div style={{background:'rgba(255,107,107,0.08)',border:'1.5px solid rgba(255,107,107,0.2)',borderRadius:14,padding:isMobile?'7px 14px':'8px 18px',color:'rgba(255,107,107,0.6)',fontSize:isMobile?11:12,fontWeight:700}}>❤️ HP: {Math.min(cfg.lives,activeShip.stats.maxHP)}</div>
           </div>
           {(bestScore>0||bestWave>0) && <div style={{display:'flex',gap:12,marginBottom:16,fontSize:12,color:'rgba(255,211,61,0.45)',fontWeight:600}}>{bestScore>0&&<span>🏆 Skor: {bestScore}</span>}{bestWave>0&&<span>📊 Wave: {bestWave}</span>}</div>}
-          <button onClick={startGame} style={{background:`linear-gradient(135deg,${activeShip.color},#a29bfe)`,color:'#fff',border:'none',borderRadius:100,padding:isMobile?'14px 40px':'15px 50px',fontSize:isMobile?16:19,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer',boxShadow:`0 0 36px ${activeShip.color}66`,WebkitTapHighlightColor:'transparent'}}>▶ Mulai Misi</button>
+          <div style={{display:'flex', gap:10, width:'100%', maxWidth:300}}>
+            <button onClick={() => startGame(false)} style={{flex:1, background:`linear-gradient(135deg,${activeShip.color},#a29bfe)`,color:'#fff',border:'none',borderRadius:100,padding:isMobile?'12px 0':'14px 0',fontSize:isMobile?15:17,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer',boxShadow:`0 0 36px ${activeShip.color}66`,WebkitTapHighlightColor:'transparent'}}>▶ Mulai Misi</button>
+            <button onClick={() => startGame(true)} style={{flex:1, background:`linear-gradient(135deg,#FF4757,#FF6B6B)`,color:'#fff',border:'none',borderRadius:100,padding:isMobile?'12px 0':'14px 0',fontSize:isMobile?13:15,fontWeight:800,fontFamily:"'Fredoka One',cursive",cursor:'pointer',boxShadow:`0 0 36px rgba(255,71,87,0.4)`,WebkitTapHighlightColor:'transparent', display:'flex', alignItems:'center', justifyContent:'center', gap:5}}>🔥 Boss Rush</button>
+          </div>
           <button onClick={()=>{play('click');onBack()}} style={{marginTop:12,background:'transparent',color:'rgba(255,255,255,0.35)',border:'1.5px solid rgba(255,255,255,0.1)',borderRadius:100,padding:'10px 24px',fontSize:13,fontWeight:700,fontFamily:"'Fredoka One',cursive",cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>← Kembali</button>
         </div>
       )}
