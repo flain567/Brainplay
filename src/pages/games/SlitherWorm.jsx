@@ -345,7 +345,7 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
     })
     const foods  = Array.from({ length: cfg.foodCount }, () => spawnFood(M))
     return {
-      player, bots, foods, particles: [],
+      player, bots, foods, particles: [], speedLines: [],
       score: 0, kills: 0, mapSize: M,
       cam: { x: M / 2 - (canvas._logicalW || canvas.width) / 2, y: M / 2 - (canvas._logicalH || canvas.height) / 2 },
       tick: 0,
@@ -507,6 +507,36 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
         pt.x += pt.vx; pt.y += pt.vy; pt.life -= 0.04; pt.r *= 0.97
         return pt.life > 0
       })
+
+      // Speed lines & Boost extra glow update
+      if (boostRef.current) {
+         if (Math.random() > 0.4 && p.segs.length > 2) {
+             const randPos = p.segs[Math.floor(Math.random() * (p.segs.length * 0.8))];
+             g.particles.push({
+                 x: randPos.x + rand(-8,8), y: randPos.y + rand(-8,8),
+                 vx: -Math.cos(p.angle) * rand(2, 5) + rand(-1,1), vy: -Math.sin(p.angle) * rand(2, 5) + rand(-1,1),
+                 r: rand(4, 9), color: PLAYER_SKIN.glow, life: 1.2
+             });
+         }
+         g.speedLines = g.speedLines || []
+         for(let i=0; i<3; i++) {
+           g.speedLines.push({
+               x: rand(0, canvasRef.current._logicalW || canvasRef.current.width),
+               y: rand(0, canvasRef.current._logicalH || canvasRef.current.height),
+               len: rand(40, 150),
+               life: 1.0,
+           })
+         }
+      }
+      
+      if (g.speedLines) {
+         g.speedLines = g.speedLines.filter(sl => {
+            sl.life -= 0.08;
+            sl.x -= Math.cos(p.angle) * 45;
+            sl.y -= Math.sin(p.angle) * 45;
+            return sl.life > 0;
+         })
+      }
 
       // Bots update
       const allWorms = [g.player, ...g.bots]
@@ -676,33 +706,52 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
       // Player
       drawWorm(ctx, g.player, PLAYER_SKIN, cx, cy, W, H, true)
 
-      // Boost trail
+      // Boost trail / Body glow intensification
       if (boostRef.current && g.player.segs.length > 3) {
-        ctx.globalAlpha = 0.18
+        ctx.globalAlpha = 0.25
         ctx.fillStyle   = PLAYER_SKIN.glow
-        for (let i = 0; i < 5; i++) {
-          const ts = g.player.segs[g.player.segs.length - 1 - i]
-          if (!ts) break
-          ctx.beginPath()
-          ctx.arc(ts.x - cx + rand(-6,6), ts.y - cy + rand(-6,6), rand(2,5), 0, Math.PI * 2)
-          ctx.fill()
+        // Emit trail around random segments towards the tail
+        for (let i = 0; i < 8; i++) {
+          const sIdx = g.player.segs.length - 1 - Math.floor(Math.random() * 12);
+          if (sIdx > 0 && sIdx < g.player.segs.length) {
+            const ts = g.player.segs[sIdx]
+            ctx.beginPath()
+            ctx.arc(ts.x - cx + rand(-8,8), ts.y - cy + rand(-8,8), rand(4,8), 0, Math.PI * 2)
+            ctx.fill()
+          }
         }
         ctx.globalAlpha = 1
       }
 
-      // Eat particles
+      // Eat/Boost particles
       g.particles.forEach(pt => {
         const px = pt.x - cx, py = pt.y - cy
-        if (px < -20 || px > W + 20 || py < -20 || py > H + 20) return
-        ctx.globalAlpha = pt.life
+        if (px < -30 || px > W + 30 || py < -30 || py > H + 30) return
+        ctx.globalAlpha = Math.min(1, pt.life)
         ctx.fillStyle = pt.color
         ctx.beginPath()
-        ctx.arc(px, py, pt.r, 0, Math.PI * 2)
+        ctx.arc(px, py, Math.max(0.1, pt.r), 0, Math.PI * 2)
         ctx.fill()
       })
       ctx.globalAlpha = 1
-
+      
       ctx.shadowBlur = 0
+
+      // Speed Lines (Screen space)
+      if (g.speedLines && g.speedLines.length > 0) {
+          ctx.save();
+          ctx.lineCap = 'round';
+          g.speedLines.forEach(sl => {
+             ctx.globalAlpha = sl.life * 0.35;
+             ctx.strokeStyle = '#ffffff'; 
+             ctx.lineWidth = rand(1, 2.5);
+             ctx.beginPath();
+             ctx.moveTo(sl.x, sl.y);
+             ctx.lineTo(sl.x - Math.cos(g.player.angle)*sl.len, sl.y - Math.sin(g.player.angle)*sl.len);
+             ctx.stroke();
+          });
+          ctx.restore();
+      }
 
       // ── Minimap ──
       const mmSize = 110, mmMargin = 12

@@ -292,6 +292,15 @@ export default function BrickBreaker({ onBack, onHome, difficulty }) {
 
         ball.fireball = g.effects.fireball > 0
 
+        // Trail Update
+        ball.trail = ball.trail || []
+        if (p === 'playing' && !ball.stuck) {
+           ball.trail.push({x: ball.x, y: ball.y})
+           if (ball.trail.length > (ball.fireball ? 15 : 8)) ball.trail.shift()
+        } else if (ball.stuck || p !== 'playing') {
+           ball.trail = []
+        }
+
         ball.x += ball.dx * dt
         ball.y += ball.dy * dt
 
@@ -764,6 +773,20 @@ export default function BrickBreaker({ onBack, onHome, difficulty }) {
 
       // Balls
       for (const ball of g.balls) {
+        // Draw Trail
+        if (ball.trail && ball.trail.length > 1) {
+           ctx.beginPath()
+           ctx.moveTo(ball.trail[0].x, ball.trail[0].y)
+           for (let i = 1; i < ball.trail.length; i++) {
+             ctx.lineTo(ball.trail[i].x, ball.trail[i].y)
+           }
+           ctx.lineTo(ball.x, ball.y)
+           ctx.strokeStyle = ball.fireball ? 'rgba(255, 69, 0, 0.45)' : 'rgba(162, 155, 254, 0.35)'
+           ctx.lineWidth = ball.fireball ? ball.r * 1.8 : ball.r * 1.2
+           ctx.lineCap = 'round'
+           ctx.stroke()
+        }
+
         ctx.fillStyle = ball.fireball ? '#FF4500' : '#fff'
         ctx.shadowColor = ball.fireball ? '#FF4500' : '#A29BFE'
         ctx.shadowBlur = ball.fireball ? 15 : 8

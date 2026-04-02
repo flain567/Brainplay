@@ -174,8 +174,6 @@ export default function GameCard({ game, onPlay }) {
         ref={cardRef}
         className="gcard"
         onClick={handleClick}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         style={{
