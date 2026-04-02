@@ -33,6 +33,7 @@ const POWERUP_TYPES = [
   { id: 'multi',    color: '#A29BFE', emoji: '⚡', duration: 0 },
   { id: 'life',     color: '#FF6B6B', emoji: '❤️', duration: 0 },
   { id: 'magnet',   color: '#FDCB6E', emoji: '🧲', duration: 8000 },
+  { id: 'laser',    color: '#FF4757', emoji: '🔫', duration: 8000 },
 ]
 
 const rand = (a, b) => a + Math.random() * (b - a)
@@ -158,8 +159,9 @@ export default function BrickBreaker({ onBack, onHome, difficulty }) {
       bricks: isBoss ? [] : generateBricks(W, H, lvl),
       boss: isBoss ? generateBoss(W, lvl) : null,
       powerups: [],
+      lasers: [],
       particles: [],
-      effects: { wide: 0, fireball: 0, magnet: 0 },
+      effects: { wide: 0, fireball: 0, magnet: 0, laser: 0 },
       score: gameRef.current ? gameRef.current.score : 0,
       lives: gameRef.current ? gameRef.current.lives : cfg.lives,
       level: lvl,
@@ -262,9 +264,20 @@ export default function BrickBreaker({ onBack, onHome, difficulty }) {
 
       // Update effects timers
       const now = Date.now()
-      for (const key of ['wide', 'fireball', 'magnet']) {
+      for (const key of ['wide', 'fireball', 'magnet', 'laser']) {
         if (g.effects[key] > 0 && now > g.effects[key]) {
           g.effects[key] = 0
+        }
+      }
+
+      // Fire lasers
+      if (g.effects.laser > 0) {
+        if (!g.lastLaserTime) g.lastLaserTime = 0
+        if (now - g.lastLaserTime > 500) { // Fire every 0.5s
+          g.lastLaserTime = now
+          g.lasers.push({ x: g.paddle.x + 10, y: g.paddle.y, dy: -6, w: 4, h: 12 })
+          g.lasers.push({ x: g.paddle.x + g.paddle.w - 14, y: g.paddle.y, dy: -6, w: 4, h: 12 })
+          try { play('flip') } catch(e) {}
         }
       }
 
@@ -431,6 +444,36 @@ export default function BrickBreaker({ onBack, onHome, difficulty }) {
         }
       }
 
+      // Update lasers
+      for (let i = g.lasers.length - 1; i >= 0; i--) {
+        const l = g.lasers[i]
+        l.y += l.dy * dt
+        if (l.y < -20) { g.lasers.splice(i, 1); continue }
+
+        // Hit brick
+        let hit = false
+        for (const brick of g.bricks) {
+          if (!brick.alive) continue
+          if (l.x < brick.x + brick.w && l.x + l.w > brick.x && l.y < brick.y + brick.h && l.y + l.h > brick.y) {
+            brick.hp--
+            if (brick.hp <= 0) {
+              brick.alive = false; brick.breakAnimation = 15; g.score += brick.points
+              for (let pi = 0; pi < 4; pi++) g.particles.push({ x: l.x, y: l.y, dx: rand(-2, 2), dy: rand(-2, 2), life: 20, color: brick.color, r: 2 })
+            }
+            hit = true; break
+          }
+        }
+        // Hit boss
+        if (!hit && g.boss && g.boss.alive) {
+          const b = g.boss
+          if (l.x < b.x + b.w && l.x + l.w > b.x && l.y < b.y + b.h && l.y + l.h > b.y) {
+            b.hp--; g.score += 5; hit = true
+            for (let pi = 0; pi < 4; pi++) g.particles.push({ x: l.x, y: l.y, dx: rand(-2, 2), dy: rand(-2, 2), life: 20, color: '#FF4757', r: 2 })
+          }
+        }
+        if (hit) g.lasers.splice(i, 1)
+      }
+
       // Powerup movement & collection
       for (let i = g.powerups.length - 1; i >= 0; i--) {
         const pu = g.powerups[i]
@@ -575,6 +618,9 @@ export default function BrickBreaker({ onBack, onHome, difficulty }) {
           g.lives = Math.min(g.lives + 1, cfg.lives + 2)
           setLives(g.lives)
           break
+        case 'laser':
+          g.effects.laser = Date.now() + pu.duration
+          break
       }
     }
 
@@ -686,6 +732,13 @@ export default function BrickBreaker({ onBack, onHome, difficulty }) {
         ctx.fillText(pu.emoji, pu.x, pu.y + 4)
       }
 
+      // Lasers
+      for (const l of g.lasers) {
+        ctx.fillStyle = '#FF4757'; ctx.shadowColor = '#FF4757'; ctx.shadowBlur = 8
+        ctx.fillRect(l.x, l.y, l.w, l.h)
+        ctx.shadowBlur = 0
+      }
+
       // Paddle
       const pw = g.paddle.w
       const px = g.paddle.x
@@ -750,6 +803,7 @@ export default function BrickBreaker({ onBack, onHome, difficulty }) {
       if (g.effects.fireball > now) activeEffects.push({ emoji: '🔥', color: '#FF4500', pct: (g.effects.fireball - now) / 8000 })
       if (g.effects.wide > now) activeEffects.push({ emoji: '📏', color: '#00CEC9', pct: (g.effects.wide - now) / 10000 })
       if (g.effects.magnet > now) activeEffects.push({ emoji: '🧲', color: '#FDCB6E', pct: (g.effects.magnet - now) / 8000 })
+      if (g.effects.laser > now) activeEffects.push({ emoji: '🔫', color: '#FF4757', pct: (g.effects.laser - now) / 8000 })
       if (activeEffects.length > 0) {
         const barW = 60, barH = 6, barY = H - 28
         const startX = (W - activeEffects.length * (barW + 24)) / 2

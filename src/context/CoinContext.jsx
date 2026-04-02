@@ -132,8 +132,8 @@ export const HIGHLIGHT_PACKS = [
 
 // ─── Ship Catalog (Space Shooter) ────────────────────────────────────────────
 export const BASE_SHIP_CATALOG = [
-  { id:'falcon', name:'Falcon', desc:'Pesawat standar yang seimbang — cocok untuk semua misi',
-    price:0, icon:'🚀', color:'#4ECDC4',
+  { id:'falcon', name:'Falcon Interceptor', desc:'Interceptor serbaguna dengan kelincahan tinggi dan sistem persenjataan seimbang.',
+    price:0, icon:'🚀', img: '/ships/falcon.png', color:'#4ECDC4',
     stats:{ speed:5, fireRate:8, bulletCount:1, maxHP:5, specialType:'bomb', specialCharge:300 },
     weaponEvolution:{
       1:{ type:'standard', count:1 },
@@ -144,8 +144,8 @@ export const BASE_SHIP_CATALOG = [
     },
     design:{ body:'#4ECDC4', wing:'#2d8a85', cockpit:'#74B9FF', engine:'#FDCB6E', accent:'#fff' }
   },
-  { id:'viper', name:'Viper', desc:'Pesawat cepat dengan tembakan rapid — untuk pilot gesit',
-    price:200, icon:'⚡', color:'#00FF88',
+  { id:'viper', name:'Viper Striker', desc:'Pesawat serang cepat yang dirancang untuk pertempuran kilat dan manuver ekstrim.',
+    price:200, icon:'⚡', img: '/ships/viper.png', color:'#00FF88',
     stats:{ speed:7, fireRate:5, bulletCount:1, maxHP:4, specialType:'rapid', specialCharge:250 },
     weaponEvolution:{
       1:{ type:'pulse', count:1 },
@@ -156,8 +156,8 @@ export const BASE_SHIP_CATALOG = [
     },
     design:{ body:'#00FF88', wing:'#00CC6E', cockpit:'#B8FFD0', engine:'#00FF88', accent:'#fff' }
   },
-  { id:'titan', name:'Titan', desc:'Pesawat berat dengan armor tebal dan tembakan menyebar',
-    price:350, icon:'🛡️', color:'#FF6B6B',
+  { id:'titan', name:'Titan Juggernaut', desc:'Benteng terbang dengan armor komposit berat dan daya hancur area yang luas.',
+    price:350, icon:'🛡️', img: '/ships/titan.png', color:'#FF6B6B',
     stats:{ speed:3.5, fireRate:10, bulletCount:3, maxHP:8, specialType:'shield', specialCharge:200 },
     weaponEvolution:{
       1:{ type:'heavy', count:2 },
@@ -168,8 +168,8 @@ export const BASE_SHIP_CATALOG = [
     },
     design:{ body:'#FF6B6B', wing:'#CC4444', cockpit:'#FFB8B8', engine:'#FF4444', accent:'#fff' }
   },
-  { id:'phoenix', name:'Phoenix', desc:'Pesawat legendaris dengan jejak api yang membakar musuh',
-    price:500, icon:'🔥', color:'#FF8C00',
+  { id:'phoenix', name:'Phoenix Eternal', desc:'Pesawat eksperimental dengan inti reaktor plasma yang membara di setiap tembakan.',
+    price:500, icon:'🔥', img: '/ships/phoenix.png', color:'#FF8C00',
     stats:{ speed:5.5, fireRate:7, bulletCount:2, maxHP:6, specialType:'firetrail', specialCharge:280 },
     weaponEvolution:{
       1:{ type:'fire', count:1 },
@@ -180,8 +180,8 @@ export const BASE_SHIP_CATALOG = [
     },
     design:{ body:'#FF8C00', wing:'#CC6600', cockpit:'#FFD700', engine:'#FF4500', accent:'#FFE0A0' }
   },
-  { id:'shadow', name:'Shadow', desc:'Pesawat stealth — 20% chance critical hit 2× damage',
-    price:700, icon:'👻', color:'#A29BFE',
+  { id:'shadow', name:'Shadow Specter', desc:'Teknologi stealth canggih yang memungkinkan serangan kritikal tak terduga dari balik bayangan.',
+    price:700, icon:'👻', img: '/ships/shadow.png', color:'#A29BFE',
     stats:{ speed:6, fireRate:7, bulletCount:2, maxHP:5, specialType:'cloak', specialCharge:260, critChance:0.2 },
     weaponEvolution:{
       1:{ type:'ghost', count:1 },
@@ -192,8 +192,8 @@ export const BASE_SHIP_CATALOG = [
     },
     design:{ body:'#A29BFE', wing:'#6C5CE7', cockpit:'#D4CFFF', engine:'#A29BFE', accent:'#E0DDFF' }
   },
-  { id:'nebula', name:'Nebula', desc:'Pesawat terkuat — senjata laser dan pertahanan maksimal',
-    price:1000, icon:'💎', color:'#FFD700',
+  { id:'nebula', name:'Nebula Crystal', desc:'Mahakarya futuristik dengan sayap kristal energi dan laser penghancur bintang.',
+    price:1000, icon:'💎', img: '/ships/nebula.png', color:'#FFD700',
     stats:{ speed:5.5, fireRate:6, bulletCount:3, maxHP:7, specialType:'beam', specialCharge:350 },
     weaponEvolution:{
       1:{ type:'pulse', count:1 },
@@ -205,7 +205,7 @@ export const BASE_SHIP_CATALOG = [
     design:{ body:'#FFD700', wing:'#DAA520', cockpit:'#FFFACD', engine:'#FFA500', accent:'#FFF8DC' }
   },
   { id:'phantom', name:'Phantom Striker', desc:'Pesawat tempur siluman ultra-premium. Damage dan speed maksimal!',
-    price:5000, icon:'🛩️', color:'#2c3e50',
+    price:5000, icon:'🛩️', img: '/ships/phantom.png', color:'#2c3e50',
     stats:{ speed:8, fireRate:4, bulletCount:4, maxHP:10, specialType:'cloak', specialCharge:400, critChance:0.5 },
     weaponEvolution:{
       1:{ type:'standard', count:2 },

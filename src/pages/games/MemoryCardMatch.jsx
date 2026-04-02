@@ -1,12 +1,5 @@
 import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
-
-const TUTORIAL_STEPS = [
-  { emoji:'🃏', title:'Memory Card Match', desc:'Temukan semua pasangan kartu yang tersembunyi di balik kartu terbalik!', tip:'Ingat posisi kartu yang sudah pernah kamu buka.' },
-  { emoji:'👆', title:'Cara Main', desc:'Klik satu kartu untuk membukanya, lalu cari pasangan yang sama. Kalau cocok, kartu tetap terbuka!', tip:'Kalau tidak cocok, kartu akan tertutup lagi — ingat posisinya!' },
-  { emoji:'⭐', title:'Sistem Bintang', desc:'Semakin sedikit gerakan yang kamu pakai, semakin banyak bintang yang kamu dapat. Targetkan 3 bintang!', tip:'Easy ≤10 gerakan, Medium ≤14, Hard ≤20 untuk 3 bintang.' },
-]
-
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useSettings } from '../../context/SettingsContext.jsx'
 import { useSound } from '../../hooks/useSound.js'
@@ -16,7 +9,12 @@ import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useHaptics } from '../../hooks/useHaptics.js'
 import { WinModal } from '../../components/GameLayout.jsx'
 
-// Pool emoji — diganti dari active icon pack
+const TUTORIAL_STEPS = [
+  { emoji:'🃏', title:'Memory Card Match', desc:'Temukan semua pasangan kartu yang tersembunyi di balik kartu terbalik!', tip:'Ingat posisi kartu yang sudah pernah kamu buka.' },
+  { emoji:'👆', title:'Cara Main', desc:'Klik satu kartu untuk membukanya, lalu cari pasangan yang sama. Kalau cocok, kartu tetap terbuka!', tip:'Kalau tidak cocok, kartu akan tertutup lagi — ingat posisinya!' },
+  { emoji:'⭐', title:'Sistem Bintang', desc:'Semakin sedikit gerakan yang kamu pakai, semakin banyak bintang yang kamu dapat. Targetkan 3 bintang!', tip:'Easy ≤10 gerakan, Medium ≤14, Hard ≤20 untuk 3 bintang.' },
+]
+
 const DEFAULT_POOL = ['🐶','🐱','🦊','🐻','🦁','🐯','🐸','🐧','🦄','🐼','🦋','🐙']
 
 function shuffle(arr) {
@@ -37,28 +35,39 @@ function createDeck(pairs, pool) {
   )
 }
 
-function useTimer(running, resetKey) {
-  const [time, setTime] = useState(0)
-  useEffect(() => { setTime(0) }, [resetKey])
+function useTimer(running, resetKey, initialTime = 0, isCountdown = false, onTimeOut = null) {
+  const [time, setTime] = useState(initialTime)
+  useEffect(() => { setTime(initialTime) }, [resetKey, initialTime])
   useEffect(() => {
     if (!running) return
-    const id = setInterval(() => setTime(t => t + 1), 1000)
+    const id = setInterval(() => {
+      setTime(t => {
+        if (isCountdown) {
+          if (t <= 1) {
+            clearInterval(id)
+            onTimeOut?.()
+            return 0
+          }
+          return t - 1
+        }
+        return t + 1
+      })
+    }, 1000)
     return () => clearInterval(id)
-  }, [running])
+  }, [running, isCountdown, onTimeOut])
   return time
 }
 
 const formatTime = (s) =>
-  `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`
+  `${Math.floor(s/60).toString().padStart(2,'0')}:${((s%60) || 0).toString().padStart(2,'0')}`
 
 const DIFF_LABEL = { easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }
 
 export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
   const tc = useThemeColors()
-  const dark = tc.dark
   const { play } = useSound()
   const { reportGameResult } = useProgress()
-  const { getActiveIcons, getActiveCardPack, earnCoins, spendCoins, coins } = useCoins()
+  const { getActiveCardPack, earnCoins, spendCoins, coins } = useCoins()
   const { vibrateLight, vibrateMedium, vibrateSuccess, vibrateError } = useHaptics()
 
   const { pairs, cols } = difficulty
@@ -67,14 +76,12 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
   const cardBack = activePack.cardBack || null
   const timersRef = useRef([])
 
-  // Safe setTimeout that auto-cleans on unmount
   const safeTimeout = useCallback((fn, ms) => {
     const id = setTimeout(fn, ms)
     timersRef.current.push(id)
     return id
   }, [])
 
-  // Cleanup all pending timeouts on unmount
   useEffect(() => {
     return () => { timersRef.current.forEach(id => clearTimeout(id)); timersRef.current = [] }
   }, [])
@@ -84,15 +91,26 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
   const [moves, setMoves]       = useState(0)
   const [locked, setLocked]     = useState(false)
   const [won, setWon]           = useState(false)
+  const [failed, setFailed]     = useState(false)
   const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('bp_tut_memory-card'))
   const [showConfetti, setShowConfetti] = useState(false)
   const [resetKey, setResetKey] = useState(0)
+  const [gameMode, setGameMode] = useState('standard') // standard, timeAttack, mirror
 
   const bestKey = `${game.id}-best-${difficulty.id}`
   const [bestMoves, setBestMoves] = useState(() => parseInt(localStorage.getItem(bestKey) || '0'))
 
-  const timerRunning = !won && moves > 0
-  const time = useTimer(timerRunning, resetKey)
+  const initialTime = useMemo(() => {
+    if (gameMode !== 'timeAttack') return 0
+    return difficulty.id === 'easy' ? 60 : difficulty.id === 'medium' ? 45 : 30
+  }, [gameMode, difficulty.id])
+
+  const timerRunning = !won && !failed && moves > 0
+  const time = useTimer(timerRunning, resetKey, initialTime, gameMode === 'timeAttack', () => {
+    setFailed(true)
+    play('mismatch')
+    vibrateError()
+  })
 
   useEffect(() => {
     if (deck.length > 0 && deck.every(c => c.matched)) {
@@ -112,9 +130,8 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
         won: true,
         score: Math.max(0, pairs * 100 - moves * 10),
         stars,
-        timeSec: time,
+        timeSec: gameMode === 'timeAttack' ? initialTime - time : time,
       })
-      // Coin reward
       const coinReward = { easy: 15, medium: 25, hard: 40 }
       let coinAmount = coinReward[difficulty.id] || 15
       if (stars === 3) coinAmount += 20
@@ -122,8 +139,21 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
     }
   }, [deck])
 
+  const handleRestart = () => {
+    setDeck(createDeck(pairs, iconPool))
+    setSelected([])
+    setMoves(0)
+    setWon(false)
+    setFailed(false)
+    setLocked(false)
+    setHintUsed(0)
+    setPaidHints(0)
+    setHintCells([])
+    setResetKey(k => k + 1)
+  }
+
   const flipCard = useCallback((id) => {
-    if (locked) return
+    if (locked || failed || won) return
     const card = deck.find(c => c.id === id)
     if (!card || card.flipped || card.matched) return
     if (selected.length === 1 && selected[0].id === id) return
@@ -161,16 +191,16 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
         }, 1000)
       }
     }
-  }, [deck, selected, locked, play])
+  }, [deck, selected, locked, failed, won, play])
 
-  // Hint system — reveal a pair for 1.5s
   const FREE_HINTS = 3
   const HINT_COST = 100
   const [hintUsed, setHintUsed] = useState(0)
   const [paidHints, setPaidHints] = useState(0)
   const [hintCells, setHintCells] = useState([])
+
   const useHint = async () => {
-    if (locked || won) return
+    if (locked || won || failed) return
     const isFree = hintUsed < FREE_HINTS
     if (!isFree) {
       if (coins < HINT_COST) { play('mismatch'); vibrateError(); return }
@@ -182,7 +212,6 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
     vibrateMedium()
     const unmatched = deck.filter(c => !c.matched && !c.flipped)
     if (unmatched.length < 2) return
-    // Find first unmatched pair
     const found = []
     const seen = {}
     for (const c of unmatched) {
@@ -201,170 +230,231 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
     }, 1500)
     setHintUsed(h => h+1)
   }
-  const restart = () => {
-    play('click')
-    setDeck(createDeck(pairs, iconPool))
-    setSelected([])
-    setMoves(0)
-    setLocked(false)
-    setWon(false)
-    setShowConfetti(false)
-    setHintUsed(0)
-    setPaidHints(0)
-    setHintCells([])
-    setResetKey(k => k + 1)
-  }
 
   const matchedCount = deck.filter(c => c.matched).length / 2
 
-  const { winStars, winCoinAmount } = useMemo(() => {
-    if (!won) return { winStars: 0, winCoinAmount: 0 }
+  const winStars = useMemo(() => {
     let stars = moves <= pairs * 1.5 ? 3 : moves <= pairs * 2.5 ? 2 : 1
     if (paidHints > 0 && stars > 2) stars = 2
+    return stars
+  }, [moves, pairs, paidHints])
+
+  const winCoinAmount = useMemo(() => {
     const coinReward = { easy: 15, medium: 25, hard: 40 }
     let coinAmount = coinReward[difficulty.id] || 15
-    if (stars === 3) coinAmount += 20
-    return { winStars: stars, winCoinAmount: coinAmount }
-  }, [won, moves, pairs, paidHints, difficulty.id])
-
-  // Theme
-  const bg        = tc.bg
-  const surface   = tc.surface
-  const textMain  = tc.textMain
-  const textMuted = tc.textMuted
-  const borderCol = tc.borderCol
+    if (winStars === 3) coinAmount += 20
+    return coinAmount
+  }, [winStars, difficulty.id])
 
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100dvh', transition: 'background 0.3s' }}>
+    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: tc.bg, minHeight: '100dvh', transition: 'background 0.3s', position: 'relative', overflowX: 'hidden' }}>
       {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color="#FF6B6B" onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_memory-card","1") }} />}
-      <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
+      {showConfetti && <Confetti onComplete={() => setShowConfetti(false)} />}
+
+      {/* Mode Selector (Visible before first move) */}
+      {moves === 0 && !won && !failed && (
+        <div style={{
+          display: 'flex', justifyContent: 'center', gap: 10, marginBottom: 24, padding: '12px',
+          background: tc.surface, borderRadius: 20, border: `2px solid ${tc.borderCol}`,
+          boxShadow: '0 4px 15px rgba(0,0,0,0.05)'
+        }}>
+          {['standard', 'timeAttack', 'mirror'].map(m => (
+            <button key={m} onClick={() => { play('click'); setGameMode(m); }} style={{
+              padding: '10px 16px', borderRadius: 14, border: 'none',
+              background: gameMode === m ? 'linear-gradient(135deg, #A29BFE, #6C5CE7)' : (tc.dark ? '#2d3436' : '#f0f0f0'),
+              color: gameMode === m ? '#fff' : tc.textMain,
+              fontSize: 12, fontWeight: 800, cursor: 'pointer', fontFamily: "'Fredoka One', cursive",
+              transition: 'all 0.2s', transform: gameMode === m ? 'scale(1.05)' : 'none'
+            }}>
+              {m === 'standard' ? '🎯 Standard' : m === 'timeAttack' ? '⏳ Time Attack' : '🪞 Mirror'}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
         <button onClick={() => { play('click'); onBack() }}
-          style={{ background: surface, border: `2px solid ${borderCol}`, borderRadius: 12, padding: '8px 14px', fontSize: 18, cursor: 'pointer', color: textMain }}>
+          style={{ background: tc.surface, border: `2px solid ${tc.borderCol}`, borderRadius: 12, padding: '8px 14px', fontSize: 18, cursor: 'pointer', color: tc.textMain }}>
           ←
         </button>
         <div style={{ flex: 1 }}>
-          <h1 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 26, color: textMain, lineHeight: 1 }}>
-            🃏 Memory Card Match
+          <h1 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 26, color: tc.textMain, lineHeight: 1 }}>
+            🃏 Memory Match
           </h1>
-          <p style={{ fontSize: 13, color: textMuted, marginTop: 2 }}>
-            Temukan semua {pairs} pasang kartu!
-          </p>
+          <div style={{ fontSize: 11, color: tc.textMuted, marginTop: 4, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            {DIFF_LABEL[difficulty.id]} {gameMode !== 'standard' && <span style={{ color: '#6C5CE7' }}>• {gameMode.toUpperCase()}</span>}
+          </div>
         </div>
-        {/* Difficulty badge */}
-        <span style={{ background: difficulty.id === 'easy' ? '#E8F8F0' : difficulty.id === 'medium' ? '#FFFBF0' : '#FFF0F0', color: difficulty.id === 'easy' ? '#00b894' : difficulty.id === 'medium' ? '#f9a825' : '#FF6B6B', border: `2px solid ${difficulty.id === 'easy' ? '#00b89444' : difficulty.id === 'medium' ? '#f9a82544' : '#FF6B6B44'}`, borderRadius: 100, padding: '6px 14px', fontFamily: "'Fredoka One',cursive", fontSize: 13, whiteSpace: 'nowrap' }}>
-          {DIFF_LABEL[difficulty.id]}
-        </span>
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
         {[
-          { label: '🎯 Gerakan', value: moves,              color: '#FF6B6B' },
-          { label: '⏱ Waktu',   value: formatTime(time),   color: '#4ECDC4' },
-          { label: '✅ Pasangan', value: `${matchedCount}/${pairs}`, color: '#A29BFE' },
+          { label: 'Gerakan', value: moves, color: '#FF6B6B' },
+          { label: 'Timer', value: formatTime(time), color: (gameMode === 'timeAttack' && time < 10) ? '#FF4757' : '#4ECDC4' },
+          { label: 'Skor', value: `${matchedCount}/${pairs}`, color: '#A29BFE' },
         ].map(s => (
-          <div key={s.label} style={{ background: surface, border: `2px solid ${s.color}33`, borderRadius: 16, padding: '12px 16px', textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 26, color: s.color, lineHeight: 1 }}>{s.value}</div>
-            <div style={{ fontSize: 12, color: textMuted, marginTop: 3, fontWeight: 600 }}>{s.label}</div>
+          <div key={s.label} style={{ background: tc.surface, border: `2px solid ${s.color}33`, borderRadius: 16, padding: '10px 8px', textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 22, color: s.color, lineHeight: 1 }}>{s.value}</div>
+            <div style={{ fontSize: 10, color: tc.textMuted, marginTop: 3, fontWeight: 700, textTransform: 'uppercase' }}>{s.label}</div>
           </div>
         ))}
       </div>
 
-      {/* Board — columns dinamis sesuai difficulty */}
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: cols >= 4 ? 10 : 12, marginBottom: 24 }}>
+      {/* Board */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gap: cols >= 5 ? 8 : 12,
+        marginBottom: 24,
+        perspective: 1000,
+        transform: gameMode === 'mirror' ? 'scaleX(-1)' : 'none'
+      }}>
         {deck.map(card => (
-          <CardTile key={card.id} card={card} onClick={() => flipCard(card.id)} darkMode={dark} small={cols >= 5} cardBack={cardBack} />
+          <CardTile
+            key={card.id}
+            card={card}
+            onClick={() => flipCard(card.id)}
+            darkMode={tc.dark}
+            small={cols >= 5}
+            cardBack={cardBack}
+            isMirror={gameMode === 'mirror'}
+          />
         ))}
       </div>
 
       {/* Buttons */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <button onClick={restart}
-          style={{ background: '#FF6B6B', color: '#fff', border: 'none', borderRadius: 100, padding: '12px 28px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', boxShadow: '0 4px 14px #FF6B6B44' }}>
-          🔄 Main Lagi
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <button
+          onClick={useHint}
+          disabled={locked || won || failed}
+          style={{
+            width: '100%', padding: '16px', borderRadius: 16, border: 'none',
+            background: 'linear-gradient(135deg, #6C5CE7, #A29BFE)', color: '#fff',
+            fontFamily: "'Fredoka One', cursive", fontSize: 16, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            opacity: (locked || won || failed) ? 0.5 : 1, transition: 'all 0.3s',
+            boxShadow: '0 4px 15px rgba(108, 92, 231, 0.3)'
+          }}
+        >
+          <span>💡</span> Hint {hintUsed < FREE_HINTS ? `(Gratis: ${FREE_HINTS - hintUsed})` : `(🪙 ${HINT_COST})`}
         </button>
-        <button onClick={useHint} disabled={won}
-          style={{ background: won ? 'rgba(255,255,255,0.05)' : hintUsed >= FREE_HINTS ? 'rgba(162,155,254,0.15)' : 'rgba(255,211,61,0.15)', color: won ? textMuted : hintUsed >= FREE_HINTS ? '#A29BFE' : '#FFD93D', border: `2px solid ${won ? borderCol : hintUsed >= FREE_HINTS ? '#A29BFE44' : '#FFD93D44'}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: won ? 'default' : 'pointer' }}>
-          💡 {hintUsed < FREE_HINTS ? `Hint (${FREE_HINTS - hintUsed})` : `Hint (${HINT_COST}🪙)`}
-        </button>
-        <button onClick={() => { play('click'); onBack() }}
-          style={{ background: surface, color: textMuted, border: `2px solid ${borderCol}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 700, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>
-          🎯 Level
-        </button>
-      </div>
 
-      {/* Best record */}
-      {bestMoves > 0 && (
-        <div style={{ marginTop: 20, background: dark ? '#1f1f3e' : '#FFF9F0', border: `2px solid ${dark ? '#3d3561' : '#FFE66D'}`, borderRadius: 16, padding: '12px 20px', textAlign: 'center', fontSize: 14, color: textMuted, fontWeight: 600 }}>
-          🏆 Rekor {DIFF_LABEL[difficulty.id]}: <span style={{ color: '#FF6B6B', fontFamily: "'Fredoka One',cursive", fontSize: 16 }}>{bestMoves} gerakan</span>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={handleRestart}
+            style={{ flex: 1, background: tc.surface, color: tc.textMain, border: `2px solid ${tc.borderCol}`, borderRadius: 16, padding: '14px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>
+            🔄 Reset
+          </button>
+          <button onClick={() => { play('click'); onBack() }}
+            style={{ flex: 1, background: tc.surface, color: tc.textMain, border: `2px solid ${tc.borderCol}`, borderRadius: 16, padding: '14px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>
+            🎮 Level
+          </button>
         </div>
-      )}
+      </div>
 
       {won && (
         <WinModal
-          title="Selamat!"
-          subtitle={`Semua ${pairs} pasangan kartu ketemu!`}
-          diffLabel={DIFF_LABEL[difficulty.id]}
-          stats={[
-            { label: 'Gerakan', value: String(moves), color: '#FF6B6B' },
-            { label: 'Waktu', value: formatTime(time), color: '#4ECDC4' },
-            ...(paidHints > 0 ? [{ label: 'Hint berbayar', value: String(paidHints), color: '#A29BFE' }] : []),
-          ]}
+          gameTitle={game.title}
           stars={winStars}
-          coinReward={winCoinAmount}
-          onRestart={restart}
-          onBack={() => { play('click'); onBack() }}
-          onHome={() => { play('click'); onHome?.() }}
-          dark={dark}
+          stats={[
+            { label: 'Moves', value: moves, color: '#FF6B6B' },
+            { label: 'Waktu', value: formatTime(gameMode === 'timeAttack' ? initialTime - time : time), color: '#4ECDC4' },
+            { label: 'Mode', value: gameMode === 'standard' ? 'Standard' : gameMode === 'timeAttack' ? 'Time Attack' : 'Mirror', color: '#A29BFE' }
+          ]}
+          onRestart={handleRestart}
+          onHome={onHome}
           gameColor={game.color}
         />
+      )}
+
+      {failed && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+          backdropFilter: 'blur(8px)', animation: 'fade-in 0.3s'
+        }}>
+          <div style={{
+            background: tc.surface, padding: 32, borderRadius: 28, textAlign: 'center',
+            maxWidth: 320, width: '90%', border: `4px solid #FF4757`,
+            boxShadow: '0 20px 50px rgba(255,71,87,0.3)', transform: 'translateY(-20px)'
+          }}>
+            <div style={{ fontSize: 72, marginBottom: 16, filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.2))' }}>⏰</div>
+            <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 28, color: '#FF4757', marginBottom: 8, letterSpacing: -0.5 }}>WAKTU HABIS!</div>
+            <p style={{ color: tc.textMuted, fontSize: 14, marginBottom: 24, lineHeight: 1.5 }}>Yah, waktumu sudah habis! Ayo coba lagi lebih cepat!</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button onClick={handleRestart} style={{
+                padding: '16px', borderRadius: 16, border: 'none',
+                background: '#FF4757', color: '#fff',
+                fontFamily: "'Fredoka One', cursive", fontSize: 16, cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(255,71,87,0.3)'
+              }}>Main Lagi</button>
+              <button onClick={onHome} style={{
+                padding: '16px', borderRadius: 16, border: `2px solid ${tc.borderCol}`,
+                background: 'transparent', color: tc.textMain,
+                fontFamily: "'Fredoka One', cursive", fontSize: 15, cursor: 'pointer'
+              }}>Keluar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {bestMoves > 0 && (
+        <div style={{ marginTop: 24, background: tc.surface, border: `2px solid ${tc.borderCol}`, borderRadius: 20, padding: '16px', textAlign: 'center', fontSize: 14, color: tc.textMuted, fontWeight: 700 }}>
+          🏆 Rekor {DIFF_LABEL[difficulty.id]}: <span style={{ color: '#FF6B6B', fontFamily: "'Fredoka One',cursive", fontSize: 18 }}>{bestMoves} gerakan</span>
+        </div>
       )}
     </div>
   )
 }
 
-function CardTile({ card, onClick, darkMode, small, cardBack }) {
+function CardTile({ card, onClick, darkMode, small, cardBack, isMirror }) {
   const frontBg = card.matched
     ? (darkMode ? '#1a3d30' : '#E8FDF5')
     : (darkMode ? '#1e2a4a' : '#fff')
   const isImage = card.emoji && card.emoji.startsWith('/')
 
   return (
-    <div onClick={onClick} style={{ aspectRatio: '1', perspective: 600, cursor: card.matched ? 'default' : 'pointer' }}>
-      <div style={{ width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d', transition: 'transform 0.35s cubic-bezier(0.4,0,0.2,1)', transform: (card.flipped || card.matched) ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
+    <div onClick={onClick} style={{ aspectRatio: '1', perspective: 1000, cursor: card.matched ? 'default' : 'pointer', height: '100%' }}>
+      <div style={{
+        width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d',
+        transition: 'transform 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+        transform: (card.flipped || card.matched) ? 'rotateY(180deg)' : 'rotateY(0deg)'
+      }}>
         {/* Back */}
         <div style={{
           position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
-          background: cardBack ? 'transparent' : 'linear-gradient(135deg,#A29BFE,#FD79A8)',
-          borderRadius: small ? 10 : 14,
+          background: 'linear-gradient(135deg, #6C5CE7, #A29BFE)',
+          borderRadius: small ? 12 : 18,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: small ? 20 : 28,
-          boxShadow: '0 3px 10px rgba(0,0,0,0.12)',
-          overflow: 'hidden',
+          boxShadow: '0 4px 10px rgba(0,0,0,0.1)', overflow: 'hidden'
         }}>
-          {cardBack
-            ? <img src={cardBack} alt="?" style={{ width: '100%', height: '100%', objectFit: 'cover', imageRendering: 'pixelated' }} />
-            : '❓'}
+          {cardBack ? (
+            <img src={cardBack} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <span style={{ fontSize: small ? 20 : 28, color: 'rgba(255,255,255,0.7)', fontWeight: 800 }}>?</span>
+          )}
         </div>
         {/* Front */}
         <div style={{
           position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
           transform: 'rotateY(180deg)',
           background: frontBg,
-          border: `2px solid ${card.matched ? '#4ECDC4' : (darkMode ? '#2d3561' : '#DFE6E9')}`,
-          borderRadius: small ? 10 : 14,
+          border: `3px solid ${card.matched ? '#4ECDC4' : (darkMode ? '#3d4a7a' : '#E0E7FF')}`,
+          borderRadius: small ? 12 : 18,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: small ? 22 : 36,
-          transition: 'background 0.3s',
-          overflow: 'hidden',
+          fontSize: small ? 24 : 36,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+          overflow: 'hidden'
         }}>
-          {isImage
-            ? <img src={card.emoji} alt="" style={{ width: '90%', height: '90%', objectFit: 'contain', imageRendering: 'pixelated' }} />
-            : card.emoji}
-          {card.matched && <span style={{ position: 'absolute', top: 3, right: 5, fontSize: 10, opacity: 0.6 }}>✅</span>}
+          <div style={{ transform: isMirror ? 'scaleX(-1)' : 'none', opacity: card.matched ? 0.6 : 1, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {isImage ? (
+              <img src={card.emoji} style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
+            ) : (
+              card.emoji
+            )}
+          </div>
+          {card.matched && <span style={{ position: 'absolute', top: 4, right: 6, fontSize: 10 }}>✅</span>}
         </div>
       </div>
     </div>

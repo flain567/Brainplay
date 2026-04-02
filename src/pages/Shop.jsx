@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useAuth } from '../context/AuthContext.jsx'
-import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, PATTERN_THEMES, REACTION_THEMES, DASH_THEMES, BREAKER_THEMES, WORDLE_THEMES, RACER_THEMES, RACER_MAP_CATALOG, MATH_THEMES, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
+import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, BASE_SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, PATTERN_THEMES, REACTION_THEMES, DASH_THEMES, BREAKER_THEMES, WORDLE_THEMES, RACER_THEMES, RACER_MAP_CATALOG, MATH_THEMES, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { WHEEL_EXCLUSIVES, useLuckyWheel } from '../context/LuckyWheelContext.jsx'
 
@@ -312,6 +312,50 @@ export default function Shop({ onBack }) {
           background:${dark?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)'};
         }
         @keyframes slide-up { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+        
+        /* Premium Hologram Animations */
+        @keyframes holo-flicker {
+          0%, 100% { opacity: 1; filter: brightness(1.2) drop-shadow(0 0 5px var(--h-color)); }
+          33% { opacity: 0.85; filter: brightness(1.1) drop-shadow(0 0 3px var(--h-color)); }
+          66% { opacity: 0.95; filter: brightness(1.3) drop-shadow(0 0 7px var(--h-color)); }
+          72% { opacity: 0.7; }
+        }
+        @keyframes holo-scan {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(100%); }
+        }
+        @keyframes holo-float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          25% { transform: translateY(-4px) rotate(2deg); }
+          75% { transform: translateY(4px) rotate(-2deg); }
+        }
+        .hologram-container {
+          position: relative; overflow: hidden;
+          display: flex; align-items: center; justify-content: center;
+          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .hologram-effect {
+          position: absolute; inset: 0; pointer-events: none;
+          background: linear-gradient(rgba(0,245,255,0) 0%, rgba(0,245,255,0.1) 50%, rgba(0,245,255,0) 100%);
+          animation: holo-scan 2s linear infinite;
+          opacity: 0.4; z-index: 2;
+        }
+        .hologram-glow {
+          position: absolute; inset: -4px;
+          border-radius: inherit;
+          box-shadow: inset 0 0 15px var(--h-color);
+          opacity: 0.3; z-index: 1;
+        }
+        .hologram-icon {
+          font-size: 28px; z-index: 3;
+          animation: holo-flicker 3s ease-in-out infinite, holo-float 5s ease-in-out infinite;
+          --h-color: #00f5ff;
+        }
+        .hologram-container.active {
+          transform: scale(1.15);
+          box-shadow: 0 0 25px var(--h-color);
+          border-color: var(--h-color) !important;
+        }
       `}</style>
 
       <div className="shop-root" style={{ background:bg }}>
@@ -554,13 +598,34 @@ export default function Shop({ onBack }) {
                       </div>
                     )}
                     <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-                      <div style={{
-                        width:52, height:52, borderRadius:14, flexShrink:0,
-                        background:`${item.color}18`, border:`2px solid ${item.color}33`,
-                        display:'flex', alignItems:'center', justifyContent:'center', fontSize:28,
-                        filter: isExclusive && !owned ? 'grayscale(0.5) opacity(0.7)' : 'none',
-                      }}>
-                        {item.icon}
+                      <div 
+                        className={`hologram-container ${expanded ? 'active' : ''}`}
+                        style={{
+                          width:52, height:52, borderRadius:14, flexShrink:0,
+                          background: expanded ? 'rgba(0,245,255,0.08)' : `${item.color}18`, 
+                          border:`2px solid ${expanded ? '#00f5ff' : item.color + '33'}`,
+                          filter: isExclusive && !owned ? 'grayscale(0.5) opacity(0.7)' : 'none',
+                          '--h-color': item.color || '#00f5ff'
+                        }}
+                      >
+                        {expanded && <div className="hologram-effect" style={{ background: `linear-gradient(${item.color}00 0%, ${item.color}15 50%, ${item.color}00 100%)` }} />}
+                        {expanded && <div className="hologram-glow" style={{ '--h-color': item.color }} />}
+                        <div className="hologram-icon" style={{ '--h-color': item.color }}>
+                          {item.img ? (
+                            <img 
+                              src={item.img} 
+                              alt={item.name} 
+                              style={{ 
+                                width: 34, 
+                                height: 34, 
+                                objectFit: 'contain', 
+                                filter: `drop-shadow(0 0 8px ${item.color})` 
+                              }} 
+                            />
+                          ) : (
+                            item.icon
+                          )}
+                        </div>
                       </div>
                       <div style={{ flex:1 }}>
                         <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color: isExclusive && !owned ? textMuted : textMain }}>{item.name}</div>

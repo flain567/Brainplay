@@ -167,9 +167,85 @@ export function BestRecord({ label, value, dark, color = '#FF6B6B' }) {
       borderRadius: 16, padding: '12px 20px',
       textAlign: 'center', fontSize: 14, color: textMuted, fontWeight: 600,
     }}>
-      🏆 {label}: <span style={{ color, fontFamily: "'Fredoka One',cursive", fontSize: 16 }}>{value}</span>
+          🏆 {label}: <span style={{ color, fontFamily: "'Fredoka One',cursive", fontSize: 16 }}>{value}</span>
     </div>
   )
+}
+
+// ─── Counting Number Component ────────────────────────────────────────────────
+export function CountingNumber({ value, duration = 1.5, delay = 0.5, color = '#FF6B6B' }) {
+  const [count, setCount] = useState(0)
+  const countRef = useRef(0)
+  const target = typeof value === 'number' ? value : parseInt(String(value).replace(/,/g, '')) || 0
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.to(countRef, {
+        current: target,
+        duration,
+        delay,
+        ease: 'power2.out',
+        onUpdate: () => setCount(Math.floor(countRef.current))
+      })
+    })
+    return () => ctx.revert()
+  }, [target, duration, delay])
+
+  return <span style={{ color }}>{count.toLocaleString()}</span>
+}
+
+// ─── Fireworks Component ─────────────────────────────────────────────────────
+function FireworksOverlay() {
+  const canvasRef = useRef(null)
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    let W = canvas.width = window.innerWidth
+    let H = canvas.height = window.innerHeight
+    
+    const particles = []
+    const colors = ['#FF0000', '#FFBD00', '#00FF00', '#00F5FF', '#A29BFE', '#FD79A8']
+    
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x; this.y = y; this.color = color
+        this.vx = (Math.random() - 0.5) * 12
+        this.vy = (Math.random() - 0.5) * 12
+        this.life = 1; this.decay = 0.012 + Math.random() * 0.01
+        this.r = 2 + Math.random() * 3
+      }
+      update() {
+        this.x += this.vx; this.y += this.vy; this.vy += 0.1
+        this.life -= this.decay
+      }
+      draw() {
+        ctx.globalAlpha = this.life
+        ctx.fillStyle = this.color
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2); ctx.fill()
+      }
+    }
+    
+    let timer = 0
+    function loop() {
+      ctx.clearRect(0, 0, W, H)
+      if (timer % 40 === 0) {
+        const x = Math.random() * W, y = Math.random() * (H * 0.5)
+        const col = colors[Math.floor(Math.random() * colors.length)]
+        for (let i = 0; i < 40; i++) particles.push(new Particle(x, y, col))
+      }
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update()
+        particles[i].draw()
+        if (particles[i].life <= 0) particles.splice(i, 1)
+      }
+      timer++; requestAnimationFrame(loop)
+    }
+    const animId = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(animId)
+  }, [])
+
+  return <canvas ref={canvasRef} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 1000 }} />
 }
 
 // ─── Win Modal ───────────────────────────────────────────────────────────────
@@ -298,8 +374,9 @@ export function WinModal({
         padding: '36px 32px', textAlign: 'center',
         maxWidth: 380, width: '100%',
         boxShadow: `0 24px 80px rgba(0,0,0,0.35), 0 0 0 1px ${gameColor}22`,
-        position: 'relative', overflow: 'hidden',
+        position: 'relative', overflow: 'hidden', zIndex: 1001,
       }}>
+        {stars > 1 && <FireworksOverlay />}
         {/* Top accent */}
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, height: 4,
@@ -377,7 +454,9 @@ export function WinModal({
                   ref={el => statsRefs.current[i] = el}
                   style={{ fontFamily: "'Fredoka One',cursive", fontSize: 22, color: s.color || '#A29BFE' }}
                 >
-                  {s.value}
+                  {/\d/.test(String(s.value)) && !noAnim ? (
+                    <CountingNumber value={s.value} delay={0.6 + i * 0.15} color={s.color || '#A29BFE'} />
+                  ) : s.value}
                 </div>
                 <div style={{ fontSize: 11, color: textMuted, fontWeight: 600, marginTop: 2 }}>{s.label}</div>
               </div>

@@ -484,7 +484,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                   boxShadow: '0 8px 30px rgba(0,245,255,0.1)',
                   position: 'relative', overflow: 'hidden'
                 }}
-                onClick={() => { play('click'); onOpenBP?.() || window.dispatchEvent(new CustomEvent('openBP')) }}
+                onClick={() => { play('click'); window.dispatchEvent(new CustomEvent('openBP')) }}
               >
                 <div style={{ position: 'absolute', top: -20, right: -20, fontSize: 80, opacity: 0.1, pointerEvents: 'none' }}>⚡</div>
                 <div className="sc-header" style={{ marginBottom: 12 }}>

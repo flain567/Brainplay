@@ -105,6 +105,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
   const [showConfetti, setShowConfetti] = useState(false)
   const [score, setScore]               = useState(0)
   const [lives, setLives]               = useState(cfg.lives)
+  const [vScore, setVScore]             = useState(0)
   const [weaponLv, setWeaponLv]         = useState(1)
   const [wave, setWave]                 = useState(1)
   const [specialReady, setSpecialReady] = useState(false)
@@ -264,6 +265,17 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       else if (pattern === 'diamond') { const rows=[[0],[-1,1],[-2,0,2],[-1,1],[0]];let idx=0;for(let r=0;r<rows.length&&idx<count;r++)for(let c=0;c<rows[r].length&&idx<count;c++){pos.push({x:cx+rows[r][c]*sp*0.5,y:60+r*35,delay:r*6});idx++} }
       else if (pattern === 'swarm') { for(let i=0;i<count;i++)pos.push({x:rand(40,W-40),y:rand(60,200),delay:Math.floor(rand(0,20))}) }
       else if (pattern === 'pincer') { const half=Math.ceil(count/2);for(let i=0;i<half;i++)pos.push({x:60+i*25,y:60+i*30,delay:i*4});for(let i=0;i<count-half;i++)pos.push({x:W-60-i*25,y:60+i*30,delay:i*4}) }
+      else if (pattern === 'ceremony') {
+        const rows = 2, cols = Math.ceil(count/2)
+        const spacingX = W / (cols + 1)
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (r * cols + c < count) {
+              pos.push({ x: spacingX * (c + 1), y: 80 + r * 60, delay: 0 })
+            }
+          }
+        }
+      }
       else { const r=80;for(let i=0;i<count;i++){const a=(Math.PI*2*i)/count;pos.push({x:cx+Math.cos(a)*r,y:140+Math.sin(a)*r*0.5,delay:i*3})} }
       return pos
     }
@@ -281,12 +293,13 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       positions.forEach((pos) => {
         const et = ENEMY_TYPES[Math.floor(rand(0, maxTypeIdx+1))]
         const hpMult = 1 + Math.floor(wn/4)
-        const entryTypes = ['s-curve', 'side-slide', 'spiral', 'turbo-drop', 'pincer', 'diagonal']
+        const entryTypes = (wn % 3 === 1 || wn === 1) ? ['ceremony', 'spiral'] : ['s-curve', 'side-slide', 'spiral', 'turbo-drop', 'pincer', 'diagonal']
         const entryType = entryTypes[Math.floor(Math.random() * (wn > 2 ? entryTypes.length : 1))] 
         
         // Initial setup based on entry type
         let startX = pos.x, startY = pos.y - (pos.delay||0)*6
-        if (entryType === 'side-slide') {
+        if (entryType === 'ceremony') { startX = pos.x; startY = -g.H * 0.2 }
+        else if (entryType === 'side-slide') {
           startX = Math.random() < 0.5 ? -40 : g.W + 40
           startY = pos.y
         } else if (entryType === 'spiral') {
@@ -303,6 +316,9 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
         } else if (entryType === 'diagonal') {
           startX = pos.x < g.W/2 ? -200 : g.W + 200
           startY = -100
+        } else if (entryType === 'ceremony') {
+          startX = pos.x
+          startY = -150
         }
 
         g.enemies.push({
@@ -521,11 +537,27 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       g.powerups.push({ x, y, type, vy:1.2, r:14, pulse:0 })
     }
 
+    function createFirework(g, x, y, color) {
+      for (let i = 0; i < 24; i++) {
+        const ang = rand(0, Math.PI * 2)
+        const spd = rand(2, 6)
+        g.particles.push({
+          x, y, vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
+          life: 1.0, color, size: rand(2, 4), type: 'sparkle'
+        })
+      }
+    }
+
     function endGame(g, won) {
       if (g.score > bestScore) { localStorage.setItem(`space-best-${difficulty.id}`, g.score); setBestScore(g.score) }
       if (g.wave > bestWave) { localStorage.setItem(`space-bestwave-${difficulty.id}`, g.wave); setBestWave(g.wave) }
-      if (won) { setShowConfetti(true); setTimeout(() => setShowConfetti(false), 100) }
-      setPhase(won ? 'win' : 'dead')
+      if (won) {
+        setVScore(0)
+        setPhase('victory_sequence')
+        play('victory')
+      } else {
+        setPhase('dead')
+      }
     }
 
     function moveEnemy(en, g) {
@@ -558,6 +590,9 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
           en.x = en.targetX + (en.targetX < g.W/2 ? -200 : 200) * (1-t)
           en.y = en.targetY - 200 * (1-t)
           if (t >= 1) { en.x = en.targetX; en.y = en.targetY; en.entered = true }
+        } else if (en.entryType === 'ceremony') {
+          en.y = en.startY + (en.targetY - en.startY) * t
+          if (t >= 1) { en.y = en.targetY; en.entered = true }
         } else if (en.entryType === 'turbo-drop') {
           en.y += spd * 4
           if (en.y >= en.targetY) { en.y = en.targetY; en.entered = true }
@@ -597,6 +632,18 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       }
       p.x = clamp(p.x, p.w/2+4, g.W-p.w/2-4); p.y = clamp(p.y, p.h/2+50, g.H-30)
       if (p.shieldTimer>0) p.shieldTimer--; if (p.invTimer>0) p.invTimer--
+
+      // Victory Sequence Logic
+      if (phaseRef.current === 'victory_sequence') {
+        if (g.gameTime % 5 === 0) {
+          createFirework(g, rand(g.W*0.1, g.W*0.9), rand(g.H*0.1, g.H*0.5), `hsl(${rand(0,360)}, 80%, 60%)`)
+          play('explosion-base')
+        }
+        if (vScore < score) {
+          const step = Math.max(1, Math.floor(score / 50))
+          setVScore(prev => Math.min(score, prev + step))
+        }
+      }
 
       // Firing
       const fRate = g.rapidFireTimer>0 ? Math.max(2, Math.floor(shipStats.fireRate/3)) : shipStats.fireRate
@@ -861,17 +908,21 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       if(!blink){
         ctx.globalAlpha=cloaked?0.3:1
         if (g.shipImg && g.shipImg.complete && g.shipImg.naturalWidth > 0) {
-          // Custom Ship PNG with flame beneath
-          const fH=10+rand(0,8)+(g.rapidFireTimer>0?6:0)
-          ctx.fillStyle=g.tick%4<2?'#FDCB6E':shipDesign.engine
-          ctx.beginPath();ctx.moveTo(px-10,py+p.h/2-10);ctx.lineTo(px,py+p.h/2+fH*1.5);ctx.lineTo(px+10,py+p.h/2-10);ctx.closePath();ctx.fill()
-          // Render PNG Image
-          if (activeShip.sprite) {
-            const s = activeShip.sprite
-            ctx.drawImage(g.shipImg, s.x, s.y, s.w, s.h, px - p.w*0.8, py - p.h, p.w*1.6, p.h*2)
-          } else {
-            ctx.drawImage(g.shipImg, px - p.w*0.8, py - p.h, p.w*1.6, p.h*2)
-          }
+          ctx.save()
+          ctx.translate(px, py)
+          
+          // Hover shadow / glow
+          ctx.shadowBlur = 20
+          ctx.shadowColor = activeShip.color || '#fff'
+          
+          // Engines underneath png
+          const fH=12+rand(0,8)+(g.rapidFireTimer>0?8:0)
+          ctx.fillStyle=g.tick%4<2?'#fff':'#FDCB6E'
+          ctx.beginPath();ctx.moveTo(-8, p.h/4);ctx.lineTo(0, p.h/2+fH);ctx.lineTo(8, p.h/4);ctx.closePath();ctx.fill()
+          
+          // PNG Sprite
+          ctx.drawImage(g.shipImg, -p.w*0.8, -p.h*0.8, p.w*1.6, p.h*1.6)
+          ctx.restore()
         } else {
           // Engines
           ctx.fillStyle=shipDesign.engine;ctx.beginPath();ctx.arc(px-10,py+p.h/2+2,7+rand(0,2),0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(px+10,py+p.h/2+2,7+rand(0,2),0,Math.PI*2);ctx.fill()
@@ -998,12 +1049,24 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
             </div>
           </div>
 
-          <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:6 }}>
-             <div style={{ background:'rgba(2,1,24,0.85)', padding:'5px 12px', borderRadius:10, border:'1.5px solid rgba(162,155,254,0.4)', display:'flex', alignItems:'center', gap:8 }}>
-                <span style={{ fontSize:10, color:'rgba(255,255,255,0.4)', fontWeight:800 }}>TIME</span>
-                <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:18, color:'#a29bfe' }}>{fmtTime(gameTimer || 0)}</span>
+          {/* TOP LEFT: Level/Stage Indicator */}
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', gap:6 }}>
+             <div style={{ background:'rgba(2,1,24,0.75)', padding:'6px 16px', borderRadius:'14px 2px 14px 2px', border:`2px solid ${activeShip.color}66`, display:'flex', alignItems:'center', gap:10, boxShadow:`0 0 20px ${activeShip.color}33`, backdropFilter:'blur(8px)' }}>
+                <span style={{ fontSize:10, color:'rgba(255,255,255,0.4)', fontWeight:900, letterSpacing:1 }}>STAGE</span>
+                <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:24, color:'#fff', textShadow:`0 0 10px ${activeShip.color}` }}>{wave}</span>
              </div>
-             <span style={{background:'rgba(162,155,254,0.15)',color:'#a29bfe',border:'1.5px solid rgba(162,155,254,0.3)',borderRadius:100,padding:isMobile?'4px 10px':'5px 15px',fontSize:isMobile?10:13,fontFamily:"'Fredoka One',cursive", letterSpacing:0.5}}>{DLABEL[difficulty.id]}</span>
+             <div style={{ display:'flex', alignItems:'center', gap:6, paddingLeft:4 }}>
+                <div style={{ width:10, height:10, borderRadius:'50%', background:activeShip.color, boxShadow:`0 0 10px ${activeShip.color}` }} />
+                <span style={{ fontSize:10, color:'rgba(255,255,255,0.5)', fontWeight:700, textTransform:'uppercase' }}>System Online</span>
+             </div>
+          </div>
+
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:6 }}>
+             <div style={{ background:'rgba(2,1,24,0.75)', padding:'6px 14px', borderRadius:'2px 14px 2px 14px', border:'2px solid rgba(162,155,254,0.4)', display:'flex', alignItems:'center', gap:8, backdropFilter:'blur(8px)' }}>
+                <span style={{ fontSize:10, color:'rgba(255,255,255,0.4)', fontWeight:900, letterSpacing:1 }}>TIME</span>
+                <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:20, color:'#a29bfe' }}>{fmtTime(gameTime || 0)}</span>
+             </div>
+             <span style={{background:'rgba(162,155,254,0.15)',color:'#a29bfe',border:'1.5px solid rgba(162,155,254,0.2)',borderRadius:100,padding:isMobile?'4px 12px':'5px 18px',fontSize:isMobile?10:12,fontFamily:"'Fredoka One',cursive", letterSpacing:0.5, backdropFilter:'blur(4px)'}}>{DLABEL[difficulty.id]}</span>
           </div>
         </div>
       )}
@@ -1116,6 +1179,35 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       })()}
 
       <style>{`@keyframes fadeIn{from{opacity:0;transform:scale(0.97)}to{opacity:1;transform:scale(1)}}@keyframes pulse-glow{0%,100%{box-shadow:0 0 10px #4ecdc444}50%{box-shadow:0 0 24px #4ecdc488}}`}</style>
+      {/* Victory Sequence Overlay */}
+      {phase === 'victory_sequence' && (
+        <div 
+          className="absolute inset-0 z-[100] flex flex-col items-center justify-center pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%)', backdropFilter: 'blur(4px)' }}
+        >
+          <div className="text-center animate-in fade-in zoom-in duration-700">
+            <h2 className="text-5xl md:text-8xl font-black text-white italic tracking-tighter mb-4" style={{ textShadow: `0 0 40px ${activeShip.color}`, fontStyle: 'italic' }}>
+              MISSION<br/>ACCOMPLISHED
+            </h2>
+            <div className="flex flex-col items-center space-y-2">
+              <div className="text-zinc-500 text-sm tracking-[0.3em] uppercase font-black">Data Logs Decrypted</div>
+              <div className="text-7xl md:text-9xl font-black text-white tabular-nums tracking-tighter" style={{ filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.3))' }}>
+                {vScore.toLocaleString()}
+              </div>
+            </div>
+            {vScore >= score && (
+              <div className="mt-12 animate-bounce">
+                <button 
+                  className="pointer-events-auto px-12 py-5 bg-white text-black font-black italic text-2xl rounded-full hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(255,255,255,0.6)] border-4 border-black"
+                  onClick={() => setPhase('win')}
+                >
+                  DEBRIEFING →
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
     </>
   )
