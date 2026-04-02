@@ -165,7 +165,7 @@ export default function VoxelRacer({onBack,onHome,game,difficulty}){
       air:false,gas:false,brk:false,whlRot:0,
       fuel:100,maxFuel:100,
       // Camera
-      camX:0,camY:0,
+      camX:0,camY:0,camAngle:0,
       // State
       dead:false,dieT:0,winT:0,
       baseY:H*0.75,
@@ -188,7 +188,7 @@ export default function VoxelRacer({onBack,onHome,game,difficulty}){
       g.vx=0;g.vy=0;g.angle=0;g.angVel=0
       g.air=false;g.gas=false;g.brk=false;g.whlRot=0
       g.fuel=100;g.dead=false;g.dieT=0;g.winT=0
-      g.camX=g.cx-W*0.35;g.camY=g.cy;g.pts=[];g.shk=0
+      g.camX=g.cx-W*0.35;g.camY=g.cy;g.camAngle=0;g.pts=[];g.shk=0
       sFuel(100);sDist(0)
       sp('play')
     }
@@ -367,6 +367,17 @@ export default function VoxelRacer({onBack,onHome,game,difficulty}){
 
         // Wheel rotation visual
         g.whlRot+=g.vx*0.12*dt
+        // Burnout smoke when grounded, gas is on, and speed is low or moving fast
+        if(!g.air && g.gas && Math.random() > 0.6) {
+             const speed = Math.abs(g.vx);
+             if(speed < 1.0 || speed > dc.maxSpd * 0.8) {
+                  g.pts.push({
+                     x:g.cx-Math.cos(g.angle)*CAR_W/4, y:g.cy-Math.sin(g.angle)*CAR_W/4+CAR_H/2,
+                     dx:-g.vx*0.1+(Math.random()-0.5)*2, dy:-1-Math.random()*2,
+                     l:20+Math.random()*15, ml:40, r:4+Math.random()*5, c:'rgba(200,200,200,0.5)'
+                  })
+             }
+        }
 
         // Death
         if(!g.air&&Math.abs(g.angle)>PI*0.45){die('flip')}
@@ -395,6 +406,21 @@ export default function VoxelRacer({onBack,onHome,game,difficulty}){
         // Camera — HCR style: car always at ~60% screen height, 35% from left
         g.camX+=(g.cx-W*0.35-g.camX)*0.1*dt
         g.camY+=(g.cy-g.camY)*0.1*dt
+        
+        // Dynamic Camera Lean
+        let targetCamAngle = 0;
+        if(g.air) {
+            // slightly follow car rotation in air
+            targetCamAngle = g.angle * 0.15;
+        } else {
+            // lean back on gas, lean forward on brake
+            if(g.gas) targetCamAngle = -0.04;       // ~2 degrees back
+            else if(g.brk) targetCamAngle = 0.05;   // ~3 degrees forward
+            targetCamAngle += g.angle * 0.08;      // Follow slope gently
+        }
+        // Smooth interpolation for camera angle
+        targetCamAngle = Math.max(-0.15, Math.min(0.15, targetCamAngle)); // cap it
+        g.camAngle += (targetCamAngle - g.camAngle) * 0.08 * dt;
 
         // Win
         if(g.cx>=g.terr.finishX){win2()}
@@ -451,6 +477,12 @@ export default function VoxelRacer({onBack,onHome,game,difficulty}){
 
       // ── World space — car centered at (35%, 60%) of screen ──
       ctx.save()
+      
+      // Pivot around the camera focal point to rotate the world
+      ctx.translate(W*0.35, H*0.6)
+      ctx.rotate(g.camAngle || 0)
+      ctx.translate(-W*0.35, -H*0.6)
+      
       ctx.translate(-g.camX,H*0.6-g.camY)
 
       // Terrain fill
@@ -578,42 +610,67 @@ export default function VoxelRacer({onBack,onHome,game,difficulty}){
 
       ctx.restore() // world space
 
-      // ═══ HUD ═══
-      ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(0,0,W,42)
+      // ═══ PREMUM HUD GLASSMORPHISM ═══
+      // Top bar background
+      ctx.fillStyle='rgba(15, 23, 42, 0.45)';
+      ctx.fillRect(0,0,W,50);
+      ctx.beginPath();
+      ctx.moveTo(0, 50); ctx.lineTo(W, 50);
+      ctx.strokeStyle='rgba(255,255,255,0.1)'; ctx.lineWidth=1; ctx.stroke();
 
-      // Progress bar
-      const bx=50,bw=W-140,bh=6,by=8
+      // Progress bar (Modern thin style)
+      const bx=60,bw=W-130,bh=4,by=12
       const curPr=g.terr?Math.round(Math.min(Math.max(0,g.cx-80)/(g.terr.finishX-80),1)*100):0
       const pr=curPr/100
-      ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(bx,by,bw,bh)
-      ctx.fillStyle='#FFD93D';ctx.fillRect(bx,by,bw*pr,bh)
-      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bx+bw*pr,by+bh/2,3,0,P2);ctx.fill()
-      ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font="bold 8px 'Fredoka One',sans-serif";ctx.textAlign='center'
-      ctx.fillText(`${curPr}%`,bx+bw/2,by+bh+9)
+      ctx.fillStyle='rgba(255,255,255,0.15)';ctx.beginPath();ctx.roundRect(bx,by,bw,bh,2);ctx.fill()
+      
+      // Progress gradient
+      const pGrad = ctx.createLinearGradient(bx, by, bx+bw, by);
+      pGrad.addColorStop(0, '#00F5FF'); pGrad.addColorStop(1, '#7dff3a');
+      ctx.fillStyle=pGrad;ctx.beginPath();ctx.roundRect(bx,by,bw*pr,bh,2);ctx.fill()
+      
+      // Progress Handle
+      ctx.fillStyle='#fff';
+      ctx.shadowColor='#00F5FF'; ctx.shadowBlur=6;
+      ctx.beginPath();ctx.arc(bx+bw*pr,by+bh/2,4,0,P2);ctx.fill()
+      ctx.shadowBlur=0;
+      
+      // Progress Text
+      ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font="600 9px 'Nunito',sans-serif";ctx.textAlign='center'
+      ctx.fillText(`${curPr}%`,bx+bw/2,by+14+6)
 
       // Fuel gauge
-      const fgx=10,fgy=22,fgw=80,fgh=8
-      ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(fgx,fgy,fgw,fgh)
+      const fgx=12,fgy=26,fgw=80,fgh=10
+      ctx.fillStyle='rgba(0,0,0,0.4)';ctx.beginPath();ctx.roundRect(fgx,fgy,fgw,fgh,4);ctx.fill()
       const fuelPct=Math.round(g.fuel)/100
-      ctx.fillStyle=fuelPct>0.3?'#4CAF50':fuelPct>0.15?'#FF9800':'#E53935'
-      ctx.fillRect(fgx,fgy,fgw*Math.max(0,fuelPct),fgh)
-      ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1;ctx.strokeRect(fgx,fgy,fgw,fgh)
-      ctx.fillStyle='#fff';ctx.font="bold 7px 'Fredoka One',sans-serif";ctx.textAlign='left'
-      ctx.fillText(`⛽ ${Math.round(g.fuel)}%`,fgx,fgy+fgh+9)
+      const fuelColor = fuelPct>0.4?'#27ae60':fuelPct>0.2?'#f39c12':'#e74c3c'
+      ctx.fillStyle=fuelColor;ctx.beginPath();ctx.roundRect(fgx+1,fgy+1,(fgw-2)*Math.max(0,fuelPct),fgh-2,3);ctx.fill()
+      
+      // Fuel Text
+      ctx.fillStyle='#fff';ctx.font="bold 8px 'Fredoka One',sans-serif";ctx.textAlign='left'
+      ctx.shadowColor='#000'; ctx.shadowBlur=3;
+      ctx.fillText(`⛽ ${Math.round(g.fuel)}%`,fgx+4,fgy+8)
+      ctx.shadowBlur=0;
 
-      // Info
-      ctx.textAlign='left';ctx.fillStyle='#FFD93D';ctx.font="bold 11px 'Fredoka One',sans-serif"
-      ctx.fillText(`🚗 Lv${g.lv}`,fgx,10)
-      ctx.textAlign='right';ctx.fillStyle='#fff';ctx.font="bold 11px 'Fredoka One',sans-serif"
+      // Stats Info (Level, Distance, Coins, Speed)
+      ctx.textAlign='left';
+      ctx.fillStyle='#00F5FF';ctx.font="bold 12px 'Fredoka One',sans-serif"
+      ctx.fillText(`Lv${g.lv}`,fgx,16)
+      
+      ctx.textAlign='right';
+      ctx.fillStyle='#fff';ctx.font="bold 12px 'Fredoka One',sans-serif"
       const curDist=Math.round(Math.max(0,g.cx-80))
-      ctx.fillText(`${curDist}m`,W-10,12)
-      ctx.fillStyle='#FFD700';ctx.fillText(`🪙 ${g.coins}`,W-10,26)
-      // Speed indicator
+      ctx.fillText(`${curDist}m`,W-12,18)
+      
+      // Gold and Speed
+      ctx.fillStyle='#FFD700';ctx.font="bold 10px 'Fredoka One',sans-serif"
+      ctx.fillText(`🪙 ${g.coins}`,W-12,32)
+      
       const curSpd=Math.round(Math.sqrt(g.vx*g.vx+g.vy*g.vy)*12)
       const spdPct=Math.min(curSpd/100,1)
-      ctx.fillStyle=spdPct>0.7?'#E53935':spdPct>0.4?'#FF9800':'#4CAF50'
-      ctx.font="bold 10px 'Fredoka One',sans-serif"
-      ctx.fillText(`${curSpd} km/h`,W-10,38)
+      ctx.fillStyle=spdPct>0.7?'#FF4757':spdPct>0.4?'#FDCB6E':'#00F5FF'
+      ctx.font="800 10px 'Nunito',sans-serif"
+      ctx.fillText(`${curSpd} km/h`,W-12,44)
 
       // Touch controls hint
       if(phR.current==='play'){
