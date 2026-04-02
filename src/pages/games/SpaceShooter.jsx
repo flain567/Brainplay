@@ -151,6 +151,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       rapidFireTimer:0, cloakTimer:0, fireTrailTimer:0, beamTimer:0,
       omegaBeamTimer:0, emeraldBarrageTimer:0, shockwaveY:-1, timeWarpTimer:0,
       isBossRush: false, rushLevel: 0,
+      formationSway: 0, waveTimer: 60,
     }
   }
 
@@ -250,12 +251,20 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
 
     function getFormationPositions(pattern, count, W) {
       const pos = [], cx = W/2, sp = 50
-      if (pattern === 'v') { for (let i=0;i<count;i++){const row=Math.floor(i/2),side=i%2===0?-1:1;pos.push({x:cx+side*(row+1)*sp*0.6,y:-40-row*35,delay:row*8})} }
-      else if (pattern === 'line') { const sx=cx-((count-1)*sp*0.5)/2;for(let i=0;i<count;i++)pos.push({x:sx+i*sp*0.5,y:-40,delay:i*5}) }
-      else if (pattern === 'diamond') { const rows=[[0],[-1,1],[-2,0,2],[-1,1],[0]];let idx=0;for(let r=0;r<rows.length&&idx<count;r++)for(let c=0;c<rows[r].length&&idx<count;c++){pos.push({x:cx+rows[r][c]*sp*0.5,y:-40-r*35,delay:r*6});idx++} }
-      else if (pattern === 'swarm') { for(let i=0;i<count;i++)pos.push({x:rand(40,W-40),y:rand(-200,-40),delay:Math.floor(rand(0,20))}) }
-      else if (pattern === 'pincer') { const half=Math.ceil(count/2);for(let i=0;i<half;i++)pos.push({x:30+i*25,y:-40-i*30,delay:i*4});for(let i=0;i<count-half;i++)pos.push({x:W-30-i*25,y:-40-i*30,delay:i*4}) }
-      else { const r=80;for(let i=0;i<count;i++){const a=(Math.PI*2*i)/count;pos.push({x:cx+Math.cos(a)*r,y:-100+Math.sin(a)*r*0.5,delay:i*3})} }
+      if (pattern === 'grid') {
+        const cols = Math.min(count, 6), rows = Math.ceil(count / cols)
+        const totalW = (cols-1)*sp, sx = cx - totalW/2
+        for (let i=0; i<count; i++) {
+          const r = Math.floor(i/cols), c = i % cols
+          pos.push({ x: sx + c*sp, y: 80 + r * 50, delay: Math.floor(i/cols) * 10 }) // Grouped delay by row for neatness
+        }
+      }
+      else if (pattern === 'v') { for (let i=0;i<count;i++){const row=Math.floor(i/2),side=i%2===0?-1:1;pos.push({x:cx+side*(row+1)*sp*0.6,y:60+row*35,delay:row*8})} }
+      else if (pattern === 'line') { const sx=cx-((count-1)*sp*0.5)/2;for(let i=0;i<count;i++)pos.push({x:sx+i*sp*0.5,y:60,delay:i*5}) }
+      else if (pattern === 'diamond') { const rows=[[0],[-1,1],[-2,0,2],[-1,1],[0]];let idx=0;for(let r=0;r<rows.length&&idx<count;r++)for(let c=0;c<rows[r].length&&idx<count;c++){pos.push({x:cx+rows[r][c]*sp*0.5,y:60+r*35,delay:r*6});idx++} }
+      else if (pattern === 'swarm') { for(let i=0;i<count;i++)pos.push({x:rand(40,W-40),y:rand(60,200),delay:Math.floor(rand(0,20))}) }
+      else if (pattern === 'pincer') { const half=Math.ceil(count/2);for(let i=0;i<half;i++)pos.push({x:60+i*25,y:60+i*30,delay:i*4});for(let i=0;i<count-half;i++)pos.push({x:W-60-i*25,y:60+i*30,delay:i*4}) }
+      else { const r=80;for(let i=0;i<count;i++){const a=(Math.PI*2*i)/count;pos.push({x:cx+Math.cos(a)*r,y:140+Math.sin(a)*r*0.5,delay:i*3})} }
       return pos
     }
 
@@ -272,8 +281,8 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       positions.forEach((pos) => {
         const et = ENEMY_TYPES[Math.floor(rand(0, maxTypeIdx+1))]
         const hpMult = 1 + Math.floor(wn/4)
-        const entryTypes = ['standard', 'side-slide', 'spiral', 'turbo-drop']
-        const entryType = entryTypes[Math.floor(Math.random() * (wn > 2 ? 4 : 1))] // Only standard for first 2 waves
+        const entryTypes = ['s-curve', 'side-slide', 'spiral', 'turbo-drop', 'pincer', 'diagonal']
+        const entryType = entryTypes[Math.floor(Math.random() * (wn > 2 ? entryTypes.length : 1))] 
         
         // Initial setup based on entry type
         let startX = pos.x, startY = pos.y - (pos.delay||0)*6
@@ -281,10 +290,19 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
           startX = Math.random() < 0.5 ? -40 : g.W + 40
           startY = pos.y
         } else if (entryType === 'spiral') {
-          startX = pos.x + (Math.random() < 0.5 ? -100 : 100)
-          startY = -60
+          startX = pos.x + (Math.random() < 0.5 ? -150 : 150)
+          startY = -100
+        } else if (entryType === 's-curve') {
+          startX = Math.random() < 0.5 ? 0 : g.W
+          startY = -80
         } else if (entryType === 'turbo-drop') {
           startY = -150
+        } else if (entryType === 'pincer') {
+          startX = pos.x < g.W/2 ? -100 : g.W + 100
+          startY = pos.y - 100
+        } else if (entryType === 'diagonal') {
+          startX = pos.x < g.W/2 ? -200 : g.W + 200
+          startY = -100
         }
 
         g.enemies.push({
@@ -351,7 +369,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
         const cnt = evo.count || 1
         for (let i = 0; i < cnt; i++) {
           const spread = (i - (cnt - 1) / 2) * 12
-          g.bullets.push({ x:p.x + spread, y:p.y - p.h/2, w:2, h:24, dmg:baseDmg*1.2, type:'needle', color:'#00FF88', vy:-14 })
+          g.bullets.push({ x:p.x + spread, y:p.y - p.h/2, w:2, h:24, dmg:baseDmg*1.2, type:'needle', color:'#00FF88', vy:14 })
         }
         play('shoot'); return
       }
@@ -360,7 +378,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
         const cnt = evo.count || 1
         for (let i = 0; i < cnt; i++) {
           const spread = (i - (cnt - 1) / 2) * 25
-          g.bullets.push({ x:p.x + spread, y:p.y - p.h/2, w:10, h:10, dmg:baseDmg*3, type:'heavy-shock', color:'#FF6B6B', vy:-5 })
+          g.bullets.push({ x:p.x + spread, y:p.y - p.h/2, w:10, h:10, dmg:baseDmg*3, type:'heavy-shock', color:'#FF6B6B', vy:5 })
         }
         play('shoot'); return
       }
@@ -394,7 +412,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
         const cnt = evo.count || 3
         for (let i = 0; i < cnt; i++) {
           const spread = (i - (cnt - 1) / 2) * 15
-          g.bullets.push({ x:p.x + spread, y:p.y-p.h/2, w:8, h:8, dmg:baseDmg, type:'guided', color:'#FFF200', vy:-10 })
+          g.bullets.push({ x:p.x + spread, y:p.y-p.h/2, w:8, h:8, dmg:baseDmg, type:'guided', color:'#FFF200', vy:10 })
         }
         play('shoot'); return
       }
@@ -403,7 +421,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
         const cnt = evo.count || 2
         for (let i = 0; i < cnt; i++) {
           const spread = (i - (cnt - 1) / 2) * 12
-          g.bullets.push({ x:p.x + spread, y:p.y - p.h/2, w:2, h:28, dmg:baseDmg*1.4, type:'needle', color:'#74B9FF', vy:-15 })
+          g.bullets.push({ x:p.x + spread, y:p.y - p.h/2, w:2, h:28, dmg:baseDmg*1.4, type:'needle', color:'#74B9FF', vy:15 })
         }
         play('shoot'); return
       }
@@ -412,9 +430,9 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
         const cnt = evo.count || 2
         for (let i = 0; i < cnt; i++) {
           const spread = (i - (cnt - 1) / 2) * 20
-          g.bullets.push({ x:p.x + spread, y:p.y - p.h/2, w:12, h:20, dmg:baseDmg*2, type:'plasma', color:'#A2D9FF', vy:-12 })
+          g.bullets.push({ x:p.x + spread, y:p.y - p.h/2, w:12, h:20, dmg:baseDmg*2, type:'plasma', color:'#A2D9FF', vy:12 })
           // Smaller shards
-          g.bullets.push({ x:p.x + spread, y:p.y-p.h/2, w:4, h:4, vx:rand(-2,2), vy:rand(-8,-12), color:'#fff', dmg:0.5 })
+          g.bullets.push({ x:p.x + spread, y:p.y-p.h/2, w:4, h:4, vx:rand(-2,2), vy:rand(8,12), color:'#fff', dmg:0.5 })
         }
         play('shoot'); return
       }
@@ -517,42 +535,55 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       if (!en.entered) {
         if (en.enterDelay > 0) { en.enterDelay--; return }
         
-        // Entry Animations
+        en.entryStep += 0.02 * timeSlow
+        const t = en.entryStep
+        
         if (en.entryType === 'side-slide') {
-          const dx = en.targetX - en.x
-          if (Math.abs(dx) < 5) { en.x = en.targetX; en.entered = true }
-          else en.x += Math.sign(dx) * 4 * timeSlow
+          en.x += (en.targetX - en.x) * 0.1
+          if (Math.abs(en.x - en.targetX) < 2) { en.x = en.targetX; en.entered = true }
         } else if (en.entryType === 'spiral') {
-          en.entryStep += 0.05 * timeSlow
-          const dx = (en.targetX - en.x) * 0.1, dy = (en.targetY - en.y) * 0.1
-          en.x += dx + Math.cos(en.entryStep * 5) * 5
-          en.y += dy + Math.sin(en.entryStep * 5) * 2
-          if (Math.abs(en.y - en.targetY) < 5) en.entered = true
+          const r = 100 * (1-t)
+          en.x = en.targetX + Math.cos(t * 12) * r
+          en.y = en.targetY - 150 * (1-t) + Math.sin(t * 12) * r
+          if (t >= 1) { en.x = en.targetX; en.y = en.targetY; en.entered = true }
+        } else if (en.entryType === 's-curve') {
+          en.x = en.targetX + Math.sin(t * 8) * 80 * (1-t)
+          en.y = en.targetY - 200 * (1-t)
+          if (t >= 1) { en.x = en.targetX; en.y = en.targetY; en.entered = true }
+        } else if (en.entryType === 'pincer') {
+          en.x += (en.targetX - en.x) * 0.08
+          en.y += (en.targetY - en.y) * 0.08
+          if (Math.abs(en.y - en.targetY) < 2) { en.x = en.targetX; en.y = en.targetY; en.entered = true }
+        } else if (en.entryType === 'diagonal') {
+          en.x = en.targetX + (en.targetX < g.W/2 ? -200 : 200) * (1-t)
+          en.y = en.targetY - 200 * (1-t)
+          if (t >= 1) { en.x = en.targetX; en.y = en.targetY; en.entered = true }
         } else if (en.entryType === 'turbo-drop') {
-          en.y += spd * 3.5
+          en.y += spd * 4
           if (en.y >= en.targetY) { en.y = en.targetY; en.entered = true }
         } else {
-          // standard dive
-          en.y += spd
+          en.y += (en.targetY - en.y) * 0.05 + 1
           if (en.y >= en.targetY) en.entered = true
         }
         return
       }
 
-      const p = en.movePattern
+      // Formation Sway logic applied to all entered enemies
+      const sway = Math.sin(g.formationSway) * 20
+      const targetX = en.targetX + sway
+      const targetY = en.targetY
 
-      if (p==='straight') en.y += spd
-      else if (p==='wobble') { en.y += spd; en.x += Math.sin(en.wobble)*en.wobbleAmp; en.wobble += 0.04 * timeSlow }
-      else if (p==='zigzag') { en.y += spd*0.8; en.x += Math.sin(en.wobble)*2.5; en.wobble += 0.06 * timeSlow }
-      else if (p==='slow') { en.y += spd*0.6; en.x += Math.sin(en.wobble)*0.5; en.wobble += 0.02 * timeSlow }
-      else if (p==='swoop') { en.swoopPhase += 0.03 * timeSlow; en.y += spd*(en.swoopPhase<Math.PI?0.5:1.5); en.x += Math.cos(en.swoopPhase)*3 }
-      else if (p==='chase') { const dx=g.player.x-en.x; en.x+=Math.sign(dx)*Math.min(Math.abs(dx)*0.03*timeSlow,2); en.y+=spd*1.2 }
+      // Instead of patterns, they stay in formation and just wobble slightly
+      en.x += (targetX - en.x) * 0.1
+      en.y += (targetY - en.y) * 0.1
     }
 
     function update() {
       const g = gameRef.current; if (!g || phaseRef.current !== 'playing') return
       const p = g.player, inp = inputRef.current
       g.gameTime++; if (g.gameTime%60===0) setGameTime(Math.floor(g.gameTime/60))
+      g.formationSway += 0.02
+      if (g.gameTime % 60 === 0 && g.waveTimer > 0) g.waveTimer--
 
       // Movement
       if (inp.touchActive && inp.touchX !== null) {
@@ -944,16 +975,36 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
     <div style={{ width:'100%', height: typeof CSS !== 'undefined' && CSS.supports('height','100dvh') ? '100dvh' : '100vh', background:'#07071a', position:'relative', overflow:'hidden', userSelect:'none' }}>
       <div style={{ position:'absolute', inset:0, zIndex:1 }}><canvas ref={canvasRef} style={{ width:'100%', height:'100%', display:'block', touchAction:'none' }} /></div>
 
-      {/* Playing HUD top */}
+      {/* Playing HUD top Premium Design */}
       {phase === 'playing' && (
-        <div style={{ position:'absolute', top:0, left:0, right:0, zIndex:10, display:'flex', alignItems:'center', justifyContent:'space-between', padding:isMobile?'6px 8px':'10px 16px', background:'linear-gradient(to bottom,rgba(2,1,24,0.94),rgba(2,1,24,0.5),transparent)', pointerEvents:'none' }}>
-          <button onClick={() => { play('click'); onBack() }} style={{ pointerEvents:'auto', background:'rgba(255,255,255,0.07)', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:10, padding:isMobile?'5px 9px':'7px 14px', color:'rgba(255,255,255,0.7)', fontSize:isMobile?13:15, cursor:'pointer', fontFamily:"'Nunito',sans-serif", fontWeight:700, WebkitTapHighlightColor:'transparent' }}>←</button>
-          <div style={{ display:'flex', gap:isMobile?8:16, alignItems:'center' }}>
-            {[{v:score,label:'SKOR',c:'#4ecdc4'},{v:`W${wave}`,label:'WAVE',c:'#A29BFE',raw:true},{v:fmtTime(gameTime),label:'WAKTU',c:'#FDCB6E',raw:true}].map(s=>(
-              <div key={s.label} style={{textAlign:'center'}}><div style={{fontFamily:"'Fredoka One',cursive",fontSize:s.raw?(isMobile?11:14):(isMobile?15:19),color:s.c,lineHeight:1}}>{s.v}</div><div style={{fontSize:isMobile?7:9,color:'rgba(255,255,255,0.3)',fontWeight:700,letterSpacing:'0.5px'}}>{s.label}</div></div>
-            ))}
+        <div style={{ position:'absolute', top:0, left:0, right:0, zIndex:10, display:'flex', alignItems:'flex-start', justifyContent:'space-between', padding:isMobile?10:20, pointerEvents:'none' }}>
+          
+          <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+            <button onClick={() => { play('click'); onBack() }} style={{ pointerEvents:'auto', background:'rgba(255,255,255,0.07)', border:'1.5px solid rgba(255,255,255,0.12)', borderRadius:12, width:36, height:36, color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>←</button>
+            
+            {/* Avatar & Score Box */}
+            <div style={{ display:'flex', background:'rgba(2,1,24,0.85)', border:'1.5px solid rgba(62,130,255,0.4)', borderRadius:12, padding:'3px 10px 3px 3px', boxShadow:'0 0 20px rgba(0,0,0,0.5)', backdropFilter:'blur(5px)' }}>
+              <div style={{ width:isMobile?32:42, height:isMobile?32:42, background:'linear-gradient(135deg, #4ecdc4, #3e82ff)', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', fontSize:isMobile?20:26, marginRight:8, border:'1px solid rgba(255,255,255,0.2)' }}>👨‍🚀</div>
+              <div>
+                <div style={{ fontSize:isMobile?10:12, color:'rgba(255,255,255,0.4)', fontWeight:800, letterSpacing:1 }}>SCORE</div>
+                <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:isMobile?16:22, color:'#fff', lineHeight:1, marginTop:-2 }}>{score.toLocaleString()}</div>
+                {/* Weapon Level Chevrons */}
+                <div style={{ display:'flex', gap:2, marginTop:2 }}>
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i} style={{ fontSize:isMobile?8:10, color:i < weaponLv ? '#FFD700' : 'rgba(255,255,255,0.1)', filter: i < weaponLv ? 'drop-shadow(0 0 5px #FFD700)' : 'none' }}>▲</span>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
-          <span style={{background:'rgba(162,155,254,0.1)',color:'#a29bfe',border:'1.5px solid rgba(162,155,254,0.2)',borderRadius:100,padding:isMobile?'3px 7px':'5px 12px',fontSize:isMobile?9:12,fontFamily:"'Fredoka One',cursive"}}>{DLABEL[difficulty.id]}</span>
+
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:6 }}>
+             <div style={{ background:'rgba(2,1,24,0.85)', padding:'5px 12px', borderRadius:10, border:'1.5px solid rgba(162,155,254,0.4)', display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ fontSize:10, color:'rgba(255,255,255,0.4)', fontWeight:800 }}>TIME</span>
+                <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:18, color:'#a29bfe' }}>{fmtTime(gameTimer || 0)}</span>
+             </div>
+             <span style={{background:'rgba(162,155,254,0.15)',color:'#a29bfe',border:'1.5px solid rgba(162,155,254,0.3)',borderRadius:100,padding:isMobile?'4px 10px':'5px 15px',fontSize:isMobile?10:13,fontFamily:"'Fredoka One',cursive", letterSpacing:0.5}}>{DLABEL[difficulty.id]}</span>
+          </div>
         </div>
       )}
 
