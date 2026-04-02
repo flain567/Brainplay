@@ -49,6 +49,28 @@ export const BP_REWARDS = [
   { tier: 13, xp: 10400, reward: { type: 'ship', value: 'bp-v2-3', label: 'Kapal: Cobalt Wings' } },
   { tier: 14, xp: 12000, reward: { type: 'coins', amount: 1500, label: '1.500 Koin' } },
   { tier: 15, xp: 14000, reward: { type: 'ship', value: 'bp-v2-ultimate', label: 'Kapal: Aegis Prime - B4' } },
+  { tier: 16, xp: 15500, reward: { type: 'coins', amount: 2000, label: '2.000 Koin' } },
+  { tier: 17, xp: 17100, reward: { type: 'title', value: 'Cyber Ghost', label: 'Gelar: Cyber Ghost' } },
+  { tier: 18, xp: 18800, reward: { type: 'border', value: 'neon-matrix', label: 'Bingkai: Neon Matrix' } },
+  { tier: 19, xp: 20600, reward: { type: 'coins', amount: 2500, label: '2.500 Koin' } },
+  { tier: 20, xp: 22500, reward: { type: 'ship', value: 'shadow', label: 'Kapal: Shadow Voyager' } },
+  { tier: 21, xp: 24500, reward: { type: 'title', value: 'Void Runner', label: 'Gelar: Void Runner' } },
+  { tier: 22, xp: 26600, reward: { type: 'coins', amount: 3000, label: '3.000 Koin' } },
+  { tier: 23, xp: 28800, reward: { type: 'border', value: 'solar-flare', label: 'Bingkai: Solar Flare' } },
+  { tier: 24, xp: 31100, reward: { type: 'title', value: 'Solar Champion', label: 'Gelar: Solar Champion' } },
+  { tier: 25, xp: 33500, reward: { type: 'ship', value: 'falcon', label: 'Kapal: Solar Interceptor' } },
+  { tier: 26, xp: 36000, reward: { type: 'coins', amount: 4000, label: '4.000 Koin' } },
+  { tier: 27, xp: 38600, reward: { type: 'title', value: 'Zenith Pilot', label: 'Gelar: Zenith Pilot' } },
+  { tier: 28, xp: 41300, reward: { type: 'border', value: 'plasma-glow', label: 'Bingkai: Transcendent Glow' } },
+  { tier: 29, xp: 44100, reward: { type: 'coins', amount: 5000, label: '5.000 Koin' } },
+  { tier: 30, xp: 48000, reward: { 
+    type: 'multi', 
+    label: 'ULTIMATE REWARD',
+    list: [
+      { type: 'ship', value: 'bp-v2-final', label: 'Kapal: Aegis Prime - X1' },
+      { type: 'dash-skin', value: 'void-phantom', label: 'Skin: Void Phantom' }
+    ]
+  }},
 ]
 
 export const CUSTOM_BORDERS = {
@@ -68,6 +90,18 @@ export const CUSTOM_BORDERS = {
     boxShadow: '0 0 30px #6c5ce7, 0 0 10px #000 inset', 
     bgColor: '#000000bb',
     animation: 'bp-border-glitch 3s infinite'
+  },
+  'neon-matrix': { 
+    id: 'neon-matrix', name: 'Neon Matrix', color: '#00FF88', 
+    border: '5px solid #00FF88', 
+    boxShadow: '0 0 20px #00FF8888', 
+    bgColor: 'repeating-linear-gradient(45deg, #00ff8811, #000 10px)'
+  },
+  'solar-flare': { 
+    id: 'solar-flare', name: 'Solar Flare', color: '#FFD700', 
+    border: '5px solid #FF8C00', 
+    boxShadow: '0 0 25px #FF4500cc', 
+    bgColor: 'radial-gradient(circle, #ffD70033, #ff450011)'
   },
 }
 
@@ -396,23 +430,34 @@ export function ProgressProvider({ children }) {
       const next = { ...p, claimedBPTiers: [...p.claimedBPTiers, tier] }
       const { reward } = tierData
       
-      // Handle Reward Types
-      if (reward.type === 'coins') {
-        window.dispatchEvent(new CustomEvent('bp-add-coins', {
-          detail: { amount: reward.amount, desc: `Battle Pass: ${tierData.label}` }
-        }))
-      } else if (reward.type === 'title') {
-        const titles = new Set(next.unlockedTitles)
-        titles.add(reward.value)
-        next.unlockedTitles = [...titles]
-      } else if (reward.type === 'border') {
-        const borders = new Set(next.unlockedBorders)
-        borders.add(reward.value)
-        next.unlockedBorders = [...borders]
-      } else if (reward.type === 'ship') {
-        window.dispatchEvent(new CustomEvent('bp-wheel-unlock', {
-          detail: { item: { type: 'ships', id: reward.value } }
-        }))
+      const grantReward = (rew) => {
+        if (rew.type === 'coins') {
+          window.dispatchEvent(new CustomEvent('bp-add-coins', {
+            detail: { amount: rew.amount, desc: `Battle Pass: ${tierData.label || rew.label}` }
+          }))
+        } else if (rew.type === 'title') {
+          const titles = new Set(next.unlockedTitles)
+          titles.add(rew.value)
+          next.unlockedTitles = [...titles]
+        } else if (rew.type === 'border') {
+          const borders = new Set(next.unlockedBorders)
+          borders.add(rew.value)
+          next.unlockedBorders = [...borders]
+        } else if (rew.type === 'ship') {
+          window.dispatchEvent(new CustomEvent('bp-wheel-unlock', {
+            detail: { item: { type: 'ships', id: rew.value } }
+          }))
+        } else if (rew.type === 'dash-skin') {
+          window.dispatchEvent(new CustomEvent('bp-wheel-unlock', {
+            detail: { item: { type: 'dash-themes', id: rew.value } }
+          }))
+        }
+      }
+
+      if (reward.type === 'multi') {
+        reward.list.forEach(grantReward)
+      } else {
+        grantReward(reward)
       }
       
       return next

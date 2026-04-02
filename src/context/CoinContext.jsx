@@ -278,6 +278,17 @@ export const BP_SHIP_CATALOG = [
       5:{ type:'omega-blast', count:1 }
     },
     img:'/ships/bp_v2_ultimate.png', bulletType:'mega-beam' },
+  { id:'bp-v2-final', name:'Aegis Prime - X1', desc:'Unit Mecha puncak evolusi. Dilengkapi dengan dual Omega Pulse dan armor nanotech.',
+    price:0, icon:'👑', color:'#00F5FF', exclusive:true, rarity:'mythic',
+    stats:{ speed:9, fireRate:3, bulletCount:2, maxHP:12, specialType:'omega-burst', specialCharge:500 },
+    weaponEvolution:{
+      1:{ type:'plasma', count:2 },
+      2:{ type:'mega-beam', count:2 },
+      3:{ type:'omega-blast', count:1 },
+      4:{ type:'omega-blast', count:2 },
+      5:{ type:'omega-ultra', count:1 }
+    },
+    img:'/ships/bp_v2_ultimate.png', bulletType:'omega-ultra' },
 ]
 
 export const SHIP_CATALOG = [
@@ -509,6 +520,8 @@ export const DASH_THEMES = [
   { id:'wheel-dash-graffiti', name:'Graffiti Cube', desc:'Cube graffiti penuh warna. Lucky Wheel Only!', price:0, icon:'🎨', color:'#E040FB', exclusive:true, rarity:'epic',
     img: '/wheel_dash.png',
     style:{ player:'#E040FB', playerOutline:'#6A1B9A', trail:'#FF4081', glow:'#E1BEE7', wave:'#FFD740' } },
+  { id:'void-phantom', name:'Void Phantom', desc:'Cube dari dimensi hampa. Memiliki efek glitch transparan. Tier 30 Reward!', price:0, icon:'👻', color:'#A29BFE', exclusive:true, rarity:'mythic',
+    style:{ player:'#1a1a2e', playerOutline:'#6c5ce7', trail:'#00f5ff', glow:'#a29bfe', wave:'#ff0064' } },
 ]
 
 // ─── Brick Breaker Skins (Day 13) ────────────────────────────────────────────

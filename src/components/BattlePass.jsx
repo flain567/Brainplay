@@ -1,5 +1,5 @@
 import { useProgress, BP_REWARDS, BP_SEASON, CUSTOM_BORDERS } from '../context/ProgressContext.jsx'
-import { useCoins, BP_SHIP_CATALOG } from '../context/CoinContext.jsx'
+import { useCoins, BP_SHIP_CATALOG, DASH_THEMES } from '../context/CoinContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { useState, useRef, useEffect, useMemo } from 'react'
@@ -51,6 +51,32 @@ function ShipStats({ shipId }) {
       <div className="stat-row"><span>SPD</span><div className="bar"><div className="fill" style={{width:`${s.speed*10}%`}}/></div></div>
       <div className="stat-row"><span>PWR</span><div className="bar"><div className="fill" style={{width:`${(11-s.fireRate)*10}%`}}/></div></div>
       <div className="stat-row"><span>HP</span><div className="bar"><div className="fill" style={{width:`${s.maxHP*10}%` , background:'#FF6B6B'}}/></div></div>
+    </div>
+  )
+}
+
+function DashSkinPreview({ themeId, size = 80 }) {
+  const theme = useMemo(() => DASH_THEMES.find(t => t.id === themeId), [themeId])
+  if (!theme) return <div style={{ fontSize: size/2 }}>🟦</div>
+
+  return (
+    <div className="dash-skin-preview" style={{ 
+      width: size, height: size, borderRadius: '15px', position: 'relative',
+      background: `linear-gradient(135deg, ${theme.style.playerOutline}, ${theme.style.player})`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      boxShadow: `0 0 20px ${theme.style.glow}88`,
+      border: '2px solid rgba(255,255,255,0.3)',
+      overflow: 'hidden'
+    }}>
+      <div style={{ 
+        width: '40%', height: '40%', background: theme.style.player,
+        boxShadow: `0 0 10px ${theme.style.glow}`, border: '2px solid #fff'
+      }} />
+      <div style={{
+        position: 'absolute', bottom: -5, right: -5, background: '#fff', 
+        borderRadius: '50%', width: '35%', height: '35%', display: 'flex', 
+        alignItems: 'center', justifyContent: 'center', fontSize: size*0.15
+      }}>💎</div>
     </div>
   )
 }
@@ -286,6 +312,13 @@ export default function BattlePass({ onClose }) {
           .bp-title { font-size: 28px; }
           .bp-progress-container { padding: 20px; }
         }
+
+        .bp-reward-multi {
+          display: flex; gap: 8px; align-items: center; justify-content: center;
+        }
+        .bp-reward-multi .visual-small {
+          transform: scale(0.65); margin: 0 -15px;
+        }
       `}</style>
       
       <div className="bp-grid-bg" />
@@ -310,7 +343,7 @@ export default function BattlePass({ onClose }) {
       <div className="bp-track-outer">
         <div className="bp-track-scroll" ref={scrollRef}>
           <div className="bp-line-bg">
-            <div className="bp-line-fill" style={{ width: `${(Math.min(seasonInfo?.currentTier || 0, 15) / 15) * 100}%` }} />
+            <div className="bp-line-fill" style={{ width: `${(Math.min(seasonInfo?.currentTier || 0, 30) / 30) * 100}%` }} />
           </div>
           
           {BP_REWARDS.map((item) => {
@@ -335,12 +368,27 @@ export default function BattlePass({ onClose }) {
                       </div>
                     )}
                     {item.reward.type === 'ship' && <ShipSprite shipId={item.reward.value} size={100} />}
+                    {item.reward.type === 'dash-skin' && <DashSkinPreview themeId={item.reward.value} size={80} />}
+                    {item.reward.type === 'multi' && (
+                      <div className="bp-reward-multi">
+                        {item.reward.list.map((sub, idx) => (
+                          <div key={idx} className="visual-small">
+                            {sub.type === 'ship' && <ShipSprite shipId={sub.value} size={80} />}
+                            {sub.type === 'dash-skin' && <DashSkinPreview themeId={sub.value} size={80} />}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   
                   {item.reward.type === 'ship' && <ShipStats shipId={item.reward.value} />}
 
-                  <div className="bp-reward-label">{item.reward.label.replace('Kapal: ', '').replace('Bingkai: ', '')}</div>
-                  <div className="bp-reward-type">{item.reward.type}</div>
+                  <div className="bp-reward-label">
+                    {item.reward.type === 'multi' ? 'ULTIMATE CRATE' : item.reward.label.replace('Kapal: ', '').replace('Bingkai: ', '').replace('Skin: ', '')}
+                  </div>
+                  <div className="bp-reward-type">
+                    {item.reward.type === 'multi' ? 'SPECIAL DUAL REWARD' : item.reward.type}
+                  </div>
                   
                   {isClaimable && (
                     <div style={{ position: 'absolute', top: -12, right: -12, background: accent, color: '#020118', borderRadius: '50%', width: 28, height: 28, fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', boxShadow: `0 0 15px ${accent}` }}>!</div>
