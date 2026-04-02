@@ -169,7 +169,7 @@ export const BASE_SHIP_CATALOG = [
     design:{ body:'#FF6B6B', wing:'#CC4444', cockpit:'#FFB8B8', engine:'#FF4444', accent:'#fff' }
   },
   { id:'phoenix', name:'Phoenix Eternal', desc:'Pesawat eksperimental dengan inti reaktor plasma yang membara di setiap tembakan.',
-    price:500, icon:'🔥', img: '/ships/phoenix.png', color:'#FF8C00',
+    price:500, icon:'🔥', img: '/ships/falcon.png', color:'#FF8C00',
     stats:{ speed:5.5, fireRate:7, bulletCount:2, maxHP:6, specialType:'firetrail', specialCharge:280 },
     weaponEvolution:{
       1:{ type:'fire', count:1 },
