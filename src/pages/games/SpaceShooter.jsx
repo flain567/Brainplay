@@ -262,7 +262,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
     function spawnWaveEnemies(g) {
       const wn = g.wave
       let count = Math.min(5 + Math.floor(wn*1.3), 20)
-      if (difficulty.id === 'hard') count = Math.min(8 + Math.floor(wn*1.8), 26) // More enemies in Hard
+      if (difficulty.id === 'hard') count = Math.min(8 + Math.floor(wn*1.8), 22) // Reduced max from 26 to 22
       
       g.waveEnemyTarget = count; g.waveEnemiesSpawned = 0; g.waveEnemiesKilled = 0; g.waveState = 'spawning'
       const formation = WAVE_FORMATIONS[wn % WAVE_FORMATIONS.length]
@@ -380,6 +380,51 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
 
       if (bt === 'omega-blast') {
         g.bullets.push({ x:p.x, y:p.y-p.h/2, w:80, h:40, dmg:baseDmg*5, type:'flare', color:'#FFF200' })
+        play('shoot'); return
+      }
+
+      if (bt === 'fire-spiral') {
+        for (let i = -1; i <= 1; i++) {
+          g.bullets.push({ x:p.x, y:p.y-p.h/2, w:bw+2, h:bh+2, dmg:baseDmg*1.5, type:'spiral', vx:i*1.5, color:'#FF7675' })
+        }
+        play('shoot'); return
+      }
+
+      if (bt === 'star-guided') {
+        const cnt = evo.count || 3
+        for (let i = 0; i < cnt; i++) {
+          const spread = (i - (cnt - 1) / 2) * 15
+          g.bullets.push({ x:p.x + spread, y:p.y-p.h/2, w:8, h:8, dmg:baseDmg, type:'guided', color:'#FFF200', vy:-10 })
+        }
+        play('shoot'); return
+      }
+
+      if (bt === 'ice-needle') {
+        const cnt = evo.count || 2
+        for (let i = 0; i < cnt; i++) {
+          const spread = (i - (cnt - 1) / 2) * 12
+          g.bullets.push({ x:p.x + spread, y:p.y - p.h/2, w:2, h:28, dmg:baseDmg*1.4, type:'needle', color:'#74B9FF', vy:-15 })
+        }
+        play('shoot'); return
+      }
+
+      if (bt === 'ice-shard') {
+        const cnt = evo.count || 2
+        for (let i = 0; i < cnt; i++) {
+          const spread = (i - (cnt - 1) / 2) * 20
+          g.bullets.push({ x:p.x + spread, y:p.y - p.h/2, w:12, h:20, dmg:baseDmg*2, type:'plasma', color:'#A2D9FF', vy:-12 })
+          // Smaller shards
+          g.bullets.push({ x:p.x + spread, y:p.y-p.h/2, w:4, h:4, vx:rand(-2,2), vy:rand(-8,-12), color:'#fff', dmg:0.5 })
+        }
+        play('shoot'); return
+      }
+
+      if (bt === 'ghost-pulse') {
+        const cnt = evo.count || 2
+        for (let i = 0; i < cnt; i++) {
+          const spread = (i - (cnt-1)/2) * 20
+          g.bullets.push({ x:p.x+spread, y:p.y-p.h/2, w:bw+2, h:bh+4, dmg:baseDmg*1.5, type:'ghost', color:'rgba(162,155,254,0.3)' })
+        }
         play('shoot'); return
       }
 
@@ -604,6 +649,17 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
             b.vx = Math.max(-4, Math.min(4, b.vx))
           }
           b.y -= 2 // Guided extra speed
+        }
+
+        // Bullet Interception (Player bullet hits Enemy bullet)
+        for (let i = g.enemyBullets.length - 1; i >= 0; i--) {
+          const eb = g.enemyBullets[i]
+          if (Math.abs(eb.x - b.x) < (eb.w + b.w)/2 + 2 && Math.abs(eb.y - b.y) < (eb.h + b.h)/2 + 2) {
+            g.enemyBullets.splice(i, 1)
+            spawnParticles(g, b.x, b.y, '#fff', 3)
+            // Some heavy bullets don't get destroyed
+            if (b.type !== 'flare' && b.type !== 'heavy-shock') return false
+          }
         }
 
         return b.y>-20 && b.x>-20 && b.x<g.W+20

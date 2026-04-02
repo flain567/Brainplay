@@ -171,21 +171,49 @@ export const BASE_SHIP_CATALOG = [
   { id:'phoenix', name:'Phoenix', desc:'Pesawat legendaris dengan jejak api yang membakar musuh',
     price:500, icon:'🔥', color:'#FF8C00',
     stats:{ speed:5.5, fireRate:7, bulletCount:2, maxHP:6, specialType:'firetrail', specialCharge:280 },
+    weaponEvolution:{
+      1:{ type:'fire', count:1 },
+      2:{ type:'fire', count:2 },
+      3:{ type:'heavy', count:2 },
+      4:{ type:'heavy', count:3 },
+      5:{ type:'fire-spiral', count:3 }
+    },
     design:{ body:'#FF8C00', wing:'#CC6600', cockpit:'#FFD700', engine:'#FF4500', accent:'#FFE0A0' }
   },
   { id:'shadow', name:'Shadow', desc:'Pesawat stealth — 20% chance critical hit 2× damage',
     price:700, icon:'👻', color:'#A29BFE',
     stats:{ speed:6, fireRate:7, bulletCount:2, maxHP:5, specialType:'cloak', specialCharge:260, critChance:0.2 },
+    weaponEvolution:{
+      1:{ type:'ghost', count:1 },
+      2:{ type:'ghost', count:2 },
+      3:{ type:'ghost', count:3 },
+      4:{ type:'ghost-pulse', count:2 },
+      5:{ type:'ghost-pulse', count:3 }
+    },
     design:{ body:'#A29BFE', wing:'#6C5CE7', cockpit:'#D4CFFF', engine:'#A29BFE', accent:'#E0DDFF' }
   },
   { id:'nebula', name:'Nebula', desc:'Pesawat terkuat — senjata laser dan pertahanan maksimal',
     price:1000, icon:'💎', color:'#FFD700',
     stats:{ speed:5.5, fireRate:6, bulletCount:3, maxHP:7, specialType:'beam', specialCharge:350 },
+    weaponEvolution:{
+      1:{ type:'pulse', count:1 },
+      2:{ type:'pulse', count:2 },
+      3:{ type:'pulse', count:3 },
+      4:{ type:'flare', count:2 },
+      5:{ type:'star-guided', count:3 }
+    },
     design:{ body:'#FFD700', wing:'#DAA520', cockpit:'#FFFACD', engine:'#FFA500', accent:'#FFF8DC' }
   },
   { id:'phantom', name:'Phantom Striker', desc:'Pesawat tempur siluman ultra-premium. Damage dan speed maksimal!',
     price:5000, icon:'🛩️', color:'#2c3e50',
     stats:{ speed:8, fireRate:4, bulletCount:4, maxHP:10, specialType:'cloak', specialCharge:400, critChance:0.5 },
+    weaponEvolution:{
+      1:{ type:'standard', count:2 },
+      2:{ type:'standard', count:3 },
+      3:{ type:'guided', count:2 },
+      4:{ type:'guided', count:3 },
+      5:{ type:'needle', count:4 }
+    },
     img: '/phantom.png',
     design:{ body:'#2c3e50', wing:'#1a252f', cockpit:'#e74c3c', engine:'#c0392b', accent:'#e74c3c' }
   },
@@ -193,6 +221,13 @@ export const BASE_SHIP_CATALOG = [
   { id:'wheel-ship-ice', name:'Ice Striker', desc:'Pesawat tempur biru es dari dimensi beku. Lucky Wheel Only!',
     price:0, icon:'❄️', color:'#00BFFF', exclusive:true, rarity:'epic',
     stats:{ speed:6, fireRate:5, bulletCount:3, maxHP:7, specialType:'beam', specialCharge:280, critChance:0.15 },
+    weaponEvolution:{
+      1:{ type:'pulse', count:1 },
+      2:{ type:'ice-needle', count:2 },
+      3:{ type:'ice-needle', count:3 },
+      4:{ type:'ice-shard', count:2 },
+      5:{ type:'ice-shard', count:3 }
+    },
     img: '/wheel_ship.png',
     design:{ body:'#00BFFF', wing:'#006994', cockpit:'#E0FFFF', engine:'#00CED1', accent:'#B0E0E6' }
   },
@@ -225,6 +260,13 @@ export const BP_SHIP_CATALOG = [
   { id:'bp-v2-3', name:'Cobalt Wings', desc:'Sayap kobalt yang tajam memberikan kelincahan maksimal di angkasa.',
     price:0, icon:'🚀', color:'#74B9FF', exclusive:true, rarity:'legendary',
     stats:{ speed:7.5, fireRate:5, bulletCount:2, maxHP:5, specialType:'time-warp', specialCharge:250 },
+    weaponEvolution:{
+      1:{ type:'plasma', count:1 },
+      2:{ type:'plasma', count:2 },
+      3:{ type:'plasma', count:3 },
+      4:{ type:'spiral', count:2 },
+      5:{ type:'spiral', count:3 }
+    },
     img:'/ships/bp_v2_ship3.png', bulletType:'plasma' },
   { id:'bp-v2-ultimate', name:'Aegis Prime - B4', desc:'Unit Mecha legendaris terkuat. Senjata Mega Beam penghancur segalanya.',
     price:0, icon:'👑', color:'#FFF200', exclusive:true, rarity:'mythic',
