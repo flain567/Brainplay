@@ -132,8 +132,8 @@ export const HIGHLIGHT_PACKS = [
 
 // ─── Ship Catalog (Space Shooter) ────────────────────────────────────────────
 export const BASE_SHIP_CATALOG = [
-  { id:'falcon', name:'Falcon Interceptor', desc:'Interceptor serbaguna dengan kelincahan tinggi dan sistem persenjataan seimbang.',
-    price:0, icon:'🚀', img: '/ships/falcon.png', color:'#4ECDC4',
+  { id:'falcon', name:'Valkyrie Interceptor', desc:'Interceptor elit dengan sistem aerodinamis Valkyrie untuk kecepatan dan presisi tempur.',
+    price:0, icon:'🚀', img: '/ships/valkyrie.png', color:'#4ECDC4',
     stats:{ speed:5, fireRate:8, bulletCount:1, maxHP:5, specialType:'bomb', specialCharge:300 },
     weaponEvolution:{
       1:{ type:'standard', count:1 },
@@ -180,8 +180,8 @@ export const BASE_SHIP_CATALOG = [
     },
     design:{ body:'#FF8C00', wing:'#CC6600', cockpit:'#FFD700', engine:'#FF4500', accent:'#FFE0A0' }
   },
-  { id:'shadow', name:'Shadow Specter', desc:'Teknologi stealth canggih yang memungkinkan serangan kritikal tak terduga dari balik bayangan.',
-    price:700, icon:'👻', img: '/ships/shadow.png', color:'#A29BFE',
+  { id:'shadow', name:'Obsidian Voyager', desc:'Pesawat siluman berlapis obsidian yang mampu menyerap deteksi radar musuh.',
+    price:700, icon:'🌑', img: '/ships/obsidian.png', color:'#A29BFE',
     stats:{ speed:6, fireRate:7, bulletCount:2, maxHP:5, specialType:'cloak', specialCharge:260, critChance:0.2 },
     weaponEvolution:{
       1:{ type:'ghost', count:1 },
@@ -214,7 +214,6 @@ export const BASE_SHIP_CATALOG = [
       4:{ type:'guided', count:3 },
       5:{ type:'needle', count:4 }
     },
-    img: '/phantom.png',
     design:{ body:'#2c3e50', wing:'#1a252f', cockpit:'#e74c3c', engine:'#c0392b', accent:'#e74c3c' }
   },
   // ── Lucky Wheel Exclusive ──

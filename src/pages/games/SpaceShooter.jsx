@@ -251,32 +251,70 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
     const shipStats = activeShip.stats, shipDesign = activeShip.design
 
     function getFormationPositions(pattern, count, W) {
-      const pos = [], cx = W/2, sp = 50
+      const pos = [], cx = W/2, margin = 40
+      const safeW = W - margin * 2
+      const sp = Math.min(50, safeW / 5)
+
       if (pattern === 'grid') {
         const cols = Math.min(count, 6), rows = Math.ceil(count / cols)
-        const totalW = (cols-1)*sp, sx = cx - totalW/2
-        for (let i=0; i<count; i++) {
-          const r = Math.floor(i/cols), c = i % cols
-          pos.push({ x: sx + c*sp, y: 80 + r * 50, delay: Math.floor(i/cols) * 10 }) // Grouped delay by row for neatness
+        const spacing = Math.min(sp, safeW / (cols - 1 || 1))
+        const totalW = (cols - 1) * spacing
+        const sx = cx - totalW / 2
+        for (let i = 0; i < count; i++) {
+          const r = Math.floor(i / cols), c = i % cols
+          pos.push({ x: clamp(sx + c * spacing, margin, W - margin), y: 80 + r * 50, delay: Math.floor(i / cols) * 10 })
         }
       }
-      else if (pattern === 'v') { for (let i=0;i<count;i++){const row=Math.floor(i/2),side=i%2===0?-1:1;pos.push({x:cx+side*(row+1)*sp*0.6,y:60+row*35,delay:row*8})} }
-      else if (pattern === 'line') { const sx=cx-((count-1)*sp*0.5)/2;for(let i=0;i<count;i++)pos.push({x:sx+i*sp*0.5,y:60,delay:i*5}) }
-      else if (pattern === 'diamond') { const rows=[[0],[-1,1],[-2,0,2],[-1,1],[0]];let idx=0;for(let r=0;r<rows.length&&idx<count;r++)for(let c=0;c<rows[r].length&&idx<count;c++){pos.push({x:cx+rows[r][c]*sp*0.5,y:60+r*35,delay:r*6});idx++} }
-      else if (pattern === 'swarm') { for(let i=0;i<count;i++)pos.push({x:rand(40,W-40),y:rand(60,200),delay:Math.floor(rand(0,20))}) }
-      else if (pattern === 'pincer') { const half=Math.ceil(count/2);for(let i=0;i<half;i++)pos.push({x:60+i*25,y:60+i*30,delay:i*4});for(let i=0;i<count-half;i++)pos.push({x:W-60-i*25,y:60+i*30,delay:i*4}) }
+      else if (pattern === 'v') {
+        const rows = Math.ceil(count / 2)
+        const spacing = Math.min(sp * 0.6, safeW / 4)
+        for (let i = 0; i < count; i++) {
+          const row = Math.floor(i / 2), side = i % 2 === 0 ? -1 : 1
+          pos.push({ x: clamp(cx + side * (row + 1) * spacing, margin, W - margin), y: 60 + row * 35, delay: row * 8 })
+        }
+      }
+      else if (pattern === 'line') {
+        const spacing = Math.min(sp * 0.5, safeW / (count - 1 || 1))
+        const sx = cx - ((count - 1) * spacing) / 2
+        for (let i = 0; i < count; i++) pos.push({ x: clamp(sx + i * spacing, margin, W - margin), y: 60, delay: i * 5 })
+      }
+      else if (pattern === 'diamond') {
+        const rows = [[0], [-1, 1], [-2, 0, 2], [-1, 1], [0]]; let idx = 0
+        const spacing = Math.min(sp * 0.5, safeW / 5)
+        for (let r = 0; r < rows.length && idx < count; r++) {
+          for (let c = 0; c < rows[r].length && idx < count; c++) {
+            pos.push({ x: clamp(cx + rows[r][c] * spacing, margin, W - margin), y: 60 + r * 35, delay: r * 6 })
+            idx++
+          }
+        }
+      }
+      else if (pattern === 'swarm') {
+        for (let i = 0; i < count; i++) pos.push({ x: rand(margin, W - margin), y: rand(60, 200), delay: Math.floor(rand(0, 20)) })
+      }
+      else if (pattern === 'pincer') {
+        const half = Math.ceil(count / 2)
+        const spacing = Math.min(25, safeW / (half * 2))
+        for (let i = 0; i < half; i++) pos.push({ x: clamp(60 + i * spacing, margin, W - margin), y: 60 + i * 30, delay: i * 4 })
+        for (let i = 0; i < count - half; i++) pos.push({ x: clamp(W - 60 - i * spacing, margin, W - margin), y: 60 + i * 30, delay: i * 4 })
+      }
       else if (pattern === 'ceremony') {
-        const rows = 2, cols = Math.ceil(count/2)
-        const spacingX = W / (cols + 1)
+        const rows = 2, cols = Math.ceil(count / 2)
+        const spacingX = safeW / (cols + 1)
         for (let r = 0; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
             if (r * cols + c < count) {
-              pos.push({ x: spacingX * (c + 1), y: 80 + r * 60, delay: 0 })
+              pos.push({ x: clamp(margin + spacingX * (c + 1), margin, W - margin), y: 80 + r * 60, delay: 0 })
             }
           }
         }
       }
-      else { const r=80;for(let i=0;i<count;i++){const a=(Math.PI*2*i)/count;pos.push({x:cx+Math.cos(a)*r,y:140+Math.sin(a)*r*0.5,delay:i*3})} }
+      else {
+        const r = Math.min(80, safeW / 3)
+        for (let i = 0; i < count; i++) {
+          const a = (Math.PI * 2 * i) / count
+          pos.push({ x: clamp(cx + Math.cos(a) * r, margin, W - margin), y: 140 + Math.sin(a) * r * 0.5, delay: i * 3 })
+        }
+      }
       return pos
     }
 
