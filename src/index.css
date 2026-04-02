@@ -205,3 +205,41 @@ div[tabindex]:focus:not(:focus-visible) {
   transform: translateY(-4px);
   box-shadow: 0 12px 40px rgba(124,111,232,0.25);
 }
+
+/* --- Atmosphere & Polish --- */
+.crt-overlay {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.06) 50%),
+              linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+  background-size: 100% 3px, 3px 100%;
+  pointer-events: none; z-index: 9999; opacity: 0.15;
+}
+
+.crt-overlay::after {
+  content: " ";
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(18, 16, 16, 0.03);
+  opacity: 0; display: block; pointer-events: none;
+  animation: scanline-move 12s linear infinite;
+}
+
+@keyframes scanline-move {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.neon-pulse-glow {
+  animation: neon-glow-anim 2s ease-in-out infinite alternate;
+}
+
+@keyframes neon-glow-anim {
+  from { filter: drop-shadow(0 0 2px var(--accent-vivid)); }
+  to { filter: drop-shadow(0 0 10px var(--accent-vivid)); }
+}
+
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.03) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+}

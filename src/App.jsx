@@ -520,9 +520,9 @@ function AppInner() {
     if (isFullscreen) { hideStatusBar() } else { showStatusBar() }
   }, [isFullscreen])
 
-  // Music plays on lobby screens, stops during game
-  const isLobby = screen === 'home' || screen === 'profile' || screen === 'difficulty' || screen === 'shop' || screen === 'leaderboard'
-  useMusic(isLobby, muted || musicOff)
+  // Music plays on lobby (ambient) and during game (intense)
+  const isMusicScene = screen === 'home' || screen === 'profile' || screen === 'difficulty' || screen === 'shop' || screen === 'leaderboard' || screen === 'game'
+  useMusic(isMusicScene, muted || musicOff, screen === 'game' ? 'intense' : 'ambient')
 
   const openGame = (gameId, diffId = null) => {
     const g = GAMES.find(x => x.id === gameId)
@@ -713,6 +713,7 @@ function AppInner() {
           }} 
         />
       )}
+      <div className="crt-overlay" />
     </div>
   )
 }
