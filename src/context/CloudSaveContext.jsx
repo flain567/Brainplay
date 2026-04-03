@@ -128,6 +128,20 @@ function mergeCoins(local, cloud) {
   }
 }
 
+function mergeInventory(local, cloud) {
+  if (!cloud) return local || { chests:{}, materials:{}, consumables:{} }
+  if (!local) return cloud || { chests:{}, materials:{}, consumables:{} }
+  
+  // For materials and consumables, we can take the max to be safe.
+  // For chests, we also take the max. 
+  // It's a simple merging strategy for offline capability without full CRDTs.
+  return {
+    chests: mergeObjectMax(local.chests, cloud.chests),
+    materials: mergeObjectMax(local.materials, cloud.materials),
+    consumables: mergeObjectMax(local.consumables, cloud.consumables)
+  }
+}
+
 // ─── Provider ────────────────────────────────────────────────────────────────
 
 export function CloudSaveProvider({ children }) {
@@ -163,15 +177,20 @@ export function CloudSaveProvider({ children }) {
       const snap = await getDoc(docRef)
       const cloudData = snap.exists() ? snap.data() : null
 
-      // Get local data (will be empty if we just cleared it)
       const localProgress = getJSON(StorageKeys.XP) || {}
       const localCoins = getJSON(StorageKeys.COINS) || {}
+      let localInventory = { chests:{}, materials:{}, consumables:{} }
+      try { 
+        const iSaved = localStorage.getItem('bp_inventory')
+        if (iSaved) localInventory = JSON.parse(iSaved)
+      } catch(e) {}
+      
       const localName = localStorage.getItem('bp_display_name') || ''
 
       if (cloudData) {
-        // Merge
         const mergedProgress = mergeProgress(localProgress, cloudData.progress || {})
         const mergedCoins = mergeCoins(localCoins, cloudData.coins || {})
+        const mergedInventory = mergeInventory(localInventory, cloudData.inventory || {})
 
         // Restore display name from cloud if local is empty
         const mergedName = localName || cloudData.displayName || ''
@@ -183,11 +202,13 @@ export function CloudSaveProvider({ children }) {
         // Save merged to localStorage
         setJSON(StorageKeys.XP, mergedProgress)
         setJSON(StorageKeys.COINS, mergedCoins)
+        localStorage.setItem('bp_inventory', JSON.stringify(mergedInventory))
 
         // Save merged back to cloud
         await setDoc(docRef, {
           progress: mergedProgress,
           coins: { ...mergedCoins, transactions: (mergedCoins.transactions || []).slice(0, 10) },
+          inventory: mergedInventory,
           displayName: mergedName,
           updatedAt: serverTimestamp(),
         })
@@ -197,6 +218,7 @@ export function CloudSaveProvider({ children }) {
         await setDoc(docRef, {
           progress: localProgress,
           coins: { ...localCoins, transactions: (localCoins.transactions || []).slice(0, 10) },
+          inventory: localInventory,
           displayName: localName,
           updatedAt: serverTimestamp(),
         })
@@ -225,6 +247,12 @@ export function CloudSaveProvider({ children }) {
     try {
       const progress = getJSON(StorageKeys.XP) || {}
       const coins = getJSON(StorageKeys.COINS) || {}
+      let inventory = { chests:{}, materials:{}, consumables:{} }
+      try { 
+        const iSaved = localStorage.getItem('bp_inventory')
+        if (iSaved) inventory = JSON.parse(iSaved)
+      } catch(e) {}
+      
       const displayName = localStorage.getItem('bp_display_name') || ''
 
       const db = await getDb()
@@ -233,6 +261,7 @@ export function CloudSaveProvider({ children }) {
       await setDoc(doc(db, 'users', user.uid), {
         progress,
         coins: { ...coins, transactions: (coins.transactions || []).slice(0, 10) },
+        inventory,
         displayName,
         updatedAt: serverTimestamp(),
       })

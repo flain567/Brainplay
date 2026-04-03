@@ -10,6 +10,7 @@ import { LimitedModeProvider, useLimitedMode } from './context/LimitedModeContex
 import { LuckyWheelProvider } from './context/LuckyWheelContext.jsx'
 import { LocalAnalyticsProvider } from './context/LocalAnalyticsContext.jsx'
 import { CloudSaveProvider, useCloudSave } from './context/CloudSaveContext.jsx'
+import { InventoryProvider } from './context/InventoryContext.jsx'
 import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
 import PageTransition from './components/PageTransition.jsx'
@@ -40,6 +41,7 @@ const GamesPage   = lazy(() => import('./pages/Games.jsx'))
 const GameStatsPage = lazy(() => import('./pages/GameStatsPage.jsx'))
 const AnalyticsDashboard = lazy(() => import('./pages/AnalyticsDashboard.jsx'))
 const AdminAnalyticsDashboard = lazy(() => import('./pages/AdminAnalyticsDashboard.jsx'))
+const InventoryPage = lazy(() => import('./pages/Inventory.jsx'))
 const LoginModal  = lazy(() => import('./components/LoginModal.jsx'))
 const OnboardingModal = lazy(() => import('./components/OnboardingModal.jsx'))
 
@@ -580,6 +582,7 @@ function AppInner() {
   const goShop        = () => { setIsWheelOpen(false); setScreen('shop'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goLeaderboard = () => { setIsWheelOpen(false); setScreen('leaderboard'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goStats       = () => { setIsWheelOpen(false); setScreen('stats'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goInventory   = () => { setIsWheelOpen(false); setScreen('inventory'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goAnalytics   = () => { setIsWheelOpen(false); setScreen('analytics'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goGames       = () => { setIsWheelOpen(false); setScreen('games'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goAdmin       = () => { setIsWheelOpen(false); setScreen('admin'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
@@ -730,6 +733,7 @@ function AppInner() {
             else if (target === 'shop') goShop()
             else if (target === 'profile') goProfile()
             else if (target === 'games') goGames()
+            else if (target === 'inventory') goInventory()
           }} 
         />
       )}
@@ -747,16 +751,18 @@ export default function App() {
             <LimitedModeProvider>
               <ProgressProvider>
                 <CoinProvider>
-                  <LeaderboardProvider>
-                    <LuckyWheelProvider>
-                    <DailyChallengeProvider>
-                      <NotifProvider>
-                        <ThemeApplicator />
-                        <AppInner />
-                      </NotifProvider>
-                    </DailyChallengeProvider>
-                    </LuckyWheelProvider>
-                  </LeaderboardProvider>
+                  <InventoryProvider>
+                    <LeaderboardProvider>
+                      <LuckyWheelProvider>
+                      <DailyChallengeProvider>
+                        <NotifProvider>
+                          <ThemeApplicator />
+                          <AppInner />
+                        </NotifProvider>
+                      </DailyChallengeProvider>
+                      </LuckyWheelProvider>
+                    </LeaderboardProvider>
+                  </InventoryProvider>
                 </CoinProvider>
               </ProgressProvider>
             </LimitedModeProvider>

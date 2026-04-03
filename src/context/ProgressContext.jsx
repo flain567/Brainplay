@@ -320,6 +320,13 @@ export function ProgressProvider({ children }) {
       const newLevel = getLevel(next.totalXP)
       if (newLevel > oldLevel) {
         next.levelUpData = { oldLevel, newLevel }
+        // Drop a random lootbox on level up!
+        try { window.dispatchEvent(new CustomEvent('bp-add-chest', { detail: { chestId: 'basic_chest', amount: 1 } })) } catch(e) {}
+        
+        // At high levels (every 5 levels), drop a premium chest!
+        if (newLevel % 5 === 0) {
+          try { window.dispatchEvent(new CustomEvent('bp-add-chest', { detail: { chestId: 'premium_chest', amount: 1 } })) } catch(e) {}
+        }
       }
 
       next.totalGamesPlayed = (next.totalGamesPlayed || 0) + 1
