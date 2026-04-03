@@ -294,7 +294,7 @@ export function NotificationBell({ notifications, unreadCount, showPanel, setSho
               </div>
               {notifications.length > 0 && (
                 <button onClick={clearAll} style={{
-                  background: 'transparent', border: 'none', color: textMuted,
+                  background: 'transparent', border: 'none', color: tc.textMuted,
                   fontSize: 12, fontWeight: 700, cursor: 'pointer',
                   padding: '4px 10px', borderRadius: 8,
                   fontFamily: "'Nunito',sans-serif",
@@ -307,7 +307,7 @@ export function NotificationBell({ notifications, unreadCount, showPanel, setSho
             {/* Notification list */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '8px 10px' }}>
               {notifications.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '32px 16px', color: textMuted }}>
+                <div style={{ textAlign: 'center', padding: '32px 16px', color: tc.textMuted }}>
                   <div style={{ fontSize: 36, marginBottom: 8 }}>🔕</div>
                   <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 14 }}>Belum ada notifikasi</div>
                   <div style={{ fontSize: 12, marginTop: 4 }}>Notifikasi akan muncul di sini</div>
@@ -332,10 +332,10 @@ export function NotificationBell({ notifications, unreadCount, showPanel, setSho
                       <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 13, color: textMain, lineHeight: 1.3 }}>
                         {notif.title}
                       </div>
-                      <div style={{ fontSize: 12, color: textMuted, marginTop: 2, lineHeight: 1.4 }}>
+                      <div style={{ fontSize: 12, color: tc.textMuted, marginTop: 2, lineHeight: 1.4 }}>
                         {notif.message}
                       </div>
-                      <div style={{ fontSize: 10, color: textMuted, marginTop: 4, opacity: 0.7 }}>
+                      <div style={{ fontSize: 10, color: tc.textMuted, marginTop: 4, opacity: 0.7 }}>
                         {formatTime(notif.time)}
                       </div>
                     </div>

@@ -123,19 +123,19 @@ export default function GameStatsPage({ onBack }) {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12, marginBottom: 20 }}>
             <div style={{ background: dark ? 'rgba(162,155,254,0.1)' : 'rgba(162,155,254,0.05)', borderRadius: 14, padding: 16 }}>
-              <div style={{ fontSize: 12, color: textMuted, fontWeight: 600, marginBottom: 4 }}>Total Games</div>
+              <div style={{ fontSize: 12, color: tc.textMuted, fontWeight: 600, marginBottom: 4 }}>Total Games</div>
               <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 32, color: '#A29BFE' }}>{stats.totalPlays}</div>
             </div>
             <div style={{ background: dark ? 'rgba(78,205,196,0.1)' : 'rgba(78,205,196,0.05)', borderRadius: 14, padding: 16 }}>
-              <div style={{ fontSize: 12, color: textMuted, fontWeight: 600, marginBottom: 4 }}>Win Rate</div>
+              <div style={{ fontSize: 12, color: tc.textMuted, fontWeight: 600, marginBottom: 4 }}>Win Rate</div>
               <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 32, color: '#4ECDC4' }}>{stats.winRate}%</div>
             </div>
             <div style={{ background: dark ? 'rgba(253,203,110,0.1)' : 'rgba(253,203,110,0.05)', borderRadius: 14, padding: 16 }}>
-              <div style={{ fontSize: 12, color: textMuted, fontWeight: 600, marginBottom: 4 }}>Best Score</div>
+              <div style={{ fontSize: 12, color: tc.textMuted, fontWeight: 600, marginBottom: 4 }}>Best Score</div>
               <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 32, color: '#FDCB6E' }}>{stats.bestScore}</div>
             </div>
             <div style={{ background: dark ? 'rgba(0,184,148,0.1)' : 'rgba(0,184,148,0.05)', borderRadius: 14, padding: 16 }}>
-              <div style={{ fontSize: 12, color: textMuted, fontWeight: 600, marginBottom: 4 }}>Coins Earned</div>
+              <div style={{ fontSize: 12, color: tc.textMuted, fontWeight: 600, marginBottom: 4 }}>Coins Earned</div>
               <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 32, color: '#00B894' }}>🪙 {stats.totalCoins}</div>
             </div>
           </div>
@@ -144,19 +144,19 @@ export default function GameStatsPage({ onBack }) {
             <h3 style={{ fontSize: 14, fontWeight: 700, color: textMain, marginBottom: 12 }}>Win Rate per Difficulty</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
               <div style={{ background: dark ? '#1a5a42' : '#E8F8F0', borderRadius: 12, padding: 14, textAlign: 'center' }}>
-                <div style={{ fontSize: 12, color: textMuted, marginBottom: 6 }}>🟢 Easy</div>
+                <div style={{ fontSize: 12, color: tc.textMuted, marginBottom: 6 }}>🟢 Easy</div>
                 <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: '#00B894', marginBottom: 4 }}>{stats.easyWinRate}%</div>
-                <div style={{ fontSize: 11, color: textMuted }}>({stats.easyCount} games)</div>
+                <div style={{ fontSize: 11, color: tc.textMuted }}>({stats.easyCount} games)</div>
               </div>
               <div style={{ background: dark ? '#4a4a1a' : '#FFFBF0', borderRadius: 12, padding: 14, textAlign: 'center' }}>
-                <div style={{ fontSize: 12, color: textMuted, marginBottom: 6 }}>🟡 Medium</div>
+                <div style={{ fontSize: 12, color: tc.textMuted, marginBottom: 6 }}>🟡 Medium</div>
                 <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: '#FDCB6E', marginBottom: 4 }}>{stats.mediumWinRate}%</div>
-                <div style={{ fontSize: 11, color: textMuted }}>({stats.mediumCount} games)</div>
+                <div style={{ fontSize: 11, color: tc.textMuted }}>({stats.mediumCount} games)</div>
               </div>
               <div style={{ background: dark ? '#5a1a1a' : '#FFF0F0', borderRadius: 12, padding: 14, textAlign: 'center' }}>
-                <div style={{ fontSize: 12, color: textMuted, marginBottom: 6 }}>🔴 Hard</div>
+                <div style={{ fontSize: 12, color: tc.textMuted, marginBottom: 6 }}>🔴 Hard</div>
                 <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: '#FF6B6B', marginBottom: 4 }}>{stats.hardWinRate}%</div>
-                <div style={{ fontSize: 11, color: textMuted }}>({stats.hardCount} games)</div>
+                <div style={{ fontSize: 11, color: tc.textMuted }}>({stats.hardCount} games)</div>
               </div>
             </div>
           </div>
@@ -165,11 +165,11 @@ export default function GameStatsPage({ onBack }) {
             <h3 style={{ fontSize: 14, fontWeight: 700, color: textMain, marginBottom: 12 }}>Other Stats</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
               <div style={{ background: surface, border: `1px solid ${borderCol}`, borderRadius: 12, padding: 12 }}>
-                <div style={{ fontSize: 12, color: textMuted, marginBottom: 4 }}>Average Score</div>
+                <div style={{ fontSize: 12, color: tc.textMuted, marginBottom: 4 }}>Average Score</div>
                 <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 20, color: textMain }}>{stats.avgScore}</div>
               </div>
               <div style={{ background: surface, border: `1px solid ${borderCol}`, borderRadius: 12, padding: 12 }}>
-                <div style={{ fontSize: 12, color: textMuted, marginBottom: 4 }}>Avg Time/Game</div>
+                <div style={{ fontSize: 12, color: tc.textMuted, marginBottom: 4 }}>Avg Time/Game</div>
                 <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 20, color: textMain }}>{Math.floor(stats.avgTime / 60)}:{String(stats.avgTime % 60).padStart(2, '0')}</div>
               </div>
             </div>
@@ -198,19 +198,19 @@ export default function GameStatsPage({ onBack }) {
         <h2 style={{ fontSize: 18, fontWeight: 700, color: textMain, marginBottom: 16, margin: 0 }}>Overall Stats</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12, marginTop: 12 }}>
           <div style={{ background: dark ? 'rgba(162,155,254,0.1)' : 'rgba(162,155,254,0.05)', borderRadius: 14, padding: 16, textAlign: 'center' }}>
-            <div style={{ fontSize: 12, color: textMuted, fontWeight: 600, marginBottom: 8 }}>Total Plays</div>
+            <div style={{ fontSize: 12, color: tc.textMuted, fontWeight: 600, marginBottom: 8 }}>Total Plays</div>
             <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 36, color: '#A29BFE' }}>{totalPlayed}</div>
           </div>
           <div style={{ background: dark ? 'rgba(78,205,196,0.1)' : 'rgba(78,205,196,0.05)', borderRadius: 14, padding: 16, textAlign: 'center' }}>
-            <div style={{ fontSize: 12, color: textMuted, fontWeight: 600, marginBottom: 8 }}>Win Rate</div>
+            <div style={{ fontSize: 12, color: tc.textMuted, fontWeight: 600, marginBottom: 8 }}>Win Rate</div>
             <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 36, color: '#4ECDC4' }}>{overallWinRate}%</div>
           </div>
           <div style={{ background: dark ? 'rgba(0,184,148,0.1)' : 'rgba(0,184,148,0.05)', borderRadius: 14, padding: 16, textAlign: 'center' }}>
-            <div style={{ fontSize: 12, color: textMuted, fontWeight: 600, marginBottom: 8 }}>Total Wins</div>
+            <div style={{ fontSize: 12, color: tc.textMuted, fontWeight: 600, marginBottom: 8 }}>Total Wins</div>
             <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 36, color: '#00B894' }}>{totalWins}</div>
           </div>
           <div style={{ background: dark ? 'rgba(253,203,110,0.1)' : 'rgba(253,203,110,0.05)', borderRadius: 14, padding: 16, textAlign: 'center' }}>
-            <div style={{ fontSize: 12, color: textMuted, fontWeight: 600, marginBottom: 8 }}>Coins Earned</div>
+            <div style={{ fontSize: 12, color: tc.textMuted, fontWeight: 600, marginBottom: 8 }}>Coins Earned</div>
             <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 36, color: '#FDCB6E' }}>🪙 {totalEarned}</div>
           </div>
         </div>
@@ -248,7 +248,7 @@ export default function GameStatsPage({ onBack }) {
                 <span style={{ fontSize: 28 }}>{game.emoji}</span>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: textMain }}>{game.name}</div>
-                  <div style={{ fontSize: 11, color: textMuted }}>
+                  <div style={{ fontSize: 11, color: tc.textMuted }}>
                     {game.totalPlays} plays • {game.wins}W {game.losses}L • {game.winRate}%
                   </div>
                 </div>
@@ -257,7 +257,7 @@ export default function GameStatsPage({ onBack }) {
                 <div style={{ fontSize: 14, fontWeight: 700, color: game.bestScore > 0 ? '#FDCB6E' : textMuted }}>
                   {game.bestScore > 0 ? game.bestScore : '—'}
                 </div>
-                <div style={{ fontSize: 11, color: textMuted }}>🪙 {game.totalCoins}</div>
+                <div style={{ fontSize: 11, color: tc.textMuted }}>🪙 {game.totalCoins}</div>
               </div>
             </button>
           ))}

@@ -53,7 +53,7 @@ function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMai
           </div>
           <div style={{ flex:1 }}>
             <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color: isLocked ? textMuted : textMain }}>{item.name}</div>
-            <div style={{ fontSize:12, color:textMuted, marginTop:1 }}>{item.desc}</div>
+            <div style={{ fontSize:12, color:tc.textMuted, marginTop:1 }}>{item.desc}</div>
           </div>
 
           {isLocked ? (
@@ -73,7 +73,7 @@ function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMai
               disabled={buyingId === item.id}
               style={{
                 background: coins >= item.price ? 'linear-gradient(135deg,#FDCB6E,#F9A825)' : (dark?'#1e2a4a':'#eee'),
-                color: coins >= item.price ? '#5D4037' : textMuted,
+                color: coins >= item.price ? '#5D4037' : tc.textMuted,
                 border:'none', borderRadius:12, padding:'8px 16px',
                 fontFamily:"'Fredoka One',cursive", fontSize:13,
                 cursor: coins >= item.price ? 'pointer' : 'not-allowed',
@@ -398,7 +398,7 @@ export default function Shop({ onBack }) {
             <div style={{ fontSize:36, flexShrink:0 }}>🎁</div>
             <div style={{ flex:1 }}>
               <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color:textMain, marginBottom:2 }}>Hadiah Harian</div>
-              <div style={{ fontSize:12, color:textMuted }}>
+              <div style={{ fontSize:12, color:tc.textMuted }}>
                 Streak: {dailyStreak||0}/7 hari • Reward: {COIN_REWARDS.dailyLogin[Math.min((dailyStreak||0), COIN_REWARDS.dailyLogin.length-1)]} 🪙
               </div>
               <div style={{ display:'flex', gap:4, marginTop:6 }}>
@@ -408,7 +408,7 @@ export default function Shop({ onBack }) {
                     alignItems:'center', justifyContent:'center', fontSize:8, fontWeight:800,
                     background: i < (dailyStreak||0) ? '#4ECDC422' : (dark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.04)'),
                     border:`1.5px solid ${i < (dailyStreak||0) ? '#4ECDC4' : 'transparent'}`,
-                    color: i < (dailyStreak||0) ? '#4ECDC4' : textMuted,
+                    color: i < (dailyStreak||0) ? '#4ECDC4' : tc.textMuted,
                   }}>
                     <span style={{ fontSize:10 }}>{r}</span>
                   </div>
@@ -418,7 +418,7 @@ export default function Shop({ onBack }) {
             <button onClick={handleDaily} disabled={!isDailyClaimable}
               style={{
                 background: isDailyClaimable ? 'linear-gradient(135deg,#FDCB6E,#F9A825)' : (dark?'#1e2a4a':'#eee'),
-                color: isDailyClaimable ? '#5D4037' : textMuted,
+                color: isDailyClaimable ? '#5D4037' : tc.textMuted,
                 border:'none', borderRadius:14, padding:'12px 20px',
                 fontFamily:"'Fredoka One',cursive", fontSize:14,
                 cursor: isDailyClaimable ? 'pointer' : 'default',
@@ -444,7 +444,7 @@ export default function Shop({ onBack }) {
           {/* ── Card Icon Packs ── */}
           {tab === 'packs' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Card Icon Pack mengubah tampilan kartu di Memory Card Match
               </p>
               <CosmeticList
@@ -471,7 +471,7 @@ export default function Shop({ onBack }) {
           {/* ── Snake Skins ── */}
           {tab === 'skins' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Snake Skin mengubah warna dan efek glow cacing di Slither Worm
               </p>
               <CosmeticList
@@ -518,7 +518,7 @@ export default function Shop({ onBack }) {
           {/* ── Tile Themes ── */}
           {tab === 'tiles' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Tile Theme mengubah palet warna blok di Connect Blocks
               </p>
               <CosmeticList
@@ -552,7 +552,7 @@ export default function Shop({ onBack }) {
           {/* ── Highlight Packs ── */}
           {tab === 'highlights' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Highlight Pack mengubah warna highlight kata di Word Search
               </p>
               <CosmeticList
@@ -580,7 +580,7 @@ export default function Shop({ onBack }) {
           {/* ── Ships (Space Shooter) ── */}
           {tab === 'ships' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Pesawat mengubah tampilan, stats, dan kemampuan spesial di Space Shooter
               </p>
               {SHIP_CATALOG.map((item, i) => {
@@ -635,7 +635,7 @@ export default function Shop({ onBack }) {
                       </div>
                       <div style={{ flex:1 }}>
                         <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color: isExclusive && !owned ? textMuted : textMain }}>{item.name}</div>
-                        <div style={{ fontSize:12, color:textMuted, marginTop:1 }}>{item.desc}</div>
+                        <div style={{ fontSize:12, color:tc.textMuted, marginTop:1 }}>{item.desc}</div>
                       </div>
                       {!owned && isExclusive ? (
                         <div style={{
@@ -653,7 +653,7 @@ export default function Shop({ onBack }) {
                           disabled={buyingId === item.id}
                           style={{
                             background: coins >= item.price ? 'linear-gradient(135deg,#FDCB6E,#F9A825)' : (dark?'#1e2a4a':'#eee'),
-                            color: coins >= item.price ? '#5D4037' : textMuted,
+                            color: coins >= item.price ? '#5D4037' : tc.textMuted,
                             border:'none', borderRadius:12, padding:'8px 16px',
                             fontFamily:"'Fredoka One',cursive", fontSize:13,
                             cursor: coins >= item.price ? 'pointer' : 'not-allowed',
@@ -684,7 +684,7 @@ export default function Shop({ onBack }) {
                           { label:'HP', val:st.maxHP, max:8, c:'#FDCB6E' },
                         ].map(bar => (
                           <div key={bar.label} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
-                            <span style={{ fontSize:11, color:textMuted, width:70, fontWeight:700 }}>{bar.label}</span>
+                            <span style={{ fontSize:11, color:tc.textMuted, width:70, fontWeight:700 }}>{bar.label}</span>
                             <div style={{ flex:1, height:8, borderRadius:4, background:dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)' }}>
                               <div style={{ width:`${(bar.val/bar.max)*100}%`, height:'100%', borderRadius:4, background:bar.c, transition:'width 0.3s' }} />
                             </div>
@@ -713,7 +713,7 @@ export default function Shop({ onBack }) {
           {/* ── Hangman Themes ── */}
           {tab === 'hangman' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Ubah warna tiang dan karakter di Hangman
               </p>
               <CosmeticList
@@ -736,7 +736,7 @@ export default function Shop({ onBack }) {
                       <line x1="45" y1="35" x2="38" y2="40" stroke={item.style.man} strokeWidth="1.5"/>
                       <line x1="45" y1="35" x2="52" y2="40" stroke={item.style.man} strokeWidth="1.5"/>
                     </svg>
-                    <div style={{ fontSize:12, color:textMuted }}>Preview tema {item.name}</div>
+                    <div style={{ fontSize:12, color:tc.textMuted }}>Preview tema {item.name}</div>
                   </div>
                 )}
               />
@@ -746,7 +746,7 @@ export default function Shop({ onBack }) {
           {/* ── Tube Themes (Color Sort) ── */}
           {tab === 'tubes' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Ubah tampilan tabung di Color Sort
               </p>
               <CosmeticList
@@ -777,7 +777,7 @@ export default function Shop({ onBack }) {
           {/* ── Sudoku Themes ── */}
           {tab === 'sudoku' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Ubah warna grid dan angka di Sudoku
               </p>
               <CosmeticList
@@ -811,7 +811,7 @@ export default function Shop({ onBack }) {
           {/* ── Binary Themes ── */}
           {tab === 'binary' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Ubah gaya grid dan angka di Binary Puzzle
               </p>
               <CosmeticList
@@ -845,7 +845,7 @@ export default function Shop({ onBack }) {
           {/* ── Minesweeper Themes ── */}
           {tab === 'minesweeper' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Buka dunia baru penuh rintangan di Minesweeper
               </p>
               <CosmeticList
@@ -884,7 +884,7 @@ export default function Shop({ onBack }) {
           {/* ── Sliding Puzzle Themes ── */}
           {tab === 'sliding' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Ubah gaya piringan angka di Sliding Puzzle
               </p>
               <CosmeticList
@@ -932,7 +932,7 @@ export default function Shop({ onBack }) {
           {/* ── Jigsaw Themes ── */}
           {tab === 'jigsaw' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Ubah warna gradien puzzle di Jigsaw Puzzle
               </p>
               <CosmeticList
@@ -960,7 +960,7 @@ export default function Shop({ onBack }) {
           {/* ── Memory Pattern Pro Themes (Day 10) ── */}
           {tab === 'pattern' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Ubah warna grid dan efek glow di Memory Pattern Pro
               </p>
               <CosmeticList
@@ -990,7 +990,7 @@ export default function Shop({ onBack }) {
           {/* ── Reaction Test Themes (Day 11) ── */}
           {tab === 'reaction' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Ubah skema warna di Reaction Test
               </p>
               <CosmeticList
@@ -1018,7 +1018,7 @@ export default function Shop({ onBack }) {
           {/* ── Neon Dash Trail Themes (Day 12) ── */}
           {tab === 'dash' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Ubah warna pemain dan trail di Neon Dash
               </p>
               <CosmeticList
@@ -1043,7 +1043,7 @@ export default function Shop({ onBack }) {
           {/* ── Brick Breaker Skins (Day 13) ── */}
           {tab === 'breaker' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Ubah warna paddle dan bola di Brick Breaker
               </p>
               <CosmeticList
@@ -1067,7 +1067,7 @@ export default function Shop({ onBack }) {
           {/* ── Wordle Tile Themes (Day 14) ── */}
           {tab === 'wordle' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Ubah skema warna tile di Wordle Indonesia
               </p>
               <CosmeticList
@@ -1096,7 +1096,7 @@ export default function Shop({ onBack }) {
           {/* ── Voxel Racer Car Skins (Day 15) ── */}
           {tab === 'racer' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Ubah warna mobil di Voxel Racer
               </p>
               <CosmeticList
@@ -1126,7 +1126,7 @@ export default function Shop({ onBack }) {
           {/* ── Voxel Racer Maps (NEW) ── */}
           {tab === 'racermaps' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Ubah tema background panorama dan warna tanah di Voxel Racer
               </p>
               <CosmeticList
@@ -1152,7 +1152,7 @@ export default function Shop({ onBack }) {
           {/* ── Website Themes (Global App Themes) ── */}
           {tab === 'math' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Ubah warna tema di Math Challenge — aksen, timer, dan feedback
               </p>
               <CosmeticList
@@ -1168,7 +1168,7 @@ export default function Shop({ onBack }) {
                     {Object.entries(item.style).map(([k,v]) => (
                       <div key={k} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
                         <div style={{ width:28, height:28, borderRadius:8, background:v, border:'2px solid rgba(255,255,255,0.2)' }} />
-                        <div style={{ fontSize:9, color:textMuted }}>{k}</div>
+                        <div style={{ fontSize:9, color:tc.textMuted }}>{k}</div>
                       </div>
                     ))}
                   </div>
@@ -1180,7 +1180,7 @@ export default function Shop({ onBack }) {
           {/* ── Website Themes (Global App Themes) ── */}
           {tab === 'webtheme' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
-              <p style={{ fontSize:13, color:textMuted, marginBottom:18, textAlign:'center' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
                 Tema Website mengubah warna seluruh tampilan BrainPlay
               </p>
               {WEBSITE_THEMES.map((item, i) => {
@@ -1208,14 +1208,14 @@ export default function Shop({ onBack }) {
                       </div>
                       <div style={{ flex:1 }}>
                         <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color:textMain }}>{item.name}</div>
-                        <div style={{ fontSize:12, color:textMuted, marginTop:1 }}>{item.desc}</div>
+                        <div style={{ fontSize:12, color:tc.textMuted, marginTop:1 }}>{item.desc}</div>
                       </div>
                       {!owned ? (
                         <button onClick={(e) => { e.stopPropagation(); handleBuyCosmetic('webThemes', item) }}
                           disabled={buyingId === item.id}
                           style={{
                             background: coins >= item.price ? 'linear-gradient(135deg,#FDCB6E,#F9A825)' : (dark?'#1e2a4a':'#eee'),
-                            color: coins >= item.price ? '#5D4037' : textMuted,
+                            color: coins >= item.price ? '#5D4037' : tc.textMuted,
                             border:'none', borderRadius:12, padding:'8px 16px',
                             fontFamily:"'Fredoka One',cursive", fontSize:13,
                             cursor: coins >= item.price ? 'pointer' : 'not-allowed',
@@ -1283,7 +1283,7 @@ export default function Shop({ onBack }) {
           {tab === 'history' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
               {transactions.length === 0 ? (
-                <div style={{ textAlign:'center', padding:'40px 20px', color:textMuted }}>
+                <div style={{ textAlign:'center', padding:'40px 20px', color:tc.textMuted }}>
                   <div style={{ fontSize:40, marginBottom:12 }}>📜</div>
                   <p style={{ fontFamily:"'Fredoka One',cursive", fontSize:16 }}>Belum ada transaksi</p>
                 </div>
@@ -1293,7 +1293,7 @@ export default function Shop({ onBack }) {
                     <span style={{ fontSize:22 }}>{tx.type==='earn' ? '📥' : '📤'}</span>
                     <div style={{ flex:1 }}>
                       <div style={{ fontSize:13, fontWeight:700, color:textMain }}>{tx.desc || (tx.type==='earn' ? 'Dapat coin' : 'Belanja')}</div>
-                      <div style={{ fontSize:11, color:textMuted }}>{new Date(tx.date).toLocaleDateString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+                      <div style={{ fontSize:11, color:tc.textMuted }}>{new Date(tx.date).toLocaleDateString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
                     </div>
                     <span style={{
                       fontFamily:"'Fredoka One',cursive", fontSize:15,

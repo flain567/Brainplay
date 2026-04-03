@@ -81,7 +81,7 @@ export default function LoginModal({ onDone }) {
         .lm-google-btn:disabled { opacity:0.5; cursor:default; transform:none; }
         .lm-divider {
           display:flex; align-items:center; gap:12px; margin:18px 0;
-          color:${textMuted}; font-size:12px; font-weight:700;
+          color:${tc.textMuted}; font-size:12px; font-weight:700;
         }
         .lm-divider::before, .lm-divider::after {
           content:''; flex:1; height:1px; background:${borderCol};
@@ -103,7 +103,7 @@ export default function LoginModal({ onDone }) {
             <h2 style={{ fontFamily:"'Fredoka One',cursive", fontSize:26, color:textMain, marginBottom:6, lineHeight:1.2 }}>
               Selamat Datang!
             </h2>
-            <p style={{ fontSize:14, color:textMuted, marginBottom:24, lineHeight:1.6 }}>
+            <p style={{ fontSize:14, color:tc.textMuted, marginBottom:24, lineHeight:1.6 }}>
               Login untuk simpan skor di semua device dan tampil di leaderboard global!
             </p>
 
@@ -126,7 +126,7 @@ export default function LoginModal({ onDone }) {
 
             <button onClick={handleGuestSelect} style={{
               width:'100%', padding:'12px', background:'transparent',
-              color:textMuted, border:`2px solid ${borderCol}`,
+              color:tc.textMuted, border:`2px solid ${borderCol}`,
               borderRadius:14, fontSize:14, fontWeight:700, cursor:'pointer',
               transition:'all 0.2s', fontFamily:"'Nunito',sans-serif",
             }}
@@ -138,7 +138,7 @@ export default function LoginModal({ onDone }) {
 
             {/* Benefits */}
             <div style={{ marginTop:20, textAlign:'left', padding:'0 8px' }}>
-              <div style={{ fontSize:11, fontWeight:800, color:textMuted, letterSpacing:'0.5px', marginBottom:8 }}>
+              <div style={{ fontSize:11, fontWeight:800, color:tc.textMuted, letterSpacing:'0.5px', marginBottom:8 }}>
                 KEUNTUNGAN LOGIN
               </div>
               {[
@@ -147,14 +147,14 @@ export default function LoginModal({ onDone }) {
                 { icon:'🏆', text:'Foto profil di leaderboard global' },
                 { icon:'🔒', text:'Skor terikat akun, bukan device' },
               ].map((b, i) => (
-                <div key={i} style={{ display:'flex', alignItems:'center', gap:8, fontSize:12, color:textMuted, lineHeight:1.8 }}>
+                <div key={i} style={{ display:'flex', alignItems:'center', gap:8, fontSize:12, color:tc.textMuted, lineHeight:1.8 }}>
                   <span style={{ fontSize:14, flexShrink:0 }}>{b.icon}</span>
                   <span>{b.text}</span>
                 </div>
               ))}
             </div>
 
-            <p style={{ fontSize:11, color:textMuted, marginTop:18, lineHeight:1.5, opacity:0.7 }}>
+            <p style={{ fontSize:11, color:tc.textMuted, marginTop:18, lineHeight:1.5, opacity:0.7 }}>
               🔒 Data kamu aman. BrainPlay hanya menyimpan nama, foto, dan skor game.
             </p>
           </>
@@ -167,7 +167,7 @@ export default function LoginModal({ onDone }) {
             <h2 style={{ fontFamily:"'Fredoka One',cursive", fontSize:24, color:textMain, marginBottom:6, lineHeight:1.2 }}>
               Pilih Nama Pemain
             </h2>
-            <p style={{ fontSize:13, color:textMuted, marginBottom:6, lineHeight:1.6 }}>
+            <p style={{ fontSize:13, color:tc.textMuted, marginBottom:6, lineHeight:1.6 }}>
               Nama ini yang tampil di leaderboard dan ingame.
             </p>
 
@@ -209,7 +209,7 @@ export default function LoginModal({ onDone }) {
               />
               <div style={{
                 position:'absolute', right:14, top:'50%', transform:'translateY(-50%)',
-                fontSize:11, color:textMuted, fontWeight:600,
+                fontSize:11, color:tc.textMuted, fontWeight:600,
               }}>
                 {nameInput.length}/20
               </div>
@@ -227,7 +227,7 @@ export default function LoginModal({ onDone }) {
                 background: nameInput.trim().length >= 2
                   ? 'linear-gradient(135deg,#A29BFE,#6C5CE7)'
                   : (dark ? '#1e2a4a' : '#eee'),
-                color: nameInput.trim().length >= 2 ? '#fff' : textMuted,
+                color: nameInput.trim().length >= 2 ? '#fff' : tc.textMuted,
                 border:'none', borderRadius:16, fontSize:16, fontWeight:800,
                 fontFamily:"'Fredoka One',cursive",
                 cursor: nameInput.trim().length >= 2 ? 'pointer' : 'default',
@@ -242,13 +242,13 @@ export default function LoginModal({ onDone }) {
             {!isLoggedIn && (
               <button onClick={() => setStep('choose')} style={{
                 marginTop:10, background:'transparent', border:'none',
-                color:textMuted, fontSize:13, cursor:'pointer', fontWeight:600,
+                color:tc.textMuted, fontSize:13, cursor:'pointer', fontWeight:600,
               }}>
                 ← Kembali
               </button>
             )}
 
-            <p style={{ fontSize:11, color:textMuted, marginTop:14, lineHeight:1.5, opacity:0.7 }}>
+            <p style={{ fontSize:11, color:tc.textMuted, marginTop:14, lineHeight:1.5, opacity:0.7 }}>
               💡 Nama bisa diganti nanti di halaman Leaderboard
             </p>
           </>

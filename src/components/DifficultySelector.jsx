@@ -50,7 +50,7 @@ export default function DifficultySelector({ game, onSelect, onBack }) {
           border: 2px solid ${borderCol};
           border-radius: 12px; padding: 9px 18px;
           font-size: 14px; font-weight: 700;
-          color: ${textMuted};
+          color: ${tc.textMuted};
           cursor: pointer; margin-bottom: 36px;
           transition: all 0.18s ease;
           font-family: 'Nunito',sans-serif;
@@ -69,9 +69,9 @@ export default function DifficultySelector({ game, onSelect, onBack }) {
           animation: scale-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
         }
         .diff-game-title { font-family: 'Fredoka One',cursive; font-size: 30px; color: ${textMain}; margin-bottom: 8px; }
-        .diff-game-desc  { font-size: 14px; color: ${textMuted}; line-height: 1.6; max-width: 360px; margin: 0 auto; }
+        .diff-game-desc  { font-size: 14px; color: ${tc.textMuted}; line-height: 1.6; max-width: 360px; margin: 0 auto; }
 
-        .diff-label { font-family: 'Fredoka One',cursive; font-size: 15px; color: ${textMuted}; text-align: center; margin-bottom: 14px; letter-spacing: 0.3px; }
+        .diff-label { font-family: 'Fredoka One',cursive; font-size: 15px; color: ${tc.textMuted}; text-align: center; margin-bottom: 14px; letter-spacing: 0.3px; }
 
         .diff-option {
           display: flex; align-items: center; gap: 16px;
@@ -100,7 +100,7 @@ export default function DifficultySelector({ game, onSelect, onBack }) {
 
         .diff-text { flex: 1; }
         .diff-name { font-family: 'Fredoka One',cursive; font-size: 20px; margin-bottom: 3px; transition: color 0.2s; }
-        .diff-desc { font-size: 12px; color: ${textMuted}; line-height: 1.4; }
+        .diff-desc { font-size: 12px; color: ${tc.textMuted}; line-height: 1.4; }
 
         .diff-chips { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
         .diff-chip  { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 100px; white-space: nowrap; transition: all 0.2s; }
@@ -113,11 +113,11 @@ export default function DifficultySelector({ game, onSelect, onBack }) {
           margin-top: 24px; border-radius: 20px; padding: 18px 22px;
           background: ${surface}; border: 2px solid ${borderCol};
         }
-        .diff-scores-title { font-family: 'Fredoka One',cursive; font-size: 14px; color: ${textMuted}; margin-bottom: 14px; }
+        .diff-scores-title { font-family: 'Fredoka One',cursive; font-size: 14px; color: ${tc.textMuted}; margin-bottom: 14px; }
         .diff-scores-grid  { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
         .diff-score-cell   { text-align: center; padding: 12px 8px; border-radius: 14px; background: ${dark ? '#1e2a4a' : '#F8F9FA'}; }
         .diff-score-val    { font-family: 'Fredoka One',cursive; font-size: 16px; margin-bottom: 2px; }
-        .diff-score-lbl    { font-size: 11px; color: ${textMuted}; font-weight: 600; }
+        .diff-score-lbl    { font-size: 11px; color: ${tc.textMuted}; font-weight: 600; }
 
         @media (max-width: 500px) {
           .diff-root { padding: 24px 16px; }
@@ -182,7 +182,7 @@ export default function DifficultySelector({ game, onSelect, onBack }) {
                   {diff.stats.map((s, j) => (
                     <span key={j} className="diff-chip" style={{
                       background: isHovered ? `${game.color}22` : (dark ? '#1e2a4a' : '#F0F0F0'),
-                      color: isHovered ? game.color : textMuted,
+                      color: isHovered ? game.color : tc.textMuted,
                     }}>
                       {s}
                     </span>

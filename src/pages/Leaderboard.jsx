@@ -380,7 +380,7 @@ export default function Leaderboard({ onBack, games }) {
           background:linear-gradient(to left, ${bg} 40%, transparent);
         }
         .lb-swipe-hint {
-          text-align:right; font-size:10px; color:${textMuted}; margin:-10px 0 10px; opacity:0.7;
+          text-align:right; font-size:10px; color:${tc.textMuted}; margin:-10px 0 10px; opacity:0.7;
         }
         .lb-game-tab {
           flex:0 0 auto; padding:8px 14px; border-radius:14px;

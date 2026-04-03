@@ -508,7 +508,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
                   <div className="nav-xp-bar" style={{ width:'100%', height:6 }}>
                     <div className="nav-xp-fill" style={{ width: `${Math.round(levelInfo.progress * 100)}%` }} />
                   </div>
-                  <div style={{ fontSize:9, color:textMuted, marginTop:2, fontWeight:700 }}>
+                  <div style={{ fontSize:9, color:tc.textMuted, marginTop:2, fontWeight:700 }}>
                     {levelInfo.title} • {Math.round(levelInfo.progress * 100)}% to Lv.{levelInfo.level + 1}
                   </div>
                 </div>
@@ -541,7 +541,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
                   {combo > 1 && <span style={{ color:'#FD79A8', fontSize:11 }}>({combo}× bonus)</span>}
                 </div>
               )}
-              <div style={{ fontSize:11, color:textMuted }}>
+              <div style={{ fontSize:11, color:tc.textMuted }}>
                 BrainPlay v0.9.5 • by Dwi Agus Hidayat
               </div>
             </div>

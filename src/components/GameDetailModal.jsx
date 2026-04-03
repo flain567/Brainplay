@@ -203,7 +203,7 @@ export default function GameDetailModal({ game, onClose, onPlay }) {
                 </div>
               )
             }) : (
-              <div style={{ gridColumn: 'span 3', color: textMuted, fontSize: 12, textAlign: 'center', opacity: 0.6 }}>
+              <div style={{ gridColumn: 'span 3', color: tc.textMuted, fontSize: 12, textAlign: 'center', opacity: 0.6 }}>
                 Game ini tidak memiliki tingkat kesulitan
               </div>
             )}

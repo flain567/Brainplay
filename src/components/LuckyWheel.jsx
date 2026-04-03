@@ -115,6 +115,24 @@ export default function LuckyWheel({ open, onClose }) {
     const fullRotations = 5 + Math.floor(Math.random() * 3)
     // Small jitter that stays inside the slot (±6°)
     const jitter = (Math.random() - 0.5) * slotAngle * 0.25
+    // Clear any manual drag transforms before starting React-based spin
+    if (wheelRef.current) {
+      wheelRef.current.style.transform = ''
+      wheelRef.current.style.transition = ''
+    }
+
+    // Penting: Hapus inline transform dari GSAP (drag) agar tidak conflict dengan React state rotation
+    if (wheelRef.current) {
+      wheelRef.current.style.transform = ''
+      wheelRef.current.style.transition = ''
+    }
+
+    // Clear any manual GSAP transforms so they don't override the React state-based transition
+    if (wheelRef.current) {
+      wheelRef.current.style.transform = ''
+      wheelRef.current.style.transition = ''
+    }
+
     const newRotation = rotationRef.current + fullRotations * 360 + diff + jitter
     
     setRotation(newRotation)
@@ -538,7 +556,7 @@ export default function LuckyWheel({ open, onClose }) {
           padding: 8px 16px; border-radius: 12px;
           background: ${dark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.04)'};
           border: 1px solid ${borderCol};
-          font-size: 13px; font-weight: 700; color: ${textMuted};
+          font-size: 13px; font-weight: 700; color: ${tc.textMuted};
         }
 
         /* Result modal */
@@ -576,7 +594,7 @@ export default function LuckyWheel({ open, onClose }) {
           margin-bottom: 6px;
         }
         .result-desc {
-          font-size: 13px; color: ${textMuted}; margin-bottom: 20px;
+          font-size: 13px; color: ${tc.textMuted}; margin-bottom: 20px;
           line-height: 1.5;
         }
         .result-close-btn {
@@ -663,7 +681,7 @@ export default function LuckyWheel({ open, onClose }) {
                 WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                 marginBottom: 2,
               }}>🎰 Lucky Wheel</h2>
-              <div style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>
+              <div style={{ fontSize: 12, color: tc.textMuted, fontWeight: 600 }}>
                 {totalSpins} total spin{hasFreeSpins ? ' • 🎁 Free spin tersedia!' : ''}
               </div>
             </div>
@@ -681,7 +699,7 @@ export default function LuckyWheel({ open, onClose }) {
           }}>
             {/* Spin progress */}
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: textMuted, fontWeight: 700, marginBottom: 5 }}>
+              <div style={{ fontSize: 11, color: tc.textMuted, fontWeight: 700, marginBottom: 5 }}>
                 SPIN GRATIS MINGGU INI
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -698,7 +716,7 @@ export default function LuckyWheel({ open, onClose }) {
                 <span style={{
                   fontFamily: "'Fredoka One',cursive",
                   fontSize: 14,
-                  color: freeSpinsRemaining > 0 ? '#FFD700' : textMuted,
+                  color: freeSpinsRemaining > 0 ? '#FFD700' : tc.textMuted,
                   flexShrink: 0,
                 }}>
                   {freeSpinsRemaining}/{freeSpinsPerWeek || 5}
@@ -708,7 +726,7 @@ export default function LuckyWheel({ open, onClose }) {
 
             {/* Countdown */}
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <div style={{ fontSize: 10, color: textMuted, fontWeight: 700, marginBottom: 3 }}>
+              <div style={{ fontSize: 10, color: tc.textMuted, fontWeight: 700, marginBottom: 3 }}>
                 RESET BERIKUTNYA
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -723,7 +741,7 @@ export default function LuckyWheel({ open, onClose }) {
                   {countdown.label || '...'}
                 </span>
               </div>
-              <div style={{ fontSize: 9, color: textMuted, marginTop: 2 }}>
+              <div style={{ fontSize: 9, color: tc.textMuted, marginTop: 2 }}>
                 Senin 07:00 WIB
               </div>
             </div>
@@ -843,7 +861,7 @@ export default function LuckyWheel({ open, onClose }) {
                   <div style={{
                     width: '100%', height: '100%', display: 'flex',
                     alignItems: 'center', justifyContent: 'center',
-                    color: textMuted, fontSize: 14, minHeight: 200
+                    color: tc.textMuted, fontSize: 14, minHeight: 200
                   }}>
                     Loading wheel...
                   </div>
@@ -868,7 +886,7 @@ export default function LuckyWheel({ open, onClose }) {
 
               {/* Drag hint */}
               <div style={{
-                textAlign: 'center', fontSize: 11, color: textMuted,
+                textAlign: 'center', fontSize: 11, color: tc.textMuted,
                 marginBottom: 16, fontWeight: 600,
                 opacity: spinning ? 0 : 0.7, transition: 'opacity 0.3s',
                 userSelect: 'none',
@@ -895,7 +913,7 @@ export default function LuckyWheel({ open, onClose }) {
                               ? 'linear-gradient(135deg,#A29BFE,#6C5CE7)'
                               : dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 11, fontWeight: 800, color: i < multiIdx ? '#fff' : textMuted,
+                          fontSize: 11, fontWeight: 800, color: i < multiIdx ? '#fff' : tc.textMuted,
                           transition: 'all 0.3s',
                           animation: i === multiIdx && spinning ? 'pulse 1s ease infinite' : 'none',
                           border: i === multiIdx ? '2px solid #A29BFE' : '2px solid transparent',
@@ -928,7 +946,7 @@ export default function LuckyWheel({ open, onClose }) {
               </div>
 
               {/* Pity indicator */}
-              <div style={{ textAlign: 'center', fontSize: 11, color: textMuted, fontWeight: 600 }}>
+              <div style={{ textAlign: 'center', fontSize: 11, color: tc.textMuted, fontWeight: 600 }}>
                 Pity: {pityCounter}/50 — {pityCounter >= 45 ? '🔥 Hampir Epic!' : 'Epic guaranteed setelah 50 spin'}
               </div>
               <div className="pity-bar">
@@ -936,7 +954,7 @@ export default function LuckyWheel({ open, onClose }) {
               </div>
 
               {/* Coin balance */}
-              <div style={{ textAlign: 'center', marginTop: 14, fontSize: 13, color: textMuted }}>
+              <div style={{ textAlign: 'center', marginTop: 14, fontSize: 13, color: tc.textMuted }}>
                 💰 Saldo: <strong style={{ color: '#FFD700' }}>{coins}</strong> coin
               </div>
             </>
@@ -949,7 +967,7 @@ export default function LuckyWheel({ open, onClose }) {
                 <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 16, color: textMain, marginBottom: 6 }}>
                   Koleksi Eksklusif ({wonExclusives.length}/{WHEEL_EXCLUSIVES.length})
                 </div>
-                <div style={{ fontSize: 12, color: textMuted, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 12, color: tc.textMuted, lineHeight: 1.5 }}>
                   Item eksklusif yang hanya bisa didapat dari Lucky Wheel. Tidak dijual di Shop!
                 </div>
               </div>
@@ -973,10 +991,10 @@ export default function LuckyWheel({ open, onClose }) {
                       ) : (
                         <div style={{ fontSize: 40, marginBottom: 8 }}>{owned ? item.icon : '🔒'}</div>
                       )}
-                      <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 13, color: owned ? textMain : textMuted, marginBottom: 2 }}>
+                      <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 13, color: owned ? textMain : tc.textMuted, marginBottom: 2 }}>
                         {item.name}
                       </div>
-                      <div style={{ fontSize: 10, color: textMuted }}>
+                      <div style={{ fontSize: 10, color: tc.textMuted }}>
                         {item.game === 'space-shooter' ? '🚀 Space Shooter' :
                          item.game === 'voxel-racer' ? '🚗 Voxel Racer' :
                          item.game === 'neon-dash' ? '💎 Neon Dash' : item.game}
@@ -998,7 +1016,7 @@ export default function LuckyWheel({ open, onClose }) {
                 📜 Riwayat Spin
               </div>
               {spinHistory.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: 40, color: textMuted, fontSize: 14 }}>
+                <div style={{ textAlign: 'center', padding: 40, color: tc.textMuted, fontSize: 14 }}>
                   Belum ada riwayat spin
                 </div>
               ) : (
@@ -1007,7 +1025,7 @@ export default function LuckyWheel({ open, onClose }) {
                     <span style={{ fontSize: 22 }}>{h.icon}</span>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 13, color: textMain }}>{h.label}</div>
-                      <div style={{ fontSize: 10, color: textMuted }}>
+                      <div style={{ fontSize: 10, color: tc.textMuted }}>
                         {new Date(h.date).toLocaleDateString('id-ID')} {new Date(h.date).toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'})}
                       </div>
                     </div>
@@ -1107,7 +1125,7 @@ export default function LuckyWheel({ open, onClose }) {
           <div className="result-card" onClick={e => e.stopPropagation()} style={{ padding: '36px 24px' }}>
             {/* Spin number */}
             <div style={{
-              fontSize: 11, fontWeight: 800, color: textMuted, textTransform: 'uppercase',
+              fontSize: 11, fontWeight: 800, color: tc.textMuted, textTransform: 'uppercase',
               letterSpacing: 1, marginBottom: 8,
             }}>
               Spin {multiIdx} / {multiQueue ? multiQueue.length : MULTI_COUNT}
@@ -1199,7 +1217,7 @@ export default function LuckyWheel({ open, onClose }) {
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
               marginBottom: 4,
             }}>🎰 5× Spin Results!</div>
-            <div style={{ fontSize: 12, color: textMuted, marginBottom: 16, fontWeight: 600 }}>
+            <div style={{ fontSize: 12, color: tc.textMuted, marginBottom: 16, fontWeight: 600 }}>
               {multiResults.filter(r => r.rarity === 'epic' || r.rarity === 'legendary').length > 0
                 ? `✨ ${multiResults.filter(r => r.rarity === 'epic' || r.rarity === 'legendary').length} item langka!`
                 : 'Hasil spinmu:'}
@@ -1236,7 +1254,7 @@ export default function LuckyWheel({ open, onClose }) {
                       fontFamily: "'Fredoka One',cursive", fontSize: 13,
                       color: textMain, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                     }}>{reward.label}</div>
-                    <div style={{ fontSize: 10, color: textMuted }}>
+                    <div style={{ fontSize: 10, color: tc.textMuted }}>
                       {reward.type === 'coin' ? `+${reward.amount} coin`
                         : reward.type === 'xp' ? `+${reward.amount} XP`
                         : reward.type === 'exclusive' ? (reward.isDupe ? '♻️ Dupe → coin' : '🆕 Baru!')

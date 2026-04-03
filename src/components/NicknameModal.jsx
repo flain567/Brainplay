@@ -102,7 +102,7 @@ export default function NicknameModal({ onDone }) {
             background: name.trim().length >= 2
               ? 'linear-gradient(135deg,#A29BFE,#6C5CE7)'
               : (dark ? '#1e2a4a' : '#eee'),
-            color: name.trim().length >= 2 ? '#fff' : textMuted,
+            color: name.trim().length >= 2 ? '#fff' : tc.textMuted,
             border:'none', borderRadius:16, fontSize:16, fontWeight:800,
             fontFamily:"'Fredoka One',cursive", cursor: name.trim().length >= 2 ? 'pointer' : 'default',
             boxShadow: name.trim().length >= 2 ? '0 6px 20px rgba(162,155,254,0.4)' : 'none',
