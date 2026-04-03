@@ -149,6 +149,17 @@ export default function LuckyWheel({ open, onClose }) {
       const isEpic = reward.rarity === 'epic' || reward.rarity === 'legendary'
       if (navigator.vibrate) navigator.vibrate(isEpic ? [30, 50, 30] : 30)
       try { play(isEpic ? 'levelUp' : 'win') } catch(e) {}
+
+      // Visual impact animation
+      if (wheelRef.current) {
+        gsap.to(wheelRef.current, {
+          duration: 0.1,
+          y: '+=5',
+          repeat: 1,
+          yoyo: true,
+          ease: "power2.inOut"
+        });
+      }
     }, SPIN_DURATION)
   }, [spinning, coins, extraSpinCost, spin, slots, spendCoins, earnCoins, play])
 
@@ -443,9 +454,23 @@ export default function LuckyWheel({ open, onClose }) {
           overflow: visible;
           transition: transform ${SPIN_DURATION}ms cubic-bezier(0.17, 0.67, 0.12, 0.99);
           filter: drop-shadow(0 0 30px rgba(162,155,254,0.3));
+          animation: wheel-float 4s ease-in-out infinite;
         }
         .wheel-disc.spinning {
-          filter: drop-shadow(0 0 40px rgba(162,155,254,0.5));
+          animation: wheel-glow-pulse 1.5s ease-in-out infinite, wheel-spin-vibe 0.5s linear infinite;
+        }
+        @keyframes wheel-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
+        }
+        @keyframes wheel-glow-pulse {
+          0%, 100% { filter: drop-shadow(0 0 20px rgba(162,155,254,0.4)); }
+          50% { filter: drop-shadow(0 0 45px rgba(162,155,254,0.7)); }
+        }
+        @keyframes wheel-spin-vibe {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.02); }
+          100% { transform: scale(1); }
         }
         .wheel-pointer {
           position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
@@ -524,11 +549,12 @@ export default function LuckyWheel({ open, onClose }) {
           animation: wheelFadeIn 0.3s ease; padding: 20px;
         }
         .result-card {
-          background: ${dark?'linear-gradient(180deg,#151830,#0a0c1c)':'linear-gradient(180deg,#fff,#f8f9ff)'};
-          border-radius: 28px; padding: 36px 28px; text-align: center;
-          max-width: 360px; width: 100%; position: relative; overflow: hidden;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-          animation: resultPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+          background: ${dark?'linear-gradient(180deg,#1A1F35,#0a0c1c)':'linear-gradient(180deg,#fff,#f0f4ff)'};
+          border-radius: 32px; padding: 40px 32px; text-align: center;
+          max-width: 380px; width: 100%; position: relative; overflow: hidden;
+          box-shadow: 0 25px 70px rgba(0,0,0,0.5), 0 0 30px ${dark?'rgba(124,111,232,0.2)':'rgba(0,0,0,0.05)'};
+          border: 1px solid ${dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.05)'};
+          animation: resultPop 0.5s cubic-bezier(0.34,1.56,0.64,1);
         }
         @keyframes resultPop { from { opacity:0; transform:scale(0.8) } to { opacity:1; transform:scale(1) } }
         .result-banner {
@@ -734,7 +760,6 @@ export default function LuckyWheel({ open, onClose }) {
                       width: 280, height: 280,
                       transform: `rotate(${rotation}deg)`,
                       transition: `transform ${SPIN_DURATION}ms cubic-bezier(0.17, 0.67, 0.12, 0.99)`,
-                      filter: spinning ? 'drop-shadow(0 0 40px rgba(162,155,254,0.5))' : 'drop-shadow(0 0 30px rgba(162,155,254,0.3))',
                     }}
                     xmlns="http://www.w3.org/2000/svg"
                   >
@@ -763,12 +788,13 @@ export default function LuckyWheel({ open, onClose }) {
 
                     return (
                       <g key={i}>
-                        <path
-                          d={`M${cx},${cy} L${x1},${y1} A${r},${r} 0 0,1 ${x2},${y2} Z`}
-                          fill={dark ? fill : (i%2===0?'#F5F0FF':'#FFF8EC')}
-                          stroke={dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)'}
-                          strokeWidth="1"
-                        />
+                         <path
+                           d={`M${cx},${cy} L${x1},${y1} A${r},${r} 0 0,1 ${x2},${y2} Z`}
+                           fill={dark ? fill : (i%2===0?'#F5F0FF':'#FFF8EC')}
+                           stroke={dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)'}
+                           strokeWidth="1"
+                           style={{ filter: spinning ? 'brightness(1.15) contrast(1.1)' : 'none' }}
+                         />
                         {slot.img ? (
                           <>
                             {/* Game asset image for exclusive slots */}

@@ -23,29 +23,29 @@ import { Flip } from 'gsap/Flip'
 gsap.registerPlugin(Flip)
 
 const ROADMAP_FUTURE = [
-  { emoji: '⌨️', title: 'Typing Speed',  tag: 'Kata',    color: '#FD79A8', blurb: 'Kecepatan mengetik' },
-  { emoji: '🔀', title: 'Anagram',       tag: 'Kata',    color: '#FDCB6E', blurb: 'Acak huruf jadi kata' },
-  { emoji: '📐', title: 'Nonogram',      tag: 'Puzzle',  color: '#FF6B6B', blurb: 'Tebak gambar dari angka' },
-  { emoji: '♠️', title: 'Solitaire',     tag: 'Casual',  color: '#A29BFE', blurb: 'Santai satu kartu' },
-  { emoji: '🀄', title: 'Mahjong',       tag: 'Casual',  color: '#00CEC9', blurb: 'Pasangkan tile' },
-  { emoji: '♟️', title: 'Chess Puzzle',  tag: 'Logika',  color: '#636E72', blurb: 'Mate dalam N langkah' },
-  { emoji: '🎲', title: 'Mode Surprise', tag: 'Surprise',color: '#FD79A8', blurb: 'Random challenge' },
+  { emoji: '⌨️', title: 'Typing Speed', tag: 'Kata', color: '#FD79A8', blurb: 'Kecepatan mengetik' },
+  { emoji: '🔀', title: 'Anagram', tag: 'Kata', color: '#FDCB6E', blurb: 'Acak huruf jadi kata' },
+  { emoji: '📐', title: 'Nonogram', tag: 'Puzzle', color: '#FF6B6B', blurb: 'Tebak gambar dari angka' },
+  { emoji: '♠️', title: 'Solitaire', tag: 'Casual', color: '#A29BFE', blurb: 'Santai satu kartu' },
+  { emoji: '🀄', title: 'Mahjong', tag: 'Casual', color: '#00CEC9', blurb: 'Pasangkan tile' },
+  { emoji: '♟️', title: 'Chess Puzzle', tag: 'Logika', color: '#636E72', blurb: 'Mate dalam N langkah' },
+  { emoji: '🎲', title: 'Mode Surprise', tag: 'Surprise', color: '#FD79A8', blurb: 'Random challenge' },
 ]
 
-const ALL_TAGS  = ['Semua', 'Puzzle', 'Casual', 'Action', 'Kata', 'Logika', 'Pengetahuan']
-const TAG_META  = {
-  Semua:        { icon: '🎮', color: '#A29BFE' },
-  Puzzle:       { icon: '🧩', color: '#FDCB6E' },
-  Casual:       { icon: '🎯', color: '#4ECDC4' },
-  Action:       { icon: '🔥', color: '#FF6B6B' },
-  Kata:         { icon: '📝', color: '#A29BFE' },
-  Logika:       { icon: '🧠', color: '#FF6B6B' },
-  Pengetahuan:  { icon: '🇮🇩', color: '#0984E3' },
+const ALL_TAGS = ['Semua', 'Puzzle', 'Casual', 'Action', 'Kata', 'Logika', 'Pengetahuan']
+const TAG_META = {
+  Semua: { icon: '🎮', color: '#A29BFE' },
+  Puzzle: { icon: '🧩', color: '#FDCB6E' },
+  Casual: { icon: '🎯', color: '#4ECDC4' },
+  Action: { icon: '🔥', color: '#FF6B6B' },
+  Kata: { icon: '📝', color: '#A29BFE' },
+  Logika: { icon: '🧠', color: '#FF6B6B' },
+  Pengetahuan: { icon: '🇮🇩', color: '#0984E3' },
 }
 
 export default function Home({ games, onPlay, onContinueLast, onProfile, onShop, onStats, onOpenWheel, onGames }) {
   const { darkMode, reduceMotion } = useSettings()
-  const { play }     = useSound()
+  const { play } = useSound()
   const { progress, getSeasonInfo } = useProgress()
   const { playerName } = useAuth()
   const { coins, isDailyClaimable, claimDaily, earnCoins } = useCoins()
@@ -94,15 +94,15 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
   useHomeAnimations(reduceMotion)
   useGSAPScrollTrigger(reduceMotion)
 
-  const levelInfo  = getLevelInfo(progress.totalXP || 0)
+  const levelInfo = getLevelInfo(progress.totalXP || 0)
   const borderData = getBorderForLevel(levelInfo.level)
-  const streak     = progress.currentStreak || 0
-  const dark       = tc.dark
+  const streak = progress.currentStreak || 0
+  const dark = tc.dark
 
   // ScrambleText refs — harus setelah streak/coins/xp dideklarasi
-  const coinsRef  = useScrambleNumber(coins,               { skipFirst: false })
-  const streakRef = useScrambleNumber(streak,              { duration: 0.6, revealDelay: 0.25, skipFirst: false })
-  const xpRef     = useScrambleNumber(progress.totalXP || 0, { duration: 1.0, skipFirst: false })
+  const coinsRef = useScrambleNumber(coins, { skipFirst: false })
+  const streakRef = useScrambleNumber(streak, { duration: 0.6, revealDelay: 0.25, skipFirst: false })
+  const xpRef = useScrambleNumber(progress.totalXP || 0, { duration: 1.0, skipFirst: false })
 
   useEffect(() => {
     const fn = () => setScrollTop(window.scrollY > 400)
@@ -117,14 +117,14 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
     }
   }, [currentMode])
 
-  const lastPlayed   = getLastPlayed()
+  const lastPlayed = getLastPlayed()
   const lastGameMeta = lastPlayed ? games.find(g => g.id === lastPlayed.gameId) : null
-  const lastDiffOk   = lastGameMeta?.difficulties?.some(d => d.id === lastPlayed?.difficultyId)
+  const lastDiffOk = lastGameMeta?.difficulties?.some(d => d.id === lastPlayed?.difficultyId)
   const showContinue = Boolean(onContinueLast && lastGameMeta && lastDiffOk)
-  const DIFF_LABEL   = { easy: 'Mudah', medium: 'Sedang', hard: 'Sulit' }
+  const DIFF_LABEL = { easy: 'Mudah', medium: 'Sedang', hard: 'Sulit' }
   const comboMultiplier = streak >= 7 ? 2.0 : streak >= 3 ? 1.5 : streak >= 1 ? 1.2 : 1.0
-  const comboLabel   = comboMultiplier > 1 ? `${comboMultiplier}×` : null
-  const gameTotal    = games.length || 1
+  const comboLabel = comboMultiplier > 1 ? `${comboMultiplier}×` : null
+  const gameTotal = games.length || 1
 
   // Flagship = highest day game
   const flagshipGame = games.length
@@ -133,29 +133,29 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
 
   // Dark-neon palette (matches mockup)
   const S = dark ? {
-    surface:     '#1A1F35',
+    surface: '#1A1F35',
     surfaceDeep: '#0D1022',
-    border:      '#252B45',
-    text:        '#E2E8F0',
-    muted:       '#475569',
-    mutedDeep:   '#334155',
-    accent:      '#7C6FE8',
-    accentFill:  'rgba(124,111,232,0.14)',
-    accentBorder:'rgba(124,111,232,0.35)',
-    gold:        '#EAB308',
-    green:       '#34D399',
+    border: '#252B45',
+    text: '#E2E8F0',
+    muted: '#475569',
+    mutedDeep: '#334155',
+    accent: '#7C6FE8',
+    accentFill: 'rgba(124,111,232,0.14)',
+    accentBorder: 'rgba(124,111,232,0.35)',
+    gold: '#EAB308',
+    green: '#34D399',
   } : {
-    surface:     '#FFFFFF',
+    surface: '#FFFFFF',
     surfaceDeep: '#F8F9FC',
-    border:      '#E8ECF4',
-    text:        '#2D3436',
-    muted:       '#636E72',
-    mutedDeep:   '#8892A4',
-    accent:      '#6C5CE7',
-    accentFill:  'rgba(108,92,231,0.07)',
-    accentBorder:'rgba(108,92,231,0.25)',
-    gold:        '#F9A825',
-    green:       '#00B894',
+    border: '#E8ECF4',
+    text: '#2D3436',
+    muted: '#636E72',
+    mutedDeep: '#8892A4',
+    accent: '#6C5CE7',
+    accentFill: 'rgba(108,92,231,0.07)',
+    accentBorder: 'rgba(108,92,231,0.25)',
+    gold: '#F9A825',
+    green: '#00B894',
   }
 
   return (
@@ -184,7 +184,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         .pb-level-badge { background:${S.accent}; color:#E0D9FF; font-size:11px; font-weight:800; padding:2px 9px; border-radius:8px; font-family:'Fredoka One',cursive; }
         .pb-title { font-size:13px; font-weight:700; color:${S.text}; font-family:'Fredoka One',cursive; }
         .pb-xp-row { display:flex; align-items:center; gap:8px; }
-        .pb-xp-track { flex:1; height:5px; border-radius:100px; background:${dark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.06)'}; overflow:hidden; }
+        .pb-xp-track { flex:1; height:5px; border-radius:100px; background:${dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)'}; overflow:hidden; }
         .pb-xp-fill { height:100%; border-radius:100px; background:${S.accent}; transition:width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
         .pb-xp-label { font-size:10px; color:${S.muted}; font-weight:700; flex-shrink:0; white-space:nowrap; }
         .pb-stats { display:flex; flex-direction:column; align-items:flex-end; gap:5px; flex-shrink:0; }
@@ -260,31 +260,57 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         .sc-title { font-family:'Fredoka One',cursive; font-size:16px; color:${S.text}; flex:1; }
         .sc-sub { font-size:10px; color:${S.muted}; font-weight:600; }
         .sc-badge { font-size:10px; font-weight:800; padding:2px 10px; border-radius:100px; }
-        .sc-done { background:${dark?'rgba(52,211,153,0.12)':'rgba(0,184,148,0.08)'}; color:${S.green}; border:1px solid ${dark?'rgba(52,211,153,0.25)':'rgba(0,184,148,0.2)'}; }
+        .sc-done { background:${dark ? 'rgba(52,211,153,0.12)' : 'rgba(0,184,148,0.08)'}; color:${S.green}; border:1px solid ${dark ? 'rgba(52,211,153,0.25)' : 'rgba(0,184,148,0.2)'}; }
         .sc-prog { background:${S.accentFill}; color:${S.accent}; border:1px solid ${S.accentBorder}; }
 
-        /* Challenge Rows */
-        .ch-row { display:flex; align-items:center; gap:10px; padding:9px 11px; border-radius:12px; margin-bottom:6px; background:${dark?'rgba(255,255,255,0.02)':'rgba(0,0,0,0.02)'}; border:1px solid transparent; transition:all 0.2s; }
-        .ch-row.done { background:${dark?'rgba(253,203,110,0.07)':'rgba(249,168,37,0.05)'}; border-color:${dark?'rgba(253,203,110,0.18)':'rgba(249,168,37,0.18)'}; }
-        .ch-row.claimed { opacity:0.5; }
-        .ch-ico { width:34px; height:34px; border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:16px; background:${dark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.04)'}; }
-        .ch-ico.done { background:linear-gradient(135deg,#FDCB6E,#F9A825); }
-        .ch-ico.claimed { background:linear-gradient(135deg,#4ECDC4,#00B894); font-size:13px; }
+        /* Challenge Rows -> Quest Cards */
+        .ch-row { 
+          display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:18px; 
+          margin-bottom:10px; background:${dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'}; 
+          border: 1.5px solid ${S.border}; transition:all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          position: relative; overflow: hidden;
+        }
+        .ch-row:hover { border-color: ${S.accent}; transform: translateY(-2px); background: ${S.accentFill}; }
+        .ch-row.done { 
+          background: ${dark ? 'linear-gradient(135deg, rgba(253,203,110,0.1), rgba(253,203,110,0.02))' : 'linear-gradient(135deg, rgba(249,168,37,0.06), #fff)'}; 
+          border-color: rgba(253,203,110,0.4); 
+          box-shadow: 0 4px 15px rgba(253,203,110,0.1);
+        }
+        .ch-row.claimed { opacity:0.6; grayscale: 0.5; border-style: dashed; }
+        .ch-ico { 
+          width:42px; height:42px; border-radius:14px; flex-shrink:0; display:flex; align-items:center; 
+          justify-content:center; font-size:20px; background:${dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}; 
+          box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+          transition: all 0.3s;
+        }
+        .ch-row:hover .ch-ico { transform: scale(1.1) rotate(5deg); }
+        .ch-ico.done { background:linear-gradient(135deg,#FDCB6E,#F9A825); color: #fff; box-shadow: 0 4px 12px rgba(253,203,110,0.4); }
+        .ch-ico.claimed { background: #4ECDC4; color: #fff; font-size: 16px; }
         .ch-info { flex:1; min-width:0; }
-        .ch-desc { font-size:12px; font-weight:700; color:${S.text}; margin-bottom:4px; }
-        .ch-desc.s { text-decoration:line-through; color:${S.muted}; }
-        .ch-pb { display:flex; align-items:center; gap:6px; }
-        .ch-pb-track { flex:1; height:4px; border-radius:100px; background:${dark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.06)'}; overflow:hidden; }
-        .ch-pb-fill { height:100%; border-radius:100px; background:${S.accent}; transition:width 0.5s ease; }
-        .ch-pb-fill.done { background:linear-gradient(90deg,#4ECDC4,#00B894); }
-        .ch-pb-lbl { font-size:9px; color:${S.muted}; font-weight:700; flex-shrink:0; }
-        .ch-rwd { flex-shrink:0; text-align:right; }
-        .ch-rwd-val { font-size:10px; color:${S.accent}; font-weight:700; }
-        .ch-rwd-claimed { font-size:11px; color:${S.green}; font-weight:800; }
-        .ch-claim-btn { background:linear-gradient(135deg,#FDCB6E,#F9A825); border:none; border-radius:9px; padding:5px 12px; color:#fff; font-size:10px; font-weight:800; cursor:pointer; font-family:'Fredoka One',cursive; animation:pulse-soft 1.5s ease infinite; }
-        .ch-bonus { display:flex; align-items:center; gap:10px; padding:9px 13px; border-radius:12px; margin-top:7px; background:${S.accentFill}; border:1px solid ${S.accentBorder}; cursor:pointer; transition:all 0.2s; font-size:13px; font-weight:700; color:${S.accent}; font-family:'Fredoka One',cursive; }
-        .ch-bonus:hover { border-color:${S.accent}; }
-        .ch-bonus.claimed { opacity:0.5; pointer-events:none; }
+        .ch-desc { font-size:13px; font-weight:800; color:${S.text}; margin-bottom:6px; letter-spacing: -0.2px; }
+        .ch-desc.s { text-decoration:line-through; color:${S.muted}; opacity: 0.7; }
+        .ch-pb { display:flex; align-items:center; gap:8px; }
+        .ch-pb-track { flex:1; height:6px; border-radius:100px; background:${dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)'}; overflow:hidden; border: 1px solid ${S.border}; }
+        .ch-pb-fill { height:100%; border-radius:100px; background:${S.accent}; transition:width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .ch-pb-fill.done { background:linear-gradient(90deg,#4ECDC4,#00B894); box-shadow: 0 0 8px #00B894; }
+        .ch-pb-lbl { font-size:10px; color:${S.muted}; font-weight:800; flex-shrink:0; font-family: 'Fredoka One', cursive; }
+        .ch-rwd { flex-shrink:0; text-align:right; margin-left: 8px; }
+        .ch-rwd-val { font-size:11px; color:${S.gold}; font-weight:800; font-family: 'Fredoka One', cursive; }
+        .ch-rwd-claimed { font-size:12px; color:${S.green}; font-weight:900; }
+        .ch-claim-btn { 
+          background:linear-gradient(135deg,#FDCB6E,#F9A825); border:none; border-radius:12px; 
+          padding:6px 14px; color:#fff; font-size:11px; font-weight:900; cursor:pointer; 
+          font-family:'Fredoka One',cursive; animation:pulse-soft 1.5s ease infinite; 
+          box-shadow: 0 4px 15px rgba(253,203,110,0.3);
+        }
+        .ch-bonus { 
+          display:flex; align-items:center; gap:12px; padding:12px 16px; border-radius:18px; 
+          margin-top:12px; background:${dark ? 'rgba(124,111,232,0.1)' : 'rgba(108,92,231,0.06)'}; 
+          border:2px dashed ${S.accentBorder}; cursor:pointer; transition:all 0.3s; 
+          font-size:14px; font-weight:800; color:${S.accent}; font-family:'Fredoka One',cursive; 
+        }
+        .ch-bonus:hover { background: ${S.accentFill}; transform: scale(1.02); border-style: solid; border-color: ${S.accent}; }
+        .ch-bonus.claimed { opacity:0.5; pointer-events:none; filter: grayscale(1); }
 
         /* Tag Filter */
         .tag-filter-row { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:16px; scrollbar-width:none; }
@@ -296,7 +322,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         /* Section headers */
         .section-head { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
         .section-title { font-family:'Fredoka One',cursive; font-size:20px; color:${S.text}; white-space:nowrap; display:flex; align-items:center; gap:8px; }
-        .section-line { flex:1; height:2px; border-radius:100px; background:${dark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.05)'}; min-width:10px; }
+        .section-line { flex:1; height:2px; border-radius:100px; background:${dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}; min-width:10px; }
         .section-pill { font-size:11px; color:${S.muted}; font-weight:700; background:${S.surface}; border:1px solid ${S.border}; border-radius:100px; padding:3px 10px; flex-shrink:0; }
 
         /* Netflix carousel */
@@ -319,7 +345,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
 
         /* Footer */
         .home-footer { margin-top:56px; padding-bottom:20px; }
-        .footer-divider { height:2px; border-radius:100px; margin-bottom:28px; background:${dark?'linear-gradient(90deg,transparent,rgba(124,111,232,0.2),rgba(78,205,196,0.2),transparent)':'linear-gradient(90deg,transparent,rgba(108,92,231,0.22),rgba(78,205,196,0.22),transparent)'}; }
+        .footer-divider { height:2px; border-radius:100px; margin-bottom:28px; background:${dark ? 'linear-gradient(90deg,transparent,rgba(124,111,232,0.2),rgba(78,205,196,0.2),transparent)' : 'linear-gradient(90deg,transparent,rgba(108,92,231,0.22),rgba(78,205,196,0.22),transparent)'}; }
         .footer-content { text-align:center; }
         .footer-logo { display:inline-flex; align-items:center; gap:10px; margin-bottom:10px; }
         .footer-logo-icon { width:34px; height:34px; border-radius:10px; background:${S.accent}; display:flex; align-items:center; justify-content:center; font-size:17px; }
@@ -340,6 +366,9 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         @keyframes slide-up { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
         @keyframes pulse-soft { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes live-pulse { 0% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.4; transform: scale(0.8); } }
+        @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+        @keyframes bg-move { from { background-position: 0 0; } to { background-position: 40px 40px; } }
 
         @media(max-width:600px) {
           .home-content { padding:14px 14px 60px; }
@@ -400,20 +429,20 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
               🎡 Lucky Wheel
               {hasFreeSpins && <span className="qa-free">FREE</span>}
             </button>
-              <button
-                className="qa-btn"
-                style={{ borderColor: `${S.accent}55`, color: S.accent, background: S.accentFill }}
-                onClick={() => { play('click'); onGames?.() }}
-              >
-                🎮 Cari Game
-              </button>
-              <button
-                className="qa-btn"
-                style={{ borderColor: `${S.gold}55`, color: S.gold, background: dark ? 'rgba(234,179,8,0.06)' : 'rgba(249,168,37,0.04)' }}
-                onClick={() => { play('click'); onShop?.() }}
-              >
-                🏪 Shop
-              </button>
+            <button
+              className="qa-btn"
+              style={{ borderColor: `${S.accent}55`, color: S.accent, background: S.accentFill }}
+              onClick={() => { play('click'); onGames?.() }}
+            >
+              🎮 Cari Game
+            </button>
+            <button
+              className="qa-btn"
+              style={{ borderColor: `${S.gold}55`, color: S.gold, background: dark ? 'rgba(234,179,8,0.06)' : 'rgba(249,168,37,0.04)' }}
+              onClick={() => { play('click'); onShop?.() }}
+            >
+              🏪 Shop
+            </button>
             {onStats && (
               <button className="qa-btn" onClick={() => { play('click'); onStats?.() }}>
                 📊 Stats
@@ -433,7 +462,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
               <div className="fs-tag">Game Favorit</div>
               <h2 className="fs-title">{flagshipGame.title}</h2>
               <div style={{ fontSize: 13, color: S.muted, marginBottom: 20, fontWeight: 600 }}>{flagshipGame.description}</div>
-              
+
               <div className="fs-stats">
                 <div className="fs-stat">
                   <span className="fs-stat-label">Terbaik</span>
@@ -461,10 +490,10 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             if (!seasonInfo) return null
             const pct = Math.round(seasonInfo.progress * 100)
             return (
-              <div 
-                className="section-card" 
-                style={{ 
-                  background: 'linear-gradient(135deg, #020118, #1A1F35)', 
+              <div
+                className="section-card"
+                style={{
+                  background: 'linear-gradient(135deg, #020118, #1A1F35)',
                   border: '1.5px solid rgba(0,245,255,0.25)',
                   boxShadow: '0 8px 30px rgba(0,245,255,0.1)',
                   position: 'relative', overflow: 'hidden'
@@ -507,11 +536,11 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             </div>
             <div className="carousel-row" style={{ gap: 12 }}>
               {games.slice(0, 5).map(g => (
-                <div 
-                  key={g.id} 
+                <div
+                  key={g.id}
                   className="premium-card"
-                  style={{ 
-                    flexShrink: 0, width: 100, height: 100, 
+                  style={{
+                    flexShrink: 0, width: 100, height: 100,
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                     gap: 8, cursor: 'pointer', background: S.surfaceDeep
                   }}
@@ -551,10 +580,10 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             </div>
 
             {challenges.map(ch => {
-              const prog    = getChallengeProgress(ch)
-              const done    = isChallengeComplete(ch)
+              const prog = getChallengeProgress(ch)
+              const done = isChallengeComplete(ch)
               const claimed = isChallengeClaimed(ch.id)
-              const pct     = Math.min(100, Math.round((prog / (ch.target || 1)) * 100))
+              const pct = Math.min(100, Math.round((prog / (ch.target || 1)) * 100))
               return (
                 <div key={ch.id} className={`ch-row${done && !claimed ? ' done' : ''}${claimed ? ' claimed' : ''}`}>
                   <div className={`ch-ico${done && !claimed ? ' done' : ''}${claimed ? ' claimed' : ''}`}>
@@ -606,35 +635,111 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                 )}
               </div>
             )}
-          </div>
-
-          {/* ── Limited Mode Banner ── */}
-          {currentMode && (
-            <div
-              className="lm-banner"
-              style={{ background: `linear-gradient(135deg,${currentMode.color}18,${currentMode.color}06)`, borderColor: `${currentMode.color}44` }}
+            {currentMode && (
+              <div
+                className="lm-banner"
+              style={{
+                background: `linear-gradient(135deg,${currentMode.color}22,${currentMode.color}08)`,
+                borderColor: isBonusClaimedToday(currentMode.id) ? S.green : `${currentMode.color}44`,
+                position: 'relative', overflow: 'hidden',
+                transition: 'all 0.4s'
+              }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
+              {/* Background Pattern Animation */}
+              <div style={{
+                position: 'absolute', inset: 0, opacity: 0.1, pointerEvents: 'none',
+                backgroundImage: `radial-gradient(${currentMode.color} 1px, transparent 1px)`,
+                backgroundSize: '24px 24px',
+                animation: 'bg-move 20s linear infinite'
+              }} />
+
+              {/* Scanline effect */}
+              <div style={{
+                position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
+                background: `linear-gradient(to right, transparent, ${currentMode.color}, transparent)`,
+                opacity: 0.2, animation: 'scanline 3s linear infinite',
+                pointerEvents: 'none'
+              }} />
+
+              {isBonusClaimedToday(currentMode.id) && (
+                <div style={{
+                  position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)',
+                  backdropFilter: 'grayscale(1) blur(2px)', zIndex: 10,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  animation: 'fadeIn 0.5s ease both'
+                }}>
+                  <div style={{
+                    transform: 'rotate(-12deg)', border: `4px solid ${S.green}`,
+                    color: S.green, padding: '10px 30px', borderRadius: 16,
+                    fontFamily: "'Fredoka One',cursive", fontSize: 32,
+                    boxShadow: `0 0 20px ${S.green}66`,
+                    background: 'rgba(0,0,0,0.6)'
+                  }}>COMPLETED!</div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', position: 'relative', zIndex: 2 }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <span style={{ fontSize: 28 }}>{currentMode.emoji}</span>
+                    <div style={{ position: 'relative' }}>
+                      <span style={{ fontSize: 32 }}>{currentMode.emoji}</span>
+                      {!isBonusClaimedToday(currentMode.id) && (
+                        <div style={{
+                          position: 'absolute', top: -4, right: -4,
+                          width: 10, height: 10, borderRadius: '50%',
+                          background: '#FF6B6B', border: `2px solid ${dark ? '#1A1F35' : '#fff'}`,
+                          animation: 'live-pulse 1.2s infinite'
+                        }} />
+                      )}
+                    </div>
                     <div>
-                      <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 17, color: currentMode.color }}>{currentMode.name}</div>
-                      <div style={{ fontSize: 10, color: S.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>Event Terbatas</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 18, color: currentMode.color }}>{currentMode.name}</div>
+                        {!isBonusClaimedToday(currentMode.id) && (
+                          <div style={{
+                            background: '#FF6B6B', color: '#fff', fontSize: 8,
+                            fontWeight: 900, padding: '1px 6px', borderRadius: 4,
+                            letterSpacing: 0.5, animation: 'pulse-soft 2s infinite'
+                          }}>LIVE</div>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 10, color: S.muted, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.5 }}>EVENT TERBATAS</div>
                     </div>
                   </div>
-                  <p style={{ fontSize: 12, color: S.muted, margin: '0 0 10px', lineHeight: 1.5 }}>{currentMode.desc}</p>
-                  <div style={{ display: 'flex', gap: 7 }}>
-                    {[['🪙', currentMode.coinMultiplier], ['⭐', currentMode.xpMultiplier]].map(([ico, mult]) => (
-                      <div key={ico} className="lm-multiplier" style={{ background: `${currentMode.color}22`, border: `1px solid ${currentMode.color}33`, color: S.muted }}>
-                        {ico} <span style={{ color: currentMode.color }}>×{mult}</span>
-                      </div>
-                    ))}
+                  <p style={{ fontSize: 13, color: dark ? '#CBD5E1' : S.text, margin: '0 0 12px', lineHeight: 1.6, fontWeight: 600 }}>{currentMode.desc}</p>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {[['🪙', currentMode.coinMultiplier], ['⭐', currentMode.xpMultiplier]].map(([ico, mult]) => (
+                        <div key={ico} className="lm-multiplier" style={{ background: `${currentMode.color}22`, border: `1px solid ${currentMode.color}33`, color: textMuted, padding: '4px 10px' }}>
+                          {ico} <span style={{ color: currentMode.color, fontWeight: 800 }}>×{mult}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Futuristic Event Timer Style */}
+                    <div style={{
+                      flex: 1, height: 32, background: 'rgba(0,0,0,0.2)',
+                      borderRadius: 8, border: `1px solid ${currentMode.color}33`,
+                      display: 'flex', alignItems: 'center', padding: '0 10px',
+                      fontFamily: 'monospace', fontSize: 11, color: currentMode.color
+                    }}>
+                      <span style={{ opacity: 0.5, marginRight: 6 }}>ENDS:</span>
+                      <span style={{ fontWeight: 800, letterSpacing: 0.5 }}>{getNextWeekendEvent()?.label || '00:00:00'}</span>
+                    </div>
                   </div>
                 </div>
+
                 {!isBonusClaimedToday(currentMode.id) && (
                   <button
-                    style={{ background: `linear-gradient(135deg,${currentMode.color},${currentMode.color}cc)`, color: '#fff', border: 'none', borderRadius: 12, padding: '10px 18px', fontSize: 13, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: "'Fredoka One',cursive", boxShadow: `0 5px 14px ${currentMode.color}44`, transition: 'all 0.2s' }}
+                    style={{
+                      background: `linear-gradient(135deg,${currentMode.color},${currentMode.color}cc)`,
+                      color: '#fff', border: 'none', borderRadius: 16, padding: '14px 24px',
+                      fontSize: 14, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap',
+                      fontFamily: "'Fredoka One',cursive",
+                      boxShadow: `0 8px 24px ${currentMode.color}55`,
+                      transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                    }}
                     onClick={() => {
                       markBonusAsClaimed(currentMode.id)
                       trackLimitedModeBonus(currentMode.id, currentMode.name, 'event_bonus_claim', `Coins: ${currentMode.coinMultiplier}×, XP: ${currentMode.xpMultiplier}×`)
@@ -645,129 +750,130 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                         setTimeout(() => onPlay(rng.id), 300)
                       }
                     }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 12px 30px ${currentMode.color}77` }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 8px 24px ${currentMode.color}55` }}
                   >
-                    Mainkan ✨
+                    Ikut Event ➔
                   </button>
                 )}
               </div>
             </div>
           )}
-
-
-          {/* ── CTA Semua Game ── */}
-          <div 
-            className="section-card" 
-            style={{ 
-              background: dark ? 'linear-gradient(135deg, #7C6FE8 0%, #FD79A8 100%)' : 'linear-gradient(135deg, #6C5CE7 0%, #FF7675 100%)',
-              color: '#fff', textAlign: 'center', padding: '36px 20px', cursor: 'pointer',
-              boxShadow: '0 10px 30px rgba(124,111,232,0.3)', border: 'none', margin: '32px 0',
-              animation: 'slide-up 0.4s ease both'
-            }}
-            onClick={() => { play('click'); onGames?.() }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <div style={{ fontSize: 56, marginBottom: 12, animation: 'pulse-soft 2s infinite' }}>🎮🔍</div>
-            <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 26, margin: '0 0 8px 0', textShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
-              Pustaka Game Lengkap!
-            </h2>
-            <p style={{ margin: 0, fontSize: 13, opacity: 0.9, fontWeight: 700, maxWidth: 400, marginInline: 'auto', lineHeight: 1.5 }}>
-              Masih banyak petualangan yang menunggumu. Jelajahi {games.length}+ game seru lainnya di menu Katalog.
-            </p>
-            <div style={{
-              display: 'inline-block', background: '#fff', color: '#6C5CE7', padding: '12px 28px',
-              borderRadius: 100, fontSize: 15, fontWeight: 800, marginTop: 24, fontFamily: "'Fredoka One',cursive",
-              boxShadow: '0 6px 16px rgba(0,0,0,0.15)'
-            }}>LIHAT SEMUA GAME ➔</div>
-          </div>
-
-          {/* ── Roadmap ── */}
-          {ROADMAP_FUTURE.length > 0 && (
-            <section data-anime-section style={{ position: 'relative', marginBottom: 36 }}>
-              <div className="section-head">
-                <h2 className="section-title"><span>🚀</span>Segera Hadir</h2>
-                <span className="section-pill">wishlist</span>
-                <div className="section-line" />
-              </div>
-              <div className="carousel-row">
-                {ROADMAP_FUTURE.map(g => (
-                  <div key={g.title} className="cs-card">
-                    <div style={{ position: 'absolute', top: 8, right: 8, background: `${g.color}22`, color: g.color, fontSize: 8, fontWeight: 800, padding: '2px 7px', borderRadius: 100, border: `1px solid ${g.color}44`, textTransform: 'uppercase', letterSpacing: 0.5 }}>konsep</div>
-                    <div style={{ fontSize: 30, marginBottom: 6 }}>{g.emoji}</div>
-                    <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 13, color: S.text, marginBottom: 3 }}>{g.title}</div>
-                    <div style={{ fontSize: 10, color: S.muted, marginBottom: 7, lineHeight: 1.3 }}>{g.blurb}</div>
-                    <span style={{ background: `${g.color}22`, color: g.color, fontSize: 10, fontWeight: 700, padding: '2px 9px', borderRadius: 100, border: `1px solid ${g.color}33` }}>{g.tag}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* ── Footer ── */}
-          <footer className="home-footer" data-anime-section>
-            <div className="footer-divider" />
-            <div className="footer-content">
-              <div className="footer-logo">
-                <div className="footer-logo-icon">🎮</div>
-                <span className="footer-logo-text">BrainPlay</span>
-              </div>
-              <p className="footer-tagline">
-                Santai &amp; mengasah otak — {gameTotal} game, misi harian, dan tema yang bisa dikoleksi
-              </p>
-
-              {/* AKSA Interactive Studio Badge */}
-              <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: 10,
-                background: dark ? 'rgba(232,93,47,0.06)' : 'rgba(232,93,47,0.04)',
-                border: `1.5px solid ${dark ? 'rgba(232,93,47,0.18)' : 'rgba(232,93,47,0.14)'}`,
-                borderRadius: 14, padding: '8px 18px', marginBottom: 10,
-                transition: 'all 0.2s',
-              }}>
-                <img
-                  src="/aksa_logo.png"
-                  alt="AKSA Interactive"
-                  style={{
-                    height: 28, width: 'auto', objectFit: 'contain',
-                    borderRadius: 6,
-                    filter: dark ? 'brightness(1.1)' : 'none',
-                  }}
-                />
-              </div>
-              <div style={{ marginBottom: 10 }}>
-                <span style={{ fontSize: 11, color: S.muted, fontWeight: 600 }}>Developed by </span>
-                <span style={{ fontFamily: "'Fredoka One',cursive", fontSize: 12, color: dark ? '#E85D2F' : '#D4441A' }}>AKSA Interactive</span>
-              </div>
-
-              <div className="footer-credit">
-                <span style={{ fontSize: 12, color: S.muted, fontWeight: 600 }}>Dibuat dengan ❤️ oleh</span>
-                <span className="footer-credit-name">Dwi Agus Hidayat</span>
-              </div>
-              <p className="footer-copy">© 2026 BrainPlay v0.9.8 — Semua hak dilindungi.</p>
-            </div>
-          </footer>
-
         </div>
-      </div>
 
-      <button
-        className={`scroll-top-btn${scrollTop ? ' visible' : ''}`}
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        aria-label="Scroll ke atas"
-      >↑</button>
 
-      {/* ── Game Detail Modal ── */}
-      {selectedGameForModal && (
-        <GameDetailModal 
-          game={games.find(g => g.id === selectedGameForModal)}
-          onClose={() => setSelectedGameForModal(null)}
-          onPlay={(gameId, diffId) => {
-            setSelectedGameForModal(null)
-            onPlay(gameId, diffId)
-          }}
-        />
-      )}
+            {/* ── CTA Semua Game ── */}
+            <div
+              className="section-card"
+              style={{
+                background: dark ? 'linear-gradient(135deg, #7C6FE8 0%, #FD79A8 100%)' : 'linear-gradient(135deg, #6C5CE7 0%, #FF7675 100%)',
+                color: '#fff', textAlign: 'center', padding: '36px 20px', cursor: 'pointer',
+                boxShadow: '0 10px 30px rgba(124,111,232,0.3)', border: 'none', margin: '32px 0',
+                animation: 'slide-up 0.4s ease both'
+              }}
+              onClick={() => { play('click'); onGames?.() }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <div style={{ fontSize: 56, marginBottom: 12, animation: 'pulse-soft 2s infinite' }}>🎮🔍</div>
+              <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 26, margin: '0 0 8px 0', textShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                Pustaka Game Lengkap!
+              </h2>
+              <p style={{ margin: 0, fontSize: 13, opacity: 0.9, fontWeight: 700, maxWidth: 400, marginInline: 'auto', lineHeight: 1.5 }}>
+                Masih banyak petualangan yang menunggumu. Jelajahi {games.length}+ game seru lainnya di menu Katalog.
+              </p>
+              <div style={{
+                display: 'inline-block', background: '#fff', color: '#6C5CE7', padding: '12px 28px',
+                borderRadius: 100, fontSize: 15, fontWeight: 800, marginTop: 24, fontFamily: "'Fredoka One',cursive",
+                boxShadow: '0 6px 16px rgba(0,0,0,0.15)'
+              }}>LIHAT SEMUA GAME ➔</div>
+            </div>
+
+            {/* ── Roadmap ── */}
+            {ROADMAP_FUTURE.length > 0 && (
+              <section data-anime-section style={{ position: 'relative', marginBottom: 36 }}>
+                <div className="section-head">
+                  <h2 className="section-title"><span>🚀</span>Segera Hadir</h2>
+                  <span className="section-pill">wishlist</span>
+                  <div className="section-line" />
+                </div>
+                <div className="carousel-row">
+                  {ROADMAP_FUTURE.map(g => (
+                    <div key={g.title} className="cs-card">
+                      <div style={{ position: 'absolute', top: 8, right: 8, background: `${g.color}22`, color: g.color, fontSize: 8, fontWeight: 800, padding: '2px 7px', borderRadius: 100, border: `1px solid ${g.color}44`, textTransform: 'uppercase', letterSpacing: 0.5 }}>konsep</div>
+                      <div style={{ fontSize: 30, marginBottom: 6 }}>{g.emoji}</div>
+                      <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 13, color: S.text, marginBottom: 3 }}>{g.title}</div>
+                      <div style={{ fontSize: 10, color: S.muted, marginBottom: 7, lineHeight: 1.3 }}>{g.blurb}</div>
+                      <span style={{ background: `${g.color}22`, color: g.color, fontSize: 10, fontWeight: 700, padding: '2px 9px', borderRadius: 100, border: `1px solid ${g.color}33` }}>{g.tag}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ── Footer ── */}
+            <footer className="home-footer" data-anime-section>
+              <div className="footer-divider" />
+              <div className="footer-content">
+                <div className="footer-logo">
+                  <div className="footer-logo-icon">🎮</div>
+                  <span className="footer-logo-text">BrainPlay</span>
+                </div>
+                <p className="footer-tagline">
+                  Santai &amp; mengasah otak — {gameTotal} game, misi harian, dan tema yang bisa dikoleksi
+                </p>
+
+                {/* AKSA Interactive Studio Badge */}
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 10,
+                  background: dark ? 'rgba(232,93,47,0.06)' : 'rgba(232,93,47,0.04)',
+                  border: `1.5px solid ${dark ? 'rgba(232,93,47,0.18)' : 'rgba(232,93,47,0.14)'}`,
+                  borderRadius: 14, padding: '8px 18px', marginBottom: 10,
+                  transition: 'all 0.2s',
+                }}>
+                  <img
+                    src="/aksa_logo.png"
+                    alt="AKSA Interactive"
+                    style={{
+                      height: 28, width: 'auto', objectFit: 'contain',
+                      borderRadius: 6,
+                      filter: dark ? 'brightness(1.1)' : 'none',
+                    }}
+                  />
+                </div>
+                <div style={{ marginBottom: 10 }}>
+                  <span style={{ fontSize: 11, color: S.muted, fontWeight: 600 }}>Developed by </span>
+                  <span style={{ fontFamily: "'Fredoka One',cursive", fontSize: 12, color: dark ? '#E85D2F' : '#D4441A' }}>AKSA Interactive</span>
+                </div>
+
+                <div className="footer-credit">
+                  <span style={{ fontSize: 12, color: S.muted, fontWeight: 600 }}>Dibuat dengan ❤️ oleh</span>
+                  <span className="footer-credit-name">Dwi Agus Hidayat</span>
+                </div>
+                <p className="footer-copy">© 2026 BrainPlay v0.9.8 — Semua hak dilindungi.</p>
+              </div>
+            </footer>
+
+          </div>
+        </div>
+
+        <button
+          className={`scroll-top-btn${scrollTop ? ' visible' : ''}`}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Scroll ke atas"
+        >↑</button>
+
+        {/* ── Game Detail Modal ── */}
+        {selectedGameForModal && (
+          <GameDetailModal
+            game={games.find(g => g.id === selectedGameForModal)}
+            onClose={() => setSelectedGameForModal(null)}
+            onPlay={(gameId, diffId) => {
+              setSelectedGameForModal(null)
+              onPlay(gameId, diffId)
+            }}
+          />
+        )}
     </>
   )
 }

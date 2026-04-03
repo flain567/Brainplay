@@ -201,58 +201,97 @@ function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname }) {
   const isFirst = rank === 1
   const medal = MEDALS[rank - 1]
   const accent = isFirst ? '#FDCB6E' : (rank === 2 ? '#E0E0E0' : '#CD7F32')
-  const scale = isFirst ? 1.1 : 0.95
-  const paddingTop = isFirst ? 0 : 20
+  const scale = isFirst ? 1.15 : 0.95
+  const paddingTop = isFirst ? 0 : 25
 
   return (
     <div style={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-      paddingTop, transform: `scale(${scale})`, animation: 'slideUp 0.6s ease both',
+      paddingTop, transform: `scale(${scale})`, 
+      animation: 'lbSlideUp 0.6s ease both',
       position: 'relative', zIndex: isFirst ? 2 : 1
     }}>
-      <div style={{ position: 'relative', marginBottom: 12 }}>
-        <div style={{
-          width: isFirst ? 80 : 64, height: isFirst ? 80 : 64,
-          borderRadius: 24, border: `3px solid ${accent}`, overflow: 'hidden',
-          background: 'rgba(255,255,255,0.05)', boxShadow: `0 0 20px ${accent}44`
-        }}>
-          {entry.photoURL ? (
-            <img src={entry.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
-          ) : (
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>👤</div>
-          )}
-        </div>
-        <div style={{
-          position: 'absolute', bottom: -10, left: '50%', transform: 'translateX(-50%)',
-          width: 28, height: 28, borderRadius: '50%', background: accent,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
-          boxShadow: '0 4px 10px rgba(0,0,0,0.3)', border: '2px solid rgba(255,255,255,0.2)'
-        }}>
-          {medal}
-        </div>
-      </div>
+      {/* Floating Animation Wrapper */}
       <div style={{ 
-        fontFamily: "'Fredoka One',cursive", fontSize: 13, color: '#fff', 
-        textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', 
-        whiteSpace: 'nowrap', marginBottom: 2
+        animation: isFirst ? 'lbFloat 3s ease-in-out infinite' : 'none',
+        display: 'flex', flexDirection: 'column', alignItems: 'center'
       }}>
-        {entry.name || 'Anon'}
-      </div>
-      {entry.selectedTitle && (
-        <div style={{ 
-          fontSize: 8, fontWeight: 800, color: '#A29BFE', 
-          background: 'rgba(162, 155, 254, 0.15)', padding: '1px 6px', borderRadius: 4,
-          textTransform: 'uppercase', marginBottom: 6, letterSpacing: '0.5px'
-        }}>
-          {entry.selectedTitle}
+        {isFirst && (
+          <div style={{ 
+            fontSize: 24, marginBottom: -8, zIndex: 10, filter: 'drop-shadow(0 0 8px #FDCB6E)',
+            animation: 'lbCrownBounce 2s ease-in-out infinite'
+          }}>👑</div>
+        )}
+        <div style={{ position: 'relative', marginBottom: 12 }}>
+          {/* Shine Effect Overlay */}
+          <div style={{
+            position: 'absolute', inset: -2, borderRadius: 26,
+            background: `linear-gradient(45deg, transparent 25%, rgba(255,255,255,0.4) 50%, transparent 75%)`,
+            backgroundSize: '200% 200%',
+            animation: 'lbShine 3s infinite linear',
+            pointerEvents: 'none', zIndex: 3, opacity: isFirst ? 1 : 0.5
+          }} />
+          
+          <div style={{
+            width: isFirst ? 86 : 68, height: isFirst ? 86 : 68,
+            borderRadius: 24, border: `3.5px solid ${accent}`, overflow: 'hidden',
+            background: 'rgba(255,255,255,0.05)', 
+            boxShadow: `0 0 30px ${accent}33, inset 0 0 15px ${accent}22`,
+            position: 'relative', zIndex: 2
+          }}>
+            {entry.photoURL ? (
+              <img src={entry.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+            ) : (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isFirst ? 36 : 28 }}>👤</div>
+            )}
+          </div>
+          <div style={{
+            position: 'absolute', bottom: -12, left: '50%', transform: 'translateX(-50%)',
+            width: 32, height: 32, borderRadius: '50%', background: accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+            boxShadow: `0 4px 15px rgba(0,0,0,0.5), 0 0 10px ${accent}`, 
+            border: '2,5px solid rgba(255,255,255,0.3)', zIndex: 4,
+            fontWeight: 800
+          }}>
+            {medal}
+          </div>
         </div>
-      )}
-      <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 15, color: accent }}>
-        {(entry.score || 0).toLocaleString()}
+        
+        <div style={{ 
+          fontFamily: "'Fredoka One',cursive", fontSize: isFirst ? 15 : 13, color: '#fff', 
+          textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', 
+          whiteSpace: 'nowrap', marginBottom: 2, 
+          textShadow: isFirst ? `0 0 8px ${accent}44` : 'none'
+        }}>
+          {entry.name || 'Anon'}
+        </div>
+        
+        {entry.selectedTitle && (
+          <div style={{ 
+            fontSize: isFirst ? 9 : 8, fontWeight: 900, color: isFirst ? '#FDCB6E' : '#A29BFE', 
+            background: isFirst ? 'rgba(253, 203, 110, 0.15)' : 'rgba(162, 155, 254, 0.15)', 
+            padding: '2px 8px', borderRadius: 6,
+            textTransform: 'uppercase', marginBottom: 6, letterSpacing: '0.8px',
+            border: `1px solid ${isFirst ? 'rgba(253, 203, 110, 0.2)' : 'rgba(162, 155, 254, 0.2)'}`
+          }}>
+            {entry.selectedTitle}
+          </div>
+        )}
+        
+        <div style={{ 
+          fontFamily: "'Fredoka One',cursive", fontSize: isFirst ? 18 : 15, 
+          color: accent, textShadow: `0 0 12px ${accent}33`
+        }}>
+          {(entry.score || 0).toLocaleString()}
+        </div>
+        
+        {entry.name === nickname && (
+          <div style={{ 
+            fontSize: 9, color: '#00F5FF', fontWeight: 900, marginTop: 4,
+            background: 'rgba(0,245,255,0.1)', padding: '1px 8px', borderRadius: 100
+          }}>KAMU</div>
+        )}
       </div>
-      {entry.name === nickname && (
-        <div style={{ fontSize: 9, color: 'var(--accent-vivid)', fontWeight: 800, marginTop: 2 }}>KAMU</div>
-      )}
     </div>
   )
 }
@@ -378,11 +417,25 @@ export default function Leaderboard({ onBack, games }) {
         .lb-row {
           display:flex; align-items:center; gap:12px; padding:14px 18px;
           border-radius:24px; margin-bottom:10px; transition:all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-          background: var(--surface-card); border: 1.5px solid rgba(255,255,255,0.08);
+          background: rgba(255,255,255,0.03); 
+          backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+          border: 1.5px solid rgba(255,255,255,0.08);
           box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+          position: relative; overflow: hidden;
         }
-        .lb-row:hover { transform:translateY(-2px); border-color: rgba(255,255,255,0.15); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
-        @keyframes slideUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+        .lb-row::before {
+          content: ''; position: absolute; inset: 0;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+          transform: translateX(-100%);
+        }
+        .lb-row:hover::before { transform: translateX(100%); transition: transform 0.8s ease; }
+        .lb-row:hover { transform:translateY(-3px); border-color: rgba(255,255,255,0.2); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+        .lb-row.top-rank { border-color: rgba(253, 203, 110, 0.3); background: rgba(253, 203, 110, 0.05); }
+        
+        @keyframes lbSlideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes lbFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        @keyframes lbCrownBounce { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-5px) rotate(5deg); } }
+        @keyframes lbShine { from { background-position: -200% -200%; } to { background-position: 200% 200%; } }
       `}</style>
 
       <div className="lb-root" style={{ background:bg }}>
@@ -587,14 +640,16 @@ export default function Leaderboard({ onBack, games }) {
                 const rank = entry.rank || i + 4
                 return (
                   <div key={entry.id || `${i}-${entry.score}`}
-                    className="lb-row"
-                    style={{ animation: `slideUp 0.3s ${i * 0.03}s ease both` }}>
+                    className={`lb-row ${rank <= 10 ? 'top-rank' : ''}`}
+                    style={{ animation: `lbSlideUp 0.4s ${i * 0.05}s ease both` }}>
                     {/* Rank */}
                     <div style={{
                       width:36, height:36, borderRadius:12, flexShrink:0,
-                      background: 'rgba(255,255,255,0.06)',
+                      background: rank === 4 ? 'rgba(253, 203, 110, 0.2)' : 'rgba(255,255,255,0.06)',
                       display:'flex', alignItems:'center', justifyContent:'center',
-                      fontFamily:"'Fredoka One',cursive", fontSize: 13, color: 'rgba(255,255,255,0.4)'
+                      fontFamily:"'Fredoka One',cursive", fontSize: 13, 
+                      color: rank === 4 ? '#FDCB6E' : 'rgba(255,255,255,0.4)',
+                      border: rank === 4 ? '1px solid rgba(253, 203, 110, 0.3)' : 'none'
                     }}>
                       {rank}
                     </div>
