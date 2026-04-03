@@ -57,11 +57,20 @@ export const CRAFTING_RECIPES = [
 export function InventoryProvider({ children }) {
   const [inventory, setInventory] = useState(() => {
     const saved = localStorage.getItem(INVENTORY_KEY)
+    let inv = { chests: { basic_chest: 1 }, materials: {}, consumables: {} }
     if (saved) {
-      try { return JSON.parse(saved) } catch(e) { return { chests: {}, materials: {}, consumables: {} } }
+      try { inv = JSON.parse(saved) } catch(e) {}
     }
-    // Default initial
-    return { chests: { basic_chest: 1 }, materials: {}, consumables: {} }
+    
+    // ONE-TIME COMPESATION GIFT FOR BUG 
+    if (!localStorage.getItem('bp-gift-v1')) {
+      if (!inv.chests) inv.chests = {}
+      inv.chests['basic_chest'] = (inv.chests['basic_chest'] || 0) + 15
+      inv.chests['premium_chest'] = (inv.chests['premium_chest'] || 0) + 7
+      localStorage.setItem('bp-gift-v1', 'true')
+    }
+    
+    return inv
   })
 
   // Persist State automatically on change
