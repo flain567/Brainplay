@@ -59,7 +59,7 @@ const WORDS_EASY = [
   { word: 'KUNCI', hint: 'Alat untuk membuka gembok' },
   { word: 'DAGING', hint: 'Bagian tubuh hewan yang dimakan' },
   { word: 'KABUT', hint: 'Uap air yang menutupi pandangan' },
-  { word: 'SAPU', hint: 'Alat untuk membersihkan lantai' },
+  { word: 'SAPU', hint: 'Alat untuk membersihan lantai' },
   { word: 'PIRING', hint: 'Wadah datar untuk makanan' },
   { word: 'CINCIN', hint: 'Perhiasan melingkar di jari' },
   { word: 'CUMI', hint: 'Hewan laut bertentakel' },
@@ -273,15 +273,15 @@ function HangmanFigure({ wrongCount, maxWrong, color, headColor: hColor }) {
     // Right leg
     <line key="rleg" x1="140" y1="115" x2="165" y2="145" stroke={bodyColor} strokeWidth="3" strokeLinecap="round" />,
     // Left eye (X)
-    <>
-      <line key="lex1" x1="132" y1="48" x2="137" y2="53" stroke={headColor} strokeWidth="2" />
-      <line key="lex2" x1="137" y1="48" x2="132" y2="53" stroke={headColor} strokeWidth="2" />
-    </>,
+    <g key="leye">
+      <line x1="132" y1="48" x2="137" y2="53" stroke={headColor} strokeWidth="2" />
+      <line x1="137" y1="48" x2="132" y2="53" stroke={headColor} strokeWidth="2" />
+    </g>,
     // Right eye (X)  
-    <>
-      <line key="rex1" x1="143" y1="48" x2="148" y2="53" stroke={headColor} strokeWidth="2" />
-      <line key="rex2" x1="148" y1="48" x2="143" y2="53" stroke={headColor} strokeWidth="2" />
-    </>,
+    <g key="reye">
+      <line x1="143" y1="48" x2="148" y2="53" stroke={headColor} strokeWidth="2" />
+      <line x1="148" y1="48" x2="143" y2="53" stroke={headColor} strokeWidth="2" />
+    </g>,
   ]
 
   // Scale body parts to maxWrong
@@ -303,7 +303,9 @@ export default function HangmanGame({ onBack, onHome, game, difficulty }) {
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins, spendCoins, coins, getActiveHangmanTheme } = useCoins()
-  const hangmanTheme = getActiveHangmanTheme ? getActiveHangmanTheme() : { stick:'#ffffff', man:'#ffffff' }
+  
+  const currentTheme = getActiveHangmanTheme ? getActiveHangmanTheme() : null
+  const hangmanTheme = currentTheme || { id: 'default', style: { stick:'#ffffff', man:'#ffffff' } }
 
   const maxWrong = MAX_WRONG[difficulty.id] || 8
 
@@ -348,6 +350,7 @@ export default function HangmanGame({ onBack, onHome, game, difficulty }) {
 
       let stars = wrongCount <= (difficulty.id === 'hard' ? 1 : 2) ? 3 : wrongCount <= (maxWrong / 2) ? 2 : 1
       if (paidHints > 0 && stars > 2) stars = 2
+      
       reportGameResult({
         gameId: 'hangman',
         difficultyId: difficulty.id,
@@ -356,6 +359,7 @@ export default function HangmanGame({ onBack, onHome, game, difficulty }) {
         stars,
         timeSec: time,
       })
+      
       const coinReward = { easy: 15, medium: 25, hard: 40 }
       let coinAmount = coinReward[difficulty.id] || 15
       if (stars === 3) coinAmount += 20
@@ -373,7 +377,7 @@ export default function HangmanGame({ onBack, onHome, game, difficulty }) {
       })
       earnCoins(5, 'Partisipasi Hangman')
     }
-  }, [guessed])
+  }, [guessed, word, isGameActive, bestWrong, bestKey, difficulty.id, earnCoins, maxWrong, play, reportGameResult, time, paidHints])
 
   const guessLetter = useCallback((letter) => {
     if (!isGameActive || guessed.has(letter)) return
@@ -399,7 +403,6 @@ export default function HangmanGame({ onBack, onHome, game, difficulty }) {
   const useHintAction = async () => {
     if (!isGameActive) return
     const isFree = hintUsed < FREE_HINTS
-    // If paid, check coins
     if (!isFree) {
       if (coins < HINT_COST) { play('mismatch'); return }
       const ok = await spendCoins(HINT_COST, 'Hint Hangman')
@@ -432,12 +435,11 @@ export default function HangmanGame({ onBack, onHome, game, difficulty }) {
     let s = wrongCount <= (difficulty.id === 'hard' ? 1 : 2) ? 3 : wrongCount <= maxWrong / 2 ? 2 : 1
     if (paidHints > 0 && s > 2) s = 2
     const coinReward = { easy: 15, medium: 25, hard: 40 }
-    let coins = coinReward[difficulty.id] || 15
-    if (s === 3) coins += 20
-    return { winStars: s, winCoinAmount: coins }
+    let c = coinReward[difficulty.id] || 15
+    if (s === 3) c += 20
+    return { winStars: s, winCoinAmount: c }
   }, [won, wrongCount, difficulty.id, maxWrong, paidHints])
 
-  // Theme
   const bg        = tc.bg
   const surface   = tc.surface
   const textMain  = tc.textMain
@@ -451,202 +453,287 @@ export default function HangmanGame({ onBack, onHome, game, difficulty }) {
     index: i,
   }))
 
+  const style = hangmanTheme.style || {}
+
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100dvh', transition: 'background 0.3s' }}>
-      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_hangman","1") }} />}
-      <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
-      <style>{`
-        @keyframes popLetter { from { transform: scale(1.4); opacity: 0.5; } to { transform: scale(1); opacity: 1; } }
-        @keyframes heartPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-      `}</style>
+    <div className="hangman-root" style={{ 
+      maxWidth: '100%', margin: '0 auto', padding: '0', 
+      background: style.bgGrad || (style.bgImg ? 'none' : bg), 
+      minHeight: '100dvh', transition: 'all 0.5s ease',
+      position: 'relative', overflow: 'hidden'
+    }}>
+      {/* Background Image Layer */}
+      {style.bgImg && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: `url(${style.bgImg})`,
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          zIndex: 0, opacity: 1, transition: 'all 0.8s ease'
+        }} />
+      )}
 
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-        <button onClick={() => { play('click'); onBack() }}
-          style={{ background: surface, border: `2px solid ${borderCol}`, borderRadius: 12, padding: '8px 14px', fontSize: 18, cursor: 'pointer', color: textMain }}>
-          ←
-        </button>
-        <div style={{ flex: 1 }}>
-          <h1 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 26, color: textMain, lineHeight: 1 }}>
-            💀 Hangman
-          </h1>
-          <p style={{ fontSize: 13, color: textMuted, marginTop: 2 }}>
-            Tebak kata sebelum nyawa habis!
-          </p>
+      {/* Decorative Particles */}
+      {style.particles === 'stars' && (
+        <div className="stars-container">
+          {[...Array(30)].map((_, i) => (
+            <div key={i} className="star-particle" style={{
+              left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`, opacity: 0.2 + Math.random() * 0.5
+            }} />
+          ))}
         </div>
-        <span style={{ background: difficulty.id === 'easy' ? '#E8F8F0' : difficulty.id === 'medium' ? '#FFFBF0' : '#FFF0F0', color: difficulty.id === 'easy' ? '#00b894' : difficulty.id === 'medium' ? '#f9a825' : '#FF6B6B', border: `2px solid ${difficulty.id === 'easy' ? '#00b89444' : difficulty.id === 'medium' ? '#f9a82544' : '#FF6B6B44'}`, borderRadius: 100, padding: '6px 14px', fontFamily: "'Fredoka One',cursive", fontSize: 13, whiteSpace: 'nowrap' }}>
-          {DIFF_LABEL[difficulty.id]}
-        </span>
-      </div>
-
-      {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 24 }}>
-        <div style={{ background: surface, border: `2px solid #FF6B6B33`, borderRadius: 16, padding: '12px 16px', textAlign: 'center' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginBottom: 3 }}>
-            {Array.from({ length: maxWrong }).map((_, i) => (
-              <span key={i} style={{
-                fontSize: maxWrong > 7 ? 14 : 16,
-                opacity: i < (maxWrong - wrongCount) ? 1 : 0.2,
-                filter: i < (maxWrong - wrongCount) ? 'none' : 'grayscale(1)',
-                animation: (maxWrong - wrongCount) <= 2 && i < (maxWrong - wrongCount) ? 'heartPulse 0.8s ease infinite' : 'none',
-                transition: 'all 0.3s',
-              }}>❤️</span>
-            ))}
-          </div>
-          <div style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>❤️ Nyawa</div>
-        </div>
-        {[
-          { label: '⏱ Waktu', value: formatTime(time), color: '#4ECDC4' },
-          { label: '🔤 Huruf', value: `${guessed.size}`, color: '#A29BFE' },
-        ].map(s => (
-          <div key={s.label} style={{ background: surface, border: `2px solid ${s.color}33`, borderRadius: 16, padding: '12px 16px', textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 26, color: s.color, lineHeight: 1 }}>{s.value}</div>
-            <div style={{ fontSize: 12, color: textMuted, marginTop: 3, fontWeight: 600 }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Hangman Figure */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
-        <div style={{ background: surface, borderRadius: 20, padding: 16, border: `2px solid ${borderCol}` }}>
-          <HangmanFigure wrongCount={wrongCount} maxWrong={maxWrong} color={lost ? '#FF6B6B' : hangmanTheme.stick} headColor={lost ? '#FF6B6B' : hangmanTheme.man} />
-        </div>
-      </div>
-
-      {/* Hint — always visible as clue */}
-      <div style={{ background: dark ? '#2d2d1e' : '#FFFDE7', border: `2px solid #FFD93D44`, borderRadius: 14, padding: '10px 16px', textAlign: 'center', marginBottom: 16, fontSize: 14, color: textMuted }}>
-        💡 <strong style={{ color: '#FFD93D' }}>Petunjuk:</strong> {wordData.hint}
-      </div>
-
-      {/* Word display */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: word.length > 9 ? 5 : 8, flexWrap: 'wrap', marginBottom: 28 }}>
-        {revealedWord.map((item, i) => {
-          const revealDelay = item.revealed && !lost ? (i * 0.08) : 0
-          return (
-            <div key={i} style={{
-              width: word.length > 10 ? 30 : word.length > 7 ? 36 : 42,
-              height: word.length > 10 ? 38 : word.length > 7 ? 44 : 50,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              borderBottom: `3px solid ${item.revealed ? (lost && !guessed.has(item.letter) ? '#FF6B6B' : accent) : (dark ? '#4a4a6a' : '#B2BEC3')}`,
-              fontFamily: "'Fredoka One',cursive",
-              fontSize: word.length > 10 ? 20 : word.length > 7 ? 24 : 28,
-              color: lost && !guessed.has(item.letter) ? '#FF6B6B' : textMain,
-              transition: 'all 0.3s',
-              transform: item.revealed ? 'scale(1)' : 'scale(0.8)',
-              opacity: item.revealed ? 1 : 0,
-              animation: item.revealed && !lost ? `popLetter 0.4s ${revealDelay}s cubic-bezier(0.34,1.56,0.64,1) both` : 'none',
-            }}>
-              {item.revealed ? item.letter : ''}
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Wrong letters */}
-      {wrongLetters.length > 0 && (
-        <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <span style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>Salah: </span>
-          {wrongLetters.map(l => (
-            <span key={l} style={{ display: 'inline-block', margin: '0 3px', padding: '2px 8px', background: dark ? '#3a1a1a' : '#FFF0F0', color: '#FF6B6B', borderRadius: 6, fontSize: 14, fontWeight: 700, fontFamily: "'Fredoka One',cursive" }}>{l}</span>
+      )}
+      {style.particles === 'fireflies' && (
+        <div className="fireflies-container">
+          {[...Array(20)].map((_, i) => (
+            <div key={i} className="firefly-particle" style={{
+              left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 8}s`,
+              animationDuration: `${10 + Math.random() * 5}s`
+            }} />
           ))}
         </div>
       )}
 
-      {/* Keyboard */}
-      <div style={{ marginBottom: 24 }}>
-        {KEYBOARD_ROWS.map((row, ri) => (
-          <div key={ri} style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 7 }}>
-            {row.map(letter => {
-              const isGuessed = guessed.has(letter)
-              const isCorrect = isGuessed && word.includes(letter)
-              const isWrong = isGuessed && !word.includes(letter)
-              return (
-                <button key={letter} onClick={() => guessLetter(letter)} disabled={isGuessed || !isGameActive}
-                  style={{
-                    width: 'clamp(30px, 8.5vw, 42px)',
-                    height: 'clamp(38px, 10vw, 50px)',
-                    border: 'none',
-                    borderRadius: 12,
-                    fontSize: 'clamp(14px, 3.8vw, 18px)',
-                    fontWeight: 800,
-                    fontFamily: "'Fredoka One',cursive",
-                    cursor: (isGuessed || !isGameActive) ? 'default' : 'pointer',
-                    background: isCorrect ? '#00b894' : isWrong ? '#FF6B6B' : (dark ? '#2d3561' : '#F1F3F5'),
-                    color: isGuessed ? '#fff' : textMain,
-                    opacity: isGuessed ? 0.7 : 1,
-                    transition: 'all 0.15s cubic-bezier(0.34,1.56,0.64,1)',
-                    transform: isGuessed ? 'scale(0.88)' : 'scale(1)',
-                    boxShadow: isGuessed ? 'none' : `0 3px 8px ${dark ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.1)'}`,
-                    WebkitTapHighlightColor: 'transparent',
-                  }}>
-                  {letter}
-                </button>
-              )
-            })}
+      <div className="hangman-glass-container" style={{ 
+        maxWidth: 700, margin: '0 auto', 
+        padding: '32px 20px 60px',
+        position: 'relative', zIndex: 1,
+        minHeight: '100dvh',
+        background: style.glass ? 'rgba(0,0,0,0.2)' : 'transparent',
+        backdropFilter: style.glass ? 'blur(15px) saturate(150%)' : 'none',
+        WebkitBackdropFilter: style.glass ? 'blur(15px) saturate(150%)' : 'none',
+        borderLeft: style.glass ? '1px solid rgba(255,255,255,0.1)' : 'none',
+        borderRight: style.glass ? '1px solid rgba(255,255,255,0.1)' : 'none',
+      }}>
+        {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_hangman","1") }} />}
+        <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
+        <style>{`
+          @keyframes popLetter { from { transform: scale(1.4); opacity: 0.5; } to { transform: scale(1); opacity: 1; } }
+          @keyframes heartPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+          
+          .star-particle {
+            position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%;
+            box-shadow: 0 0 10px #fff; animation: star-blink 3s infinite alternate;
+          }
+          @keyframes star-blink { from { opacity: 0.2; transform: scale(0.8); } to { opacity: 1; transform: scale(1.2); } }
+          
+          .firefly-particle {
+            position: absolute; width: 4px; height: 4px; background: #55EFC4; border-radius: 50%;
+            box-shadow: 0 0 15px #55EFC4; animation: firefly-move 12s infinite ease-in-out;
+            opacity: 0.6;
+          }
+          @keyframes firefly-move {
+            0%, 100% { transform: translate(0,0); opacity: 0.2; }
+            25% { transform: translate(30px, -40px); opacity: 0.8; }
+            50% { transform: translate(-20px, -80px); opacity: 0.3; }
+            75% { transform: translate(-50px, -20px); opacity: 0.7; }
+          }
+        `}</style>
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+          <button onClick={() => { play('click'); onBack() }}
+            style={{ background: surface, border: `2px solid ${borderCol}`, borderRadius: 12, padding: '8px 14px', fontSize: 18, cursor: 'pointer', color: textMain }}>
+            ←
+          </button>
+          <div style={{ flex: 1 }}>
+            <h1 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 26, color: textMain, lineHeight: 1 }}>
+              💀 Hangman
+            </h1>
+            <p style={{ fontSize: 13, color: textMuted, marginTop: 2 }}>
+              Tebak kata sebelum nyawa habis!
+            </p>
           </div>
-        ))}
-      </div>
-
-      {/* Buttons */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <button onClick={restart}
-          style={{ background: accent, color: '#fff', border: 'none', borderRadius: 100, padding: '12px 28px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', boxShadow: `0 4px 14px ${accent}44` }}>
-          🔄 Main Lagi
-        </button>
-        <button onClick={useHintAction} disabled={!isGameActive}
-          style={{ background: !isGameActive ? 'rgba(255,255,255,0.05)' : hintUsed >= FREE_HINTS ? 'rgba(162,155,254,0.15)' : 'rgba(255,211,61,0.15)', color: !isGameActive ? textMuted : hintUsed >= FREE_HINTS ? '#A29BFE' : '#FFD93D', border: `2px solid ${!isGameActive ? borderCol : hintUsed >= FREE_HINTS ? '#A29BFE44' : '#FFD93D44'}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: !isGameActive ? 'default' : 'pointer' }}>
-          🔤 {hintUsed < FREE_HINTS ? `Buka Huruf (${FREE_HINTS - hintUsed})` : `Buka Huruf (${HINT_COST}🪙)`}
-        </button>
-        <button onClick={() => { play('click'); onBack() }}
-          style={{ background: surface, color: textMuted, border: `2px solid ${borderCol}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 700, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>
-          🎯 Level
-        </button>
-      </div>
-
-      {/* Best record */}
-      {bestWrong >= 0 && (
-        <div style={{ marginTop: 20, background: dark ? '#1f1f3e' : '#FFF9F0', border: `2px solid ${dark ? '#3d3561' : '#FFE66D'}`, borderRadius: 16, padding: '12px 20px', textAlign: 'center', fontSize: 14, color: textMuted, fontWeight: 600 }}>
-          🏆 Rekor {DIFF_LABEL[difficulty.id]}: <span style={{ color: accent, fontFamily: "'Fredoka One',cursive", fontSize: 16 }}>{bestWrong} salah</span>
+          <span style={{ background: difficulty.id === 'easy' ? '#E8F8F0' : difficulty.id === 'medium' ? '#FFFBF0' : '#FFF0F0', color: difficulty.id === 'easy' ? '#00b894' : difficulty.id === 'medium' ? '#f9a825' : '#FF6B6B', border: `2px solid ${difficulty.id === 'easy' ? '#00b89444' : difficulty.id === 'medium' ? '#f9a82544' : '#FF6B6B44'}`, borderRadius: 100, padding: '6px 14px', fontFamily: "'Fredoka One',cursive", fontSize: 13, whiteSpace: 'nowrap' }}>
+            {DIFF_LABEL[difficulty.id]}
+          </span>
         </div>
-      )}
 
-      {won && (
-        <WinModal
-          title="Selamat!"
-          subtitle="Kata berhasil ditebak!"
-          diffLabel={DIFF_LABEL[difficulty.id]}
-          stats={[
-            { label: 'Salah', value: String(wrongCount), color: '#FF6B6B' },
-            { label: 'Waktu', value: formatTime(time), color: '#4ECDC4' },
-            ...(paidHints > 0 ? [{ label: 'Hint berbayar', value: String(paidHints), color: '#A29BFE' }] : []),
-          ]}
-          stars={winStars}
-          coinReward={winCoinAmount}
-          onRestart={restart}
-          onBack={() => { play('click'); onBack() }}
-          onHome={() => { play('click'); onHome?.() }}
-          dark={dark}
-          gameColor={game.color}
-        />
-      )}
-      {lost && (
-        <LoseModal
-          emoji="💀"
-          title="Game Over!"
-          subtitle={`Kata yang benar: ${word}`}
-          diffLabel={DIFF_LABEL[difficulty.id]}
-          stats={[
-            { label: 'Salah', value: String(wrongCount), color: '#FF6B6B' },
-            { label: 'Waktu', value: formatTime(time), color: '#4ECDC4' },
-          ]}
-          coinReward={5}
-          onRestart={restart}
-          onBack={() => { play('click'); onBack() }}
-          onHome={() => { play('click'); onHome?.() }}
-          dark={dark}
-          gameColor={game.color}
-        />
-      )}
+        {/* Stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 24 }}>
+          <div style={{ background: surface, border: `2px solid #FF6B6B33`, borderRadius: 16, padding: '12px 16px', textAlign: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginBottom: 3 }}>
+              {Array.from({ length: maxWrong }).map((_, i) => (
+                <span key={i} style={{
+                  fontSize: maxWrong > 7 ? 14 : 16,
+                  opacity: i < (maxWrong - wrongCount) ? 1 : 0.2,
+                  filter: i < (maxWrong - wrongCount) ? 'none' : 'grayscale(1)',
+                  animation: (maxWrong - wrongCount) <= 2 && i < (maxWrong - wrongCount) ? 'heartPulse 0.8s ease infinite' : 'none',
+                  transition: 'all 0.3s',
+                }}>❤️</span>
+              ))}
+            </div>
+            <div style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>❤️ Nyawa</div>
+          </div>
+          {[
+            { label: '⏱ Waktu', value: formatTime(time), color: '#4ECDC4' },
+            { label: '🔤 Huruf', value: `${guessed.size}`, color: '#A29BFE' },
+          ].map(s => (
+            <div key={s.label} style={{ background: surface, border: `2px solid ${s.color}33`, borderRadius: 16, padding: '12px 16px', textAlign: 'center' }}>
+              <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 26, color: s.color, lineHeight: 1 }}>{s.value}</div>
+              <div style={{ fontSize: 12, color: textMuted, marginTop: 3, fontWeight: 600 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Hangman Figure */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+          <div style={{ 
+            background: style.glass ? 'rgba(255,255,255,0.05)' : surface, 
+            borderRadius: 24, padding: 20, 
+            border: `2px solid ${style.glass ? 'rgba(255,255,255,0.1)' : borderCol}`,
+            boxShadow: style.glass ? '0 10px 30px rgba(0,0,0,0.3)' : 'none',
+            transition: 'all 0.3s'
+          }}>
+            <div style={{ filter: style.filter || 'none', transition: 'filter 0.5s ease' }}>
+              <HangmanFigure wrongCount={wrongCount} maxWrong={maxWrong} color={lost ? '#FF6B6B' : hangmanTheme.style.stick} headColor={lost ? '#FF6B6B' : hangmanTheme.style.man} />
+            </div>
+          </div>
+        </div>
+
+        {/* Hint — always visible as clue */}
+        <div style={{ background: dark ? '#2d2d1e' : '#FFFDE7', border: `2px solid #FFD93D44`, borderRadius: 14, padding: '10px 16px', textAlign: 'center', marginBottom: 16, fontSize: 14, color: textMuted }}>
+          💡 <strong style={{ color: '#FFD93D' }}>Petunjuk:</strong> {wordData.hint}
+        </div>
+
+        {/* Word display */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: word.length > 9 ? 5 : 8, flexWrap: 'wrap', marginBottom: 28 }}>
+          {revealedWord.map((item, i) => {
+            const revealDelay = item.revealed && !lost ? (i * 0.08) : 0
+            return (
+              <div key={i} style={{
+                width: word.length > 10 ? 30 : word.length > 7 ? 36 : 42,
+                height: word.length > 10 ? 38 : word.length > 7 ? 44 : 50,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                borderBottom: `3px solid ${item.revealed ? (lost && !guessed.has(item.letter) ? '#FF6B6B' : accent) : (dark ? '#4a4a6a' : '#B2BEC3')}`,
+                fontFamily: "'Fredoka One',cursive",
+                fontSize: word.length > 10 ? 20 : word.length > 7 ? 24 : 28,
+                color: lost && !guessed.has(item.letter) ? '#FF6B6B' : textMain,
+                transition: 'all 0.3s',
+                transform: item.revealed ? 'scale(1)' : 'scale(0.8)',
+                opacity: item.revealed ? 1 : 0,
+                animation: item.revealed && !lost ? `popLetter 0.4s ${revealDelay}s cubic-bezier(0.34,1.56,0.64,1) both` : 'none',
+              }}>
+                {item.revealed ? item.letter : ''}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Wrong letters */}
+        {wrongLetters.length > 0 && (
+          <div style={{ textAlign: 'center', marginBottom: 20 }}>
+            <span style={{ fontSize: 12, color: textMuted, fontWeight: 600 }}>Salah: </span>
+            {wrongLetters.map(l => (
+              <span key={l} style={{ display: 'inline-block', margin: '0 3px', padding: '2px 8px', background: dark ? '#3a1a1a' : '#FFF0F0', color: '#FF6B6B', borderRadius: 6, fontSize: 14, fontWeight: 700, fontFamily: "'Fredoka One',cursive" }}>{l}</span>
+            ))}
+          </div>
+        )}
+
+        {/* Keyboard */}
+        <div style={{ marginBottom: 24 }}>
+          {KEYBOARD_ROWS.map((row, ri) => (
+            <div key={ri} style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 7 }}>
+              {row.map(letter => {
+                const isGuessed = guessed.has(letter)
+                const isCorrect = isGuessed && word.includes(letter)
+                const isWrong = isGuessed && !word.includes(letter)
+                return (
+                    <button key={letter} onClick={() => guessLetter(letter)} disabled={isGuessed || !isGameActive}
+                      style={{
+                        width: 'clamp(30px, 8.5vw, 42px)',
+                        height: 'clamp(38px, 10vw, 50px)',
+                        border: 'none',
+                        borderRadius: 12,
+                        fontSize: 'clamp(14px, 3.8vw, 18px)',
+                        fontWeight: 800,
+                        fontFamily: "'Fredoka One',cursive",
+                        cursor: (isGuessed || !isGameActive) ? 'default' : 'pointer',
+                        background: isCorrect ? '#00b894' : isWrong ? '#FF6B6B' : (style.glass ? 'rgba(255,255,255,0.1)' : (dark ? '#2d3561' : '#F1F3F5')),
+                        color: isGuessed ? '#fff' : (style.glass ? 'rgba(255,255,255,0.8)' : textMain),
+                        opacity: isGuessed ? 0.7 : 1,
+                        transition: 'all 0.15s cubic-bezier(0.34,1.56,0.64,1)',
+                        transform: isGuessed ? 'scale(0.88)' : 'scale(1)',
+                        boxShadow: isGuessed ? 'none' : `0 3px 8px ${dark ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.1)'}`,
+                        border: style.glass && !isGuessed ? '1px solid rgba(255,255,255,0.15)' : 'none',
+                        WebkitTapHighlightColor: 'transparent',
+                      }}>
+                      {letter}
+                    </button>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+
+        {/* Buttons */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <button onClick={restart}
+            style={{ background: accent, color: '#fff', border: 'none', borderRadius: 100, padding: '12px 28px', fontSize: 15, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', boxShadow: `0 4px 14px ${accent}44` }}>
+            🔄 Main Lagi
+          </button>
+          <button onClick={useHintAction} disabled={!isGameActive}
+            style={{ background: !isGameActive ? 'rgba(255,255,255,0.05)' : hintUsed >= FREE_HINTS ? 'rgba(162,155,254,0.15)' : 'rgba(255,211,61,0.15)', color: !isGameActive ? textMuted : hintUsed >= FREE_HINTS ? '#A29BFE' : '#FFD93D', border: `2px solid ${!isGameActive ? borderCol : hintUsed >= FREE_HINTS ? '#A29BFE44' : '#FFD93D44'}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 800, fontFamily: "'Fredoka One',cursive", cursor: !isGameActive ? 'default' : 'pointer' }}>
+            🔤 {hintUsed < FREE_HINTS ? `Buka Huruf (${FREE_HINTS - hintUsed})` : `Buka Huruf (${HINT_COST}🪙)`}
+          </button>
+          <button onClick={() => { play('click'); onBack() }}
+            style={{ background: surface, color: textMuted, border: `2px solid ${borderCol}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 700, fontFamily: "'Fredoka One',cursive", cursor: 'pointer' }}>
+            🎯 Level
+          </button>
+        </div>
+
+        {/* Best record */}
+        {bestWrong >= 0 && (
+          <div style={{ 
+            marginTop: 20, 
+            background: style.glass ? 'rgba(255,255,255,0.05)' : (dark ? '#1f1f3e' : '#FFF9F0'), 
+            border: `2px solid ${style.glass ? 'rgba(255,255,255,0.1)' : (dark ? '#3d3561' : '#FFE66D')}`, 
+            borderRadius: 20, padding: '12px 20px', textAlign: 'center', fontSize: 14, color: style.glass ? 'rgba(255,255,255,0.6)' : textMuted, fontWeight: 600,
+            boxShadow: style.glass ? '0 8px 32px rgba(0,0,0,0.2)' : 'none'
+          }}>
+            🏆 Rekor {DIFF_LABEL[difficulty.id]}: <span style={{ color: style.glass ? '#FFD700' : accent, fontFamily: "'Fredoka One',cursive", fontSize: 16 }}>{bestWrong} salah</span>
+          </div>
+        )}
+
+        {won && (
+          <WinModal
+            title="Selamat!"
+            subtitle="Kata berhasil ditebak!"
+            diffLabel={DIFF_LABEL[difficulty.id]}
+            stats={[
+              { label: 'Salah', value: String(wrongCount), color: '#FF6B6B' },
+              { label: 'Waktu', value: formatTime(time), color: '#4ECDC4' },
+              ...(paidHints > 0 ? [{ label: 'Hint berbayar', value: String(paidHints), color: '#A29BFE' }] : []),
+            ]}
+            stars={winStars}
+            coinReward={winCoinAmount}
+            onRestart={restart}
+            onBack={() => { play('click'); onBack() }}
+            onHome={() => { play('click'); onHome?.() }}
+            dark={dark}
+            gameColor={game.color}
+          />
+        )}
+        {lost && (
+          <LoseModal
+            emoji="💀"
+            title="Game Over!"
+            subtitle={`Kata yang benar: ${word}`}
+            diffLabel={DIFF_LABEL[difficulty.id]}
+            stats={[
+              { label: 'Salah', value: String(wrongCount), color: '#FF6B6B' },
+              { label: 'Waktu', value: formatTime(time), color: '#4ECDC4' },
+            ]}
+            coinReward={5}
+            onRestart={restart}
+            onBack={() => { play('click'); onBack() }}
+            onHome={() => { play('click'); onHome?.() }}
+            dark={dark}
+            gameColor={game.color}
+          />
+        )}
+      </div>
     </div>
   )
 }

@@ -323,7 +323,16 @@ export const HANGMAN_THEMES = [
     style:{ stick:'#A29BFE', man:'#6C5CE7', bg:'transparent' } },
   { id:'gold', name:'Golden', desc:'Emas berkilau untuk yang menghargai keindahan', price:250, icon:'👑', color:'#FFD700',
     style:{ stick:'#FFD700', man:'#DAA520', bg:'transparent' } },
+  { id:'premium-cyberpunk', name:'Cyberpunk Noir', desc:'Masa depan neon yang gelap dan hujan', price:500, icon:'🌃', color:'#00FF88',
+    style:{ stick:'#00FF88', man:'#FF00FF', bgImg:'/hangman/bg_cyberpunk.png', filter:'drop-shadow(0 0 12px #00FF88)', glass: true } },
+  { id:'premium-dungeon', name:'Ancient Dungeon', desc:'Penjara batu abad pertengahan yang lembap', price:500, icon:'⛓️', color:'#D63031',
+    style:{ stick:'#5D4037', man:'#2D3436', bgImg:'/hangman/bg_dungeon.png', filter:'brightness(0.7) sepia(0.3)', glass: true } },
+  { id:'premium-nebula', name:'Cosmic Nebula', desc:'Keindahan galaksi di antara awan bintang', price:600, icon:'🪐', color:'#A29BFE',
+    style:{ stick:'#ffffff', man:'#00F5FF', bgGrad:'linear-gradient(135deg, #020111 0%, #3a1c71 50%, #d76d77 100%)', filter:'drop-shadow(0 0 15px #00F5FF)', glass: true, particles: 'stars' } },
+  { id:'premium-forest', name:'Mystic Forest', desc:'Hutan ajaib dengan kunang-kunang malam', price:600, icon:'🍄', color:'#00B894',
+    style:{ stick:'#3E2723', man:'#55EFC4', bgGrad:'linear-gradient(to bottom, #000428, #004e92)', filter:'drop-shadow(0 0 12px #55EFC4)', glass: true, particles: 'fireflies' } },
 ]
+
 
 // ─── Color Sort Themes (Color Sort) ─────────────────────────────────────────
 export const TUBE_THEMES = [

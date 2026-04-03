@@ -59,6 +59,13 @@ function mergeProgress(local, cloud) {
     totalPlayTime: mergeMax(local.totalPlayTime, cloud.totalPlayTime),
     unlockedAchievements: mergeArrayUnion(local.unlockedAchievements, cloud.unlockedAchievements),
     newAchievements: local.newAchievements || [],
+    // Battle Pass & Profile
+    seasonXP: mergeMax(local.seasonXP, cloud.seasonXP),
+    claimedBPTiers: mergeArrayUnion(local.claimedBPTiers, cloud.claimedBPTiers),
+    selectedBorder: local.selectedBorder || cloud.selectedBorder,
+    unlockedBorders: mergeArrayUnion(local.unlockedBorders, cloud.unlockedBorders),
+    selectedTitle: local.selectedTitle || cloud.selectedTitle,
+    unlockedTitles: mergeArrayUnion(local.unlockedTitles, cloud.unlockedTitles),
   }
 }
 
