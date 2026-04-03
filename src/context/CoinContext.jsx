@@ -874,16 +874,6 @@ export function CoinProvider({ children }) {
     return () => window.removeEventListener('bp-wheel-unlock', handler)
   }, [])
 
-  // Achievement coins handler
-  useEffect(() => {
-    const handler = (e) => {
-      const { amount, desc } = e.detail || {}
-      if (amount) earnCoins(amount, desc)
-    }
-    window.addEventListener('bp-add-coins', handler)
-    return () => window.removeEventListener('bp-add-coins', handler)
-  }, [earnCoins])
-
   // ── Functions ─────────────────────────────────────────────────────────────
 
   const buyCosmetic = useCallback(async (type, itemId) => {

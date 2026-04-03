@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper: is owner
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // --- LEADERBOARD RULES ---
+    match /leaderboard/{docId} {
+      // Allow everyone to read scores
+      allow read: if true;
+      
+      // Allow write ONLY if:
+      // 1. User is authenticated
+      // 2. Document ID ends with the user's UID (preventing overwriting others)
+      // 3. User is not changing another person's score (uid field check)
+      allow create, update: if request.auth != null 
+        && request.resource.data.uid == request.auth.uid
+        && docId.endsWith(request.auth.uid)
+        && request.resource.data.score <= 1000000; // Basic sanity check (max score)
+      
+      allow delete: if false; // No one should delete scores via client
+    }
+
+    // --- ACTIVITY / SOCIAL RULES ---
+    match /activity/{docId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // --- ANALYTICS RULES ---
+    match /analytics_events/{docId} {
+      allow read: if false; // Only admin (via console)
+      allow create: if true; // Allow anonymous events (or restrict to auth if preferred)
+      allow update, delete: if false;
+    }
+
+    // --- DEFAULT RULE ---
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

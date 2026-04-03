@@ -166,7 +166,10 @@ function isScoreValid(gameId, score) {
 
 // Simple checksum — not bulletproof but stops casual console hacks
 function makeChecksum(gameId, score, timestamp) {
-  const raw = `${gameId}_${score}_${timestamp}_bp2024`
+  // Harder to guess: reverse gameId, complex salt, use score twice
+  const rev = gameId.split('').reverse().join('')
+  const salt = ((timestamp % 999) + 42).toString(16)
+  const raw = `bp_v2_${rev}_${score}_${timestamp}_${score}_${salt}_shhh`
   let h = 0
   for (let i = 0; i < raw.length; i++) { h = ((h << 5) - h) + raw.charCodeAt(i); h |= 0 }
   return Math.abs(h).toString(36)

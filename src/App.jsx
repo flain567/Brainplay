@@ -772,8 +772,8 @@ export default function App() {
         <CloudSaveProvider>
           <LocalAnalyticsProvider>
             <LimitedModeProvider>
-              <ProgressProvider>
-                <CoinProvider>
+              <CoinProvider>
+                <ProgressProvider>
                   <InventoryProvider>
                     <LeaderboardProvider>
                       <SocialProvider>
@@ -788,8 +788,8 @@ export default function App() {
                       </SocialProvider>
                     </LeaderboardProvider>
                   </InventoryProvider>
-                </CoinProvider>
-              </ProgressProvider>
+                </ProgressProvider>
+              </CoinProvider>
             </LimitedModeProvider>
           </LocalAnalyticsProvider>
         </CloudSaveProvider>

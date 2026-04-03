@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { getJSON, setJSON, StorageKeys } from '../utils/storage.js'
 import { useLimitedMode } from './LimitedModeContext.jsx'
+import { useCoins } from './CoinContext.jsx'
 
 const ProgressContext = createContext(null)
 
@@ -270,6 +271,7 @@ function getDefaultProgress() {
 // ─── Provider ────────────────────────────────────────────────────────────────
 export function ProgressProvider({ children }) {
   const { currentMode } = useLimitedMode()
+  const { earnCoins } = useCoins()
   const [progress, setProgress] = useState(() => {
     const saved = getJSON(StorageKeys.XP)
     return saved ? { ...getDefaultProgress(), ...saved } : getDefaultProgress()
@@ -434,9 +436,7 @@ export function ProgressProvider({ children }) {
           if (ach && ach.reward) {
             // Reward Coins
             if (ach.reward.coins) {
-              window.dispatchEvent(new CustomEvent('bp-add-coins', {
-                detail: { amount: ach.reward.coins, desc: `Achievement: ${ach.title}` }
-              }))
+              earnCoins(ach.reward.coins, `Achievement: ${ach.title}`)
             }
             // Reward Title
             if (ach.reward.title) {
@@ -477,9 +477,7 @@ export function ProgressProvider({ children }) {
       
       const grantReward = (rew) => {
         if (rew.type === 'coins') {
-          window.dispatchEvent(new CustomEvent('bp-add-coins', {
-            detail: { amount: rew.amount, desc: `Battle Pass: ${tierData.label || rew.label}` }
-          }))
+          earnCoins(rew.amount, `Battle Pass: ${tierData.label || rew.label}`)
         } else if (rew.type === 'title') {
           const titles = new Set(next.unlockedTitles)
           titles.add(rew.value)
@@ -521,9 +519,7 @@ export function ProgressProvider({ children }) {
     // Helper to perform side effects cleanly OUTSIDE setState
     const dispatchRewardSideEffects = (rew) => {
       if (rew.type === 'coins') {
-        window.dispatchEvent(new CustomEvent('bp-add-coins', {
-          detail: { amount: rew.amount, desc: `Trophy Road Lvl ${level}` }
-        }))
+        earnCoins(rew.amount, `Trophy Road Lvl ${level}`)
       } else if (rew.type === 'ship') {
         window.dispatchEvent(new CustomEvent('bp-wheel-unlock', {
           detail: { item: { type: 'ships', id: rew.id || rew.value } }
