@@ -20,6 +20,7 @@ import useGSAPScrollTrigger from '../hooks/useGSAPScrollTrigger.js'
 import useScrambleNumber from '../hooks/useScrambleNumber.js'
 import gsap from 'gsap'
 import { Flip } from 'gsap/Flip'
+import ActivityTicker from '../components/ActivityTicker.jsx'
 gsap.registerPlugin(Flip)
 
 const ROADMAP_FUTURE = [
@@ -409,6 +410,8 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
               <div className="pb-xp-fill" style={{ width: `${Math.round(levelInfo.progress * 100)}%` }} />
             </div>
           </div>
+
+          <ActivityTicker />
 
           {/* ── Quick Actions ── */}
           <div className="quick-actions" data-anime-dashboard>

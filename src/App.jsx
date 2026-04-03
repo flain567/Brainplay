@@ -11,6 +11,8 @@ import { LuckyWheelProvider } from './context/LuckyWheelContext.jsx'
 import { LocalAnalyticsProvider } from './context/LocalAnalyticsContext.jsx'
 import { CloudSaveProvider, useCloudSave } from './context/CloudSaveContext.jsx'
 import { InventoryProvider } from './context/InventoryContext.jsx'
+import { SocialProvider, useSocial } from './context/SocialContext.jsx'
+import UserProfileModal from './components/UserProfileModal.jsx'
 import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
 import PageTransition from './components/PageTransition.jsx'
@@ -409,15 +411,28 @@ function AppInner() {
   const [showPause,   setShowPause]   = useState(false)
   const [gameKey,     setGameKey]     = useState(0)
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [inspectingUid, setInspectingUid] = useState(null)
   const screenRef = useRef('home')
   const navRef = useRef({ goHome: null, goBackToDifficulty: null })
   const { isLoggedIn, isGuest, needsName, loading: authLoading, userId, playerName: nickname } = useAuth()
   const { initialSyncDone } = useCloudSave()
   const { muted, musicOff } = useSettings()
   const { earnCoins } = useCoins()
-  const { progress, clearLevelUp } = useProgress()
+  const { progress, clearLevelUp: originalClearLevelUp } = useProgress()
   const { currentMode } = useLimitedMode()
+  const { logActivity } = useSocial()
   const { trackEvent } = useLocalAnalytics()
+
+  const clearLevelUp = () => {
+    if (progress.levelUpData) {
+      logActivity({
+        type: 'level_up',
+        details: `mencapai Level ${progress.levelUpData.newLevel}! 🌟`,
+        icon: '🆙'
+      })
+    }
+    originalClearLevelUp()
+  }
 
   // Run migration once
   useEffect(() => { migrateOldStorage() }, [])
@@ -632,6 +647,9 @@ function AppInner() {
       {progress.levelUpData && (
         <LevelUpModal data={progress.levelUpData} onClose={clearLevelUp} />
       )}
+      {inspectingUid && (
+        <UserProfileModal uid={inspectingUid} onClose={() => setInspectingUid(null)} />
+      )}
       <LuckyWheel open={isWheelOpen} onClose={() => setIsWheelOpen(false)} />
       {showPause && (
         <PauseModal 
@@ -684,7 +702,7 @@ function AppInner() {
 
           {screen === 'leaderboard' && (
             <Suspense fallback={<GameLoader />}>
-              <Leaderboard onBack={goHome} games={GAMES} />
+              <Leaderboard onBack={goHome} games={GAMES} onInspect={setInspectingUid} />
             </Suspense>
           )}
           {screen === 'stats' && (
@@ -758,14 +776,16 @@ export default function App() {
                 <CoinProvider>
                   <InventoryProvider>
                     <LeaderboardProvider>
-                      <LuckyWheelProvider>
-                      <DailyChallengeProvider>
-                        <NotifProvider>
-                          <ThemeApplicator />
-                          <AppInner />
-                        </NotifProvider>
-                      </DailyChallengeProvider>
-                      </LuckyWheelProvider>
+                      <SocialProvider>
+                        <LuckyWheelProvider>
+                          <DailyChallengeProvider>
+                            <NotifProvider>
+                              <ThemeApplicator />
+                              <AppInner />
+                            </NotifProvider>
+                          </DailyChallengeProvider>
+                        </LuckyWheelProvider>
+                      </SocialProvider>
                     </LeaderboardProvider>
                   </InventoryProvider>
                 </CoinProvider>

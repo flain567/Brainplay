@@ -166,6 +166,17 @@ export function InventoryProvider({ children }) {
     })
     
     setInventory(nextState)
+    
+    // Log Activity
+    window.dispatchEvent(new CustomEvent('bp-log-activity', {
+      detail: {
+        type: 'chest_open',
+        userName: localStorage.getItem('bp_nickname') || 'Pemain',
+        details: `baru saja membuka ${chestId === 'premium_chest' ? 'Peti Premium 🎁' : 'Peti Basic 🎒'}!`,
+        icon: '🎁'
+      }
+    }))
+
     return { success: true, drops }
   }, [inventory])
 

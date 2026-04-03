@@ -173,8 +173,15 @@ service cloud.firestore {
         && request.resource.data.score <= 9999999;
     }
     match /users/{userId} {
-      allow read, write: if request.auth != null
+      // Allow others to read basic profile info for Social Features
+      allow read: if true;
+      allow write: if request.auth != null
         && request.auth.uid == userId;
+    }
+    match /activity/{docId} {
+      // Activity feed is public to read, but only auth users can create
+      allow read: if true;
+      allow create: if request.auth != null;
     }
   }
 }`}
@@ -195,7 +202,7 @@ service cloud.firestore {
 
 // ─── Podium Card Component ───────────────────────────────────────────────────
 
-function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname }) {
+function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname, onInspect }) {
   if (!entry) return <div style={{ flex: 1 }} />
   
   const isFirst = rank === 1
@@ -205,12 +212,19 @@ function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname }) {
   const paddingTop = isFirst ? 0 : 25
 
   return (
-    <div style={{
-      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-      paddingTop, transform: `scale(${scale})`, 
-      animation: 'lbSlideUp 0.6s ease both',
-      position: 'relative', zIndex: isFirst ? 2 : 1
-    }}>
+    <div 
+      onClick={() => entry.uid && onInspect?.(entry.uid)}
+      style={{
+        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+        paddingTop, transform: `scale(${scale})`, 
+        cursor: entry.uid ? 'pointer' : 'default',
+        transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        animation: 'lbSlideUp 0.6s ease both',
+        position: 'relative', zIndex: isFirst ? 2 : 1
+      }}
+      onMouseEnter={e => entry.uid && (e.currentTarget.style.transform = `scale(${scale * 1.05}) translateY(-5px)`)}
+      onMouseLeave={e => entry.uid && (e.currentTarget.style.transform = `scale(${scale}) translateY(0)`)}
+    >
       {/* Floating Animation Wrapper */}
       <div style={{ 
         animation: isFirst ? 'lbFloat 3s ease-in-out infinite' : 'none',
@@ -298,7 +312,7 @@ function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname }) {
 
 // ─── Main Leaderboard Page ───────────────────────────────────────────────────
 
-export default function Leaderboard({ onBack, games }) {
+export default function Leaderboard({ onBack, games, onInspect }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { nickname, setNickname, getOnlineScores, getLocalBoard, clearCache, loading, lastError, firebaseStatus } = useLeaderboard()
@@ -627,11 +641,11 @@ export default function Leaderboard({ onBack, games }) {
                   minHeight: 180, position: 'relative'
                 }}>
                   {/* Rank 2 (Left) */}
-                  <PodiumCard entry={scores[1]} rank={2} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} />
+                  <PodiumCard entry={scores[1]} rank={2} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} onInspect={onInspect} />
                   {/* Rank 1 (Center) */}
-                  <PodiumCard entry={scores[0]} rank={1} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} />
+                  <PodiumCard entry={scores[0]} rank={1} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} onInspect={onInspect} />
                   {/* Rank 3 (Right) */}
-                  <PodiumCard entry={scores[2]} rank={3} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} />
+                  <PodiumCard entry={scores[2]} rank={3} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} onInspect={onInspect} />
                 </div>
               )}
 
@@ -641,7 +655,11 @@ export default function Leaderboard({ onBack, games }) {
                 return (
                   <div key={entry.id || `${i}-${entry.score}`}
                     className={`lb-row ${rank <= 10 ? 'top-rank' : ''}`}
-                    style={{ animation: `lbSlideUp 0.4s ${i * 0.05}s ease both` }}>
+                    onClick={() => entry.uid && onInspect?.(entry.uid)}
+                    style={{ 
+                      animation: `lbSlideUp 0.4s ${i * 0.05}s ease both`,
+                      cursor: entry.uid ? 'pointer' : 'default'
+                    }}>
                     {/* Rank */}
                     <div style={{
                       width:36, height:36, borderRadius:12, flexShrink:0,

@@ -242,6 +242,17 @@ async function submitOnlineScore(gameId, diffId, entry) {
       })
     }
 
+    if (mode === 'online') {
+      window.dispatchEvent(new CustomEvent('bp-log-activity', {
+        detail: {
+          type: 'high_score',
+          userName: entry.name,
+          details: `memecahkan rekor di ${gameId} dengan skor ${entry.score.toLocaleString()}! 🚀`,
+          icon: '🏆'
+        }
+      }))
+    }
+
     return { success: true }
   } catch (err) {
     const msg = err.message || 'Unknown error'
