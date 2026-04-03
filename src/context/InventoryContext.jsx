@@ -199,7 +199,7 @@ export function InventoryProvider({ children }) {
     }
 
     return { success: false, reason: 'Tipe hadiah tidak didukung' }
-  }, [inventory, saveInventory])
+  }, [inventory])
 
   return (
     <InventoryContext.Provider value={{
