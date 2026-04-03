@@ -38,22 +38,27 @@ export default function Inventory({ onBack }) {
     setOpeningChest(chestId)
     setRewards(null)
 
-    // GSAP Shake & Pop
+    // Wait for modal mount, then start sequence
     setTimeout(() => {
+      play('chest_shake') // hypothetical sound or just atmosphere
+      
+      // Intensive shake via GSAP
       if (chestRef.current) {
         gsap.to(chestRef.current, {
-          rotation: 15, x: 5, yoyo: true, repeat: 5, duration: 0.1,
+          x: 10, rotation: 10, duration: 0.08, repeat: 12, yoyo: true,
           onComplete: () => {
+            play('chest_open')
             gsap.to(chestRef.current, {
-              scale: 1.5, opacity: 0, duration: 0.4, ease: 'power2.in',
+              scale: 2, opacity: 0, duration: 0.5, ease: 'back.in(2)',
               onComplete: () => revealRewards(chestId)
             })
           }
         })
       } else {
-        revealRewards(chestId)
+        // Fallback if ref failed
+        setTimeout(() => revealRewards(chestId), 1000)
       }
-    }, 100)
+    }, 300)
   }
 
   const revealRewards = (chestId) => {
@@ -159,8 +164,18 @@ export default function Inventory({ onBack }) {
         /* Chest overlay */
         .chest-overlay {
           position: fixed; inset: 0; z-index: 9999;
-          background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+          background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
           display: flex; flex-direction: column; align-items: center; justify-content: center;
+          animation: overlayFadeIn 0.4s ease both;
+        }
+        @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .chest-shaking {
+          animation: chestShake 0.1s infinite alternate;
+        }
+        @keyframes chestShake {
+          from { transform: rotate(-8deg) translateX(-2px); }
+          to { transform: rotate(8deg) translateX(2px); }
         }
       `}</style>
 
@@ -221,18 +236,6 @@ export default function Inventory({ onBack }) {
           </div>
         </div>
       )}
-
-      {/* ─── DEBUG CHEATS ─── */}
-      <div style={{ padding: 10, background: '#111', color: '#0f0', fontSize: 10, overflowX: 'auto', marginBottom: 20 }}>
-        <div>DEBUG INVENTORY STATE:</div>
-        <div>{JSON.stringify(inventory)}</div>
-        <button onClick={() => window.dispatchEvent(new CustomEvent('bp-add-chest', { detail: { chestId: 'basic_chest', amount: 10 } }))}>
-          [FORCE ADD 10 BASIC]
-        </button>
-        <button onClick={() => window.dispatchEvent(new CustomEvent('bp-add-chest', { detail: { chestId: 'premium_chest', amount: 10 } }))}>
-          [FORCE ADD 10 PREMIUM]
-        </button>
-      </div>
 
       {/* ─── CHESTS ─── */}
       {tab === 'chests' && (
@@ -345,7 +348,7 @@ export default function Inventory({ onBack }) {
       {openingChest && (
         <div className="chest-overlay">
           {!rewards ? (
-             <div ref={chestRef} style={{ fontSize: 120 }}>
+             <div ref={chestRef} className="chest-shaking" style={{ fontSize: 120 }}>
                {CHESTS[openingChest]?.icon}
              </div>
           ) : (
@@ -361,11 +364,11 @@ export default function Inventory({ onBack }) {
                    return (
                      <div key={i} style={{
                        background: '#1A1F35', padding: '20px', borderRadius: 20,
-                       border: `2px solid ${mat.color}`, textAlign: 'center', width: 120,
-                       boxShadow: `0 10px 30px ${mat.color}44`
+                       border: `2px solid ${mat.color}`, textAlign: 'center', width: 130, padding: "24px", borderRadius: 24,
+                       boxShadow: `0 10px 30px ${mat.color}33`, animation: `popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.15}s both`
                      }}>
-                       <div style={{ fontSize: 48, marginBottom: 10 }}>{mat.icon}</div>
-                       <div style={{ fontSize: 12, color: mat.color, fontWeight: 800 }}>+{r.qty}</div>
+                       <div style={{ fontSize: 52, marginBottom: 12 }}>{mat.icon}</div>
+                       <div style={{ fontSize: 16, color: mat.color, fontWeight: 900, fontFamily: "'Fredoka One',cursive" }}>+{r.qty}</div>
                        <div style={{ fontSize: 11, color: '#E2E8F0', marginTop: 4 }}>{mat.name}</div>
                      </div>
                    )
