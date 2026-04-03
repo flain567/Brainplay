@@ -222,6 +222,18 @@ export default function Inventory({ onBack }) {
         </div>
       )}
 
+      {/* ─── DEBUG CHEATS ─── */}
+      <div style={{ padding: 10, background: '#111', color: '#0f0', fontSize: 10, overflowX: 'auto', marginBottom: 20 }}>
+        <div>DEBUG INVENTORY STATE:</div>
+        <div>{JSON.stringify(inventory)}</div>
+        <button onClick={() => window.dispatchEvent(new CustomEvent('bp-add-chest', { detail: { chestId: 'basic_chest', amount: 10 } }))}>
+          [FORCE ADD 10 BASIC]
+        </button>
+        <button onClick={() => window.dispatchEvent(new CustomEvent('bp-add-chest', { detail: { chestId: 'premium_chest', amount: 10 } }))}>
+          [FORCE ADD 10 PREMIUM]
+        </button>
+      </div>
+
       {/* ─── CHESTS ─── */}
       {tab === 'chests' && (
         <div style={{ animation: 'slide-up 0.3s ease' }}>
