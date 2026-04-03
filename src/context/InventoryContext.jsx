@@ -64,17 +64,15 @@ export function InventoryProvider({ children }) {
     return { chests: { basic_chest: 1 }, materials: {}, consumables: {} }
   })
 
-  // Persist State
-  const saveInventory = useCallback((newState) => {
-    setInventory(newState)
-    localStorage.setItem(INVENTORY_KEY, JSON.stringify(newState))
-    // Inform cloud save
+  // Persist State automatically on change
+  useEffect(() => {
+    localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory))
     try { window.dispatchEvent(new CustomEvent('bp-save-triggered')) } catch(e) {}
-  }, [])
+  }, [inventory])
 
   // Helper modifier
   const updateItem = useCallback((category, itemId, delta) => {
-    saveInventory(prev => {
+    setInventory(prev => {
       const current = prev[category]?.[itemId] || 0
       const updated = Math.max(0, current + delta)
       return {
@@ -85,7 +83,7 @@ export function InventoryProvider({ children }) {
         }
       }
     })
-  }, [saveInventory])
+  }, [])
 
   // Listen to cross-tab or cloud sync changes
   useEffect(() => {
@@ -158,9 +156,9 @@ export function InventoryProvider({ children }) {
       nextState.materials[d.id] = (nextState.materials[d.id] || 0) + d.qty
     })
     
-    saveInventory(nextState)
+    setInventory(nextState)
     return { success: true, drops }
-  }, [inventory, saveInventory])
+  }, [inventory])
 
   // Crafting Logic
   const craftRecipe = useCallback((recipeId) => {
@@ -186,17 +184,17 @@ export function InventoryProvider({ children }) {
          ...(nextState.chests || {}),
          [recipe.targetId]: (nextState.chests[recipe.targetId] || 0) + 1
        }
-       saveInventory(nextState)
+       setInventory(nextState)
        return { success: true, type: 'chest', target: CHESTS[recipe.targetId], message: 'Berhasil membuat peti!' }
     } else if (recipe.targetType === 'title') {
        // Since Title unlock is managed by ProgressContext/CoinContext, we fire an event
        try { window.dispatchEvent(new CustomEvent('bp-title-unlock', { detail: { title: recipe.targetId } })) } catch(e) {}
-       saveInventory(nextState)
+       setInventory(nextState)
        return { success: true, type: 'title', target: { name: recipe.targetId }, message: 'Gelar legendaris terbuka!' }
     } else if (recipe.targetType === 'cosmetic') {    
        // We'll fire an event to unlock cosmetic
        try { window.dispatchEvent(new CustomEvent('bp-cosmetic-unlock', { detail: { type: recipe.cosmeticType, id: recipe.targetId } })) } catch(e) {}
-       saveInventory(nextState)
+       setInventory(nextState)
        return { success: true, type: 'cosmetic', target: { name: recipe.name }, message: 'Kosmetik berhasil di-craft!' }
     }
 

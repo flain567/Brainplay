@@ -287,6 +287,14 @@ export function ProgressProvider({ children }) {
     return () => window.removeEventListener('bp-cloud-sync', handler)
   }, [])
 
+  // One-time migration to fix the bug where chests weren't saved
+  useEffect(() => {
+    if (!localStorage.getItem('bp-fixed-trophy-bug')) {
+      setProgress(p => ({ ...p, claimedLevelRewards: [] }))
+      localStorage.setItem('bp-fixed-trophy-bug', 'true')
+    }
+  }, [])
+
   // Update streak on mount
   useEffect(() => {
     setProgress(p => {
