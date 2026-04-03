@@ -589,9 +589,9 @@ export default function MathChallenge({ onBack, onHome, game, difficulty }) {
               {question.options.map((opt, i) => {
                 const isSelected = selectedAnswer === opt
                 const isCorrectAnswer = opt === question.answer
-                let btnBg = surface
-                let btnColor = textMain
-                let btnBorder = tc.border
+                let btnBg = '#6C5CE7'
+                let btnColor = '#FFFFFF'
+                let btnBorder = '#5A4BDB'
 
                 if (feedback) {
                   if (isCorrectAnswer) {
@@ -603,8 +603,9 @@ export default function MathChallenge({ onBack, onHome, game, difficulty }) {
                     btnColor = '#fff'
                     btnBorder = '#FF6B6B'
                   } else {
-                    btnBg = surface
-                    btnColor = textMuted
+                    btnBg = '#6C5CE7'
+                    btnColor = 'rgba(255,255,255,0.6)'
+                    btnBorder = '#5A4BDB'
                   }
                 }
 

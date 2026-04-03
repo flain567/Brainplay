@@ -624,7 +624,7 @@ function AppInner() {
         </Suspense>
       )}
       {!isFullscreen && (
-        <Navbar onHome={goHome} onProfile={goProfile} onShop={goShop} onLeaderboard={goLeaderboard} onGames={goGames} currentGame={screen === 'game' ? currentGame : null} />
+        <Navbar onHome={goHome} onProfile={goProfile} onShop={goShop} onInventory={goInventory} onLeaderboard={goLeaderboard} onGames={goGames} currentGame={screen === 'game' ? currentGame : null} />
       )}
       <AchievementToast />
       <CoinToast />

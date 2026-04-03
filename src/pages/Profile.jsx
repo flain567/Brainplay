@@ -8,6 +8,7 @@ import { useThemeColors } from '../hooks/useThemeColors.js'
 import { ADMIN_IDS } from '../config/admin.js'
 import TitleSelector from '../components/TitleSelector.jsx'
 import BorderSelector from '../components/BorderSelector.jsx'
+import LevelRoad from '../components/LevelRoad.jsx'
 
 const CATEGORY_META = {
   milestone: { label: 'Milestone',  icon: '🎮', color: '#4ECDC4' },
@@ -42,11 +43,14 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
   const isAdmin = userId && ADMIN_IDS.includes(userId)
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
-  const borderData = progress.selectedBorder ? CUSTOM_BORDERS[progress.selectedBorder] : getBorderForLevel(levelInfo.level)
   const titleStyle = getTitleColorForLevel(levelInfo.level)
   
   const [showBorderSelector, setShowBorderSelector] = useState(false)
+  const [showLevelRoad, setShowLevelRoad] = useState(false)
   
+  const claimedLevelRewards = progress.claimedLevelRewards || []
+  const unclaimedCount = Array.from({ length: Math.max(0, levelInfo.level - 1) }, (_, i) => i + 2).filter(lvl => !claimedLevelRewards.includes(lvl)).length
+
   const unlockedSet = new Set(progress.unlockedAchievements || [])
   const unlockedCount = unlockedSet.size
   const totalAchievements = ACHIEVEMENTS.length
@@ -334,6 +338,33 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
                 {levelInfo.xpToNext.toLocaleString()} XP lagi ke Level {levelInfo.level + 1}
               </div>
             </div>
+
+            {/* TROPHY ROAD BUTTON */}
+            <button 
+              onClick={() => { play('click'); setShowLevelRoad(true) }}
+              style={{
+                width: '100%', padding: '12px', borderRadius: 14, marginTop: 16,
+                background: 'linear-gradient(135deg, rgba(78,205,196,0.15), rgba(85,239,196,0.15))',
+                border: '1.5px solid #4ECDC4', color: textMain,
+                fontFamily: "'Fredoka One',cursive", fontSize: 14,
+                cursor: 'pointer', position: 'relative', transition: '0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)' }}
+            >
+              🗺️ LIHAT TROPHY ROAD
+              {unclaimedCount > 0 && (
+                <div style={{
+                  position: 'absolute', top: -8, right: -8,
+                  background: '#FF6B6B', color: '#fff', fontSize: 11,
+                  fontWeight: 900, padding: '4px 10px', borderRadius: 100,
+                  boxShadow: '0 4px 12px rgba(255,107,107,0.6)',
+                  border: `2px solid ${surface}`
+                }}>
+                  {unclaimedCount} Hadiah!
+                </div>
+              )}
+            </button>
           </div>
 
           {/* ── Stats Grid ── */}
@@ -663,6 +694,9 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
       )}
       {showBorderSelector && (
         <BorderSelector onClose={() => setShowBorderSelector(false)} />
+      )}
+      {showLevelRoad && (
+        <LevelRoad onClose={() => setShowLevelRoad(false)} />
       )}
     </>
   )

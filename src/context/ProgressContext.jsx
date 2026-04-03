@@ -26,6 +26,39 @@ export const LEVEL_REWARDS = {
   25: { id: 'dragon', name: 'Aura Naga', color: '#6c5ce7', border: '5px solid #6c5ce7', boxShadow: '0 0 28px #6c5ce7cc', bgColor: '#6c5ce722' },
 }
 
+export const getLevelRoadReward = (level) => {
+  const MILESTONES = {
+    2:  { type: 'coins', amount: 100, label: '100 Koin', icon: '🪙', color: '#F9A825' },
+    5:  { type: 'chest', id: 'premium_chest', amount: 1, label: 'Peti Premium', icon: '🎁', color: '#6c5ce7' },
+    10: { type: 'ship', id: 'bp-v2-1', label: 'Kapal: Veridian Aurora', icon: '🚀', color: '#4ECDC4' },
+    15: { type: 'border', id: 'neon-blue', label: 'Bingkai: Neon Blue', icon: '🖼️', color: '#00f5ff' },
+    20: { type: 'title', value: 'Pelopor Angkasa', label: 'Gelar: Pelopor Angkasa', icon: '🎖️', color: '#ff4500' },
+    25: { type: 'chest', id: 'premium_chest', amount: 3, label: '3x Peti Premium', icon: '🎁', color: '#6c5ce7' },
+    30: { type: 'dash-skin', id: 'nebula-runner', label: 'Skin Dash: Nebula Runner', icon: '💎', color: '#ff0064' },
+    35: { type: 'ship', id: 'shadow', label: 'Kapal: Shadow Voyager', icon: '🛸', color: '#a29bfe' },
+    40: { type: 'border', id: 'mythic-celestial', label: 'Bingkai: Mythic Celestial', icon: '🌟', color: '#FFD700' },
+    45: { type: 'chest', id: 'premium_chest', amount: 5, label: '5x Peti Premium', icon: '🎁', color: '#6c5ce7' },
+    50: { 
+      type: 'multi', 
+      label: 'ULTIMATE LEGEND', 
+      icon: '👑', color: '#FFD700',
+      list: [
+        { type: 'title', value: 'BrainGod', label: 'Gelar: BrainGod' },
+        { type: 'border', id: 'solar-flare', label: 'Bingkai: Solar Flare' },
+        { type: 'coins', amount: 5000, label: '5000 Koin' }
+      ]
+    }
+  }
+
+  if (MILESTONES[level]) return { ...MILESTONES[level], isMilestone: true }
+  
+  if (level % 2 === 0) {
+    return { type: 'coins', amount: level * 10, label: `${level * 10} Koin`, icon: '🪙', color: '#F9A825', isMilestone: false }
+  } else {
+    return { type: 'chest', id: 'basic_chest', amount: 1, label: 'Peti Basic', icon: '🎒', color: '#A29BFE', isMilestone: false }
+  }
+}
+
 // ─── Battle Pass Season 1 ──────────────────────────────────────────────────
 export const BP_SEASON = {
   id: 'season_1',
@@ -225,6 +258,7 @@ function getDefaultProgress() {
     unlockedTitles: [],      // List of unlocked titles (strings)
     seasonXP: 0,             // Battle Pass XP
     claimedBPTiers: [],      // List of claimed tier numbers
+    claimedLevelRewards: [], // List of claimed level reward numbers
     selectedBorder: null,    // Custom border ID
     unlockedBorders: [],     // List of unlocked border IDs
   }
@@ -320,13 +354,6 @@ export function ProgressProvider({ children }) {
       const newLevel = getLevel(next.totalXP)
       if (newLevel > oldLevel) {
         next.levelUpData = { oldLevel, newLevel }
-        // Drop a random lootbox on level up!
-        try { window.dispatchEvent(new CustomEvent('bp-add-chest', { detail: { chestId: 'basic_chest', amount: 1 } })) } catch(e) {}
-        
-        // At high levels (every 5 levels), drop a premium chest!
-        if (newLevel % 5 === 0) {
-          try { window.dispatchEvent(new CustomEvent('bp-add-chest', { detail: { chestId: 'premium_chest', amount: 1 } })) } catch(e) {}
-        }
       }
 
       next.totalGamesPlayed = (next.totalGamesPlayed || 0) + 1
@@ -431,10 +458,10 @@ export function ProgressProvider({ children }) {
     if (!tierData) return { success: false, reason: 'Tier tidak valid' }
     
     setProgress(p => {
-      if (p.claimedBPTiers.includes(tier)) return p
+      if (p.claimedBPTiers?.includes(tier)) return p
       if (p.seasonXP < tierData.xp) return p
       
-      const next = { ...p, claimedBPTiers: [...p.claimedBPTiers, tier] }
+      const next = { ...p, claimedBPTiers: [...(p.claimedBPTiers || []), tier] }
       const { reward } = tierData
       
       const grantReward = (rew) => {
@@ -472,6 +499,57 @@ export function ProgressProvider({ children }) {
     return { success: true }
   }, [])
 
+  // ─── Level Road Management ─────────────────────────────────────────────────
+  const claimLevelReward = useCallback((level) => {
+    const myLevel = getLevel(progress.totalXP || 0)
+    if (level > myLevel) return { success: false, reason: 'Level belum dicapai' }
+
+    setProgress(p => {
+      if (p.claimedLevelRewards?.includes(level)) return p
+      if (level > getLevel(p.totalXP || 0)) return p
+
+      const next = { ...p, claimedLevelRewards: [...(p.claimedLevelRewards || []), level] }
+      const reward = getLevelRoadReward(level)
+
+      const grantReward = (rew) => {
+        if (rew.type === 'coins') {
+          window.dispatchEvent(new CustomEvent('bp-add-coins', {
+            detail: { amount: rew.amount, desc: `Trophy Road Lvl ${level}` }
+          }))
+        } else if (rew.type === 'title') {
+          const titles = new Set(next.unlockedTitles || [])
+          titles.add(rew.value)
+          next.unlockedTitles = [...titles]
+        } else if (rew.type === 'border') {
+          const borders = new Set(next.unlockedBorders || [])
+          borders.add(rew.id) // note: using rew.id here per definition
+          next.unlockedBorders = [...borders]
+        } else if (rew.type === 'ship') {
+          window.dispatchEvent(new CustomEvent('bp-wheel-unlock', {
+            detail: { item: { type: 'ships', id: rew.id } }
+          }))
+        } else if (rew.type === 'dash-skin') {
+          window.dispatchEvent(new CustomEvent('bp-wheel-unlock', {
+            detail: { item: { type: 'dash-themes', id: rew.id } }
+          }))
+        } else if (rew.type === 'chest') {
+          window.dispatchEvent(new CustomEvent('bp-add-chest', {
+            detail: { chestId: rew.id, amount: rew.amount }
+          }))
+        }
+      }
+
+      if (reward.type === 'multi') {
+        reward.list.forEach(grantReward)
+      } else {
+        grantReward(reward)
+      }
+
+      return next
+    })
+    return { success: true }
+  }, [progress.totalXP])
+
   const setSelectedBorder = useCallback((borderId) => {
     setProgress(p => ({ ...p, selectedBorder: borderId }))
   }, [])
@@ -503,7 +581,7 @@ export function ProgressProvider({ children }) {
       progress, reportGameResult, 
       clearNewAchievements, clearLevelUp, 
       setSelectedTitle, unlockTitle,
-      claimBPTier, setSelectedBorder,
+      claimBPTier, claimLevelReward, setSelectedBorder,
       getLevelInfo: () => getLevelInfo(progress.totalXP || 0),
       getSeasonInfo: () => {
         const curXP = progress.seasonXP || 0

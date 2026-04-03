@@ -9,7 +9,7 @@ import { NotificationBell, useNotifications } from './NotificationManager.jsx'
 import SettingsModal from './SettingsModal.jsx'
 import BattlePass from './BattlePass.jsx'
 
-export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGames, currentGame }) {
+export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGames, onInventory, currentGame }) {
   const { darkMode, muted } = useSettings()
   const { play, setMuted } = useSound()
   const { coins } = useCoins()
@@ -327,20 +327,33 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
                 {combo > 1 && <span style={{ color:'#FD79A8', fontSize:10 }}>{combo}×</span>}
               </div>
             )}
-            <button className="nav-btn" title="Shop" onClick={() => nav(onShop)}
-              data-coin-counter
-              style={{ display:'flex', alignItems:'center', gap:4, width:'auto', minWidth:60, padding:'0 10px', borderRadius:100, background:dark?'rgba(253,203,110,0.08)':'rgba(253,203,110,0.12)', border:`1.5px solid ${dark?'rgba(253,203,110,0.2)':'rgba(253,203,110,0.35)'}` }}>
-              <span style={{ fontSize:14 }}>🪙</span>
-              <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#F9A825' }}>{coins}</span>
-            </button>
+            
+            {/* Unified Nav Group */}
+            <div style={{ 
+              display: 'flex', alignItems: 'center', gap: 2, 
+              background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', 
+              padding: '4px', borderRadius: 16, border: `1.5px solid ${dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'}`
+            }}>
+              <button className="nav-btn" title="Katalog Game" onClick={() => nav(onGames)} style={{ border:'none', background:'transparent', width:40 }}>🎮</button>
+              <button className="nav-btn" title="Tas & Inventaris" onClick={() => nav(onInventory)} style={{ border:'none', background:'transparent', width:40 }}>🎒</button>
+              <button className="nav-btn" title="Leaderboard" onClick={() => nav(onLeaderboard)} style={{ border:'none', background:'transparent', width:40 }}>🏆</button>
+              <div style={{ width: 1.5, height: 20, background: borderCol, margin: '0 4px' }} />
+              <button className="nav-btn" title="Shop" onClick={() => nav(onShop)} data-coin-counter
+                style={{ 
+                  display:'flex', alignItems:'center', gap:6, width:'auto', minWidth:60, padding:'0 12px', 
+                  border:'none', background:dark?'rgba(253,203,110,0.1)':'rgba(253,203,110,0.15)', borderRadius: 12 
+                }}>
+                <span style={{ fontSize:14 }}>🪙</span>
+                <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:13, color:'#F9A825' }}>{coins}</span>
+              </button>
+            </div>
+
             <NotificationBell {...notifState} dark={dark} />
             <div className="nav-bp-pill" onClick={() => { play('click'); setShowBP(true) }}>
               <span style={{ fontSize: 13 }}>⚡</span>
-              <span>Tier {seasonInfo.currentTier}</span>
+              <span>BP</span>
               {seasonInfo.hasRewardToClaim && <div className="nav-bp-alert" />}
             </div>
-            <button className="nav-btn" title="Leaderboard" onClick={() => nav(onLeaderboard)}>🏆</button>
-            <button className="nav-btn" title="Semua Game" onClick={() => nav(onGames)}>🎮</button>
             
             <div 
               className="nav-level-wrap" 
@@ -355,7 +368,6 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
               </div>
               <div className="nav-avatar-wrap" style={{ 
                 borderRadius: '50%', width: 34, height: 34, 
-                background: dark ? '#252B45' : '#E2E8F0',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: "'Fredoka One',cursive", fontSize: 14, color: currentBorder?.color || '#7C6FE8',
                 border: currentBorder?.border || '1.5px solid rgba(124,111,232,0.3)',
@@ -371,9 +383,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
               </div>
             </div>
 
-            <button className="nav-btn" title="Pengaturan" onClick={() => { play('click'); setShowSettings(true) }}>
-              ⚙️
-            </button>
+            <button className="nav-btn" style={{ borderRadius: '50%' }} title="Pengaturan" onClick={() => { play('click'); setShowSettings(true) }}>⚙️</button>
           </div>
 
           {/* ── Mobile actions (≤640px) ── */}
@@ -437,6 +447,14 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
               <div>
                 <div className="nav-drawer-item-text">Katalog Game</div>
                 <div className="nav-drawer-item-desc">Cari dan temukan semua game</div>
+              </div>
+            </div>
+
+            <div className="nav-drawer-item" onClick={() => nav(onInventory)}>
+              <div className="nav-drawer-item-icon" style={{ background:dark?'rgba(0,206,201,0.1)':'#E0FFFE' }}>🎒</div>
+              <div>
+                <div className="nav-drawer-item-text">Tas & Inventaris</div>
+                <div className="nav-drawer-item-desc">Lihat bahan dan peti harta karunmu</div>
               </div>
             </div>
 
