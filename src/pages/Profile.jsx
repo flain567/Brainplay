@@ -43,6 +43,7 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
   const isAdmin = userId && ADMIN_IDS.includes(userId)
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
+  const borderData = progress.selectedBorder ? CUSTOM_BORDERS[progress.selectedBorder] : getBorderForLevel(levelInfo.level)
   const titleStyle = getTitleColorForLevel(levelInfo.level)
   
   const [showBorderSelector, setShowBorderSelector] = useState(false)
