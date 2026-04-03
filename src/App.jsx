@@ -676,6 +676,11 @@ function AppInner() {
               <GamesPage games={GAMES} onOpenGame={openGame} onBack={goHome} />
             </Suspense>
           )}
+          {screen === 'inventory' && (
+            <Suspense fallback={<GameLoader />}>
+              <InventoryPage onBack={goHome} />
+            </Suspense>
+          )}
 
           {screen === 'leaderboard' && (
             <Suspense fallback={<GameLoader />}>
