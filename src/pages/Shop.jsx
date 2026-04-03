@@ -53,7 +53,7 @@ function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMai
           </div>
           <div style={{ flex:1 }}>
             <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color: isLocked ? textMuted : textMain }}>{item.name}</div>
-            <div style={{ fontSize:12, color:tc.textMuted, marginTop:1 }}>{item.desc}</div>
+            <div style={{ fontSize:12, color:textMuted, marginTop:1 }}>{item.desc}</div>
           </div>
 
           {isLocked ? (
@@ -73,7 +73,7 @@ function CosmeticList({ items, ownedList, activeId, type, dark, surface, textMai
               disabled={buyingId === item.id}
               style={{
                 background: coins >= item.price ? 'linear-gradient(135deg,#FDCB6E,#F9A825)' : (dark?'#1e2a4a':'#eee'),
-                color: coins >= item.price ? '#5D4037' : tc.textMuted,
+                color: coins >= item.price ? '#5D4037' : textMuted,
                 border:'none', borderRadius:12, padding:'8px 16px',
                 fontFamily:"'Fredoka One',cursive", fontSize:13,
                 cursor: coins >= item.price ? 'pointer' : 'not-allowed',
