@@ -318,8 +318,8 @@ export default function BinaryPuzzle({ onBack, onHome, game, difficulty }) {
         {filledCount}/{totalCells} terisi · {diff.size}×{diff.size} grid
       </div>
 
-      <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
-        <div style={{ display:'grid', gridTemplateColumns:`repeat(${diff.size}, ${cellSize}px)`, gap:3 }}>
+      <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:16, touchAction:'none', userSelect:'none' }}>
+        <div style={{ display:'grid', gridTemplateColumns:`repeat(${diff.size}, ${cellSize}px)`, gap:3, touchAction:'none', userSelect:'none' }}>
           {grid.map((row, r) => row.map((val, c) => {
             const isLocked = locked[r][c]
             const hasError = errors.has(`${r}-${c}`)

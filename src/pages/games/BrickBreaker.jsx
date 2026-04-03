@@ -201,14 +201,15 @@ export default function BrickBreaker({ onBack, onHome, difficulty }) {
       inputRef.current.mouseX = e.clientX - r.left
     }
     const onTouchStart = (e) => {
-      e.preventDefault()
+      if (e.cancelable) e.preventDefault()
       const t = e.touches[0]
       const r = canvas.getBoundingClientRect()
       inputRef.current.touchActive = true
       inputRef.current.touchX = t.clientX - r.left
+      onClick()
     }
     const onTouchMove = (e) => {
-      e.preventDefault()
+      if (e.cancelable) e.preventDefault()
       const t = e.touches[0]
       const r = canvas.getBoundingClientRect()
       inputRef.current.touchX = t.clientX - r.left
@@ -309,18 +310,24 @@ export default function BrickBreaker({ onBack, onHome, difficulty }) {
         if (ball.x + ball.r > W) { ball.x = W - ball.r; ball.dx = -Math.abs(ball.dx); }
         if (ball.y - ball.r < 0) { ball.y = ball.r; ball.dy = Math.abs(ball.dy); }
 
-        // Paddle bounce
-        if (ball.dy > 0 &&
-            ball.y + ball.r >= g.paddle.y &&
-            ball.y + ball.r <= g.paddle.y + g.paddle.h + 6 &&
-            ball.x >= g.paddle.x - 4 &&
-            ball.x <= g.paddle.x + g.paddle.w + 4) {
+        // Paddle bounce (CCD - Continuous Collision Detection for mobile stability)
+        const prevY = ball.y - ball.dy * dt
+        const paddleHit = ball.dy > 0 && 
+                         prevY + ball.r <= g.paddle.y && 
+                         ball.y + ball.r >= g.paddle.y &&
+                         ball.x >= g.paddle.x - 6 &&
+                         ball.x <= g.paddle.x + g.paddle.w + 6
+
+        if (paddleHit) {
           const hitPos = (ball.x - g.paddle.x) / g.paddle.w
-          const angle = (hitPos - 0.5) * Math.PI * 0.7
+          const angle = (hitPos - 0.5) * Math.PI * 0.75
           const speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy)
+          
           ball.dx = speed * Math.sin(angle)
           ball.dy = -Math.abs(speed * Math.cos(angle))
-          ball.y = g.paddle.y - ball.r - 1
+          
+          // Anti-sticking: Snap ball above paddle
+          ball.y = g.paddle.y - ball.r - 2
 
           if (g.effects.magnet > 0) {
             ball.stuck = true
@@ -580,6 +587,8 @@ export default function BrickBreaker({ onBack, onHome, difficulty }) {
           gameRef.current = ng
           // Auto start
           ng.balls.forEach(b => { b.stuck = false })
+          // Slight delay before auto-start next level
+          setPhase('playing')
         }
       }
 
@@ -739,6 +748,14 @@ export default function BrickBreaker({ onBack, onHome, difficulty }) {
         ctx.font = '12px serif'
         ctx.textAlign = 'center'
         ctx.fillText(pu.emoji, pu.x, pu.y + 4)
+      }
+
+      // Tap to launch hint
+      if (g.balls.some(b => b.stuck) && phase === 'playing') {
+        ctx.fillStyle = 'rgba(255,255,255,0.6)'
+        ctx.font = "italic 700 14px 'Fredoka One',cursive"
+        ctx.textAlign = 'center'
+        ctx.fillText('TAP TO LAUNCH 🚀', W / 2, g.paddle.y - 40)
       }
 
       // Lasers

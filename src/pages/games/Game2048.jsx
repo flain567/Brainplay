@@ -31,9 +31,9 @@ const DEFAULT_TILE_COLOR = {
 }
 
 const DIFF_CFG = {
-  easy:   { cols:5, rows:6, startMax:3, goal:512,  goalStep:512,  maxLevel:5 },
-  medium: { cols:5, rows:7, startMax:4, goal:1024, goalStep:1024, maxLevel:5 },
-  hard:   { cols:5, rows:8, startMax:5, goal:2048, goalStep:2048, maxLevel:5 },
+  easy:   { cols:5, rows:6, startMax:3, goal:256,  goalStep:256,  maxLevel:5 },
+  medium: { cols:5, rows:7, startMax:4, goal:512,  goalStep:512,  maxLevel:5 },
+  hard:   { cols:5, rows:8, startMax:5, goal:1024, goalStep:1024, maxLevel:5 },
 }
 
 const makeId   = () => Math.random().toString(36).slice(2)
@@ -148,7 +148,8 @@ export default function Game2048({ onBack, onHome, game, difficulty }) {
 
     const g      = gridRef.current
     const val    = g[cur[0].r][cur[0].c].value
-    const sum    = val * cur.length
+    const multi  = cur.length >= 8 ? 1.5 : cur.length >= 5 ? 1.2 : 1
+    const sum    = Math.floor(val * cur.length * multi)
     const target = cur[cur.length-1]
 
     play(sum >= 64 ? 'win' : 'match')
@@ -302,9 +303,11 @@ export default function Game2048({ onBack, onHome, game, difficulty }) {
       {/* Chain indicator */}
       <div style={{height:38,marginBottom:8,display:'flex',alignItems:'center',justifyContent:'center'}}>
         {chain.length>=2 && chainVal && (()=>{
-          const col=getColor(chainVal), sum=chainVal*chain.length
+          const col=getColor(chainVal)
+          const mul=chain.length >= 8 ? 1.5 : chain.length >= 5 ? 1.2 : 1
+          const sum=Math.floor(chainVal * chain.length * mul)
           return <span style={{background:`${col.bg}30`,border:`2px solid ${col.bg}88`,borderRadius:100,padding:'6px 22px',fontFamily:"'Fredoka One',cursive",fontSize:17,color:col.bg,boxShadow:`0 0 16px ${col.bg}33`,animation:'popIn 0.2s ease'}}>
-            {chain.length}× {chainVal} = {sum} {sum>=goal?'🏆':''}
+            {chain.length}×{chainVal} {mul > 1 ? `(×${mul})` : ''} = {sum} {sum>=goal?'🏆':''}
           </span>
         })()}
       </div>

@@ -372,6 +372,8 @@ export const BINARY_THEMES = [
     style:{ bg0:'rgba(255,0,255,0.1)', text0:'#FF00FF', bg1:'rgba(0,255,255,0.1)', text1:'#00FFFF', bg0_dark:'rgba(255,0,255,0.1)', bg1_dark:'rgba(0,255,255,0.1)', errorBorder:'#FF0000' } },
   { id:'fire', name:'Fire & Ice', desc:'Pertarungan panas dan dingin', price:200, icon:'🔥', color:'#FF4500',
     style:{ bg0:'rgba(255,69,0,0.15)', text0:'#FF4500', bg1:'rgba(0,191,255,0.15)', text1:'#00BFFF', bg0_dark:'rgba(255,69,0,0.15)', bg1_dark:'rgba(0,191,255,0.15)', errorBorder:'#FFD700' } },
+  { id:'retro', name:'Retro 8-Bit', desc:'Gaya konsol klasik monokrom hijau', price:150, icon:'📟', color:'#00FF41',
+    style:{ bg0:'#1a2a1a', text0:'#00FF41', bg1:'#2a3a2a', text1:'#00FF41', bg0_dark:'#0a140a', bg1_dark:'#0a140a', errorBorder:'#FF3D00' } },
 ]
 
 // ─── Sliding Puzzle Themes (Day 20) ─────────────────────────────────────────
@@ -394,6 +396,10 @@ export const SLIDING_THEMES = [
     style:{ type:'image', bgUrl:'/sliding/img3.png', border:'transparent', color:'#fff', shadow:'0 2px 5px rgba(0,0,0,0.5)', textShadow:'0 2px 4px rgba(0,0,0,0.8)' } },
   { id:'img4', name:'Treasure Map', desc:'Peta rahasia peninggalan kuno', price:300, icon:'🗺️', color:'#E17055',
     style:{ type:'image', bgUrl:'/sliding/img4.png', border:'transparent', color:'#fff', shadow:'0 2px 5px rgba(0,0,0,0.5)', textShadow:'0 2px 4px rgba(0,0,0,0.8)' } },
+  { id:'neo-tokyo', name:'Neo-Tokyo', desc:'Kota masa depan dengan balutan lampu neon', price:500, icon:'🌃', color:'#A29BFE',
+    style:{ type:'image', bgUrl:'/sliding/neo_tokyo.png', border:'transparent', color:'#fff', shadow:'0 2px 5px rgba(0,0,0,0.5)', textShadow:'0 2px 4px rgba(0,0,0,0.8)' } },
+  { id:'ancient-jungle', name:'Ancient Jungle', desc:'Reruntuhan candi kuno di tengah hutan', price:500, icon:'🌿', color:'#00B894',
+    style:{ type:'image', bgUrl:'/sliding/ancient_jungle.png', border:'transparent', color:'#fff', shadow:'0 2px 5px rgba(0,0,0,0.5)', textShadow:'0 2px 4px rgba(0,0,0,0.8)' } },
 ]
 
 // ─── Minesweeper Themes (Day 22) ────────────────────────────────────────────
@@ -408,6 +414,10 @@ export const MINE_THEMES = [
     style:{ coveredLight:'#DFE6E9', coveredDark:'#B2BEC3', revealedLight:'#636E72', revealedDark:'#2d3436', flag:'📡', mine:'👽' } },
   { id:'gold', name:'Treasure Hunt', desc:'Mencari harta di padang pasir', price:250, icon:'👑', color:'#FDCB6E',
     style:{ coveredLight:'#FDCB6E', coveredDark:'#e1b12c', revealedLight:'#fff200', revealedDark:'#fbc531', flag:'🗡️', mine:'🐍' } },
+  { id:'space-mission', name:'Space Mission', desc:'Misi rahasia di sabuk asteroid', price:200, icon:'🚀', color:'#A29BFE',
+    style:{ coveredLight:'#1a1a2e', coveredDark:'#16213e', revealedLight:'#A29BFE', revealedDark:'#6C5CE7', flag:'🚀', mine:'🛸' } },
+  { id:'nuclear', name:'Nuclear Zone', desc:'Zona radiasi tinggi berbahaya', price:200, icon:'☢️', color:'#F1C40F',
+    style:{ coveredLight:'#2c3e50', coveredDark:'#1a252f', revealedLight:'#F1C40F', revealedDark:'#D4AC0D', flag:'⚠️', mine:'☢️' } },
 ]
 
 // ─── Jigsaw Themes (Jigsaw Puzzle) ──────────────────────────────────────────
@@ -599,6 +609,8 @@ export const BREAKER_THEMES = [
     style:{ paddleTop:'#FF00FF', paddleBot:'#8B00FF', ballColor:'#fff', ballGlow:'#FF00FF', trailColor:'#FF00FF' } },
   { id:'gold', name:'Golden Paddle', desc:'Paddle emas premium eksklusif', price:250, icon:'👑', color:'#FFD700',
     style:{ paddleTop:'#FFD700', paddleBot:'#DAA520', ballColor:'#FFFACD', ballGlow:'#FFD700', trailColor:'#FFD700' } },
+  { id:'lightning', name:'Lightning Strike', desc:'Paddle bertenaga listrik kilat', price:200, icon:'⚡', color:'#00F5FF',
+    style:{ paddleTop:'#00A8FF', paddleBot:'#0097E6', ballColor:'#fff', ballGlow:'#00F5FF', trailColor:'#00F5FF' } },
 ]
 
 // ─── Wordle Tile Themes (Day 14) ─────────────────────────────────────────────
@@ -656,6 +668,12 @@ export const RACER_MAP_CATALOG = [
   { id:'mars', name:'Mars Valley', desc:'Bukit berbatu merah di planet lain', price:5000, icon:'🪐', color:'#E74C3C',
     img: '/map_mars.png',
     style:{ skyLight:'#200404', skyDark:'#0F0202', ground:'#5A1212', surface:'#D84315', edge:'#BF360C', mountain:'#8E1C1C', accent:'#FF8C00' } },
+  { id:'neon-circuit', name:'Neon Circuit', desc:'Lintasan balap kota masa depan', price:3500, icon:'🌃', color:'#FF00FF',
+    img: '/racer_neon_circuit.png',
+    style:{ skyLight:'#0a0a28', skyDark:'#020210', ground:'#101032', surface:'#6c5ce7', edge:'#4834d4', mountain:'#1a1a4a', accent:'#00f5ff' } },
+  { id:'sunset-dunes', name:'Sunset Dunes', desc:'Padang pasir voxel saat senja', price:3500, icon:'🏜️', color:'#E17055',
+    img: '/racer_sunset_dunes.png',
+    style:{ skyLight:'#f39c12', skyDark:'#e67e22', ground:'#5d4037', surface:'#e17055', edge:'#d35400', mountain:'#a04000', accent:'#f1c40f' } },
 ]
 
 // ─── Math Challenge Themes (Day 16) ────────────────────────────────────────
@@ -670,6 +688,8 @@ export const MATH_THEMES = [
     style:{ primary:'#00FF88', accent:'#00B894', correct:'#7DFF3A', wrong:'#FF006E', timer:'#00F5FF' } },
   { id:'royal', name:'Royal Gold', desc:'Emas mewah untuk matematikawan sejati', price:250, icon:'👑', color:'#FFD700',
     style:{ primary:'#FFD700', accent:'#F9A825', correct:'#00E676', wrong:'#FF5252', timer:'#FFAB00' } },
+  { id:'cyber', name:'Cyber Digital', desc:'Gaya hacker dengan angka menyala', price:200, icon:'🔢', color:'#00FF88',
+    style:{ primary:'#0a0a0a', accent:'#1a1a1a', correct:'#00FF88', wrong:'#FF0055', timer:'#00F5FF' } },
 ]
 
 // ─── Coin reward rates ──────────────────────────────────────────────────────

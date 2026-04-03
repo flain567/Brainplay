@@ -242,6 +242,13 @@ export default function ColorSortGame({ onBack, onHome, game, difficulty }) {
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: bg, minHeight: '100dvh', transition: 'background 0.3s' }}>
+      <style>{`
+        @keyframes tubeCompletePulse {
+          0% { transform: scale(1); filter: brightness(1); }
+          50% { transform: scale(1.1); filter: brightness(1.4) drop-shadow(0 0 15px #FFD93D); }
+          100% { transform: scale(1); filter: brightness(1.1); }
+        }
+      `}</style>
       {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color={accent} onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_color-sort","1") }} />}
       <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
 
@@ -295,6 +302,7 @@ export default function ColorSortGame({ onBack, onHome, game, difficulty }) {
                 transform: isSelected ? 'translateY(-12px) scale(1.05)' : isAnimating ? 'scale(1.03)' : 'scale(1)',
                 transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
                 filter: isFull ? 'brightness(1.1)' : 'none',
+                animation: isFull ? 'tubeCompletePulse 0.5s ease-out' : 'none',
               }}>
               {/* Tube container */}
               <div style={{

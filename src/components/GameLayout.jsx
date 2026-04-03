@@ -567,3 +567,77 @@ export function LoseModal({
     />
   )
 }
+// ─── Pause Modal ─────────────────────────────────────────────────────────────
+export function PauseModal({
+  onExit,
+  onRestart,
+  onResume,
+  dark,
+  gameColor = '#A29BFE',
+  title = 'Game Paused',
+  emoji = '⏸️',
+}) {
+  const { play } = useSound()
+  const tc = useThemeColors()
+  const bg = tc.dark ? tc.surface : '#fff'
+  const textMain = tc.textMain
+  const textMuted = tc.textMuted
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0,
+      background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 2000, padding: 24,
+    }}>
+      <div style={{
+        background: bg, borderRadius: 28,
+        padding: '36px 32px', textAlign: 'center',
+        maxWidth: 340, width: '100%',
+        boxShadow: `0 24px 80px rgba(0,0,0,0.35), 0 0 0 1px ${gameColor}22`,
+        position: 'relative', overflow: 'hidden',
+      }}>
+        {/* Top accent */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 4,
+          background: gameColor,
+        }} />
+
+        <div style={{ fontSize: 60, marginBottom: 12 }}>{emoji}</div>
+        <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 28, color: textMain, marginBottom: 20 }}>{title}</h2>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <button onClick={() => { play('click'); onResume() }} style={{
+            background: gameColor, color: '#fff',
+            border: 'none', borderRadius: 100, padding: '14px 20px',
+            fontSize: 16, fontWeight: 800, fontFamily: "'Fredoka One',cursive",
+            cursor: 'pointer', boxShadow: `0 4px 14px ${gameColor}44`,
+          }}>
+            ▶️ Lanjutkan
+          </button>
+          
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={() => { play('click'); onRestart() }} style={{
+              flex: 1, background: dark ? '#1e2a4a' : '#F8F9FA',
+              color: textMuted, border: `2px solid ${tc.borderCol}`,
+              borderRadius: 100, padding: '12px 14px',
+              fontSize: 14, fontWeight: 800, fontFamily: "'Fredoka One',cursive",
+              cursor: 'pointer',
+            }}>
+              🔄 Reset
+            </button>
+            <button onClick={() => { play('click'); onExit() }} style={{
+              flex: 1, background: dark ? '#1e2a4a' : '#F8F9FA',
+              color: '#FF6B6B', border: `2px solid ${tc.borderCol}`,
+              borderRadius: 100, padding: '12px 14px',
+              fontSize: 14, fontWeight: 800, fontFamily: "'Fredoka One',cursive",
+              cursor: 'pointer',
+            }}>
+              🚪 Keluar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

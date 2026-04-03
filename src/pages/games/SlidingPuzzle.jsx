@@ -189,8 +189,8 @@ export default function SlidingPuzzle({ onBack, onHome, game, difficulty }) {
         <div style={{ fontFamily:"'Fredoka One',cursive", color:textMuted, fontSize:14 }}>👆 {moves}</div>
       </div>
 
-      <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
-        <div style={{ display:'grid', gridTemplateColumns:`repeat(${size}, ${cellSize}px)`, gap:4, background:surface, padding:6, borderRadius:14 }}>
+      <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:16, touchAction:'none' }}>
+        <div style={{ display:'grid', gridTemplateColumns:`repeat(${size}, ${cellSize}px)`, gap:4, background:surface, padding:6, borderRadius:14, touchAction:'none' }}>
           {tiles.map((val, idx) => {
             const isCorrect = val !== 0 && val === idx + 1
             const isGrad = theme.style.type === 'gradient'

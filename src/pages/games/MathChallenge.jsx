@@ -257,6 +257,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty }) {
       setScore(prev => prev + points)
       setTotalCorrect(prev => prev + 1)
       setTotalAnswered(prev => prev + 1)
+      setTimeLeft(prev => Math.min(prev + 1.5, diff.timePerQ))
       setFeedback({ type: 'correct', points, timeBonus, multi })
 
       const newCorrectInLevel = correctInLevel + 1

@@ -289,8 +289,8 @@ export default function Minesweeper({ onBack, onHome, game, difficulty }) {
         </button>
       </div>
 
-      <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:8 }}>
-        <div style={{ display:'grid', gridTemplateColumns:`repeat(${diff.cols}, ${cellSize}px)`, gap:1 }}>
+      <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:8, touchAction:'none', userSelect:'none' }}>
+        <div style={{ display:'grid', gridTemplateColumns:`repeat(${diff.cols}, ${cellSize}px)`, gap:1, touchAction:'none', userSelect:'none' }}>
           {board.map((row, r) => row.map((cell, c) => {
             let bg2 = (r+c)%2===0 ? theme.style.coveredLight : theme.style.coveredDark
             let content = '', color = textMain

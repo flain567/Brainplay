@@ -404,6 +404,8 @@ function AppInner() {
   const [difficulty,  setDifficulty]  = useState(null)
   const [screen,      setScreen]      = useState('home')
   const [isWheelOpen, setIsWheelOpen] = useState(false)
+  const [showPause,   setShowPause]   = useState(false)
+  const [gameKey,     setGameKey]     = useState(0)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const screenRef = useRef('home')
   const navRef = useRef({ goHome: null, goBackToDifficulty: null })
@@ -439,7 +441,7 @@ function AppInner() {
     return setupBackButton(() => {
       const s = screenRef.current
       if (s === 'game') {
-        navRef.current.goBackToDifficulty?.()
+        setShowPause(true)
       } else if (s === 'difficulty' || s === 'profile' || s === 'shop' || s === 'leaderboard') {
         navRef.current.goHome?.()
       }
@@ -536,6 +538,7 @@ function AppInner() {
     } else {
       setScreen('difficulty')
     }
+    setGameKey(k => k + 1)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   const continueLastSession = () => {
@@ -581,6 +584,7 @@ function AppInner() {
   const goGames       = () => { setIsWheelOpen(false); setScreen('games'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goAdmin       = () => { setIsWheelOpen(false); setScreen('admin'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const openWheel     = () => setIsWheelOpen(true)
+  const restartGame   = () => { setShowPause(false); setGameKey(k => k + 1) }
   
   // Check if current user is admin
   const isAdmin = ADMIN_IDS.includes(userId)
@@ -626,6 +630,15 @@ function AppInner() {
         <LevelUpModal data={progress.levelUpData} onClose={clearLevelUp} />
       )}
       <LuckyWheel open={isWheelOpen} onClose={() => setIsWheelOpen(false)} />
+      {showPause && (
+        <PauseModal 
+          onExit={() => { setShowPause(false); goHome() }}
+          onRestart={restartGame}
+          onResume={() => setShowPause(false)}
+          dark={tc.dark}
+          gameColor={currentGame?.color}
+        />
+      )}
       <main style={{ flex:1, paddingBottom: isFullscreen ? 0 : 'calc(68px + env(safe-area-inset-bottom, 0px))' }}>
         <PageTransition pageKey={`${screen}-${currentGame?.id}-${difficulty}`}>
           {screen === 'home' && (
@@ -696,7 +709,13 @@ function AppInner() {
           {screen === 'game' && currentGame && activeDiff && (
             <ErrorBoundary>
               <Suspense fallback={<GameLoader />}>
-                <currentGame.component onBack={goBackToDifficulty} onHome={goHome} game={currentGame} difficulty={activeDiff} />
+                <currentGame.component 
+                  key={gameKey} 
+                  onBack={goBackToDifficulty} 
+                  onHome={goHome} 
+                  game={currentGame} 
+                  difficulty={activeDiff} 
+                />
               </Suspense>
             </ErrorBoundary>
           )}

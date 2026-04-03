@@ -862,28 +862,62 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
     }
   }, [phase])
 
-  // ── Joystick ──
-  const handleJoy = useCallback((e, type) => {
-    e.preventDefault()
-    const rect = joyRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const bcx = rect.left + rect.width  / 2
-    const bcy = rect.top  + rect.height / 2
+  useEffect(() => {
+    const joy = joyRef.current
+    if (!joy) return
 
-    if (type === 'end') {
-      stickRef.current = { active:false, dx:0, dy:0 }
-      setKnobPos({ x:0, y:0 })
-      return
+    let active = false
+
+    const handleStart = (e) => {
+      if (e.cancelable) e.preventDefault()
+      active = true
+      updateJoy(e)
     }
-    const t   = e.touches ? e.touches[0] : e
-    const dx  = t.clientX - bcx, dy = t.clientY - bcy
-    const d   = Math.sqrt(dx*dx+dy*dy) || 1
-    const max = 46
-    const nx  = (dx/d)*Math.min(d,max)/max
-    const ny  = (dy/d)*Math.min(d,max)/max
-    stickRef.current = { active:true, dx:nx, dy:ny }
-    setKnobPos({ x:nx*38, y:ny*38 })
-  }, [])
+
+    const handleMove = (e) => {
+      if (!active) return
+      if (e.cancelable) e.preventDefault()
+      updateJoy(e)
+    }
+
+    const handleEnd = (e) => {
+      if (!active) return
+      active = false
+      stickRef.current = { active: false, dx: 0, dy: 0 }
+      setKnobPos({ x: 0, y: 0 })
+    }
+
+    const updateJoy = (e) => {
+      const rect = joy.getBoundingClientRect()
+      const bcx = rect.left + rect.width / 2
+      const bcy = rect.top + rect.height / 2
+      const t = e.touches ? e.touches[0] : e
+      const dx = t.clientX - bcx, dy = t.clientY - bcy
+      const d = Math.sqrt(dx * dx + dy * dy) || 1
+      const max = 50
+      const nx = (dx / d) * Math.min(d, max) / max
+      const ny = (dy / d) * Math.min(d, max) / max
+      stickRef.current = { active: true, dx: nx, dy: ny }
+      setKnobPos({ x: nx * 38, y: ny * 38 })
+    }
+
+    joy.addEventListener('touchstart', handleStart, { passive: false })
+    window.addEventListener('touchmove', handleMove, { passive: false })
+    window.addEventListener('touchend', handleEnd)
+    
+    joy.addEventListener('mousedown', handleStart)
+    window.addEventListener('mousemove', handleMove)
+    window.addEventListener('mouseup', handleEnd)
+
+    return () => {
+      joy.removeEventListener('touchstart', handleStart)
+      window.removeEventListener('touchmove', handleMove)
+      window.removeEventListener('touchend', handleEnd)
+      joy.removeEventListener('mousedown', handleStart)
+      window.removeEventListener('mousemove', handleMove)
+      window.removeEventListener('mouseup', handleEnd)
+    }
+  }, [phase])
 
   const DLABEL = { easy:'🟢 Mudah', medium:'🟡 Sedang', hard:'🔴 Sulit' }
 
@@ -984,8 +1018,6 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
         <div style={{ position:'absolute', bottom:'max(20px, 4vh)', left:'max(16px, 3vw)', zIndex:15, userSelect:'none' }}>
           <div
             ref={joyRef}
-            onTouchStart={e=>handleJoy(e,'start')} onTouchMove={e=>handleJoy(e,'move')} onTouchEnd={e=>handleJoy(e,'end')}
-            onMouseDown={e=>handleJoy(e,'start')}   onMouseMove={e=>handleJoy(e,'move')} onMouseUp={e=>handleJoy(e,'end')} onMouseLeave={e=>handleJoy(e,'end')}
             style={{ width:130, height:130, borderRadius:'50%', background:'rgba(78,205,196,0.06)', border:'2.5px solid rgba(78,205,196,0.25)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'grab', touchAction:'none', position:'relative' }}
           >
             <div style={{ position:'absolute', width:'100%', height:1, background:'rgba(78,205,196,0.1)' }} />
