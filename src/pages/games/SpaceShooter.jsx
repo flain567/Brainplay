@@ -15,6 +15,7 @@ import { useCoins, SHIP_CATALOG } from '../../context/CoinContext.jsx'
 import { useHaptics } from '../../hooks/useHaptics.js'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { WinModal, LoseModal } from '../../components/GameLayout.jsx'
+import { useLeaderboard } from '../../context/LeaderboardContext.jsx'
 
 const CFG = {
   easy:   { spawnRate:80, enemySpeed:1.2, enemyHP:1, bossHP:18, bulletSpeed:7, lives:5, waveGoal:5, baseScore:300 },
@@ -95,6 +96,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
   const { reportGameResult } = useProgress()
   const { earnCoins, getActiveShip } = useCoins()
   const { vibrateLight, vibrateMedium, vibrateHeavy, vibrateSuccess, vibrateError } = useHaptics()
+  const { startScoreSession } = useLeaderboard()
   const tc = useThemeColors()
 
   const cfg = CFG[difficulty.id]
@@ -163,6 +165,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
     inputRef.current = { left:false, right:false, up:false, down:false, touchActive:false, touchX:null, touchY:null, touchOffsetX:0, touchOffsetY:0, doubleTap:0 }
     setScore(0); setLives(gameRef.current.lives); setWeaponLv(1); setWave(1)
     setSpecialReady(false); setSpecialCharge(0); setGameTime(0); setCombo(0)
+    if (startScoreSession) startScoreSession(game.id)
     setPhase('playing')
   }
 
@@ -583,6 +586,35 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
           x, y, vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
           life: 1.0, color, size: rand(2, 4), type: 'sparkle'
         })
+      }
+    }
+
+    function applyPowerup(g, typeId) {
+      addFloatingText(g, g.player.x, g.player.y, `POWER UP: ${typeId.toUpperCase()}!`, '#00FF00')
+      
+      switch(typeId) {
+        case 'heal':
+          g.lives = Math.min(activeShip.stats.maxHP || 5, g.lives + 1)
+          setLives(g.lives)
+          spawnParticles(g, g.player.x, g.player.y, '#00FF00', 15)
+          break
+        case 'shield':
+          g.player.shieldTimer = 600 // 10 seconds
+          spawnParticles(g, g.player.x, g.player.y, '#00FFFF', 15)
+          break
+        case 'fire_rate':
+          g.rapidFireTimer = 480 
+          break
+        case 'multishot':
+          g.player.weaponLv = Math.min(3, g.player.weaponLv + 1)
+          setWeaponLv(g.player.weaponLv)
+          break
+        case 'score_multi':
+          g.scoreMultiplier = (g.scoreMultiplier || 1) + 1
+          setTimeout(() => { if (gameRef.current) gameRef.current.scoreMultiplier = Math.max(1, (gameRef.current.scoreMultiplier || 1) - 1) }, 10000)
+          break
+        default:
+          break
       }
     }
 

@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useThemeColors } from '../hooks/useThemeColors'
 import { getDb } from '../firebase'
+import { useAuth } from '../context/AuthContext'
+import { ADMIN_IDS } from '../config/admin'
 
 export default function AdminAnalyticsDashboard() {
+  const { userId } = useAuth()
+  const isAdmin = userId && ADMIN_IDS.includes(userId)
   const theme = useThemeColors()
   const [analytics, setAnalytics] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -15,6 +19,11 @@ export default function AdminAnalyticsDashboard() {
   }, [dateRange])
 
   async function loadAnalytics() {
+    if (!isAdmin) {
+      setLoading(false)
+      setError('Akses ditolak. Anda bukan admin.')
+      return
+    }
     try {
       setLoading(true)
       const db = await getDb()

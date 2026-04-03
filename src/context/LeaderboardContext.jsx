@@ -150,16 +150,29 @@ const MAX_SCORES = {
   'fields-adventure': 15000,
 }
 
+// Session state for anti-cheat (local fallback)
+const activeSession = { current: null }
+const sessionSalt = Math.random().toString(36).substring(7)
+
 // Rate limiter: 1 submit per 5 seconds per game
 const lastSubmitTime = {}
 
-function isScoreValid(gameId, score) {
+function isScoreValid(gameId, score, durationSec) {
   if (typeof score !== 'number' || score <= 0 || !isFinite(score)) return false
   if (score > (MAX_SCORES[gameId] || 9999999)) return false
-  // Rate limit check
+  
+  // Basic duration check: A score of 10,000 can't be achieved in 1 second
+  // Adjust min_time_per_score per game for better accuracy
+  const minTimeNeeded = score / (gameId === '2048' ? 500 : 100) // generic 100pts/sec
+  if (durationSec < minTimeNeeded && score > 100) {
+    console.warn(`[Anti-Cheat] 🚩 Duration too short for score: ${durationSec}s for ${score}pts`)
+    return false
+  }
+
+  // Rate limit check: 1 submit per 3 seconds per game
   const now = Date.now()
   const key = gameId
-  if (lastSubmitTime[key] && now - lastSubmitTime[key] < 5000) return false
+  if (lastSubmitTime[key] && now - lastSubmitTime[key] < 3000) return false
   lastSubmitTime[key] = now
   return true
 }
@@ -177,164 +190,6 @@ function makeChecksum(gameId, score, timestamp) {
 
 // ─── Online leaderboard (Firebase Firestore) ─────────────────────────────────
 
-async function submitOnlineScore(gameId, diffId, entry) {
-  // Anti-cheat validation
-  if (!isScoreValid(gameId, entry.score)) {
-    console.warn('[Leaderboard] ⚠️ Score rejected by anti-cheat:', gameId, entry.score)
-    return { success: false, error: 'invalid', message: 'Skor tidak valid.' }
-  }
-
-  const submitTime = Date.now()
-  const checksum = makeChecksum(gameId, entry.score, submitTime)
-
-  try {
-    const user = auth.currentUser
-    const docId = makeDocId(gameId, diffId)
-
-    const db = await getDb()
-    const { doc, getDoc, setDoc, serverTimestamp } = await getFirestoreHelpers()
-
-    const docRef = doc(db, 'leaderboard', docId)
-
-    const existing = await getDoc(docRef)
-
-    const progress = JSON.parse(localStorage.getItem('bp_progress') || '{}')
-    const selectedTitle = progress.selectedTitle || null
-    const selectedBorder = progress.selectedBorder || null
-
-    if (existing.exists()) {
-      const oldData = existing.data()
-      if (entry.score <= (oldData.score || 0)) {
-        return { success: true, skipped: true }
-      }
-      await setDoc(docRef, {
-        gameId,
-        diffId,
-        name: entry.name || 'Pemain',
-        selectedTitle,
-        score: entry.score,
-        wave: entry.wave || null,
-        time: entry.time || null,
-        level: entry.level || null,
-        selectedBorder,
-        uid: user?.uid || null,
-        photoURL: user?.photoURL || null,
-        deviceId: getDeviceId(),
-        gamesPlayed: (oldData.gamesPlayed || 1) + 1,
-        previousBest: oldData.score || 0,
-        checksum,
-        createdAt: oldData.createdAt || serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      })
-    } else {
-      await setDoc(docRef, {
-        gameId,
-        diffId,
-        name: entry.name || 'Pemain',
-        selectedTitle,
-        score: entry.score,
-        wave: entry.wave || null,
-        time: entry.time || null,
-        level: entry.level || null,
-        selectedBorder,
-        uid: user?.uid || null,
-        photoURL: user?.photoURL || null,
-        deviceId: getDeviceId(),
-        gamesPlayed: 1,
-        previousBest: 0,
-        checksum,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      })
-    }
-
-    if (mode === 'online') {
-      window.dispatchEvent(new CustomEvent('bp-log-activity', {
-        detail: {
-          type: 'high_score',
-          userName: entry.name,
-          details: `memecahkan rekor di ${gameId} dengan skor ${entry.score.toLocaleString()}! 🚀`,
-          icon: '🏆'
-        }
-      }))
-    }
-
-    return { success: true }
-  } catch (err) {
-    const msg = err.message || 'Unknown error'
-    console.error('[Leaderboard] ❌ Online submit FAILED:', msg)
-    if (msg.includes('permission') || msg.includes('PERMISSION_DENIED')) {
-      return { success: false, error: 'permission', message: 'Firestore rules belum diset.' }
-    }
-    if (msg.includes('network') || msg.includes('unavailable') || msg.includes('Failed to fetch')) {
-      return { success: false, error: 'network', message: 'Tidak ada koneksi internet.' }
-    }
-    return { success: false, error: 'unknown', message: msg }
-  }
-}
-
-async function testFirebaseConnection() {
-  try {
-    const db = await getDb()
-    const { collection, query, limit, getDocs } = await getFirestoreHelpers()
-
-    const ref = collection(db, 'leaderboard')
-    const q = query(ref, limit(1))
-    await getDocs(q)
-    return { ok: true, message: 'Firebase terhubung!' }
-  } catch (err) {
-    const msg = err.message || ''
-    if (msg.includes('permission') || msg.includes('PERMISSION_DENIED')) {
-      return { ok: false, error: 'permission', message: 'Firestore Security Rules menolak akses.' }
-    }
-    return { ok: false, error: 'unknown', message: 'Error: ' + msg }
-  }
-}
-
-async function fetchOnlineScores(gameId, diffId = null) {
-  try {
-    const db = await getDb()
-    const { collection, query, where, limit, getDocs } = await getFirestoreHelpers()
-
-    const ref = collection(db, 'leaderboard')
-    const q = query(ref, where('gameId', '==', gameId), limit(MAX_ONLINE))
-    const snap = await getDocs(q)
-    let results = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-
-    if (diffId) {
-      results = results.filter(r => r.diffId === diffId)
-    }
-
-    results.sort((a, b) => (b.score || 0) - (a.score || 0))
-    results = results.slice(0, 50).map((r, i) => ({ ...r, rank: i + 1 }))
-
-    return { success: true, data: results }
-  } catch (err) {
-    const msg = err.message || ''
-    console.error('[Leaderboard] ❌ Fetch FAILED:', msg)
-    if (msg.includes('permission') || msg.includes('PERMISSION_DENIED')) {
-      return { success: false, error: 'permission', data: null }
-    }
-    return { success: false, error: 'unknown', data: null }
-  }
-}
-
-async function flushPendingScores() {
-  const pending = getPendingScores()
-  if (pending.length === 0) return
-  const stillPending = []
-  for (const item of pending) {
-    const result = await submitOnlineScore(item.gameId, item.diffId, item)
-    if (!result.success) {
-      if (result.error === 'permission') { savePendingScores(pending); return }
-      stillPending.push(item)
-    }
-  }
-  savePendingScores(stillPending)
-}
-
-// ─── Provider ────────────────────────────────────────────────────────────────
-
 export function LeaderboardProvider({ children }) {
   const [nickname, setNicknameState] = useState(() => localStorage.getItem(NICKNAME_KEY) || '')
   const [onlineCache, setOnlineCache] = useState({})
@@ -344,6 +199,145 @@ export function LeaderboardProvider({ children }) {
   const [firebaseMessage, setFirebaseMessage] = useState('')
   const [submitStatus, setSubmitStatus] = useState(null)
   const fetchCooldown = useRef({})
+  const localSession = useRef(null)
+
+  // Internal: Submit a score to Firestore
+  const submitOnlineScore = useCallback(async (gameId, diffId, entry) => {
+    const submitTime = Date.now()
+    const user = auth.currentUser
+    
+    // Session check
+    if (!localSession.current || localSession.current.gameId !== gameId) {
+      console.warn('[Leaderboard] ⚠️ Submission without active session.')
+      return { success: false, error: 'no_session', message: 'Sesi tidak valid.' }
+    }
+
+    const durationSec = (submitTime - localSession.current.startTime) / 1000
+    
+    // Anti-cheat validation (Client-side)
+    if (!isScoreValid(gameId, entry.score, durationSec)) {
+      console.warn('[Leaderboard] ⚠️ Score rejected by anti-cheat:', gameId, entry.score)
+      return { success: false, error: 'invalid', message: 'Skor atau durasi tidak valid.' }
+    }
+
+    // Clear session after use
+    localSession.current = null
+
+    const checksum = makeChecksum(gameId, entry.score, submitTime)
+
+    try {
+      const docId = `${gameId}_${diffId}_${user.uid}`
+      const db = await getDb()
+      const { doc, getDoc, setDoc, serverTimestamp } = await getFirestoreHelpers()
+      const docRef = doc(db, 'leaderboard', docId)
+      const existing = await getDoc(docRef)
+
+      const progress = JSON.parse(localStorage.getItem('bp_progress') || '{}')
+      const selectedTitle = progress.selectedTitle || null
+      const selectedBorder = progress.selectedBorder || null
+
+      const commonData = {
+        gameId, diffId,
+        name: entry.name || 'Pemain',
+        selectedTitle, selectedBorder,
+        score: entry.score,
+        wave: entry.wave || null,
+        time: entry.time || null,
+        level: entry.level || null,
+        uid: user?.uid || null,
+        photoURL: user?.photoURL || null,
+        deviceId: getDeviceId(),
+        checksum,
+        updatedAt: serverTimestamp(),
+      }
+
+      if (existing.exists()) {
+        const oldData = existing.data()
+        if (entry.score <= (oldData.score || 0)) return { success: true, skipped: true }
+        await setDoc(docRef, {
+          ...commonData,
+          gamesPlayed: (oldData.gamesPlayed || 1) + 1,
+          previousBest: oldData.score || 0,
+          createdAt: oldData.createdAt || serverTimestamp(),
+        })
+      } else {
+        await setDoc(docRef, {
+          ...commonData,
+          gamesPlayed: 1,
+          previousBest: 0,
+          createdAt: serverTimestamp(),
+        })
+      }
+
+      return { success: true }
+    } catch (err) {
+      const msg = err.message || 'Unknown error'
+      console.error('[Leaderboard] ❌ Online submit FAILED:', msg)
+      return { success: false, error: 'unknown', message: msg }
+    }
+  }, [])
+
+  const testFirebaseConnection = useCallback(async () => {
+    try {
+      const db = await getDb()
+      const { collection, query, limit, getDocs } = await getFirestoreHelpers()
+      const q = query(collection(db, 'leaderboard'), limit(1))
+      await getDocs(q)
+      return { ok: true, message: 'Firebase terhubung!' }
+    } catch (err) {
+      return { ok: false, message: 'Gagal muat data: ' + err.message }
+    }
+  }, [])
+
+  const fetchOnlineScores = useCallback(async (gameId, diffId = null) => {
+    try {
+      const db = await getDb()
+      const { collection, query, where, limit, getDocs } = await getFirestoreHelpers()
+      const q = query(collection(db, 'leaderboard'), where('gameId', '==', gameId), limit(MAX_ONLINE))
+      const snap = await getDocs(q)
+      let results = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      if (diffId) results = results.filter(r => r.diffId === diffId)
+      results.sort((a, b) => (b.score || 0) - (a.score || 0))
+      return { success: true, data: results.slice(0, 50).map((r, i) => ({ ...r, rank: i + 1 })) }
+    } catch (err) {
+      return { success: false, error: 'unknown', data: null }
+    }
+  }, [])
+
+  const flushPendingScores = useCallback(async () => {
+    const pending = getPendingScores()
+    if (pending.length === 0) return
+    const stillPending = []
+    for (const item of pending) {
+      const result = await submitOnlineScore(item.gameId, item.diffId, item)
+      if (!result.success) stillPending.push(item)
+    }
+    savePendingScores(stillPending)
+  }, [submitOnlineScore])
+
+  const startScoreSession = useCallback(async (gameId, diffId = 'easy') => {
+    const user = auth.currentUser
+    if (!user) return
+
+    const startTime = Date.now()
+    const token = btoa(`${gameId}_${diffId}_${startTime}_${sessionSalt}`)
+    localSession.current = { gameId, diffId, startTime, token }
+
+    // Write to Firestore for server-side validation
+    try {
+      const db = await getDb()
+      const { doc, setDoc, serverTimestamp } = await getFirestoreHelpers()
+      const sessId = `${gameId}_${diffId}_${user.uid}`
+      await setDoc(doc(db, 'sessions', sessId), {
+        gameId,
+        diffId,
+        uid: user.uid,
+        startTime: serverTimestamp(),
+      })
+    } catch (err) {
+      console.error('[Leaderboard] ❌ Secure session start failed:', err.message)
+    }
+  }, [])
 
   const setNickname = useCallback((name) => {
     const clean = name.trim().slice(0, 20)
@@ -357,7 +351,7 @@ export function LeaderboardProvider({ children }) {
       setFirebaseMessage(result.message)
       if (result.ok) flushPendingScores()
     })
-  }, [])
+  }, [testFirebaseConnection, flushPendingScores])
 
   useEffect(() => {
     const handler = async (e) => {
@@ -384,7 +378,7 @@ export function LeaderboardProvider({ children }) {
     }
     window.addEventListener('bp-game-result', handler)
     return () => window.removeEventListener('bp-game-result', handler)
-  }, [])
+  }, [submitOnlineScore])
 
   const submitScore = useCallback(async ({ gameId, diffId, score, wave, time, level }) => {
     const name = localStorage.getItem(NICKNAME_KEY) || 'Pemain'
@@ -400,7 +394,7 @@ export function LeaderboardProvider({ children }) {
       fetchCooldown.current = {}
     }
     return localBoard
-  }, [])
+  }, [submitOnlineScore])
 
   const getOnlineScores = useCallback(async (gameId, diffId = null, force = false) => {
     const cacheKey = `${gameId}_${diffId || 'all'}`
@@ -431,7 +425,7 @@ export function LeaderboardProvider({ children }) {
       setFirebaseStatus('error')
     }
     return onlineCache[cacheKey] || []
-  }, [onlineCache])
+  }, [onlineCache, fetchOnlineScores])
 
   const clearCache = useCallback(() => { fetchCooldown.current = {}; setOnlineCache({}) }, [])
   const getLocalBoard = useCallback((gameId, diffId = null) => {
@@ -447,7 +441,7 @@ export function LeaderboardProvider({ children }) {
     setFirebaseMessage(result.message)
     if (result.ok) flushPendingScores()
     return result
-  }, [])
+  }, [testFirebaseConnection, flushPendingScores])
 
   const pendingCount = getPendingScores().length
 
@@ -458,6 +452,7 @@ export function LeaderboardProvider({ children }) {
       loading, lastError,
       firebaseStatus, firebaseMessage, retestFirebase,
       submitStatus, pendingCount,
+      startScoreSession,
     }}>
       {children}
     </LeaderboardContext.Provider>

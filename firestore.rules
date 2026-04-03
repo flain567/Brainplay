@@ -2,45 +2,95 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper: is owner
-    function isOwner(uid) {
-      return request.auth != null && request.auth.uid == uid;
+    // --- HELPERS ---
+    
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
-    // --- LEADERBOARD RULES ---
-    match /leaderboard/{docId} {
-      // Allow everyone to read scores
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // This checks if the user is in the 'admins' collection.
+    // Pro tip: Add your UID to /admins/YOUR_UID in Firestore to gain access.
+    function isAdmin() {
+      return isAuthenticated() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // --- USERS COLLECTION ---
+    match /users/{userId} {
+      // Profiles are publicly readable for social features
       allow read: if true;
       
-      // Allow write ONLY if:
-      // 1. User is authenticated
-      // 2. Document ID ends with the user's UID (preventing overwriting others)
-      // 3. User is not changing another person's score (uid field check)
-      allow create, update: if request.auth != null 
-        && request.resource.data.uid == request.auth.uid
-        && docId.endsWith(request.auth.uid)
-        && request.resource.data.score <= 1000000; // Basic sanity check (max score)
+      // Only the owner can edit their own profile
+      allow write: if isOwner(userId) 
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['joinedAt', 'email']));
       
-      allow delete: if false; // No one should delete scores via client
+      allow create: if isOwner(userId);
     }
 
-    // --- ACTIVITY / SOCIAL RULES ---
+    // --- SESSIONS (Anti-Cheat) ---
+    match /sessions/{sessionId} {
+      // Only the user can create/read their own session start time
+      allow read, write: if isOwner(request.auth.uid) && sessionId.endsWith(request.auth.uid);
+    }
+
+    // --- LEADERBOARD COLLECTION ---
+    match /leaderboard/{docId} {
+      allow read: if true;
+      
+      function isValidSubmission() {
+        let session = get(/databases/$(database)/documents/sessions/$(docId)).data;
+        let playDuration = request.time - session.startTime;
+        return isAuthenticated() 
+          && request.resource.data.uid == request.auth.uid
+          && docId.endsWith(request.auth.uid)
+          && request.resource.data.score is int
+          && request.resource.data.score > 0
+          && request.resource.data.score < 1000000
+          && playDuration >= duration.value(5, 's'); // Harus main minimal 5 detik
+      }
+
+      allow create: if isValidSubmission();
+      allow update: if isValidSubmission() && request.resource.data.score > resource.data.score;
+
+      allow delete: if isAdmin();
+    }
+
+    // --- ACTIVITY / SOCIAL FEED ---
     match /activity/{docId} {
       allow read: if true;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      
+      // User can only log their own activity
+      allow create: if isAuthenticated() 
+        && request.resource.data.userId == request.auth.uid;
+      
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+      allow update: if false; // Activities shouldn't be edited
     }
 
-    // --- ANALYTICS RULES ---
+    // --- ANALYTICS EVENTS ---
     match /analytics_events/{docId} {
-      allow read: if false; // Only admin (via console)
-      allow create: if true; // Allow anonymous events (or restrict to auth if preferred)
+      // Only admins can see overall analytics
+      allow read: if isAdmin();
+      
+      // Anyone (even guests) can push usage analytics
+      allow create: if true; 
+      
       allow update, delete: if false;
+    }
+
+    // --- ADMINS COLLECTION ---
+    match /admins/{uid} {
+      allow read: if isAuthenticated() && request.auth.uid == uid;
+      allow write: if false; // Admins are managed via Firebase Console for security
     }
 
     // --- DEFAULT RULE ---
     match /{path=**} {
-      allow read, write: if false;
+      allow read: if false;
+      allow write: if false;
     }
   }
 }

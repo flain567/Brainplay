@@ -1,18 +1,25 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { auth, googleProvider } from '../firebase.js'
-import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'firebase/auth'
+import { 
+  signInWithPopup, 
+  signInWithRedirect, 
+  getRedirectResult, 
+  signOut, 
+  onAuthStateChanged,
+  signInAnonymously,
+  linkWithPopup,
+  GoogleAuthProvider
+} from 'firebase/auth'
 import { clearGameData } from '../utils/storage.js'
 
 const AuthContext = createContext(null)
 
 const DISPLAY_NAME_KEY = 'bp_display_name'
-const GUEST_KEY = 'bp_guest_mode'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [isGuest, setIsGuest] = useState(() => localStorage.getItem(GUEST_KEY) === 'true')
 
   // Display name — always manually set by user, never auto-filled from Google
   const [displayName, setDisplayNameState] = useState(() =>
@@ -25,14 +32,8 @@ export function AuthProvider({ children }) {
       setUser(firebaseUser)
       setLoading(false)
       if (firebaseUser) {
-        // Sync nickname key if custom name already exists
         const saved = localStorage.getItem(DISPLAY_NAME_KEY)
-        if (saved) {
-          localStorage.setItem('bp_nickname', saved)
-        }
-        // Clear guest mode on successful login
-        setIsGuest(false)
-        localStorage.removeItem(GUEST_KEY)
+        if (saved) localStorage.setItem('bp_nickname', saved)
       }
     })
     return () => unsub()
@@ -58,22 +59,21 @@ export function AuthProvider({ children }) {
   const loginWithGoogle = useCallback(async () => {
     setError(null)
     try {
-      await signInWithPopup(auth, googleProvider)
+      if (auth.currentUser?.isAnonymous) {
+        // Upgrade anonymous account to Google
+        await linkWithPopup(auth.currentUser, googleProvider)
+      } else {
+        await signInWithPopup(auth, googleProvider)
+      }
       return true
     } catch (err) {
-      if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
-        try {
-          await signInWithRedirect(auth, googleProvider)
-          return true
-        } catch (redirectErr) {
-          setError('Login gagal. Coba lagi nanti.')
-          console.error('[Auth] Redirect failed:', redirectErr)
-        }
-      } else if (err.code === 'auth/cancelled-popup-request') {
-        // User cancelled, ignore
+      if (err.code === 'auth/credential-already-in-use') {
+        setError('Akun Google ini sudah terhubung dengan ID pemain lain.')
+      } else if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
+        // Fallback for mobile if needed, but linking usually needs popup
+        setError('Popup terblokir atau ditutup. Coba lagi.')
       } else {
         setError(err.message || 'Login gagal')
-        console.error('[Auth] Login error:', err)
       }
       return false
     }
@@ -107,26 +107,34 @@ export function AuthProvider({ children }) {
     localStorage.setItem('bp_nickname', clean)
   }, [])
 
-  const continueAsGuest = useCallback((guestName) => {
-    const name = (guestName || 'Pemain').trim().slice(0, 20)
-    // Clear any leftover data from previous user
-    clearGameData()
-    setIsGuest(true)
-    localStorage.setItem(GUEST_KEY, 'true')
-    setDisplayNameState(name)
-    localStorage.setItem(DISPLAY_NAME_KEY, name)
-    localStorage.setItem('bp_nickname', name)
-    // Reset tracked uid
-    localStorage.removeItem('bp_last_synced_uid')
-    // Notify contexts to reload from (now empty) localStorage
-    setTimeout(() => {
-      try { window.dispatchEvent(new CustomEvent('bp-cloud-sync')) } catch(e) {}
-    }, 100)
-  }, [])
+  const continueAsGuest = useCallback(async (guestName = 'Pemain') => {
+    setError(null)
+    try {
+      // Clear local data if switching from a previous real session
+      if (user && !user.isAnonymous) clearGameData()
+      
+      const result = await signInAnonymously(auth)
+      const name = (guestName).trim().slice(0, 20)
+      
+      setDisplayName(name)
+      
+      // Notify components to reload
+      setTimeout(() => {
+        try { window.dispatchEvent(new CustomEvent('bp-cloud-sync')) } catch(e) {}
+      }, 100)
+      
+      return result.user
+    } catch (err) {
+      setError('Gagal masuk sebagai guest. Periksa koneksi internet.')
+      console.error('[Auth] Anon login failed:', err)
+      return null
+    }
+  }, [user, setDisplayName])
 
   // Computed values
-  const isLoggedIn = !!user
-  const needsName = (isLoggedIn || isGuest) && !displayName
+  const isLoggedIn = !!user && !user.isAnonymous
+  const isGuest = !!user && user.isAnonymous
+  const needsName = !!user && !displayName
   const playerName = displayName || 'Pemain'
   const photoURL = user?.photoURL || null
   const email = user?.email || null

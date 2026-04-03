@@ -7,6 +7,7 @@ import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useHaptics } from '../../hooks/useHaptics.js'
+import { useLeaderboard } from '../../context/LeaderboardContext.jsx'
 import { WinModal } from '../../components/GameLayout.jsx'
 
 const TUTORIAL_STEPS = [
@@ -69,6 +70,7 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
   const { reportGameResult } = useProgress()
   const { getActiveCardPack, earnCoins, spendCoins, coins } = useCoins()
   const { vibrateLight, vibrateMedium, vibrateSuccess, vibrateError } = useHaptics()
+  const { startScoreSession } = useLeaderboard()
 
   const { pairs, cols } = difficulty
   const activePack = getActiveCardPack()
@@ -166,6 +168,7 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
     setSelected(newSelected)
 
     if (newSelected.length === 2) {
+      if (moves === 0 && startScoreSession) startScoreSession(game.id)
       setMoves(m => m + 1)
       setLocked(true)
       if (newSelected[0].emoji === newSelected[1].emoji) {

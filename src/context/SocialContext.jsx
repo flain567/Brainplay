@@ -39,16 +39,19 @@ export function SocialProvider({ children }) {
   }, [])
 
   // Push an activity to the cloud
-  const logActivity = useCallback(async ({ type, userId, userName, details, icon }) => {
+  const logActivity = useCallback(async ({ type, userName, details, icon }) => {
+    const user = auth.currentUser
+    if (!user && !localStorage.getItem('bp_is_guest')) return // Don't log if completely anonymous
+
     try {
       const db = await getDb()
       const { collection, addDoc, serverTimestamp } = await getFirestoreHelpers()
       
       await addDoc(collection(db, 'activity'), {
         type,   // 'level_up', 'high_score', 'achievement', 'chest_open'
-        userId: userId || auth.currentUser?.uid || 'guest',
+        userId: user ? user.uid : 'guest',
         userName: userName || 'Pemain',
-        details: details || '', // e.g. "Reached Level 10"
+        details: details || '',
         icon: icon || '⭐',
         timestamp: serverTimestamp()
       })
@@ -98,9 +101,9 @@ export function SocialProvider({ children }) {
   // Listen for global log-activity events
   useEffect(() => {
     const handler = (e) => {
-      const { type, userId, userName, details, icon } = e.detail || {}
+      const { type, userName, details, icon } = e.detail || {}
       if (type) {
-        logActivity({ type, userId, userName, details, icon })
+        logActivity({ type, userName, details, icon })
       }
     }
     window.addEventListener('bp-log-activity', handler)

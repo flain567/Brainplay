@@ -13,6 +13,7 @@ import{useCoins}from'../../context/CoinContext.jsx'
 import{DASH_THEMES}from'../../context/CoinContext.jsx'
 import{useHaptics}from'../../hooks/useHaptics.js'
 import{useThemeColors}from'../../hooks/useThemeColors.js'
+import{useLeaderboard}from'../../context/LeaderboardContext.jsx'
 import{WinModal,LoseModal}from'../../components/GameLayout.jsx'
 
 // ═══════════════════════════════════════════════════════════
@@ -150,6 +151,7 @@ export default function NeonDash({onBack,onHome,game,difficulty}){
   const cRef=useRef(null),aRef=useRef(null),gR=useRef(null),phR=useRef('idle'),retryRef=useRef(()=>{})
   const{play}=useSound(),{reportGameResult}=useProgress(),{earnCoins,getActiveDashTheme,activeDashTheme:activeDashThemeId}=useCoins()
   const{vibrateLight,vibrateMedium,vibrateHeavy,vibrateSuccess,vibrateError}=useHaptics()
+  const{startScoreSession}=useLeaderboard()
   const tc=useThemeColors()
   const dashImgRef=useRef(null)
   const dc=DC[difficulty.id]
@@ -241,14 +243,14 @@ export default function NeonDash({onBack,onHome,game,difficulty}){
       g.cam=0;g.cd=0;g.spd=dc.spd+(g.lv-1)*dc.si
       g.px=70;g.py=H-g.bH*BK-PS;g.vy=0;g.gnd=true
       g.mode='cube';g.rot=0;g.hold=false;g.dieT=0;g.winT=0
-      g.trail=[];g.pts=[];g.rings=[];sp('play')
+      g.trail=[];g.pts=[];g.rings=[];if(startScoreSession)startScoreSession(game.id);sp('play')
     }
     function retry(){
       g.att++;sAt(g.att)
       for(const i of g.lvD.items){if(i.t==='dia')i.col=false;if(i.t==='ptl')i.tr=false}
       g.cam=0;g.cd=0;g.px=70;g.py=H-g.bH*BK-PS;g.vy=0;g.gnd=true
       g.mode='cube';g.rot=0;g.hold=false;g.dieT=0;g.winT=0
-      g.trail=[];g.pts=[];g.rings=[];sp('play')
+      g.trail=[];g.pts=[];g.rings=[];if(startScoreSession)startScoreSession(game.id);sp('play')
     }
     retryRef.current=retry
     function die(){

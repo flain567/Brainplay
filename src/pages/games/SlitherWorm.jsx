@@ -14,6 +14,7 @@ import { useCoins } from '../../context/CoinContext.jsx'
 import { useHaptics } from '../../hooks/useHaptics.js'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { LoseModal } from '../../components/GameLayout.jsx'
+import { useLeaderboard } from '../../context/LeaderboardContext.jsx'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SEG_R       = 11
@@ -309,6 +310,7 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
   const { earnCoins, getActiveSkin } = useCoins()
   const { vibrateLight, vibrateMedium, vibrateError } = useHaptics()
   const tc = useThemeColors()
+  const { startScoreSession } = useLeaderboard()
   const PLAYER_SKIN = getActiveSkin ? getActiveSkin() : DEFAULT_PLAYER_SKIN
 
   const cfg = CFG[difficulty.id]
@@ -380,6 +382,7 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
     if (w === 0 || h === 0) return
     gameRef.current = initGame(canvas)
     setScore(0); setLength(0); setKills(0)
+    if (startScoreSession) startScoreSession(game.id)
     setPhase('playing')
   }
 
