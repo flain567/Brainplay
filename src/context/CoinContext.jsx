@@ -28,6 +28,15 @@ export const ICON_PACKS = [
     icons:['🐉','🧙','🧚','🦅','🗡️','🛡️','👑','💎','🔮','⚔️','🏰','🧝'] },
 ]
 
+// ─── Avatar Border Catalog ──────────────────────────────────────────────────
+export const BORDER_CATALOG = [
+  { id: 'ice-crystal', name: 'Ice Crystal', desc: 'Bingkai kristal es yang dingin berkilau', price: 1500, icon: '❄️', color: '#74b9ff', rarity: 'rare' },
+  { id: 'magma-surge', name: 'Magma Surge', desc: 'Kekuatan lava membara dari kerak bumi', price: 2500, icon: '🌋', color: '#ff7675', rarity: 'epic' },
+  { id: 'neon-cyber',  name: 'Neon Cyber',  desc: 'Teknologi masa depan dengan cahaya neon', price: 3000, icon: '🛰️', color: '#00f5ff', rarity: 'epic' },
+  { id: 'void-phantom', name: 'Void Phantom', desc: 'Energi kegelapan dari dimensi astral', price: 5000, icon: '🔮', color: '#a29bfe', rarity: 'legendary' },
+  { id: 'royal-gold',  name: 'Royal Gold',  desc: 'Kemewahan emas murni untuk sang juara', price: 10000, icon: '👑', color: '#FFD700', rarity: 'legendary' },
+]
+
 // ─── Snake Skin Packs (Slither Worm) ────────────────────────────────────────
 export const SNAKE_SKINS = [
   { id:'default', name:'Tosca Classic', desc:'Warna tosca default yang elegan', price:0, icon:'🟢', color:'#4ECDC4',
@@ -878,8 +887,8 @@ export function CoinProvider({ children }) {
   // ── Functions ─────────────────────────────────────────────────────────────
 
   const buyCosmetic = useCallback(async (type, itemId) => {
-    const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS, ships:SHIP_CATALOG, hangmanThemes:HANGMAN_THEMES, tubeThemes:TUBE_THEMES, sudokuThemes:SUDOKU_THEMES, jigsawThemes:JIGSAW_THEMES, webThemes:WEBSITE_THEMES, patternThemes:PATTERN_THEMES, reactionThemes:REACTION_THEMES, dashThemes:DASH_THEMES, breakerThemes:BREAKER_THEMES, wordleThemes:WORDLE_THEMES, racerThemes:RACER_THEMES, racerMaps:RACER_MAP_CATALOG, mathThemes:MATH_THEMES, binaryThemes:BINARY_THEMES, mineThemes:MINE_THEMES, slidingThemes:SLIDING_THEMES }
-    const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', webThemes:'ownedWebThemes', patternThemes:'ownedPatternThemes', reactionThemes:'ownedReactionThemes', dashThemes:'ownedDashThemes', breakerThemes:'ownedBreakerThemes', wordleThemes:'ownedWordleThemes', racerThemes:'ownedRacerThemes', racerMaps:'ownedRacerMaps', mathThemes:'ownedMathThemes', binaryThemes:'ownedBinaryThemes', mineThemes:'ownedMineThemes', slidingThemes:'ownedSlidingThemes' }
+    const catalog = { packs:ICON_PACKS, skins:SNAKE_SKINS, tileThemes:TILE_THEMES, highlights:HIGHLIGHT_PACKS, ships:SHIP_CATALOG, hangmanThemes:HANGMAN_THEMES, tubeThemes:TUBE_THEMES, sudokuThemes:SUDOKU_THEMES, jigsawThemes:JIGSAW_THEMES, webThemes:WEBSITE_THEMES, patternThemes:PATTERN_THEMES, reactionThemes:REACTION_THEMES, dashThemes:DASH_THEMES, breakerThemes:BREAKER_THEMES, wordleThemes:WORDLE_THEMES, racerThemes:RACER_THEMES, racerMaps:RACER_MAP_CATALOG, mathThemes:MATH_THEMES, binaryThemes:BINARY_THEMES, mineThemes:MINE_THEMES, slidingThemes:SLIDING_THEMES, borders:BORDER_CATALOG }
+    const ownedKey = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', webThemes:'ownedWebThemes', patternThemes:'ownedPatternThemes', reactionThemes:'ownedReactionThemes', dashThemes:'ownedDashThemes', breakerThemes:'ownedBreakerThemes', wordleThemes:'ownedWordleThemes', racerThemes:'ownedRacerThemes', racerMaps:'ownedRacerMaps', mathThemes:'ownedMathThemes', binaryThemes:'ownedBinaryThemes', mineThemes:'ownedMineThemes', slidingThemes:'ownedSlidingThemes', borders:'ownedBorders' }
     const items = catalog[type]; const key = ownedKey[type]
     if (!items||!key) return { success:false, reason:'Tipe tidak valid' }
     const item = items.find(i => i.id === itemId)
@@ -894,8 +903,8 @@ export function CoinProvider({ children }) {
   const buyPack = useCallback((packId) => buyCosmetic('packs', packId), [buyCosmetic])
 
   const equipCosmetic = useCallback((type, itemId) => {
-    const ownedKey  = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', webThemes:'ownedWebThemes', patternThemes:'ownedPatternThemes', reactionThemes:'ownedReactionThemes', dashThemes:'ownedDashThemes', breakerThemes:'ownedBreakerThemes', wordleThemes:'ownedWordleThemes', racerThemes:'ownedRacerThemes', racerMaps:'ownedRacerMaps', mathThemes:'ownedMathThemes', binaryThemes:'ownedBinaryThemes', mineThemes:'ownedMineThemes', slidingThemes:'ownedSlidingThemes' }
-    const activeKey = { packs:'activePack', skins:'activeSkin', tileThemes:'activeTileTheme', highlights:'activeHighlight', ships:'activeShip', hangmanThemes:'activeHangmanTheme', tubeThemes:'activeTubeTheme', sudokuThemes:'activeSudokuTheme', jigsawThemes:'activeJigsawTheme', webThemes:'activeWebTheme', patternThemes:'activePatternTheme', reactionThemes:'activeReactionTheme', dashThemes:'activeDashTheme', breakerThemes:'activeBreakerTheme', wordleThemes:'activeWordleTheme', racerThemes:'activeRacerTheme', racerMaps:'activeRacerMap', mathThemes:'activeMathTheme', binaryThemes:'activeBinaryTheme', mineThemes:'activeMineTheme', slidingThemes:'activeSlidingTheme' }
+    const ownedKey  = { packs:'ownedPacks', skins:'ownedSkins', tileThemes:'ownedTileThemes', highlights:'ownedHighlights', ships:'ownedShips', hangmanThemes:'ownedHangmanThemes', tubeThemes:'ownedTubeThemes', sudokuThemes:'ownedSudokuThemes', jigsawThemes:'ownedJigsawThemes', webThemes:'ownedWebThemes', patternThemes:'ownedPatternThemes', reactionThemes:'ownedReactionThemes', dashThemes:'ownedDashThemes', breakerThemes:'ownedBreakerThemes', wordleThemes:'ownedWordleThemes', racerThemes:'ownedRacerThemes', racerMaps:'ownedRacerMaps', mathThemes:'ownedMathThemes', binaryThemes:'ownedBinaryThemes', mineThemes:'ownedMineThemes', slidingThemes:'ownedSlidingThemes', borders:'ownedBorders' }
+    const activeKey = { packs:'activePack', skins:'activeSkin', tileThemes:'activeTileTheme', highlights:'activeHighlight', ships:'activeShip', hangmanThemes:'activeHangmanTheme', tubeThemes:'activeTubeTheme', sudokuThemes:'activeSudokuTheme', jigsawThemes:'activeJigsawTheme', webThemes:'activeWebTheme', patternThemes:'activePatternTheme', reactionThemes:'activeReactionTheme', dashThemes:'activeDashTheme', breakerThemes:'activeBreakerTheme', wordleThemes:'activeWordleTheme', racerThemes:'activeRacerTheme', racerMaps:'activeRacerMap', mathThemes:'activeMathTheme', binaryThemes:'activeBinaryTheme', mineThemes:'activeMineTheme', slidingThemes:'activeSlidingTheme', borders:'activeBorder' }
     const key = ownedKey[type]; const aKey = activeKey[type]
     if (!key||!aKey) return
     if (!(state[key]||[]).includes(itemId)) return
@@ -1063,6 +1072,7 @@ export function CoinProvider({ children }) {
       ownedBinaryThemes:state.ownedBinaryThemes||[], activeBinaryTheme:state.activeBinaryTheme,
       ownedMineThemes:state.ownedMineThemes||[], activeMineTheme:state.activeMineTheme,
       ownedSlidingThemes:state.ownedSlidingThemes||[], activeSlidingTheme:state.activeSlidingTheme,
+      ownedBorders:state.ownedBorders||[],
       hints:state.hints||0, timeFreezes:state.timeFreezes||0,
       dailyStreak:state.dailyStreak, transactions:state.transactions||[],
       isDailyClaimable, coinAnim,

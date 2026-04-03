@@ -193,19 +193,39 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
           {/* ── Level Card ── */}
           <div className="prof-level-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20 }}>
-              <div style={{
-                width: 80, height: 80, borderRadius: '50%',
-                background: photoURL ? 'transparent' : borderData.bgColor,
-                border: borderData.border,
-                boxShadow: borderData.boxShadow,
-                animation: borderData.animation || 'none',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 36, flexShrink: 0, overflow: 'hidden', position: 'relative'
-              }}>
-                {photoURL ? (
-                  <img src={photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+              <div style={{ position: 'relative', width: 90, height: 90, flexShrink: 0 }}>
+                {/* Avatar Content */}
+                <div style={{
+                  position: 'absolute', inset: 8, borderRadius: '50%',
+                  background: photoURL ? 'transparent' : (borderData.bgColor || 'rgba(0,0,0,0.1)'),
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 36, overflow: 'hidden', zIndex: 1
+                }}>
+                  {photoURL ? (
+                    <img src={photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                  ) : (
+                    levelInfo.level < 5 ? '🌱' : levelInfo.level < 10 ? '⚔️' : levelInfo.level < 15 ? '👑' : '🌟'
+                  )}
+                </div>
+
+                {/* Border Layer */}
+                {borderData.url ? (
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    backgroundImage: `url(${borderData.url})`,
+                    backgroundSize: '100% 100%',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    zIndex: 2, pointerEvents: 'none'
+                  }} />
                 ) : (
-                  levelInfo.level < 5 ? '🌱' : levelInfo.level < 10 ? '⚔️' : levelInfo.level < 15 ? '👑' : '🌟'
+                  <div style={{
+                    position: 'absolute', inset: 6,
+                    borderRadius: '50%', border: borderData.border,
+                    boxShadow: borderData.boxShadow,
+                    animation: borderData.animation || 'none',
+                    zIndex: 2, pointerEvents: 'none'
+                  }} />
                 )}
               </div>
               <div style={{ flex: 1 }}>

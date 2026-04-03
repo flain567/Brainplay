@@ -366,19 +366,40 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
                   <div className="nav-xp-fill" style={{ width: `${Math.round(levelInfo.progress * 100)}%` }} />
                 </div>
               </div>
-              <div className="nav-avatar-wrap" style={{ 
-                borderRadius: '50%', width: 34, height: 34, 
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: "'Fredoka One',cursive", fontSize: 14, color: currentBorder?.color || '#7C6FE8',
-                border: currentBorder?.border || '1.5px solid rgba(124,111,232,0.3)',
-                boxShadow: currentBorder?.boxShadow || 'none',
-                animation: currentBorder?.animation || 'none',
-                background: currentBorder?.bgColor || (dark ? '#252B45' : '#E2E8F0'),
-              }}>
-                {photoURL ? (
-                  <img src={photoURL} alt="" className="nav-avatar-img" />
+              <div className="nav-avatar-wrap" style={{ position: 'relative', width: 44, height: 44 }}>
+                <div style={{
+                  position: 'absolute', inset: 4, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: "'Fredoka One',cursive", fontSize: 13, 
+                  color: currentBorder?.color || '#7C6FE8',
+                  background: currentBorder?.bgColor || (dark ? '#252B45' : '#E2E8F0'),
+                  overflow: 'hidden'
+                }}>
+                  {photoURL ? (
+                    <img src={photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span>{playerName ? playerName[0].toUpperCase() : 'P'}</span>
+                  )}
+                </div>
+
+                {/* Border Overlay */}
+                {currentBorder?.url ? (
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    backgroundImage: `url(${currentBorder.url})`,
+                    backgroundSize: '100% 100%',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    zIndex: 2, pointerEvents: 'none'
+                  }} />
                 ) : (
-                  <span>{playerName ? playerName[0].toUpperCase() : 'P'}</span>
+                  <div style={{
+                    position: 'absolute', inset: 3,
+                    borderRadius: '50%', border: currentBorder?.border || '1.5px solid rgba(124,111,232,0.3)',
+                    boxShadow: currentBorder?.boxShadow || 'none',
+                    animation: currentBorder?.animation || 'none',
+                    zIndex: 2, pointerEvents: 'none'
+                  }} />
                 )}
               </div>
             </div>

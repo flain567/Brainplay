@@ -197,6 +197,7 @@ async function submitOnlineScore(gameId, diffId, entry) {
 
     const progress = JSON.parse(localStorage.getItem('bp_progress') || '{}')
     const selectedTitle = progress.selectedTitle || null
+    const selectedBorder = progress.selectedBorder || null
 
     if (existing.exists()) {
       const oldData = existing.data()
@@ -212,6 +213,7 @@ async function submitOnlineScore(gameId, diffId, entry) {
         wave: entry.wave || null,
         time: entry.time || null,
         level: entry.level || null,
+        selectedBorder,
         uid: user?.uid || null,
         photoURL: user?.photoURL || null,
         deviceId: getDeviceId(),
@@ -231,6 +233,7 @@ async function submitOnlineScore(gameId, diffId, entry) {
         wave: entry.wave || null,
         time: entry.time || null,
         level: entry.level || null,
+        selectedBorder,
         uid: user?.uid || null,
         photoURL: user?.photoURL || null,
         deviceId: getDeviceId(),

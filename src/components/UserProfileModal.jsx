@@ -90,12 +90,29 @@ export default function UserProfileModal({ uid, onClose }) {
           filter: blur(60px); opacity: 0.15; pointer-events: none;
         }
 
-        .upm-avatar {
-          width: 110px; height: 110px; margin: 0 auto 20px;
-          border-radius: 50%; display: flex; alignItems: center; justifyContent: center;
+        .upm-avatar-container {
+          width: 120px; height: 120px; margin: 0 auto 20px;
+          position: relative;
+        }
+        .upm-avatar-inner {
+          position: absolute; inset: 12px;
+          border-radius: 50%; display: flex; align-items: center; justify-content: center;
           font-size: 50px; background: ${borderData.bgColor || '#333'};
-          border: ${borderData.border}; box-shadow: ${borderData.boxShadow};
+          overflow: hidden; z-index: 1;
+        }
+        .upm-border-overlay {
+          position: absolute; inset: 0;
+          background-size: 100% 100%;
+          background-position: center;
+          background-repeat: no-repeat;
+          z-index: 2; pointer-events: none;
+        }
+        .upm-border-legacy {
+          position: absolute; inset: 10px;
+          border-radius: 50%; border: ${borderData.border}; 
+          box-shadow: ${borderData.boxShadow};
           animation: ${borderData.animation || 'none'};
+          z-index: 2; pointer-events: none;
         }
         
         .upm-stat-pill {
@@ -114,8 +131,19 @@ export default function UserProfileModal({ uid, onClose }) {
             fontSize: 24, color: tc.textMuted, cursor: 'pointer'
           }}>✕</button>
 
-          <div className="upm-avatar">
-            {profile.photoURL ? <img src={profile.photoURL} style={{ width: '100%', height: '100%', borderRadius: '50%' }} /> : '👤'}
+          <div className="upm-avatar-container">
+            <div className="upm-avatar-inner">
+              {profile.photoURL ? (
+                <img src={profile.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+              ) : (
+                '👤'
+              )}
+            </div>
+            {borderData.url ? (
+              <div className="upm-border-overlay" style={{ backgroundImage: `url(${borderData.url})` }} />
+            ) : (
+              <div className="upm-border-legacy" />
+            )}
           </div>
 
           <div style={{ textAlign: 'center', marginBottom: 30 }}>

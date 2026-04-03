@@ -48,6 +48,11 @@ export const WHEEL_EXCLUSIVES = [
     name: 'Pastel Dream', desc: 'Grid gradient pastel cantik dengan angka metalik. Lucky Wheel Only!',
     icon: '🌸', color: '#E8B4CB', img: '/sudoku/Grid.png',
   },
+  // ── Borders ──
+  { id: 'wheel-border-neon', type: 'borders', rarity: 'epic',
+    name: 'Neon Cyber', desc: 'Bingkai neon masa depan yang menyala terang. Lucky Wheel Only!',
+    icon: '🛰️', color: '#00f5ff', img: '/borders/neon_cyber.png',
+  },
 ]
 
 // ─── Weekly Rotation Schedule ──────────────────────────────────────────────

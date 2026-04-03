@@ -248,15 +248,39 @@ function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname, onInspec
           
           <div style={{
             width: isFirst ? 86 : 68, height: isFirst ? 86 : 68,
-            borderRadius: 24, border: `3.5px solid ${accent}`, overflow: 'hidden',
-            background: 'rgba(255,255,255,0.05)', 
-            boxShadow: `0 0 30px ${accent}33, inset 0 0 15px ${accent}22`,
-            position: 'relative', zIndex: 2
+            borderRadius: 24, position: 'relative', overflow: 'hidden',
+            zIndex: 2
           }}>
-            {entry.photoURL ? (
-              <img src={entry.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+            {/* Avatar Content */}
+            <div style={{
+              position: 'absolute', inset: 4, borderRadius: 20,
+              background: 'rgba(255,255,255,0.05)', overflow: 'hidden',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              {entry.photoURL ? (
+                <img src={entry.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+              ) : (
+                <div style={{ fontSize: isFirst ? 36 : 28 }}>👤</div>
+              )}
+            </div>
+
+            {/* Custom Border Overlay */}
+            {entry.selectedBorder && CUSTOM_BORDERS[entry.selectedBorder]?.url ? (
+              <div style={{
+                position: 'absolute', inset: 0,
+                backgroundImage: `url(${CUSTOM_BORDERS[entry.selectedBorder].url})`,
+                backgroundSize: '100% 100%',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                zIndex: 2, pointerEvents: 'none'
+              }} />
             ) : (
-              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isFirst ? 36 : 28 }}>👤</div>
+              <div style={{
+                position: 'absolute', inset: 0,
+                borderRadius: 24, border: `3.5px solid ${accent}`,
+                boxShadow: `0 0 30px ${accent}33, inset 0 0 15px ${accent}22`,
+                zIndex: 2, pointerEvents: 'none'
+              }} />
             )}
           </div>
           <div style={{

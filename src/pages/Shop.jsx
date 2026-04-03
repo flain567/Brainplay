@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useAuth } from '../context/AuthContext.jsx'
-import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, BASE_SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, PATTERN_THEMES, REACTION_THEMES, DASH_THEMES, BREAKER_THEMES, WORDLE_THEMES, RACER_THEMES, RACER_MAP_CATALOG, MATH_THEMES, BINARY_THEMES, MINE_THEMES, SLIDING_THEMES, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
+import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, BASE_SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, PATTERN_THEMES, REACTION_THEMES, DASH_THEMES, BREAKER_THEMES, WORDLE_THEMES, RACER_THEMES, RACER_MAP_CATALOG, MATH_THEMES, BINARY_THEMES, MINE_THEMES, SLIDING_THEMES, BORDER_CATALOG, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
+import { useProgress, CUSTOM_BORDERS } from '../context/ProgressContext.jsx'
 import { WHEEL_EXCLUSIVES, useLuckyWheel } from '../context/LuckyWheelContext.jsx'
 
 // ─── Generic cosmetic list renderer ─────────────────────────────────────────
@@ -135,9 +136,11 @@ export default function Shop({ onBack }) {
     ownedBinaryThemes, activeBinaryTheme,
     ownedMineThemes, activeMineTheme,
     ownedSlidingThemes, activeSlidingTheme,
+    ownedBorders,
     hints, timeFreezes, dailyStreak, isDailyClaimable,
     buyCosmetic, equipCosmetic, buyConsumable, claimDaily, transactions, earnCoins,
   } = useCoins()
+  const { progress, setSelectedBorder, unlockBorder } = useProgress()
   const tc = useThemeColors()
 
   const [tab, setTab] = useState('packs')
@@ -205,13 +208,19 @@ export default function Shop({ onBack }) {
     setTimeout(async () => {
       const result = await buyCosmetic(type, item.id)
       setBuyingId(null)
-      if (result.success) { play('win'); showToast(`${item.name} berhasil dibeli! 🎉`) }
+      if (result.success) { 
+        if (type === 'borders') unlockBorder(item.id)
+        play('win'); showToast(`${item.name} berhasil dibeli! 🎉`) 
+      }
       else { play('mismatch'); showToast(result.reason) }
     }, 600)
   }
 
   const handleEquip = (type, itemId) => {
-    play('click'); equipCosmetic(type, itemId); showToast('Diaktifkan! ✅')
+    play('click')
+    if (type === 'borders') setSelectedBorder(itemId)
+    else equipCosmetic(type, itemId)
+    showToast('Diaktifkan! ✅')
   }
 
   const handleBuyConsumable = async (item) => {
@@ -253,6 +262,7 @@ export default function Shop({ onBack }) {
     { id:'minesweeper',label:'💣 Minesweep' },
     { id:'sliding',    label:'🧩 Sliding'   },
     { id:'webtheme',   label:'🎨 Tema'      },
+    { id:'borders',    label:'🖼️ Bingkai'   },
     { id:'history',    label:'📜 Riwayat',  },
   ]
 
@@ -1173,6 +1183,63 @@ export default function Shop({ onBack }) {
                     ))}
                   </div>
                 )}
+              />
+            </div>
+          )}
+
+          {/* ── Avatar Borders (NEW) ── */}
+          {tab === 'borders' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
+                Kustomisasi profilmu dengan bingkai premium
+              </p>
+              <CosmeticList
+                items={BORDER_CATALOG} ownedList={ownedBorders||[]} activeId={progress.selectedBorder} type="borders"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('borders', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                renderPreview={(item) => {
+                  const bd = CUSTOM_BORDERS[item.id] || {}
+                  return (
+                    <div style={{ 
+                      marginTop:12, padding:20, borderRadius:16, 
+                      background:dark?'rgba(0,0,0,0.2)':'rgba(0,0,0,0.05)', 
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      position:'relative'
+                    }}>
+                      <div style={{ position:'relative', width:100, height:100 }}>
+                        <div style={{
+                          position:'absolute', inset:10, borderRadius:'50%',
+                          background:dark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.1)',
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                          fontSize:32, zIndex:1
+                        }}>👤</div>
+                        
+                        {bd.url ? (
+                          <div style={{
+                            position:'absolute', inset:0,
+                            backgroundImage: `url(${bd.url})`,
+                            backgroundSize: '100% 100%',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat',
+                            zIndex: 2, pointerEvents: 'none'
+                          }} />
+                        ) : (
+                          <div style={{
+                            position:'absolute', inset:8,
+                            borderRadius: '50%', border: bd.border,
+                            boxShadow: bd.boxShadow,
+                            animation: bd.animation || 'none',
+                            zIndex: 2, pointerEvents: 'none'
+                          }} />
+                        )}
+                      </div>
+                      <div style={{ position:'absolute', bottom:8, right:12, fontSize:10, color:tc.textMuted, fontWeight:800 }}>PREVIEW BINGKAI</div>
+                    </div>
+                  )
+                }}
               />
             </div>
           )}

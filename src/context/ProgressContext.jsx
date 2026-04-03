@@ -16,14 +16,49 @@ export const LEVEL_TITLES = [
   'Transcendent', 'Omega', 'Supreme', 'Celestial', 'BrainGod',
 ]
 
+export const CUSTOM_BORDERS = {
+  // --- Basic Level Borders (CSS Based) ---
+  'wood':   { id: 'wood',   name: 'Bingkai Kayu',   color: '#8d6e63', border: '5px solid #8d6e63', bgColor: '#8d6e6322' },
+  'silver': { id: 'silver', name: 'Bingkai Perak',  color: '#b0bec5', border: '5px solid #b0bec5', boxShadow: '0 0 12px #b0bec588', bgColor: '#b0bec522' },
+  'gold':   { id: 'gold',   name: 'Bingkai Emas',   color: '#ffd700', border: '5px solid #ffd700', boxShadow: '0 0 16px #ffd700aa', bgColor: '#ffd70022' },
+  'neon':   { id: 'neon',   name: 'Bingkai Neon',   color: '#00f5ff', border: '5px solid #00f5ff', boxShadow: '0 0 20px #00f5ffcc', bgColor: '#00f5ff22' },
+  
+  // --- Premium Image Borders ---
+  'royal-gold': { 
+    id: 'royal-gold', name: 'Royal Gold', color: '#FFD700', 
+    url: '/src/assets/borders/royal_gold.png',
+    premium: true, rarity: 'Legendary'
+  },
+  'neon-cyber': { 
+    id: 'neon-cyber', name: 'Neon Cyber', color: '#00f5ff', 
+    url: '/src/assets/borders/neon_cyber.png',
+    premium: true, rarity: 'Epic'
+  },
+  'ice-crystal': { 
+    id: 'ice-crystal', name: 'Ice Crystal', color: '#74b9ff', 
+    url: '/src/assets/borders/ice_crystal.png',
+    premium: true, rarity: 'Rare'
+  },
+  'magma-surge': { 
+    id: 'magma-surge', name: 'Magma Surge', color: '#ff7675', 
+    url: '/src/assets/borders/magma_surge.png',
+    premium: true, rarity: 'Epic'
+  },
+  'void-phantom': { 
+    id: 'void-phantom', name: 'Void Phantom', color: '#a29bfe', 
+    url: '/src/assets/borders/void_phantom.png',
+    premium: true, rarity: 'Legendary'
+  }
+}
+
 // ─── Level Rewards (Borders & Title Colors) ──────────────────────────────────
 export const LEVEL_REWARDS = {
-  1: { id: 'wood', name: 'Bingkai Kayu', color: '#8d6e63', border: '5px solid #8d6e63', bgColor: '#8d6e6322' },
-  5: { id: 'silver', name: 'Bingkai Perak', color: '#b0bec5', border: '5px solid #b0bec5', boxShadow: '0 0 12px #b0bec588', bgColor: '#b0bec522' },
-  10: { id: 'gold', name: 'Bingkai Emas', color: '#ffd700', border: '5px solid #ffd700', boxShadow: '0 0 16px #ffd700aa', bgColor: '#ffd70022' },
-  15: { id: 'neon', name: 'Bingkai Neon', color: '#00f5ff', border: '5px solid #00f5ff', boxShadow: '0 0 20px #00f5ffcc', bgColor: '#00f5ff22' },
-  20: { id: 'fire', name: 'Aura Membara', color: '#ff4500', border: '5px solid #ff4500', boxShadow: '0 0 24px #ff4500cc', bgColor: '#ff450022' },
-  25: { id: 'dragon', name: 'Aura Naga', color: '#6c5ce7', border: '5px solid #6c5ce7', boxShadow: '0 0 28px #6c5ce7cc', bgColor: '#6c5ce722' },
+  1:  CUSTOM_BORDERS['wood'],
+  5:  CUSTOM_BORDERS['silver'],
+  10: CUSTOM_BORDERS['gold'],
+  15: CUSTOM_BORDERS['neon'],
+  20: CUSTOM_BORDERS['magma-surge'],
+  25: CUSTOM_BORDERS['void-phantom'],
 }
 
 export const getLevelRoadReward = (level) => {
@@ -31,12 +66,12 @@ export const getLevelRoadReward = (level) => {
     2:  { type: 'coins', amount: 100, label: '100 Koin', icon: '🪙', color: '#F9A825' },
     5:  { type: 'chest', id: 'premium_chest', amount: 1, label: 'Peti Premium', icon: '🎁', color: '#6c5ce7' },
     10: { type: 'ship', id: 'bp-v2-1', label: 'Kapal: Veridian Aurora', icon: '🚀', color: '#4ECDC4' },
-    15: { type: 'border', id: 'neon-blue', label: 'Bingkai: Neon Blue', icon: '🖼️', color: '#00f5ff' },
+    15: { type: 'border', id: 'ice-crystal', label: 'Bingkai: Ice Crystal', icon: '❄️', color: '#74b9ff' },
     20: { type: 'title', value: 'Pelopor Angkasa', label: 'Gelar: Pelopor Angkasa', icon: '🎖️', color: '#ff4500' },
     25: { type: 'chest', id: 'premium_chest', amount: 3, label: '3x Peti Premium', icon: '🎁', color: '#6c5ce7' },
-    30: { type: 'dash-skin', id: 'nebula-runner', label: 'Skin Dash: Nebula Runner', icon: '💎', color: '#ff0064' },
+    30: { type: 'border', id: 'neon-cyber', label: 'Bingkai: Neon Cyber', icon: '💎', color: '#00f5ff' },
     35: { type: 'ship', id: 'shadow', label: 'Kapal: Shadow Voyager', icon: '🛸', color: '#a29bfe' },
-    40: { type: 'border', id: 'mythic-celestial', label: 'Bingkai: Mythic Celestial', icon: '🌟', color: '#FFD700' },
+    40: { type: 'border', id: 'void-phantom', label: 'Bingkai: Void Phantom', icon: '🔮', color: '#a29bfe' },
     45: { type: 'chest', id: 'premium_chest', amount: 5, label: '5x Peti Premium', icon: '🎁', color: '#6c5ce7' },
     50: { 
       type: 'multi', 
@@ -44,8 +79,8 @@ export const getLevelRoadReward = (level) => {
       icon: '👑', color: '#FFD700',
       list: [
         { type: 'title', value: 'BrainGod', label: 'Gelar: BrainGod' },
-        { type: 'border', id: 'solar-flare', label: 'Bingkai: Solar Flare' },
-        { type: 'coins', amount: 5000, label: '5000 Koin' }
+        { type: 'border', id: 'royal-gold', label: 'Bingkai: Royal Gold' },
+        { type: 'coins', amount: 10000, label: '10.000 Koin' }
       ]
     }
   }
@@ -105,38 +140,6 @@ export const BP_REWARDS = [
     ]
   }},
 ]
-
-export const CUSTOM_BORDERS = {
-  'neon-blue':   { id: 'neon-blue',   name: 'Neon Blue',   color: '#00f5ff', border: '5px solid #00f5ff', boxShadow: '0 0 15px #00f5ffaa', bgColor: '#00f5ff11' },
-  'cyber-grid':  { id: 'cyber-grid',  name: 'Cyber Grid',  color: '#a29bfe', border: '5px solid #a29bfe', boxShadow: '0 0 15px #a29bfeaa', bgColor: '#a29bfe11' },
-  'plasma-glow': { id: 'plasma-glow', name: 'Plasma Glow', color: '#ff7675', border: '5px solid #ff7675', boxShadow: '0 0 15px #ff7675aa', bgColor: '#ff767511' },
-  'mythic-celestial': { 
-    id: 'mythic-celestial', name: 'Mythic Celestial', color: '#FFD700', 
-    border: '5px double #FFD700', 
-    boxShadow: '0 0 20px #FFD700, inset 0 0 10px #ffffff', 
-    bgColor: 'linear-gradient(45deg, #ffd70033, #ffffff22)',
-    animation: 'bp-border-pulse 2s infinite alternate'
-  },
-  'void-overlord': { 
-    id: 'void-overlord', name: 'Void Overlord', color: '#a29bfe', 
-    border: '5px solid #6c5ce7', 
-    boxShadow: '0 0 30px #6c5ce7, 0 0 10px #000 inset', 
-    bgColor: '#000000bb',
-    animation: 'bp-border-glitch 3s infinite'
-  },
-  'neon-matrix': { 
-    id: 'neon-matrix', name: 'Neon Matrix', color: '#00FF88', 
-    border: '5px solid #00FF88', 
-    boxShadow: '0 0 20px #00FF8888', 
-    bgColor: 'repeating-linear-gradient(45deg, #00ff8811, #000 10px)'
-  },
-  'solar-flare': { 
-    id: 'solar-flare', name: 'Solar Flare', color: '#FFD700', 
-    border: '5px solid #FF8C00', 
-    boxShadow: '0 0 25px #FF4500cc', 
-    bgColor: 'radial-gradient(circle, #ffD70033, #ff450011)'
-  },
-}
 
 export function getBorderForLevel(level) {
   let activeRew = LEVEL_REWARDS[1]
@@ -576,6 +579,15 @@ export function ProgressProvider({ children }) {
     setProgress(p => ({ ...p, selectedBorder: borderId }))
   }, [])
 
+  const unlockBorder = useCallback((id) => {
+    setProgress(p => {
+      const set = new Set(p.unlockedBorders || [])
+      if (set.has(id)) return p
+      set.add(id)
+      return { ...p, unlockedBorders: [...set] }
+    })
+  }, [])
+
   // Title management
   const setSelectedTitle = useCallback((title) => {
     setProgress(p => ({ ...p, selectedTitle: title }))
@@ -603,7 +615,7 @@ export function ProgressProvider({ children }) {
       progress, reportGameResult, 
       clearNewAchievements, clearLevelUp, 
       setSelectedTitle, unlockTitle,
-      claimBPTier, claimLevelReward, setSelectedBorder,
+      claimBPTier, claimLevelReward, setSelectedBorder, unlockBorder,
       getLevelInfo: () => getLevelInfo(progress.totalXP || 0),
       getSeasonInfo: () => {
         const curXP = progress.seasonXP || 0

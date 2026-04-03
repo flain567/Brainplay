@@ -95,10 +95,35 @@ export default function BorderSelector({ onClose }) {
               >
                 {isActive && <div className="active-badge">✓</div>}
                 <div 
-                  className="avatar-preview" 
-                  style={{ border: b.border, boxShadow: b.boxShadow, background: b.bgColor || 'rgba(0,0,0,0.1)' }}
+                  className="avatar-preview-container" 
+                  style={{ position: 'relative', width: 80, height: 80, marginBottom: 12 }}
                 >
-                  P
+                  {/* Actual Avatar (Placeholder 'P') */}
+                  <div style={{
+                    position: 'absolute', inset: 15, borderRadius: '50%',
+                    background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                    display: 'flex', alignItems: 'center', justify_content: 'center',
+                    fontSize: 24, fontWeight: 800, color: b.color || tc.textMuted,
+                    zIndex: 1
+                  }}>P</div>
+
+                  {/* Border Layer */}
+                  {b.url ? (
+                    <div style={{
+                      position: 'absolute', inset: 0,
+                      backgroundImage: `url(${b.url})`,
+                      backgroundSize: '100% 100%',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                      zIndex: 2, pointerEvents: 'none'
+                    }} />
+                  ) : (
+                    <div style={{
+                      position: 'absolute', inset: 12,
+                      border: b.border, boxShadow: b.boxShadow,
+                      borderRadius: '50%', zIndex: 2, pointerEvents: 'none'
+                    }} />
+                  )}
                 </div>
                 <div className="border-name">{b.name}</div>
               </div>
