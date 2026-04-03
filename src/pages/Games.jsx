@@ -5,12 +5,12 @@ import { useProgress } from '../context/ProgressContext.jsx'
 import GameCard from '../components/GameCard.jsx'
 
 const CATEGORIES = [
-  { id: 'all', label: 'Semua', emoji: '🎮' },
-  { id: 'puzzle', label: 'Puzzle', emoji: '🧩' },
-  { id: 'action', label: 'Action', emoji: '🚀' },
-  { id: 'word', label: 'Kata', emoji: '📝' },
-  { id: 'math', label: 'Math', emoji: '🧮' },
-  { id: 'classic', label: 'Klasik', emoji: '👾' }
+  { id: 'all', label: 'Semua', emoji: '🎮', tags: [] },
+  { id: 'puzzle', label: 'Puzzle', emoji: '🧩', tags: ['puzzle', 'casual'] },
+  { id: 'action', label: 'Action', emoji: '🚀', tags: ['action'] },
+  { id: 'word', label: 'Kata', emoji: '📝', tags: ['kata'] },
+  { id: 'math', label: 'Math', emoji: '🧮', tags: ['logika'] },
+  { id: 'classic', label: 'Klasik', emoji: '👾', tags: ['puzzle', 'casual', 'logika'] }
 ]
 
 export default function Games({ games, onOpenGame, onBack }) {
@@ -24,7 +24,11 @@ export default function Games({ games, onOpenGame, onBack }) {
     return games.filter(g => {
       const gTitle = g.title || g.name || '';
       const matchSearch = gTitle.toLowerCase().includes(search.toLowerCase())
-      const matchCat = activeCat === 'all' || (g.tag?.toLowerCase() === activeCat || (g.categories && g.categories.includes(activeCat)))
+      
+      const catDef = CATEGORIES.find(c => c.id === activeCat)
+      const gTag = g.tag?.toLowerCase()
+      const matchCat = activeCat === 'all' || (catDef && catDef.tags.includes(gTag))
+      
       return matchSearch && matchCat
     })
   }, [games, search, activeCat])
