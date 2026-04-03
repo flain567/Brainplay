@@ -511,52 +511,66 @@ export function ProgressProvider({ children }) {
   const claimLevelReward = useCallback((level) => {
     const myLevel = getLevel(progress.totalXP || 0)
     if (level > myLevel) return { success: false, reason: 'Level belum dicapai' }
+    if (progress.claimedLevelRewards?.includes(level)) return { success: false, reason: 'Sudah diklaim' }
 
+    const reward = getLevelRoadReward(level)
+
+    // Helper to perform side effects cleanly OUTSIDE setState
+    const dispatchRewardSideEffects = (rew) => {
+      if (rew.type === 'coins') {
+        window.dispatchEvent(new CustomEvent('bp-add-coins', {
+          detail: { amount: rew.amount, desc: `Trophy Road Lvl ${level}` }
+        }))
+      } else if (rew.type === 'ship') {
+        window.dispatchEvent(new CustomEvent('bp-wheel-unlock', {
+          detail: { item: { type: 'ships', id: rew.id || rew.value } }
+        }))
+      } else if (rew.type === 'dash-skin') {
+        window.dispatchEvent(new CustomEvent('bp-wheel-unlock', {
+          detail: { item: { type: 'dash-themes', id: rew.id || rew.value } }
+        }))
+      } else if (rew.type === 'chest') {
+        window.dispatchEvent(new CustomEvent('bp-add-chest', {
+          detail: { chestId: rew.id, amount: rew.amount }
+        }))
+      }
+    }
+
+    // Process side effects explicitly once
+    if (reward.type === 'multi') {
+      reward.list.forEach(dispatchRewardSideEffects)
+    } else {
+      dispatchRewardSideEffects(reward)
+    }
+
+    // Now update state purely
     setProgress(p => {
       if (p.claimedLevelRewards?.includes(level)) return p
-      if (level > getLevel(p.totalXP || 0)) return p
-
+      
       const next = { ...p, claimedLevelRewards: [...(p.claimedLevelRewards || []), level] }
-      const reward = getLevelRoadReward(level)
-
-      const grantReward = (rew) => {
-        if (rew.type === 'coins') {
-          window.dispatchEvent(new CustomEvent('bp-add-coins', {
-            detail: { amount: rew.amount, desc: `Trophy Road Lvl ${level}` }
-          }))
-        } else if (rew.type === 'title') {
+      
+      const grantStateReward = (rew) => {
+        if (rew.type === 'title') {
           const titles = new Set(next.unlockedTitles || [])
           titles.add(rew.value)
           next.unlockedTitles = [...titles]
         } else if (rew.type === 'border') {
           const borders = new Set(next.unlockedBorders || [])
-          borders.add(rew.id) // note: using rew.id here per definition
+          borders.add(rew.id || rew.value)
           next.unlockedBorders = [...borders]
-        } else if (rew.type === 'ship') {
-          window.dispatchEvent(new CustomEvent('bp-wheel-unlock', {
-            detail: { item: { type: 'ships', id: rew.id } }
-          }))
-        } else if (rew.type === 'dash-skin') {
-          window.dispatchEvent(new CustomEvent('bp-wheel-unlock', {
-            detail: { item: { type: 'dash-themes', id: rew.id } }
-          }))
-        } else if (rew.type === 'chest') {
-          window.dispatchEvent(new CustomEvent('bp-add-chest', {
-            detail: { chestId: rew.id, amount: rew.amount }
-          }))
         }
       }
 
       if (reward.type === 'multi') {
-        reward.list.forEach(grantReward)
+        reward.list.forEach(grantStateReward)
       } else {
-        grantReward(reward)
+        grantStateReward(reward)
       }
 
       return next
     })
     return { success: true }
-  }, [progress.totalXP])
+  }, [progress])
 
   const setSelectedBorder = useCallback((borderId) => {
     setProgress(p => ({ ...p, selectedBorder: borderId }))
