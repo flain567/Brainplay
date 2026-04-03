@@ -711,7 +711,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ display: 'flex', gap: 6 }}>
                       {[['🪙', currentMode.coinMultiplier], ['⭐', currentMode.xpMultiplier]].map(([ico, mult]) => (
-                        <div key={ico} className="lm-multiplier" style={{ background: `${currentMode.color}22`, border: `1px solid ${currentMode.color}33`, color: textMuted, padding: '4px 10px' }}>
+                        <div key={ico} className="lm-multiplier" style={{ background: `${currentMode.color}22`, border: `1px solid ${currentMode.color}33`, color: S.muted, padding: '4px 10px' }}>
                           {ico} <span style={{ color: currentMode.color, fontWeight: 800 }}>×{mult}</span>
                         </div>
                       ))}
