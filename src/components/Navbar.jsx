@@ -8,6 +8,7 @@ import { useEffect, useState, useRef } from 'react'
 import { NotificationBell, useNotifications } from './NotificationManager.jsx'
 import SettingsModal from './SettingsModal.jsx'
 import BattlePass from './BattlePass.jsx'
+import { animate, splitText, stagger } from 'animejs'
 
 export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGames, onInventory, currentGame }) {
   const { darkMode, muted } = useSettings()
@@ -21,6 +22,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
   const [showSettings, setShowSettings] = useState(false)
   const [showBP, setShowBP] = useState(false)
   const menuRef = useRef(null)
+  const logoRef = useRef(null)
   const streak = progress.currentStreak || 0
   const combo = getComboMultiplier(streak)
   const notifState = useNotifications()
@@ -34,6 +36,33 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
     const fn = () => setScrolled(window.scrollY > 10)
     window.addEventListener('scroll', fn)
     return () => window.removeEventListener('scroll', fn)
+  }, [])
+
+  useEffect(() => {
+    if (!logoRef.current) return
+    let anim = null
+    try {
+      const { chars } = splitText(logoRef.current, { words: false, chars: true })
+      anim = animate(chars, {
+        y: [
+          { to: '-1.25rem', ease: 'outExpo', duration: 600 },
+          { to: 0, ease: 'outBounce', duration: 800, delay: 100 }
+        ],
+        rotate: {
+          from: '-1turn',
+          delay: 0
+        },
+        delay: stagger(50),
+        ease: 'inOutCirc',
+        loopDelay: 2000,
+        loop: true
+      })
+    } catch(e) {
+      console.error("AnimeJS error:", e)
+    }
+    return () => {
+      if (anim && anim.pause) anim.pause()
+    }
   }, [])
 
   // Close menu on outside click
@@ -300,7 +329,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
         <div className="nav-inner">
           {/* Logo */}
           <div className="nav-logo" onClick={() => nav(onHome)}>
-            <span className="nav-logo-text">BrainPlay</span>
+            <span className="nav-logo-text" ref={logoRef} style={{ display: 'inline-block' }}>BrainPlay</span>
           </div>
 
           {/* Center — desktop only */}
