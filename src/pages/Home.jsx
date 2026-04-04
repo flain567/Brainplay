@@ -571,50 +571,77 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           <div
             id="mascot-home-card"
             style={{
-              background: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
-              borderRadius: 28,
-              padding: '20px 20px 44px',
+              background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+              borderRadius: 24,
+              padding: '16px 20px',
               marginBottom: 32,
               border: `1.5px solid ${S.border}`,
-              position: 'relative',
               display: 'flex',
-              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 16,
               animation: 'slide-up 0.4s 0.1s ease both',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.1)'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            {/* Mascot Icon */}
+            <div style={{
+              width: 64, height: 64, borderRadius: 20, flexShrink: 0,
+              background: 'linear-gradient(135deg, rgba(124,111,232,0.15) 0%, rgba(124,111,232,0.05) 100%)',
+              border: '2px solid rgba(124,111,232,0.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 32, boxShadow: '0 4px 15px rgba(124,111,232,0.15)',
+              position: 'relative'
+            }}>
+              <Mascot skin={progress.selectedMascotSkin} hat={progress.selectedMascotHat} size={44} expression="happy" />
+              {/* Level Badge directly inside Avatar */}
               <div style={{
-                width: 80, height: 80, borderRadius: '50%',
-                background: 'rgba(124,111,232,0.1)',
-                border: '2.5px solid rgba(124,111,232,0.3)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 40, boxShadow: '0 0 20px rgba(124,111,232,0.15)'
+                  position: 'absolute', bottom: -8, left: '50%', transform: 'translateX(-50%)',
+                  background: S.accent, color: '#fff', fontSize: 9, fontWeight: 900,
+                  padding: '2px 8px', borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                  border: `1px solid ${dark ? '#1a1a2e' : '#fff'}`, whiteSpace: 'nowrap'
               }}>
-                <Mascot skin={progress.selectedMascotSkin} hat={progress.selectedMascotHat} size={54} expression="happy" />
+                LVL {levelInfo.level}
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                  <h3 style={{ margin: 0, fontSize: 20, color: S.text }}>{progress.mascotName || 'Brainy'}</h3>
-                  <span style={{ fontSize: 10, background: S.accent, color: '#fff', padding: '2px 8px', borderRadius: 6 }}>LVL {levelInfo.level}</span>
-                </div>
-                <div style={{ display: 'flex', gap: 15 }}>
+            </div>
+
+            {/* Info Area */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, justifyContent: 'center' }}>
+              {/* Name and Action */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: S.text, letterSpacing: '0.5px', transform: 'translateY(-2px)' }}>{progress.mascotName || 'Brainy'}</h3>
+                <button 
+                  style={{ 
+                    padding: '6px 14px', fontSize: 11, fontWeight: 800, borderRadius: 12,
+                    background: 'rgba(124,111,232,0.1)', color: S.accent, border: `1.5px solid rgba(124,111,232,0.4)`,
+                    cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 4
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(124,111,232,0.2)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(124,111,232,0.1)'}
+                  onClick={() => { play('click'); window.dispatchEvent(new CustomEvent('openShop', { detail: { tab: 'mascotSkins' } })) }}
+                >
+                  STUDIO <span>🎨</span>
+                </button>
+              </div>
+
+              {/* Stats Area */}
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.5)', padding: '6px 12px', borderRadius: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 8, background: 'rgba(255, 215, 0, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🪙</div>
                   <div>
-                    <div style={{ fontSize: 10, color: S.muted, textTransform: 'uppercase', letterSpacing: 1 }}>Koin</div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: '#FFD700' }}>🪙 {progress.coins || 0}</div>
+                    <div style={{ fontSize: 9, color: S.muted, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 700 }}>Koin</div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#FFD700', lineHeight: 1 }}>{progress.coins || 0}</div>
                   </div>
+                </div>
+                <div style={{ width: 1.5, height: 20, background: dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)' }}></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 8, background: 'rgba(124, 111, 232, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✨</div>
                   <div>
-                    <div style={{ fontSize: 10, color: S.muted, textTransform: 'uppercase', letterSpacing: 1 }}>Total XP</div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: S.accent }}>✨ {progress.xp || 0}</div>
+                    <div style={{ fontSize: 9, color: S.muted, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 700 }}>Total XP</div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: S.accent, lineHeight: 1 }}>{progress.xp || 0}</div>
                   </div>
                 </div>
               </div>
-              <button 
-                className="fs-btn" 
-                style={{ padding: '8px 16px', fontSize: 11 }}
-                onClick={() => { play('click'); window.dispatchEvent(new CustomEvent('openShop', { detail: { tab: 'mascotSkins' } })) }}
-              >
-                STUDIO
-              </button>
             </div>
           </div>
 

@@ -787,15 +787,17 @@ function AppInner() {
       )}
       
       {/* ── Global Floating Mascot Assistant ── */}
-      <MascotCompanion
-        floating={true}
-        mascotName={progress.mascotName || 'Brainy'}
-        skin={progress.selectedMascotSkin}
-        hat={progress.selectedMascotHat}
-        level={levelInfo.level}
-        pageContext={screen}
-        observeSections={[]} // Can optionally pass sections if desired, but less relevant globally
-      />
+      {screen !== 'home' && screen !== 'splash' && (
+        <MascotCompanion
+          floating={true}
+          mascotName={progress.mascotName || 'Brainy'}
+          skin={progress.selectedMascotSkin}
+          hat={progress.selectedMascotHat}
+          level={levelInfo.level}
+          pageContext={screen}
+          observeSections={[]} // Can optionally pass sections if desired, but less relevant globally
+        />
+      )}
 
       <div className="crt-overlay" />
     </div>
