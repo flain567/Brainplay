@@ -171,34 +171,46 @@ export default function Games({ games, onOpenGame, onBack }) {
         @media(min-width:800px) { .flip-item { width: calc(25% - 9px); } }
 
         .mini-card {
-          background: ${dark ? 'var(--surface-card, rgba(0,0,0,0.2))' : '#fff'};
-          border: 1.5px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'};
-          border-radius: 18px; padding: 14px; cursor: pointer;
-          transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+          background: ${dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)'};
+          border-radius: 18px; padding: 1.5px; cursor: pointer;
+          transition: transform 0.25s, box-shadow 0.25s;
           height: 100%; -webkit-tap-highlight-color: transparent;
           position: relative; overflow: hidden;
         }
         .mini-card:hover {
-          border-color: var(--mc-color);
           transform: translateY(-4px);
-          box-shadow: 0 8px 24px color-mix(in srgb, var(--mc-color) 20%, transparent);
+          box-shadow: 0 8px 30px color-mix(in srgb, var(--mc-color) 25%, transparent);
         }
         .mini-card:active { transform: scale(0.97); }
 
+        .mini-card::before { /* Bent Border Glow */
+          content: ""; position: absolute; inset: 0;
+          background: radial-gradient(350px circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.6), transparent 40%);
+          opacity: 0; transition: opacity 0.5s;
+          pointer-events: none;
+        }
+        .flip-grid:hover .mini-card::before { opacity: 1; }
+
+        .mini-card-inner {
+          position: relative; z-index: 1;
+          background: ${dark ? 'rgba(20, 20, 35, 0.9)' : '#fff'};
+          border-radius: 16.5px;
+          height: 100%; padding: 14px; overflow: hidden;
+          transition: background 0.3s;
+        }
+        .mini-card-inner::after { /* Bento Surface Glow */
+          content: ""; position: absolute; inset: 0; z-index: 2;
+          background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.05), transparent 40%);
+          opacity: 0; transition: opacity 0.5s; pointer-events: none;
+        }
+        .flip-grid:hover .mini-card-inner::after { opacity: 1; }
+
         .mc-emoji-bg {
-          position: absolute; right: -8px; bottom: -12px;
+          position: absolute; right: -8px; bottom: -12px; z-index: 0;
           font-size: 64px; opacity: 0.08; pointer-events: none;
           transition: transform 0.4s, opacity 0.4s;
         }
         .mini-card:hover .mc-emoji-bg { transform: scale(1.15) rotate(-10deg); opacity: 0.18; }
-
-        .mc-glow {
-          position: absolute; top: 0; left: 0; right: 0; height: 100%;
-          background: radial-gradient(circle at top center, var(--mc-color), transparent 70%);
-          opacity: 0; pointer-events: none; transition: opacity 0.4s;
-          border-radius: 18px;
-        }
-        .mini-card:hover .mc-glow { opacity: 0.06; }
 
         .mc-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
         .mc-icon {
@@ -271,35 +283,49 @@ export default function Games({ games, onOpenGame, onBack }) {
         </div>
 
         {/* Game Grid */}
-        <div className="flip-grid" ref={gridRef}>
+        <div 
+          className="flip-grid" 
+          ref={gridRef}
+          onMouseMove={(e) => {
+            const cards = e.currentTarget.getElementsByClassName('mini-card')
+            for (const card of cards) {
+              const rect = card.getBoundingClientRect()
+              const x = e.clientX - rect.left
+              const y = e.clientY - rect.top
+              card.style.setProperty('--mouse-x', `${x}px`)
+              card.style.setProperty('--mouse-y', `${y}px`)
+            }
+          }}
+        >
           {filteredGames.map((game, i) => {
             const best = (progress.gameBests || {})[game.id] || 0
             const wins = (progress.gameWins  || {})[game.id] || 0
             return (
               <div key={game.id} className="flip-item">
                 <div
-                  className="mini-card"
+                  className="mini-card magic-bento"
                   style={{ '--mc-color': game.color }}
                   onClick={() => { play('click'); onOpenGame(game.id) }}
                 >
-                  <div className="mc-glow" style={{ '--mc-color': game.color }} />
-                  <div className="mc-emoji-bg">{game.emoji}</div>
-                  <div className="mc-top">
-                    <div
-                      className="mc-icon"
-                      style={{ background: `${game.color}18`, border: `1.5px solid ${game.color}33` }}
-                    >
-                      {game.emoji}
+                  <div className="mini-card-inner">
+                    <div className="mc-emoji-bg">{game.emoji}</div>
+                    <div className="mc-top">
+                      <div
+                        className="mc-icon"
+                        style={{ background: `${game.color}18`, border: `1.5px solid ${game.color}33`, position: 'relative', zIndex: 10 }}
+                      >
+                        {game.emoji}
+                      </div>
+                      <span className="mc-day" style={{ position: 'relative', zIndex: 10 }}>Hari {game.day}</span>
                     </div>
-                    <span className="mc-day">Hari {game.day}</span>
-                  </div>
-                  <div className="mc-title">{game.title}</div>
-                  <div className="mc-tag" style={{ color: game.color }}>{game.tag}</div>
-                  <div className="mc-best">
-                    {best > 0
-                      ? <>Best: <span style={{ color: game.color }}>{best >= 1000 ? `${(best/1000).toFixed(1)}k` : best}</span>{wins > 0 && <span style={{ marginLeft: 6, opacity: 0.7 }}>· {wins}× menang</span>}</>
-                      : <span style={{ opacity: 0.6 }}>Belum pernah main</span>
-                    }
+                    <div className="mc-title" style={{ position: 'relative', zIndex: 10 }}>{game.title}</div>
+                    <div className="mc-tag" style={{ color: game.color, position: 'relative', zIndex: 10 }}>{game.tag}</div>
+                    <div className="mc-best" style={{ position: 'relative', zIndex: 10 }}>
+                      {best > 0
+                        ? <>Best: <span style={{ color: game.color }}>{best >= 1000 ? `${(best/1000).toFixed(1)}k` : best}</span>{wins > 0 && <span style={{ marginLeft: 6, opacity: 0.7 }}>· {wins}× menang</span>}</>
+                        : <span style={{ opacity: 0.6 }}>Belum pernah main</span>
+                      }
+                    </div>
                   </div>
                 </div>
               </div>
