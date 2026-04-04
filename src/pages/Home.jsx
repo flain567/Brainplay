@@ -611,7 +611,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
               <button 
                 className="fs-btn" 
                 style={{ padding: '8px 16px', fontSize: 11 }}
-                onClick={() => { play('click'); window.dispatchEvent(new CustomEvent('openShop', { detail: { tab: 'mascots' } })) }}
+                onClick={() => { play('click'); window.dispatchEvent(new CustomEvent('openShop', { detail: { tab: 'mascotSkins' } })) }}
               >
                 STUDIO
               </button>

@@ -155,6 +155,13 @@ export default function Shop({ onBack }) {
   const [previewId, setPreviewId] = useState(null)
 
   useEffect(() => {
+    // Check if there is a target tab from a quick-link
+    const target = sessionStorage.getItem('shop_target_tab')
+    if (target) {
+      setTab(target)
+      sessionStorage.removeItem('shop_target_tab')
+    }
+
     // GSAP Stagger Entrance for Shop Tabs — using fromTo to be safer
     gsap.fromTo('.shop-tab', 
       { scale: 0.8, opacity: 0 },

@@ -609,6 +609,19 @@ function AppInner() {
   const openWheel     = () => setIsWheelOpen(true)
   const restartGame   = () => { setShowPause(false); setGameKey(k => k + 1) }
   
+  useEffect(() => {
+    const handleOpenShop = (e) => {
+      setScreen('shop')
+      if (e.detail?.tab) {
+        sessionStorage.setItem('shop_target_tab', e.detail.tab)
+      }
+      setIsWheelOpen(false)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+    window.addEventListener('openShop', handleOpenShop)
+    return () => window.removeEventListener('openShop', handleOpenShop)
+  }, [])
+  
   // Check if current user is admin
   const isAdmin = ADMIN_IDS.includes(userId)
 
