@@ -307,7 +307,12 @@ export function LeaderboardProvider({ children }) {
     const stillPending = []
     for (const item of pending) {
       const result = await submitOnlineScore(item.gameId, item.diffId, item)
-      if (!result.success) stillPending.push(item)
+      // Only keep pending if it was a connection error ('unknown')
+      // Validation errors (no_session, invalid) mean the score can't ever be submitted
+      // so drop them to avoid infinite retry loops
+      if (!result.success && result.error === 'unknown') {
+        stillPending.push(item)
+      }
     }
     savePendingScores(stillPending)
   }, [submitOnlineScore])
@@ -381,10 +386,13 @@ export function LeaderboardProvider({ children }) {
         setSubmitStatus('ok')
         fetchCooldown.current = {}
       } else {
-        addPendingScore({ gameId, diffId, ...entry })
+        // Only queue for retry if it's a real connection error, not a validation failure
+        if (result.error === 'unknown') {
+          addPendingScore({ gameId, diffId, ...entry })
+          setFirebaseStatus('error')
+          setFirebaseMessage(result.message)
+        }
         setSubmitStatus('pending')
-        setFirebaseStatus('error')
-        setFirebaseMessage(result.message)
       }
       setTimeout(() => setSubmitStatus(null), 3000)
     }
@@ -398,9 +406,12 @@ export function LeaderboardProvider({ children }) {
     const localBoard = upsertLocalScore(gameId, diffId, entry)
     const result = await submitOnlineScore(gameId, diffId, entry)
     if (!result.success) {
-      addPendingScore({ gameId, diffId, ...entry })
-      setFirebaseStatus('error')
-      setFirebaseMessage(result.message)
+      // Only treat 'unknown' errors as connection problems
+      if (result.error === 'unknown') {
+        addPendingScore({ gameId, diffId, ...entry })
+        setFirebaseStatus('error')
+        setFirebaseMessage(result.message)
+      }
     } else {
       setFirebaseStatus('connected')
       fetchCooldown.current = {}
