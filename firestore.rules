@@ -2,7 +2,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // --- HELPERS ---
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SECURITY HELPERS
+    // ═══════════════════════════════════════════════════════════════════════════
     
     function isAuthenticated() {
       return request.auth != null;
@@ -12,85 +14,143 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // This checks if the user is in the 'admins' collection.
-    // Pro tip: Add your UID to /admins/YOUR_UID in Firestore to gain access.
     function isAdmin() {
       return isAuthenticated() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
-    // --- USERS COLLECTION ---
+    // Ensures a timestamp field equals the current server time (anti-spoof)
+    function isAtServerTime(dataDict, fieldName) {
+      return dataDict[fieldName] == request.time;
+    }
+
+    // Per-game maximum scores — hardcoded to prevent believable-but-fake scores
+    function getMaxScore(gameId) {
+      let caps = {
+        'memory-card': 5500, 'slither-worm': 60000, '2048': 120000, 
+        'word-search': 12000, 'space-shooter': 250000, 'hangman': 6000, 
+        'color-sort': 6000, 'sudoku': 6000, 'jigsaw': 6000, 
+        'reaction-test': 2500, 'neon-dash': 12000, 'brick-breaker': 60000, 
+        'memory-pattern': 18000, 'voxel-racer': 18000, 'wordle': 2000, 
+        'math-challenge': 60000, 'number-sequence': 60000, 'quiz-trivia': 25000, 
+        'binary-puzzle': 6000, 'sliding-puzzle': 12000, 'tower-hanoi': 18000, 
+        'minesweeper': 12000, 'fields-adventure': 18000
+      };
+      return caps.get(gameId, 1000000);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // USERS COLLECTION — Field-Level Validation
+    // ═══════════════════════════════════════════════════════════════════════════
     match /users/{userId} {
-      // Profiles are publicly readable for social features
+      // Public read for Social features (leaderboard, profiles)
       allow read: if true;
       
-      // Only the owner can edit their own profile
-      allow write: if isOwner(userId) 
-        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['joinedAt', 'email']));
-      
-      allow create: if isOwner(userId);
+      // Only owner can write, with strict field validation
+      allow create: if isOwner(userId)
+        && request.resource.data.keys().hasAll(['updatedAt'])
+        && isAtServerTime(request.resource.data, 'updatedAt')
+        // Block injection of privileged fields
+        && !request.resource.data.keys().hasAny(['isAdmin', 'role', 'banned', 'verified']);
+
+      allow update: if isOwner(userId)
+        && isAtServerTime(request.resource.data, 'updatedAt')
+        // Only allow known safe top-level fields
+        && request.resource.data.keys().hasOnly([
+            'progress', 'coins', 'inventory', 'displayName', 'updatedAt'
+          ])
+        // Block injection of privileged fields
+        && !request.resource.data.keys().hasAny(['isAdmin', 'role', 'banned', 'verified']);
     }
 
-    // --- SESSIONS (Anti-Cheat) ---
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SESSIONS — Immutable, Server-Timed, Anti-Spoof
+    // ═══════════════════════════════════════════════════════════════════════════
     match /sessions/{sessionId} {
-      // Only the user can create/read their own session start time
-      allow read, write: if isOwner(request.auth.uid) && sessionId.endsWith(request.auth.uid);
+      // Create: Force server time, enforce UID match
+      allow create: if isAuthenticated() 
+        && request.resource.data.uid == request.auth.uid
+        && isAtServerTime(request.resource.data, 'startTime')
+        // Required fields
+        && request.resource.data.keys().hasAll(['gameId', 'uid', 'startTime']);
+      
+      // Read: Only owner
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      
+      // Sessions CANNOT be updated or deleted (immutable audit trail)
+      allow update: if false;
+      allow delete: if isAdmin();
     }
 
-    // --- LEADERBOARD COLLECTION ---
+    // ═══════════════════════════════════════════════════════════════════════════
+    // LEADERBOARD — Immutable Attempt Log (No Update = No Reuse)
+    // ═══════════════════════════════════════════════════════════════════════════
     match /leaderboard/{docId} {
       allow read: if true;
       
       function isValidSubmission() {
-        let session = get(/databases/$(database)/documents/sessions/$(docId)).data;
-        let playDuration = request.time - session.startTime;
+        let gameId = request.resource.data.gameId;
+        let sessionParts = docId.split('_');
+        let sessionDocId = sessionParts[0] + "_" + sessionParts[1] + "_" + request.auth.uid;
+        let sessionPath = /databases/$(database)/documents/sessions/$(sessionDocId);
+        
         return isAuthenticated() 
+          // DocId schema: exactly 3 parts (gameId_sessionNonce_uid)
+          && sessionParts.size() == 3
+          // Session must exist (not fake)
+          && exists(sessionPath)
+          // UID must match across auth, doc, and session
           && request.resource.data.uid == request.auth.uid
           && docId.endsWith(request.auth.uid)
+          // Score validation
           && request.resource.data.score is int
           && request.resource.data.score > 0
-          && request.resource.data.score < 1000000
-          && playDuration >= duration.value(5, 's'); // Harus main minimal 5 detik
+          && request.resource.data.score <= getMaxScore(gameId)
+          // Timestamp must be server-controlled
+          && isAtServerTime(request.resource.data, 'createdAt')
+          // Duration check: must have played at least 3 seconds
+          && (request.time - get(sessionPath).data.startTime) >= duration.value(3, 's');
       }
 
-      allow create: if isValidSubmission();
-      allow update: if isValidSubmission() && request.resource.data.score > resource.data.score;
-
+      // CREATE ONLY — each session produces exactly one attempt
+      allow create: if isValidSubmission(); 
+      // NO UPDATE = NO SESSION REUSE
+      allow update: if false; 
       allow delete: if isAdmin();
     }
 
-    // --- ACTIVITY / SOCIAL FEED ---
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIVITY / SOCIAL FEED
+    // ═══════════════════════════════════════════════════════════════════════════
     match /activity/{docId} {
       allow read: if true;
-      
-      // User can only log their own activity
       allow create: if isAuthenticated() 
         && request.resource.data.userId == request.auth.uid;
-      
       allow delete: if isOwner(resource.data.userId) || isAdmin();
-      allow update: if false; // Activities shouldn't be edited
+      allow update: if false;
     }
 
-    // --- ANALYTICS EVENTS ---
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ANALYTICS EVENTS — Write-Only for Telemetry
+    // ═══════════════════════════════════════════════════════════════════════════
     match /analytics_events/{docId} {
-      // Only admins can see overall analytics
       allow read: if isAdmin();
-      
-      // Anyone (even guests) can push usage analytics
-      allow create: if true; 
-      
+      allow create: if true; // Anonymous telemetry allowed
       allow update, delete: if false;
     }
 
-    // --- ADMINS COLLECTION ---
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ADMINS — Read-Only, Managed via Console
+    // ═══════════════════════════════════════════════════════════════════════════
     match /admins/{uid} {
       allow read: if isAuthenticated() && request.auth.uid == uid;
-      allow write: if false; // Admins are managed via Firebase Console for security
+      allow write: if false;
     }
 
-    // --- DEFAULT RULE ---
+    // ═══════════════════════════════════════════════════════════════════════════
+    // DEFAULT DENY — Everything not matched is blocked
+    // ═══════════════════════════════════════════════════════════════════════════
     match /{path=**} {
-      allow read: if false;
-      allow write: if false;
+      allow read, write: if false;
     }
   }
 }

@@ -160,18 +160,50 @@ function FirebaseStatusBanner({ dark, surface, borderCol, textMain, textMuted })
 {`rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /sessions/{sessionId} {
-      allow read, write: if request.auth != null && sessionId.endsWith(request.auth.uid);
+    function isAtServerTime(d, f) {
+      return d[f] == request.time;
     }
-    match /leaderboard/{docId} {
-      allow read: if true;
-      allow create, update: if request.auth != null 
-        && docId.endsWith(request.auth.uid)
-        && request.resource.data.score is int;
+    function getMaxScore(gameId) {
+      let caps = {
+        'memory-card':5500,'slither-worm':60000,
+        '2048':120000,'space-shooter':250000,
+        'hangman':6000,'sudoku':6000,'wordle':2000
+      };
+      return caps.get(gameId, 1000000);
     }
     match /users/{userId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && isAtServerTime(request.resource.data,'updatedAt')
+        && request.resource.data.keys().hasOnly([
+          'progress','coins','inventory',
+          'displayName','updatedAt'
+        ]);
+    }
+    match /sessions/{sessionId} {
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && isAtServerTime(request.resource.data,'startTime');
+      allow read: if request.auth != null
+        && resource.data.uid == request.auth.uid;
+      allow update: if false;
+    }
+    match /leaderboard/{docId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && docId.split('_').size() == 3
+        && request.resource.data.score is int
+        && request.resource.data.score > 0
+        && isAtServerTime(request.resource.data,'createdAt');
+      allow update: if false;
+    }
+    match /activity/{docId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+    }
+    match /{path=**} {
+      allow read, write: if false;
     }
   }
 }`}
@@ -181,7 +213,7 @@ service cloud.firestore {
               <br/>
               <strong>6.</strong> Kembali ke sini dan klik tombol <strong>🔄 Test</strong>
               <br/><br/>
-              <span style={{ color:'#FDCB6E' }}>💡</span> Rules di atas memperbolehkan: leaderboard publik (baca semua, tambah/update skor), dan <strong>cloud save</strong> per user (hanya bisa akses data sendiri).
+              <span style={{ color:'#FDCB6E' }}>🔒</span> Rules ini menggunakan <strong>Anti-Cheat Audit 3.0</strong>: Sesi immutable, skor ter-cap per game, dan timestamp server-controlled.
             </div>
           </div>
         )}

@@ -212,32 +212,34 @@ export function LeaderboardProvider({ children }) {
       return { success: false, error: 'no_session', message: 'Sesi tidak valid.' }
     }
 
-    const durationSec = (submitTime - localSession.current.startTime) / 1000
+    const { sessionId, startTime: localStartTime } = localSession.current
+    const durationSec = (submitTime - localStartTime) / 1000
     
-    // Anti-cheat validation (Client-side)
+    // Anti-cheat validation (Client-side sync)
     if (!isScoreValid(gameId, entry.score, durationSec)) {
       console.warn('[Leaderboard] ⚠️ Score rejected by anti-cheat:', gameId, entry.score)
       return { success: false, error: 'invalid', message: 'Skor atau durasi tidak valid.' }
     }
 
-    // Clear session after use
+    // Clear session AFTER defining constants to prevent reuse
     localSession.current = null
 
     const checksum = makeChecksum(gameId, entry.score, submitTime)
 
     try {
-      const docId = `${gameId}_${diffId}_${user.uid}`
+      // docId format: ${gameId}_${sessionId}_${uid}
+      // This matches the parsing logic in firestore.rules
+      const docId = `${gameId}_${sessionId}_${user.uid}`
       const db = await getDb()
-      const { doc, getDoc, setDoc, serverTimestamp } = await getFirestoreHelpers()
+      const { doc, setDoc, serverTimestamp } = await getFirestoreHelpers()
       const docRef = doc(db, 'leaderboard', docId)
-      const existing = await getDoc(docRef)
 
       const progress = JSON.parse(localStorage.getItem('bp_progress') || '{}')
       const selectedTitle = progress.selectedTitle || null
       const selectedBorder = progress.selectedBorder || null
 
-      const commonData = {
-        gameId, diffId,
+      const attemptData = {
+        gameId, diffId, sessionId,
         name: entry.name || 'Pemain',
         selectedTitle, selectedBorder,
         score: entry.score,
@@ -248,31 +250,17 @@ export function LeaderboardProvider({ children }) {
         photoURL: user?.photoURL || null,
         deviceId: getDeviceId(),
         checksum,
-        updatedAt: serverTimestamp(),
+        createdAt: serverTimestamp(), // Hardened rules REQUIRE serverTimestamp
       }
 
-      if (existing.exists()) {
-        const oldData = existing.data()
-        if (entry.score <= (oldData.score || 0)) return { success: true, skipped: true }
-        await setDoc(docRef, {
-          ...commonData,
-          gamesPlayed: (oldData.gamesPlayed || 1) + 1,
-          previousBest: oldData.score || 0,
-          createdAt: oldData.createdAt || serverTimestamp(),
-        })
-      } else {
-        await setDoc(docRef, {
-          ...commonData,
-          gamesPlayed: 1,
-          previousBest: 0,
-          createdAt: serverTimestamp(),
-        })
-      }
+      // No update allowed. Each session is a new attempt document.
+      // This prevents "Session Reuse" attacks.
+      await setDoc(docRef, attemptData)
 
       return { success: true }
     } catch (err) {
       const msg = err.message || 'Unknown error'
-      console.error('[Leaderboard] ❌ Online submit FAILED:', msg)
+      console.error('[Leaderboard] ❌ Audit submit FAILED:', msg)
       return { success: false, error: 'unknown', message: msg }
     }
   }, [])
@@ -297,9 +285,18 @@ export function LeaderboardProvider({ children }) {
       const snap = await getDocs(q)
       let results = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       if (diffId) results = results.filter(r => r.diffId === diffId)
-      results.sort((a, b) => (b.score || 0) - (a.score || 0))
-      return { success: true, data: results.slice(0, 50).map((r, i) => ({ ...r, rank: i + 1 })) }
+      
+      // Since docId is now unique per session, we must collapse into best-per-user in memory
+      const bestPerUser = {}
+      for (const r of results) {
+        if (!bestPerUser[r.uid] || r.score > bestPerUser[r.uid].score) {
+          bestPerUser[r.uid] = r
+        }
+      }
+      const sorted = Object.values(bestPerUser).sort((a, b) => (b.score || 0) - (a.score || 0))
+      return { success: true, data: sorted.slice(0, 50).map((r, i) => ({ ...r, rank: i + 1 })) }
     } catch (err) {
+      console.error('[Leaderboard] Fetch failed:', err)
       return { success: false, error: 'unknown', data: null }
     }
   }, [])
@@ -315,24 +312,35 @@ export function LeaderboardProvider({ children }) {
     savePendingScores(stillPending)
   }, [submitOnlineScore])
 
+  // Client-side rate limit for session creation (anti-spam)
+  const sessionCooldown = useRef({})
+
   const startScoreSession = useCallback(async (gameId, diffId = 'easy') => {
     const user = auth.currentUser
     if (!user) return
 
-    const startTime = Date.now()
-    const token = btoa(`${gameId}_${diffId}_${startTime}_${sessionSalt}`)
-    localSession.current = { gameId, diffId, startTime, token }
+    // Rate limit: max 1 session per 5 seconds per game
+    const now = Date.now()
+    if (sessionCooldown.current[gameId] && now - sessionCooldown.current[gameId] < 5000) {
+      console.warn('[Leaderboard] ⚠️ Session creation rate limited for:', gameId)
+      return
+    }
+    sessionCooldown.current[gameId] = now
 
-    // Write to Firestore for server-side validation
+    const startTime = now
+    // Generate a unique session nonce to prevent reuse
+    const sessionId = Math.random().toString(36).substring(2, 10)
+    localSession.current = { gameId, diffId, startTime, sessionId }
+
     try {
       const db = await getDb()
       const { doc, setDoc, serverTimestamp } = await getFirestoreHelpers()
-      const sessId = `${gameId}_${diffId}_${user.uid}`
+      // Unique docId for the session: {gameId}_{nonce}_{uid}
+      const sessId = `${gameId}_${sessionId}_${user.uid}`
       await setDoc(doc(db, 'sessions', sessId), {
-        gameId,
-        diffId,
+        gameId, diffId,
         uid: user.uid,
-        startTime: serverTimestamp(),
+        startTime: serverTimestamp(), // FORCE server time for rules validation
       })
     } catch (err) {
       console.error('[Leaderboard] ❌ Secure session start failed:', err.message)
