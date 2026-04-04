@@ -39,8 +39,8 @@ export default function Tilt({ children, style = {}, className = '', perspective
     <div
       ref={ref}
       className={className}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      onPointerMove={handleMouseMove}
+      onPointerLeave={handleMouseLeave}
       style={{
         transition: isTransitioning 
             ? 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)' 

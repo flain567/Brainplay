@@ -286,7 +286,7 @@ export default function Games({ games, onOpenGame, onBack }) {
         <div 
           className="flip-grid" 
           ref={gridRef}
-          onMouseMove={(e) => {
+          onPointerMove={(e) => {
             const cards = e.currentTarget.getElementsByClassName('mini-card')
             for (const card of cards) {
               const rect = card.getBoundingClientRect()
