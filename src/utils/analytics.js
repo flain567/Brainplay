@@ -173,8 +173,20 @@ async function getFirestore2() {
 }
 
 // Send game completion event to Firestore for admin analytics
+// Rate limit: max 1 analytics event per 3 seconds
+let lastAnalyticsSend = 0
+
 export async function sendGameAnalyticsToFirestore(userId, userName, gameId, difficulty, score, stars, coinEarned, xpEarned, eventId = null, eventName = null) {
   try {
+    // Rate limit check
+    const now = Date.now()
+    if (now - lastAnalyticsSend < 3000) return
+    lastAnalyticsSend = now
+
+    // Auth check — required by hardened rules
+    const { auth } = await import('../firebase.js')
+    if (!auth.currentUser) return
+
     const fs = await getFirestore2()
     if (!fs) return
     
