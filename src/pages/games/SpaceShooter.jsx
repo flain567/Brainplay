@@ -593,7 +593,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       addFloatingText(g, g.player.x, g.player.y, `POWER UP: ${typeId.toUpperCase()}!`, '#00FF00')
       
       switch(typeId) {
-        case 'heal':
+        case 'health':
           g.lives = Math.min(activeShip.stats.maxHP || 5, g.lives + 1)
           setLives(g.lives)
           spawnParticles(g, g.player.x, g.player.y, '#00FF00', 15)
@@ -602,16 +602,24 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
           g.player.shieldTimer = 600 // 10 seconds
           spawnParticles(g, g.player.x, g.player.y, '#00FFFF', 15)
           break
-        case 'fire_rate':
-          g.rapidFireTimer = 480 
-          break
-        case 'multishot':
-          g.player.weaponLv = Math.min(3, g.player.weaponLv + 1)
+        case 'weapon':
+          g.player.weaponLv = Math.min(5, (g.player.weaponLv || 1) + 1)
           setWeaponLv(g.player.weaponLv)
+          spawnParticles(g, g.player.x, g.player.y, '#FFD700', 15)
           break
-        case 'score_multi':
-          g.scoreMultiplier = (g.scoreMultiplier || 1) + 1
-          setTimeout(() => { if (gameRef.current) gameRef.current.scoreMultiplier = Math.max(1, (gameRef.current.scoreMultiplier || 1) - 1) }, 10000)
+        case 'coin':
+          g.coinsCollected = (g.coinsCollected || 0) + 10
+          g.score += 150
+          setScore(g.score)
+          spawnParticles(g, g.player.x, g.player.y, '#FFD700', 15)
+          break
+        case 'mega':
+          // Wipe all enemies & fill special charge
+          g.enemies.forEach(en => { g.score += en.points; spawnParticles(g, en.x, en.y, en.color, 15) })
+          g.waveEnemiesKilled += g.enemies.length; g.enemies = []; g.enemyBullets = []
+          g.specialCharge = activeShip.stats.specialCharge
+          setSpecialCharge(g.specialCharge)
+          g.shakeTimer = 20; spawnParticles(g, g.W/2, g.H/2, '#A29BFE', 40); play('levelUp')
           break
         default:
           break
