@@ -21,7 +21,7 @@ import useScrambleNumber from '../hooks/useScrambleNumber.js'
 import gsap from 'gsap'
 import { Flip } from 'gsap/Flip'
 import ActivityTicker from '../components/ActivityTicker.jsx'
-import Mascot from '../components/Mascot.jsx'
+import MascotCompanion from '../components/MascotCompanion.jsx'
 import InfiniteTicker from '../components/InfiniteTicker.jsx'
 import BlueprintIntro from '../components/BlueprintIntro.jsx'
 gsap.registerPlugin(Flip)
@@ -146,25 +146,6 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
     }
   }
 
-  const [mascotMsg, setMascotMsg] = useState('Halo! Aku Brainy. Ayo main!')
-
-  useEffect(() => {
-    if (reduceMotion) return
-    // Mascot random messages
-    const messages = [
-      'Sudah asah otakmu hari ini? 🧠',
-      'Daily Streak kamu keren banget! 🔥',
-      'Ingat istirahat ya, biar otak tetep seger! 🥛',
-      'Ayo coba pecahkan skor tertinggi hari ini! 🏆',
-      'Main bareng teman-teman makin seru lho! 🤝',
-      'Aku suka petualangan otak ini! ✨'
-    ]
-    const timer = setInterval(() => {
-      setMascotMsg(messages[Math.floor(Math.random() * messages.length)])
-    }, 15000)
-    return () => clearInterval(timer)
-  }, [reduceMotion])
-
   useEffect(() => {
     const fn = () => setScrollTop(window.scrollY > 400)
     window.addEventListener('scroll', fn, { passive: true })
@@ -222,10 +203,10 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
   return (
     <>
       <BlueprintIntro onComplete={() => setShowIntro(false)} />
-      
+
       <style>{`
         .home-root { min-height:100vh; position:relative; overflow:hidden; transition:background 0.4s; padding-top: 0; }
-        .home-content { position:relative; z-index:1; max-width:860px; margin:0 auto; padding:20px 20px 100px; }
+        .home-content { position:relative; z-index:1; max-width:860px; margin:0 auto; padding:20px 20px 120px; }
 
         /* Renaissance Hero Overhaul */
         .renaissance-hero {
@@ -319,7 +300,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           background: ${dark ? 'linear-gradient(135deg,rgba(124,111,232,0.15),rgba(13,16,34,0))' : 'linear-gradient(135deg,rgba(124,111,232,0.1),#fff)'};
           border-radius: 28px; padding: 24px; margin-bottom: 24px;
           border: 1.5px solid ${dark ? 'rgba(124,111,232,0.25)' : 'rgba(124,111,232,0.15)'};
-          position: relative; overflow: hidden;
+          position: relative; padding-bottom: 30px;
         }
         .fs-tag { background: ${S.accent}; color: #fff; font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 8px; text-transform: uppercase; margin-bottom: 12px; display: inline-block; }
         .fs-title { font-family: 'Fredoka One', cursive; font-size: 28px; color: ${S.text}; margin-bottom: 8px; }
@@ -509,48 +490,48 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             </h1>
 
             <div style={{ padding: '24px 0', borderTop: `1px solid ${S.border}`, borderBottom: `1px solid ${S.border}`, margin: '24px 0', position: 'relative' }}>
-              <InfiniteTicker 
-                items={['MEMORY MASTER', 'LOGIC BOOSTER', 'VOCAB VORTEX', 'NUMBER NINJA', 'PATTERN PATH']} 
-                mode="serif" 
+              <InfiniteTicker
+                items={['MEMORY MASTER', 'LOGIC BOOSTER', 'VOCAB VORTEX', 'NUMBER NINJA', 'PATTERN PATH']}
+                mode="serif"
                 speed="30s"
               />
             </div>
 
             <div className="profile-strip" onClick={() => onProfile?.()}>
-               <div className="pb-avatar" style={{ width: 42, height: 42, fontSize: 20 }}>
-                 {AVATAR_CATALOG.find(a => a.id === progress.selectedAvatar)?.emoji || '👤'}
-                 {progress.selectedBorder && (
-                    <div style={{ 
-                      position:'absolute', inset:-4, borderRadius:'50%', 
-                      border: CUSTOM_BORDERS[progress.selectedBorder]?.border,
-                      boxShadow: CUSTOM_BORDERS[progress.selectedBorder]?.boxShadow,
-                      zIndex: 10
-                    }} />
-                 )}
-               </div>
-               <div style={{ flex: 1 }}>
-                 <div style={{ fontSize: 13, fontWeight: 800, color: S.text }}>{playerName || 'User'}</div>
-                 <div style={{ fontSize: 10, color: S.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
-                   Tier {getSeasonInfo?.().currentTier} • {progress.selectedTitle || 'Novice'}
-                 </div>
-               </div>
-               <div style={{ textAlign: 'right' }}>
-                 <div style={{ fontSize: 16, fontWeight: 900, color: S.gold, fontFamily: 'var(--font-display)' }}>
-                   {coins.toLocaleString()}
-                 </div>
-                 <div style={{ fontSize: 9, color: S.muted, textTransform: 'uppercase', letterSpacing: 1 }}>Coins</div>
-               </div>
+              <div className="pb-avatar" style={{ width: 42, height: 42, fontSize: 20 }}>
+                {AVATAR_CATALOG.find(a => a.id === progress.selectedAvatar)?.emoji || '👤'}
+                {progress.selectedBorder && (
+                  <div style={{
+                    position: 'absolute', inset: -4, borderRadius: '50%',
+                    border: CUSTOM_BORDERS[progress.selectedBorder]?.border,
+                    boxShadow: CUSTOM_BORDERS[progress.selectedBorder]?.boxShadow,
+                    zIndex: 10
+                  }} />
+                )}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: S.text }}>{playerName || 'User'}</div>
+                <div style={{ fontSize: 10, color: S.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
+                  Tier {getSeasonInfo?.().currentTier} • {progress.selectedTitle || 'Novice'}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 16, fontWeight: 900, color: S.gold, fontFamily: 'var(--font-display)' }}>
+                  {coins.toLocaleString()}
+                </div>
+                <div style={{ fontSize: 9, color: S.muted, textTransform: 'uppercase', letterSpacing: 1 }}>Coins</div>
+              </div>
             </div>
           </section>
 
           {/* ── Quick Actions Grid ── */}
           <div className="quick-actions" style={{ marginBottom: 32 }}>
             <button
-               className="qa-btn"
-               style={{ border: `1.5px solid ${hasFreeSpins ? S.gold : S.border}` }}
-               onClick={() => { play('click'); onOpenWheel() }}
-               onMouseEnter={e => onHoverQA(e, true)}
-               onMouseLeave={e => onHoverQA(e, false)}
+              className="qa-btn"
+              style={{ border: `1.5px solid ${hasFreeSpins ? S.gold : S.border}` }}
+              onClick={() => { play('click'); onOpenWheel() }}
+              onMouseEnter={e => onHoverQA(e, true)}
+              onMouseLeave={e => onHoverQA(e, false)}
             >
               <span className="qa-ico">🎡</span>
               Wheel
@@ -566,10 +547,10 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
               Shop
             </button>
             <button
-               className="qa-btn"
-               onClick={() => { play('click'); onGames?.() }}
-               onMouseEnter={e => onHoverQA(e, true)}
-               onMouseLeave={e => onHoverQA(e, false)}
+              className="qa-btn"
+              onClick={() => { play('click'); onGames?.() }}
+              onMouseEnter={e => onHoverQA(e, true)}
+              onMouseLeave={e => onHoverQA(e, false)}
             >
               <span className="qa-ico">🎮</span>
               Games
@@ -578,60 +559,40 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
 
           {!showIntro && (
             <div style={{ animation: 'fade-in 1s 0.2s ease both', marginBottom: 32 }}>
-              <InfiniteTicker 
-                 items={['SYSTEMS READY', 'DAILY CHALLENGE UPDATED', 'COMMUNITY RECORD BROKEN', 'EVENT ACTIVE']} 
-                 mode="mono" 
-                 speed="45s"
+              <InfiniteTicker
+                items={['SYSTEMS READY', 'DAILY CHALLENGE UPDATED', 'COMMUNITY RECORD BROKEN', 'EVENT ACTIVE']}
+                mode="mono"
+                speed="45s"
               />
             </div>
           )}
 
-          {/* ── Companion Mascot Card (Integrated) ── */}
-          <div 
+          {/* ── Interactive Companion Mascot ── */}
+          <div
             id="mascot-home-card"
             style={{
               background: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
               borderRadius: 28,
-              padding: '20px',
+              padding: '20px 20px 44px',
               marginBottom: 32,
               border: `1.5px solid ${S.border}`,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 20,
               position: 'relative',
-              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
               animation: 'slide-up 0.4s 0.1s ease both',
-              cursor: 'pointer'
             }}
-            onClick={() => play('click')}
           >
-            <div style={{ flexShrink: 0, position: 'relative', zIndex: 2 }}>
-              <Mascot 
-                skin={progress.selectedMascotSkin} 
-                hat={progress.selectedMascotHat} 
-                size={80} 
-              />
-            </div>
-            <div style={{ flex: 1, zIndex: 2 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <span style={{ fontSize: 14, fontWeight: 900, color: S.accent, letterSpacing: 0.5 }}>
-                  {progress.mascotName || 'Brainy'}
-                </span>
-                <span className="pb-level-badge" style={{ fontSize: 9 }}>Lvl.{levelInfo.level}</span>
-              </div>
-              <div style={{ 
-                position: 'relative', background: dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', 
-                padding: '12px 16px', borderRadius: '0 16px 16px 16px', fontSize: 14, color: S.text,
-                lineHeight: 1.5, fontWeight: 600
-              }}>
-                {mascotMsg}
-                <div style={{ 
-                  position: 'absolute', left: -6, top: 0, width: 0, height: 0, 
-                  borderTop: '0px solid transparent', borderBottom: '10px solid transparent', 
-                  borderRight: `10px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'}` 
-                }} />
-              </div>
-            </div>
+            <MascotCompanion
+              mascotName={progress.mascotName || 'Brainy'}
+              skin={progress.selectedMascotSkin}
+              hat={progress.selectedMascotHat}
+              level={levelInfo.level}
+              observeSections={[
+                { id: 'games-section' },
+                { id: 'features-section' },
+                { id: 'roadmap-section' },
+              ]}
+            />
           </div>
 
           {/* ── Flagship Design (v2) ── */}
@@ -708,7 +669,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           })()}
 
           {/* ── Main Lagi (Carousel v2) ── */}
-          <div style={{ marginBottom: 28, animation: 'slide-up 0.4s 0.12s ease both' }}>
+          <div id="games-section" style={{ marginBottom: 28, animation: 'slide-up 0.4s 0.12s ease both' }}>
             <div className="section-head" style={{ marginBottom: 14 }}>
               <h2 className="section-title"><span>🕒</span>Main Lagi</h2>
               <div className="section-line" />
@@ -745,7 +706,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           {/* Daily Challenges are now standalone in the new layout */}
 
           {/* ── Misi Harian ── */}
-          <div className="section-card" data-anime-reveal>
+          <div className="section-card" id="features-section" data-anime-reveal>
             <div className="sc-header">
               <span style={{ fontSize: 20 }}>⚔️</span>
               <span className="sc-title">Misi Harian</span>
@@ -817,242 +778,242 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             {currentMode && (
               <div
                 className="lm-banner"
-              style={{
-                background: `linear-gradient(135deg,${currentMode.color}22,${currentMode.color}08)`,
-                borderColor: isBonusClaimedToday(currentMode.id) ? S.green : `${currentMode.color}44`,
-                position: 'relative', overflow: 'hidden',
-                transition: 'all 0.4s'
-              }}
-            >
-              {/* Background Pattern Animation */}
-              <div style={{
-                position: 'absolute', inset: 0, opacity: 0.1, pointerEvents: 'none',
-                backgroundImage: `radial-gradient(${currentMode.color} 1px, transparent 1px)`,
-                backgroundSize: '24px 24px',
-                animation: 'bg-move 20s linear infinite'
-              }} />
-
-              {/* Scanline effect */}
-              <div style={{
-                position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
-                background: `linear-gradient(to right, transparent, ${currentMode.color}, transparent)`,
-                opacity: 0.2, animation: 'scanline 3s linear infinite',
-                pointerEvents: 'none'
-              }} />
-
-              {isBonusClaimedToday(currentMode.id) && (
+                style={{
+                  background: `linear-gradient(135deg,${currentMode.color}22,${currentMode.color}08)`,
+                  borderColor: isBonusClaimedToday(currentMode.id) ? S.green : `${currentMode.color}44`,
+                  position: 'relative', overflow: 'hidden',
+                  transition: 'all 0.4s'
+                }}
+              >
+                {/* Background Pattern Animation */}
                 <div style={{
-                  position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)',
-                  backdropFilter: 'grayscale(1) blur(2px)', zIndex: 10,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  animation: 'fadeIn 0.5s ease both'
-                }}>
-                  <div style={{
-                    transform: 'rotate(-12deg)', border: `4px solid ${S.green}`,
-                    color: S.green, padding: '10px 30px', borderRadius: 16,
-                    fontFamily: "'Fredoka One',cursive", fontSize: 32,
-                    boxShadow: `0 0 20px ${S.green}66`,
-                    background: 'rgba(0,0,0,0.6)'
-                  }}>COMPLETED!</div>
-                </div>
-              )}
+                  position: 'absolute', inset: 0, opacity: 0.1, pointerEvents: 'none',
+                  backgroundImage: `radial-gradient(${currentMode.color} 1px, transparent 1px)`,
+                  backgroundSize: '24px 24px',
+                  animation: 'bg-move 20s linear infinite'
+                }} />
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', position: 'relative', zIndex: 2 }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <div style={{ position: 'relative' }}>
-                      <span style={{ fontSize: 32 }}>{currentMode.emoji}</span>
-                      {!isBonusClaimedToday(currentMode.id) && (
-                        <div style={{
-                          position: 'absolute', top: -4, right: -4,
-                          width: 10, height: 10, borderRadius: '50%',
-                          background: '#FF6B6B', border: `2px solid ${dark ? '#1A1F35' : '#fff'}`,
-                          animation: 'live-pulse 1.2s infinite'
-                        }} />
-                      )}
-                    </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 18, color: currentMode.color }}>{currentMode.name}</div>
+                {/* Scanline effect */}
+                <div style={{
+                  position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
+                  background: `linear-gradient(to right, transparent, ${currentMode.color}, transparent)`,
+                  opacity: 0.2, animation: 'scanline 3s linear infinite',
+                  pointerEvents: 'none'
+                }} />
+
+                {isBonusClaimedToday(currentMode.id) && (
+                  <div style={{
+                    position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)',
+                    backdropFilter: 'grayscale(1) blur(2px)', zIndex: 10,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    animation: 'fadeIn 0.5s ease both'
+                  }}>
+                    <div style={{
+                      transform: 'rotate(-12deg)', border: `4px solid ${S.green}`,
+                      color: S.green, padding: '10px 30px', borderRadius: 16,
+                      fontFamily: "'Fredoka One',cursive", fontSize: 32,
+                      boxShadow: `0 0 20px ${S.green}66`,
+                      background: 'rgba(0,0,0,0.6)'
+                    }}>COMPLETED!</div>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', position: 'relative', zIndex: 2 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                      <div style={{ position: 'relative' }}>
+                        <span style={{ fontSize: 32 }}>{currentMode.emoji}</span>
                         {!isBonusClaimedToday(currentMode.id) && (
                           <div style={{
-                            background: '#FF6B6B', color: '#fff', fontSize: 8,
-                            fontWeight: 900, padding: '1px 6px', borderRadius: 4,
-                            letterSpacing: 0.5, animation: 'pulse-soft 2s infinite'
-                          }}>LIVE</div>
+                            position: 'absolute', top: -4, right: -4,
+                            width: 10, height: 10, borderRadius: '50%',
+                            background: '#FF6B6B', border: `2px solid ${dark ? '#1A1F35' : '#fff'}`,
+                            animation: 'live-pulse 1.2s infinite'
+                          }} />
                         )}
                       </div>
-                      <div style={{ fontSize: 10, color: S.muted, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.5 }}>EVENT TERBATAS</div>
-                    </div>
-                  </div>
-                  <p style={{ fontSize: 13, color: dark ? '#CBD5E1' : S.text, margin: '0 0 12px', lineHeight: 1.6, fontWeight: 600 }}>{currentMode.desc}</p>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      {[['🪙', currentMode.coinMultiplier], ['⭐', currentMode.xpMultiplier]].map(([ico, mult]) => (
-                        <div key={ico} className="lm-multiplier" style={{ background: `${currentMode.color}22`, border: `1px solid ${currentMode.color}33`, color: S.muted, padding: '4px 10px' }}>
-                          {ico} <span style={{ color: currentMode.color, fontWeight: 800 }}>×{mult}</span>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 18, color: currentMode.color }}>{currentMode.name}</div>
+                          {!isBonusClaimedToday(currentMode.id) && (
+                            <div style={{
+                              background: '#FF6B6B', color: '#fff', fontSize: 8,
+                              fontWeight: 900, padding: '1px 6px', borderRadius: 4,
+                              letterSpacing: 0.5, animation: 'pulse-soft 2s infinite'
+                            }}>LIVE</div>
+                          )}
                         </div>
-                      ))}
+                        <div style={{ fontSize: 10, color: S.muted, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.5 }}>EVENT TERBATAS</div>
+                      </div>
                     </div>
+                    <p style={{ fontSize: 13, color: dark ? '#CBD5E1' : S.text, margin: '0 0 12px', lineHeight: 1.6, fontWeight: 600 }}>{currentMode.desc}</p>
 
-                    {/* Futuristic Event Timer Style */}
-                    <div style={{
-                      flex: 1, height: 32, background: 'rgba(0,0,0,0.2)',
-                      borderRadius: 8, border: `1px solid ${currentMode.color}33`,
-                      display: 'flex', alignItems: 'center', padding: '0 10px',
-                      fontFamily: 'monospace', fontSize: 11, color: currentMode.color
-                    }}>
-                      <span style={{ opacity: 0.5, marginRight: 6 }}>ENDS:</span>
-                      <span style={{ fontWeight: 800, letterSpacing: 0.5 }}>{getNextWeekendEvent()?.label || '00:00:00'}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        {[['🪙', currentMode.coinMultiplier], ['⭐', currentMode.xpMultiplier]].map(([ico, mult]) => (
+                          <div key={ico} className="lm-multiplier" style={{ background: `${currentMode.color}22`, border: `1px solid ${currentMode.color}33`, color: S.muted, padding: '4px 10px' }}>
+                            {ico} <span style={{ color: currentMode.color, fontWeight: 800 }}>×{mult}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Futuristic Event Timer Style */}
+                      <div style={{
+                        flex: 1, height: 32, background: 'rgba(0,0,0,0.2)',
+                        borderRadius: 8, border: `1px solid ${currentMode.color}33`,
+                        display: 'flex', alignItems: 'center', padding: '0 10px',
+                        fontFamily: 'monospace', fontSize: 11, color: currentMode.color
+                      }}>
+                        <span style={{ opacity: 0.5, marginRight: 6 }}>ENDS:</span>
+                        <span style={{ fontWeight: 800, letterSpacing: 0.5 }}>{getNextWeekendEvent()?.label || '00:00:00'}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {!isBonusClaimedToday(currentMode.id) && (
-                  <button
-                    style={{
-                      background: `linear-gradient(135deg,${currentMode.color},${currentMode.color}cc)`,
-                      color: '#fff', border: 'none', borderRadius: 16, padding: '14px 24px',
-                      fontSize: 14, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap',
-                      fontFamily: "'Fredoka One',cursive",
-                      boxShadow: `0 8px 24px ${currentMode.color}55`,
-                      transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
-                    }}
-                    onClick={() => {
-                      markBonusAsClaimed(currentMode.id)
-                      trackLimitedModeBonus(currentMode.id, currentMode.name, 'event_bonus_claim', `Coins: ${currentMode.coinMultiplier}×, XP: ${currentMode.xpMultiplier}×`)
-                      trackEvent('limited_mode_bonus', { event_id: currentMode.id, event_name: currentMode.name })
-                      play('levelUp')
-                      if (games?.length > 0) {
-                        const rng = games[Math.floor(Math.random() * games.length)]
-                        setTimeout(() => onPlay(rng.id), 300)
-                      }
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 12px 30px ${currentMode.color}77` }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 8px 24px ${currentMode.color}55` }}
-                  >
-                    Ikut Event ➔
-                  </button>
-                )}
+                  {!isBonusClaimedToday(currentMode.id) && (
+                    <button
+                      style={{
+                        background: `linear-gradient(135deg,${currentMode.color},${currentMode.color}cc)`,
+                        color: '#fff', border: 'none', borderRadius: 16, padding: '14px 24px',
+                        fontSize: 14, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap',
+                        fontFamily: "'Fredoka One',cursive",
+                        boxShadow: `0 8px 24px ${currentMode.color}55`,
+                        transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                      }}
+                      onClick={() => {
+                        markBonusAsClaimed(currentMode.id)
+                        trackLimitedModeBonus(currentMode.id, currentMode.name, 'event_bonus_claim', `Coins: ${currentMode.coinMultiplier}×, XP: ${currentMode.xpMultiplier}×`)
+                        trackEvent('limited_mode_bonus', { event_id: currentMode.id, event_name: currentMode.name })
+                        play('levelUp')
+                        if (games?.length > 0) {
+                          const rng = games[Math.floor(Math.random() * games.length)]
+                          setTimeout(() => onPlay(rng.id), 300)
+                        }
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 12px 30px ${currentMode.color}77` }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 8px 24px ${currentMode.color}55` }}
+                    >
+                      Ikut Event ➔
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-
-
-            {/* ── CTA Semua Game ── */}
-            <div
-              className="section-card"
-              style={{
-                background: dark ? 'linear-gradient(135deg, #7C6FE8 0%, #FD79A8 100%)' : 'linear-gradient(135deg, #6C5CE7 0%, #FF7675 100%)',
-                color: '#fff', textAlign: 'center', padding: '36px 20px', cursor: 'pointer',
-                boxShadow: '0 10px 30px rgba(124,111,232,0.3)', border: 'none', margin: '32px 0',
-                animation: 'slide-up 0.4s ease both'
-              }}
-              onClick={() => { play('click'); onGames?.() }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              <div style={{ fontSize: 56, marginBottom: 12, animation: 'pulse-soft 2s infinite' }}>🎮🔍</div>
-              <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 26, margin: '0 0 8px 0', textShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
-                Pustaka Game Lengkap!
-              </h2>
-              <p style={{ margin: 0, fontSize: 13, opacity: 0.9, fontWeight: 700, maxWidth: 400, marginInline: 'auto', lineHeight: 1.5 }}>
-                Masih banyak petualangan yang menunggumu. Jelajahi {games.length}+ game seru lainnya di menu Katalog.
-              </p>
-              <div style={{
-                display: 'inline-block', background: '#fff', color: '#6C5CE7', padding: '12px 28px',
-                borderRadius: 100, fontSize: 15, fontWeight: 800, marginTop: 24, fontFamily: "'Fredoka One',cursive",
-                boxShadow: '0 6px 16px rgba(0,0,0,0.15)'
-              }}>LIHAT SEMUA GAME ➔</div>
-            </div>
-
-            {/* ── Roadmap ── */}
-            {ROADMAP_FUTURE.length > 0 && (
-              <section data-anime-section style={{ position: 'relative', marginBottom: 36 }}>
-                <div className="section-head">
-                  <h2 className="section-title"><span>🚀</span>Segera Hadir</h2>
-                  <span className="section-pill">wishlist</span>
-                  <div className="section-line" />
-                </div>
-                <div className="carousel-row">
-                  {ROADMAP_FUTURE.map(g => (
-                    <div key={g.title} className="cs-card">
-                      <div style={{ position: 'absolute', top: 8, right: 8, background: `${g.color}22`, color: g.color, fontSize: 8, fontWeight: 800, padding: '2px 7px', borderRadius: 100, border: `1px solid ${g.color}44`, textTransform: 'uppercase', letterSpacing: 0.5 }}>konsep</div>
-                      <div style={{ fontSize: 30, marginBottom: 6 }}>{g.emoji}</div>
-                      <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 13, color: S.text, marginBottom: 3 }}>{g.title}</div>
-                      <div style={{ fontSize: 10, color: S.muted, marginBottom: 7, lineHeight: 1.3 }}>{g.blurb}</div>
-                      <span style={{ background: `${g.color}22`, color: g.color, fontSize: 10, fontWeight: 700, padding: '2px 9px', borderRadius: 100, border: `1px solid ${g.color}33` }}>{g.tag}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
             )}
-
-            {/* ── Footer ── */}
-            <footer className="home-footer" data-anime-section>
-              <div className="footer-divider" />
-              <div className="footer-content">
-                <div className="footer-logo">
-                  <div className="footer-logo-icon">🎮</div>
-                  <span className="footer-logo-text">BrainPlay</span>
-                </div>
-                <p className="footer-tagline">
-                  Santai &amp; mengasah otak — {gameTotal} game, misi harian, dan tema yang bisa dikoleksi
-                </p>
-
-                {/* AKSA Interactive Studio Badge */}
-                <div style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 10,
-                  background: dark ? 'rgba(232,93,47,0.06)' : 'rgba(232,93,47,0.04)',
-                  border: `1.5px solid ${dark ? 'rgba(232,93,47,0.18)' : 'rgba(232,93,47,0.14)'}`,
-                  borderRadius: 14, padding: '8px 18px', marginBottom: 10,
-                  transition: 'all 0.2s',
-                }}>
-                  <img
-                    src="/aksa_logo.png"
-                    alt="AKSA Interactive"
-                    style={{
-                      height: 28, width: 'auto', objectFit: 'contain',
-                      borderRadius: 6,
-                      filter: dark ? 'brightness(1.1)' : 'none',
-                    }}
-                  />
-                </div>
-                <div style={{ marginBottom: 10 }}>
-                  <span style={{ fontSize: 11, color: S.muted, fontWeight: 600 }}>Developed by </span>
-                  <span style={{ fontFamily: "'Fredoka One',cursive", fontSize: 12, color: dark ? '#E85D2F' : '#D4441A' }}>AKSA Interactive</span>
-                </div>
-
-                <div className="footer-credit">
-                  <span style={{ fontSize: 12, color: S.muted, fontWeight: 600 }}>Dibuat dengan ❤️ oleh</span>
-                  <span className="footer-credit-name">Dwi Agus Hidayat</span>
-                </div>
-                <p className="footer-copy">© 2026 BrainPlay v0.9.8 — Semua hak dilindungi.</p>
-              </div>
-            </footer>
-
           </div>
-        </div>
 
-        <button
-          className={`scroll-top-btn${scrollTop ? ' visible' : ''}`}
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          aria-label="Scroll ke atas"
-        >↑</button>
 
-        {/* ── Game Detail Modal ── */}
-        {selectedGameForModal && (
-          <GameDetailModal
-            game={games.find(g => g.id === selectedGameForModal)}
-            onClose={() => setSelectedGameForModal(null)}
-            onPlay={(gameId, diffId) => {
-              setSelectedGameForModal(null)
-              onPlay(gameId, diffId)
+          {/* ── CTA Semua Game ── */}
+          <div
+            className="section-card"
+            style={{
+              background: dark ? 'linear-gradient(135deg, #7C6FE8 0%, #FD79A8 100%)' : 'linear-gradient(135deg, #6C5CE7 0%, #FF7675 100%)',
+              color: '#fff', textAlign: 'center', padding: '36px 20px', cursor: 'pointer',
+              boxShadow: '0 10px 30px rgba(124,111,232,0.3)', border: 'none', margin: '32px 0',
+              animation: 'slide-up 0.4s ease both'
             }}
-          />
-        )}
+            onClick={() => { play('click'); onGames?.() }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            <div style={{ fontSize: 56, marginBottom: 12, animation: 'pulse-soft 2s infinite' }}>🎮🔍</div>
+            <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 26, margin: '0 0 8px 0', textShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+              Pustaka Game Lengkap!
+            </h2>
+            <p style={{ margin: 0, fontSize: 13, opacity: 0.9, fontWeight: 700, maxWidth: 400, marginInline: 'auto', lineHeight: 1.5 }}>
+              Masih banyak petualangan yang menunggumu. Jelajahi {games.length}+ game seru lainnya di menu Katalog.
+            </p>
+            <div style={{
+              display: 'inline-block', background: '#fff', color: '#6C5CE7', padding: '12px 28px',
+              borderRadius: 100, fontSize: 15, fontWeight: 800, marginTop: 24, fontFamily: "'Fredoka One',cursive",
+              boxShadow: '0 6px 16px rgba(0,0,0,0.15)'
+            }}>LIHAT SEMUA GAME ➔</div>
+          </div>
+
+          {/* ── Roadmap ── */}
+          {ROADMAP_FUTURE.length > 0 && (
+            <section id="roadmap-section" data-anime-section style={{ position: 'relative', marginBottom: 36 }}>
+              <div className="section-head">
+                <h2 className="section-title"><span>🚀</span>Segera Hadir</h2>
+                <span className="section-pill">wishlist</span>
+                <div className="section-line" />
+              </div>
+              <div className="carousel-row">
+                {ROADMAP_FUTURE.map(g => (
+                  <div key={g.title} className="cs-card">
+                    <div style={{ position: 'absolute', top: 8, right: 8, background: `${g.color}22`, color: g.color, fontSize: 8, fontWeight: 800, padding: '2px 7px', borderRadius: 100, border: `1px solid ${g.color}44`, textTransform: 'uppercase', letterSpacing: 0.5 }}>konsep</div>
+                    <div style={{ fontSize: 30, marginBottom: 6 }}>{g.emoji}</div>
+                    <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 13, color: S.text, marginBottom: 3 }}>{g.title}</div>
+                    <div style={{ fontSize: 10, color: S.muted, marginBottom: 7, lineHeight: 1.3 }}>{g.blurb}</div>
+                    <span style={{ background: `${g.color}22`, color: g.color, fontSize: 10, fontWeight: 700, padding: '2px 9px', borderRadius: 100, border: `1px solid ${g.color}33` }}>{g.tag}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ── Footer ── */}
+          <footer className="home-footer" data-anime-section>
+            <div className="footer-divider" />
+            <div className="footer-content">
+              <div className="footer-logo">
+                <div className="footer-logo-icon">🎮</div>
+                <span className="footer-logo-text">BrainPlay</span>
+              </div>
+              <p className="footer-tagline">
+                Santai &amp; mengasah otak — {gameTotal} game, misi harian, dan tema yang bisa dikoleksi
+              </p>
+
+              {/* AKSA Interactive Studio Badge */}
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 10,
+                background: dark ? 'rgba(232,93,47,0.06)' : 'rgba(232,93,47,0.04)',
+                border: `1.5px solid ${dark ? 'rgba(232,93,47,0.18)' : 'rgba(232,93,47,0.14)'}`,
+                borderRadius: 14, padding: '8px 18px', marginBottom: 10,
+                transition: 'all 0.2s',
+              }}>
+                <img
+                  src="/aksa_logo.png"
+                  alt="AKSA Interactive"
+                  style={{
+                    height: 28, width: 'auto', objectFit: 'contain',
+                    borderRadius: 6,
+                    filter: dark ? 'brightness(1.1)' : 'none',
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: 10 }}>
+                <span style={{ fontSize: 11, color: S.muted, fontWeight: 600 }}>Developed by </span>
+                <span style={{ fontFamily: "'Fredoka One',cursive", fontSize: 12, color: dark ? '#E85D2F' : '#D4441A' }}>AKSA Interactive</span>
+              </div>
+
+              <div className="footer-credit">
+                <span style={{ fontSize: 12, color: S.muted, fontWeight: 600 }}>Dibuat dengan ❤️ oleh</span>
+                <span className="footer-credit-name">Dwi Agus Hidayat</span>
+              </div>
+              <p className="footer-copy">© 2026 BrainPlay v0.9.8 — Semua hak dilindungi.</p>
+            </div>
+          </footer>
+
+        </div>
+      </div>
+
+      <button
+        className={`scroll-top-btn${scrollTop ? ' visible' : ''}`}
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        aria-label="Scroll ke atas"
+      >↑</button>
+
+      {/* ── Game Detail Modal ── */}
+      {selectedGameForModal && (
+        <GameDetailModal
+          game={games.find(g => g.id === selectedGameForModal)}
+          onClose={() => setSelectedGameForModal(null)}
+          onPlay={(gameId, diffId) => {
+            setSelectedGameForModal(null)
+            onPlay(gameId, diffId)
+          }}
+        />
+      )}
     </>
   )
 }
