@@ -24,6 +24,7 @@ import ActivityTicker from '../components/ActivityTicker.jsx'
 import Mascot from '../components/Mascot.jsx'
 import InfiniteTicker from '../components/InfiniteTicker.jsx'
 import BlueprintIntro from '../components/BlueprintIntro.jsx'
+import BorderGlow from '../components/BorderGlow.jsx'
 gsap.registerPlugin(Flip)
 
 const ROADMAP_FUTURE = [
@@ -572,13 +573,13 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           )}
 
           {/* ── Interactive Companion Mascot ── */}
+          <BorderGlow glowColor={S.accent} borderRadius="24px" style={{ display: 'block', width: '100%', marginBottom: 32 }}>
           <div
             id="mascot-home-card"
             style={{
               background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
               borderRadius: 24,
               padding: '16px 20px',
-              marginBottom: 32,
               border: `1.5px solid ${S.border}`,
               display: 'flex',
               alignItems: 'center',
@@ -648,9 +649,11 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
               </div>
             </div>
           </div>
+          </BorderGlow>
 
           {/* ── Flagship Design (v2) ── */}
           {flagshipGame && (
+            <BorderGlow glowColor="rgba(82, 30, 148, 0.7)" borderRadius="20px" style={{ display: 'block', width: '100%' }}>
             <div className="flagship-banner" data-anime-reveal>
               <div className="fs-emoji">{flagshipGame.emoji}</div>
               <div className="fs-tag">Game Favorit</div>
@@ -676,6 +679,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                 MAINKAN SEKARANG
               </button>
             </div>
+            </BorderGlow>
           )}
 
           {/* ── Battle Pass Season Banner ── */}
@@ -684,13 +688,15 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             if (!seasonInfo) return null
             const pct = Math.round(seasonInfo.progress * 100)
             return (
+              <BorderGlow glowColor="#00f5ff" borderRadius="20px" style={{ display: 'block', width: '100%', marginBottom: 16 }}>
               <div
                 className="section-card"
                 style={{
                   background: 'linear-gradient(135deg, #020118, #1A1F35)',
                   border: '1.5px solid rgba(0,245,255,0.25)',
                   boxShadow: '0 8px 30px rgba(0,245,255,0.1)',
-                  position: 'relative', overflow: 'hidden'
+                  position: 'relative', overflow: 'hidden',
+                  marginBottom: 0
                 }}
                 onClick={() => { play('click'); window.dispatchEvent(new CustomEvent('openBP')) }}
               >
@@ -719,6 +725,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                   )}
                 </div>
               </div>
+              </BorderGlow>
             )
           })()}
 
@@ -760,7 +767,8 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           {/* Daily Challenges are now standalone in the new layout */}
 
           {/* ── Misi Harian ── */}
-          <div className="section-card" id="features-section" data-anime-reveal>
+          <BorderGlow glowColor="#FD79A8" borderRadius="20px" style={{ display: 'block', width: '100%', marginBottom: 12 }}>
+          <div className="section-card" id="features-section" data-anime-reveal style={{ marginBottom: 0 }}>
             <div className="sc-header">
               <span style={{ fontSize: 20 }}>⚔️</span>
               <span className="sc-title">Misi Harian</span>
@@ -954,15 +962,17 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
               </div>
             )}
           </div>
+          </BorderGlow>
 
 
           {/* ── CTA Semua Game ── */}
+          <BorderGlow glowColor="rgba(255, 118, 117, 0.8)" borderRadius="20px" style={{ display: 'block', width: '100%', marginBottom: 32 }}>
           <div
             className="section-card"
             style={{
               background: dark ? 'linear-gradient(135deg, #7C6FE8 0%, #FD79A8 100%)' : 'linear-gradient(135deg, #6C5CE7 0%, #FF7675 100%)',
               color: '#fff', textAlign: 'center', padding: '36px 20px', cursor: 'pointer',
-              boxShadow: '0 10px 30px rgba(124,111,232,0.3)', border: 'none', margin: '32px 0',
+              boxShadow: '0 10px 30px rgba(124,111,232,0.3)', border: 'none', margin: '0',
               animation: 'slide-up 0.4s ease both'
             }}
             onClick={() => { play('click'); onGames?.() }}
@@ -982,6 +992,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
               boxShadow: '0 6px 16px rgba(0,0,0,0.15)'
             }}>LIHAT SEMUA GAME ➔</div>
           </div>
+          </BorderGlow>
 
           {/* ── Roadmap ── */}
           {ROADMAP_FUTURE.length > 0 && (

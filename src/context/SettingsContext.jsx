@@ -13,7 +13,7 @@ function initialReduceMotion() {
 
 export function SettingsProvider({ children }) {
   const [darkMode, setDarkMode] = useState(
-    () => localStorage.getItem('brainplay-dark') === 'true'
+    () => localStorage.getItem('brainplay-dark') !== 'false'
   )
   const [reduceMotion, setReduceMotion] = useState(initialReduceMotion)
   const [muted, setMuted] = useState(
