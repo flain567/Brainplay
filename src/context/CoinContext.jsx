@@ -253,6 +253,7 @@ export const BP_SHIP_CATALOG = [
       4:{ type:'petal', count:3 },
       5:{ type:'blossom', count:1 }
     },
+    design:{ body:'#00FF88', wing:'#00CC6E', cockpit:'#B8FFD0', engine:'#00FF88', accent:'#fff' },
     img:'/ships/bp_v2_ship1.png', bulletType:'burst-3' },
   { id:'bp-v2-2', name:'Amber Horizon', desc:'Dudesain dengan warna emas hangat. Tembakan gelombang yang kuat.',
     price:0, icon:'🚀', color:'#FFD700', exclusive:true, rarity:'legendary',
@@ -264,6 +265,7 @@ export const BP_SHIP_CATALOG = [
       4:{ type:'tsunami', count:1 },
       5:{ type:'tsunami', count:2 }
     },
+    design:{ body:'#FFD700', wing:'#E0B026', cockpit:'#FFF3A3', engine:'#FFD700', accent:'#fff' },
     img:'/ships/bp_v2_ship2.png', bulletType:'wave' },
   { id:'bp-v2-3', name:'Cobalt Wings', desc:'Sayap kobalt yang tajam memberikan kelincahan maksimal di angkasa.',
     price:0, icon:'🚀', color:'#74B9FF', exclusive:true, rarity:'legendary',
@@ -275,6 +277,7 @@ export const BP_SHIP_CATALOG = [
       4:{ type:'spiral', count:2 },
       5:{ type:'spiral', count:3 }
     },
+    design:{ body:'#74B9FF', wing:'#4A8DD8', cockpit:'#D1EAFF', engine:'#74B9FF', accent:'#fff' },
     img:'/ships/bp_v2_ship3.png', bulletType:'plasma' },
   { id:'bp-v2-ultimate', name:'Aegis Prime - B4', desc:'Unit Mecha legendaris terkuat. Senjata Mega Beam penghancur segalanya.',
     price:0, icon:'👑', color:'#FFF200', exclusive:true, rarity:'mythic',
@@ -286,6 +289,7 @@ export const BP_SHIP_CATALOG = [
       4:{ type:'mega-beam', count:2 },
       5:{ type:'omega-blast', count:1 }
     },
+    design:{ body:'#FFF200', wing:'#BCB100', cockpit:'#FFFFCC', engine:'#FFF200', accent:'#fff' },
     img:'/ships/bp_v2_ultimate.png', bulletType:'mega-beam' },
   { id:'bp-v2-final', name:'Aegis Prime - X1', desc:'Unit Mecha puncak evolusi. Dilengkapi dengan dual Omega Pulse dan armor nanotech.',
     price:0, icon:'👑', color:'#00F5FF', exclusive:true, rarity:'mythic',
@@ -297,6 +301,7 @@ export const BP_SHIP_CATALOG = [
       4:{ type:'omega-blast', count:2 },
       5:{ type:'omega-ultra', count:1 }
     },
+    design:{ body:'#00F5FF', wing:'#00C5CC', cockpit:'#C2FAFF', engine:'#00F5FF', accent:'#fff' },
     img:'/ships/bp_v2_ultimate.png', bulletType:'omega-ultra' },
   { id:'astra-warden', name:'Veridian Warden', desc:'Kapal penjaga galaksi dengan teknologi inti zamrud. Keseimbangan antara pertahanan dan serangan.',
     price:0, icon:'🛡️', color:'#2ECC71', exclusive:true, rarity:'legendary',
@@ -308,6 +313,7 @@ export const BP_SHIP_CATALOG = [
       4:{ type:'heavy', count:3 },
       5:{ type:'plasma', count:3 }
     },
+    design:{ body:'#2ECC71', wing:'#27AE60', cockpit:'#ABEBC6', engine:'#2ECC71', accent:'#fff' },
     img:'/ships/bp_v2_ship1.png', bulletType:'heavy' },
 ]
 

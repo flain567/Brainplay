@@ -49,6 +49,36 @@ export const CUSTOM_BORDERS = {
     id: 'void-phantom', name: 'Void Phantom', color: '#a29bfe', 
     url: '/src/assets/borders/void_phantom.png',
     premium: true, rarity: 'Legendary'
+  },
+  'neon-blue': {
+    id: 'neon-blue', name: 'Neon Blue', color: '#00d2ff',
+    url: '/src/assets/borders/neon_cyber.png', // Fallback to existing or placeholder
+    premium: true, rarity: 'Epic'
+  },
+  'mythic-celestial': {
+    id: 'mythic-celestial', name: 'Mythic Celestial', color: '#ff00ff',
+    url: '/src/assets/borders/void_phantom.png',
+    premium: true, rarity: 'Mythic'
+  },
+  'void-overlord': {
+    id: 'void-overlord', name: 'Void Overlord', color: '#6c5ce7',
+    url: '/src/assets/borders/void_phantom.png',
+    premium: true, rarity: 'Mythic'
+  },
+  'neon-matrix': {
+    id: 'neon-matrix', name: 'Neon Matrix', color: '#00ff88',
+    url: '/src/assets/borders/neon_cyber.png',
+    premium: true, rarity: 'Epic'
+  },
+  'solar-flare': {
+    id: 'solar-flare', name: 'Solar Flare', color: '#ff4500',
+    url: '/src/assets/borders/magma_surge.png',
+    premium: true, rarity: 'Legendary'
+  },
+  'plasma-glow': {
+    id: 'plasma-glow', name: 'Plasma Glow', color: '#00f5ff',
+    url: '/src/assets/borders/neon_cyber.png',
+    premium: true, rarity: 'Transcendent'
   }
 }
 
@@ -611,7 +641,7 @@ export function ProgressProvider({ children }) {
       progress, reportGameResult, 
       clearNewAchievements, clearLevelUp, 
       setSelectedTitle, unlockTitle,
-      claimBPTier, claimLevelReward, setSelectedBorder, unlockBorder,
+      claimBPTier, claimLevelReward, setSelectedBorder, selectBorder: setSelectedBorder, unlockBorder,
       getLevelInfo: () => getLevelInfo(progress.totalXP || 0),
       getSeasonInfo: () => {
         const curXP = progress.seasonXP || 0
