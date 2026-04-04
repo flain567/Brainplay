@@ -89,6 +89,22 @@ export const CUSTOM_BORDERS = {
   }
 }
 
+// ─── Avatar Catalog ──────────────────────────────────────────────────────────
+export const AVATAR_CATALOG = [
+  // 5 FREE avatars (unlocked by default)
+  { id: 'raccoon',  name: 'Raccoon',     img: '/avatar/avatar-2.png',  color: '#9E9E9E', rarity: 'Common',    price: 0, free: true, desc: 'Si kecil yang cerdik' },
+  { id: 'fox',      name: 'Fox',         img: '/avatar/avatar-3.png',  color: '#FF6D00', rarity: 'Common',    price: 0, free: true, desc: 'Rubah yang gesit' },
+  { id: 'kiddo',    name: 'Kiddo',       img: '/avatar/avatar-5.png',  color: '#FF8A65', rarity: 'Common',    price: 0, free: true, desc: 'Santai tapi pasti' },
+  { id: 'lynx',     name: 'Lynx',        img: '/avatar/avatar-8.png',  color: '#26A69A', rarity: 'Common',    price: 0, free: true, desc: 'Predator dari hutan' },
+  { id: 'wolf',     name: 'Wolf',        img: '/avatar/avatar-10.png', color: '#FDD835', rarity: 'Common',    price: 0, free: true, desc: 'Sang serigala mandiri' },
+  // 5 PREMIUM avatars (purchasable)
+  { id: 'kraken',   name: 'Kraken',      img: '/avatar/avatar-1.png',  color: '#D32F2F', rarity: 'Rare',      price: 300, desc: 'Monster dari kedalaman' },
+  { id: 'panda',    name: 'Cyber Panda', img: '/avatar/avatar-4.png',  color: '#42A5F5', rarity: 'Epic',      price: 500, desc: 'Panda bermata neon' },
+  { id: 'skull',    name: 'Skull King',  img: '/avatar/avatar-6.png',  color: '#FFD600', rarity: 'Legendary', price: 800, desc: 'Raja dari kegelapan' },
+  { id: 'mammoth',  name: 'Mammoth',     img: '/avatar/avatar-7.png',  color: '#64B5F6', rarity: 'Epic',      price: 600, desc: 'Raksasa zaman es' },
+  { id: 'eagle',    name: 'Golden Eagle',img: '/avatar/avatar-9.png',  color: '#FFA000', rarity: 'Rare',      price: 400, desc: 'Penguasa langit' },
+]
+
 // ─── Level Rewards (Borders & Title Colors) ──────────────────────────────────
 export const LEVEL_REWARDS = {
   1:  CUSTOM_BORDERS['wood'],
@@ -302,6 +318,8 @@ function getDefaultProgress() {
     claimedLevelRewards: [], // List of claimed level reward numbers
     selectedBorder: null,    // Custom border ID
     unlockedBorders: [],     // List of unlocked border IDs
+    selectedAvatar: null,    // Custom avatar ID (from AVATAR_CATALOG)
+    unlockedAvatars: ['raccoon','fox','kiddo','lynx','wolf'], // 5 free avatars unlocked by default
   }
 }
 
@@ -621,6 +639,20 @@ export function ProgressProvider({ children }) {
     })
   }, [])
 
+  // Avatar management
+  const setSelectedAvatar = useCallback((avatarId) => {
+    setProgress(p => ({ ...p, selectedAvatar: avatarId }))
+  }, [])
+
+  const unlockAvatar = useCallback((id) => {
+    setProgress(p => {
+      const set = new Set(p.unlockedAvatars || ['raccoon','fox','kiddo','lynx','wolf'])
+      if (set.has(id)) return p
+      set.add(id)
+      return { ...p, unlockedAvatars: [...set] }
+    })
+  }, [])
+
   // Title management
   const setSelectedTitle = useCallback((title) => {
     setProgress(p => ({ ...p, selectedTitle: title }))
@@ -648,6 +680,7 @@ export function ProgressProvider({ children }) {
       progress, reportGameResult, 
       clearNewAchievements, clearLevelUp, 
       setSelectedTitle, unlockTitle,
+      setSelectedAvatar, unlockAvatar,
       claimBPTier, claimLevelReward, setSelectedBorder, selectBorder: setSelectedBorder, unlockBorder,
       getLevelInfo: () => getLevelInfo(progress.totalXP || 0),
       getSeasonInfo: () => {

@@ -12,6 +12,7 @@ import { LocalAnalyticsProvider } from './context/LocalAnalyticsContext.jsx'
 import { CloudSaveProvider, useCloudSave } from './context/CloudSaveContext.jsx'
 import { InventoryProvider } from './context/InventoryContext.jsx'
 import { SocialProvider, useSocial } from './context/SocialContext.jsx'
+import { FriendsProvider, useFriends } from './context/FriendsContext.jsx'
 import UserProfileModal from './components/UserProfileModal.jsx'
 import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
@@ -44,6 +45,7 @@ const GameStatsPage = lazy(() => import('./pages/GameStatsPage.jsx'))
 const AnalyticsDashboard = lazy(() => import('./pages/AnalyticsDashboard.jsx'))
 const AdminAnalyticsDashboard = lazy(() => import('./pages/AdminAnalyticsDashboard.jsx'))
 const InventoryPage = lazy(() => import('./pages/Inventory.jsx'))
+const FriendsPage = lazy(() => import('./pages/Friends.jsx'))
 const LoginModal  = lazy(() => import('./components/LoginModal.jsx'))
 const OnboardingModal = lazy(() => import('./components/OnboardingModal.jsx'))
 
@@ -598,6 +600,7 @@ function AppInner() {
   const goLeaderboard = () => { setIsWheelOpen(false); setScreen('leaderboard'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goStats       = () => { setIsWheelOpen(false); setScreen('stats'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goInventory   = () => { setIsWheelOpen(false); setScreen('inventory'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goFriends     = () => { setIsWheelOpen(false); setScreen('friends'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goAnalytics   = () => { setIsWheelOpen(false); setScreen('analytics'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goGames       = () => { setIsWheelOpen(false); setScreen('games'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goAdmin       = () => { setIsWheelOpen(false); setScreen('admin'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
@@ -672,6 +675,7 @@ function AppInner() {
               onStats={goStats} 
               onOpenWheel={openWheel}
               onGames={goGames}
+              onFriends={goFriends}
             />
           )}
           {screen === 'profile' && (
@@ -680,6 +684,7 @@ function AppInner() {
                 onBack={goHome} 
                 games={GAMES} 
                 onAnalytics={goAnalytics} 
+                onFriends={goFriends}
                 onAdmin={userId && ADMIN_IDS.includes(userId) ? goAdmin : null} 
               />
             </Suspense>
@@ -697,6 +702,11 @@ function AppInner() {
           {screen === 'inventory' && (
             <Suspense fallback={<GameLoader />}>
               <InventoryPage onBack={goHome} />
+            </Suspense>
+          )}
+          {screen === 'friends' && (
+            <Suspense fallback={<GameLoader />}>
+              <FriendsPage onBack={goHome} />
             </Suspense>
           )}
 
@@ -777,14 +787,16 @@ export default function App() {
                   <InventoryProvider>
                     <LeaderboardProvider>
                       <SocialProvider>
-                        <LuckyWheelProvider>
-                          <DailyChallengeProvider>
-                            <NotifProvider>
-                              <ThemeApplicator />
-                              <AppInner />
-                            </NotifProvider>
-                          </DailyChallengeProvider>
-                        </LuckyWheelProvider>
+                        <FriendsProvider>
+                          <LuckyWheelProvider>
+                            <DailyChallengeProvider>
+                              <NotifProvider>
+                                <ThemeApplicator />
+                                <AppInner />
+                              </NotifProvider>
+                            </DailyChallengeProvider>
+                          </LuckyWheelProvider>
+                        </FriendsProvider>
                       </SocialProvider>
                     </LeaderboardProvider>
                   </InventoryProvider>

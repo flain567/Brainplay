@@ -44,7 +44,7 @@ const TAG_META = {
   Pengetahuan: { icon: '🇮🇩', color: '#0984E3' },
 }
 
-export default function Home({ games, onPlay, onContinueLast, onProfile, onShop, onStats, onOpenWheel, onGames }) {
+export default function Home({ games, onPlay, onContinueLast, onProfile, onShop, onStats, onOpenWheel, onGames, onFriends }) {
   const { darkMode, reduceMotion } = useSettings()
   const { play } = useSound()
   const { progress, getSeasonInfo } = useProgress()
@@ -193,19 +193,29 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         .pb-stat-val { font-size:12px; font-weight:800; color:${S.text}; font-family:'Fredoka One',cursive; }
         .combo-badge { background:linear-gradient(135deg,#FF6B6B,#FD79A8); color:#fff; padding:1px 6px; border-radius:100px; font-size:9px; font-weight:800; }
 
-        /* Quick Actions */
-        .quick-actions { display:flex; gap:8px; margin-bottom:12px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none; animation:slide-up 0.4s 0.05s ease both; }
-        .quick-actions::-webkit-scrollbar { display:none; }
-        .qa-btn {
-          flex-shrink:0; display:flex; align-items:center; gap:6px;
-          padding:8px 15px; border-radius:13px; border:1.5px solid ${S.border};
-          background:${S.surface}; color:${S.text}; font-size:12px; font-weight:700;
-          cursor:pointer; transition:all 0.2s; white-space:nowrap; font-family:'Nunito',sans-serif; position:relative;
-          -webkit-tap-highlight-color:transparent;
+        /* Quick Actions Grid */
+        .quick-actions { 
+          display: grid; 
+          grid-template-columns: repeat(3, 1fr); 
+          gap: 10px; 
+          margin-bottom: 24px; 
+          animation: slide-up 0.4s 0.05s ease both; 
         }
-        .qa-btn:hover { transform:translateY(-2px); border-color:${S.accent}; }
-        .qa-btn:active { transform:scale(0.97); }
-        .qa-free { background:#EF4444; color:#fff; font-size:8px; font-weight:800; padding:1px 5px; border-radius:5px; }
+        @media (max-width: 480px) {
+          .quick-actions { grid-template-columns: repeat(2, 1fr); }
+        }
+        .qa-btn {
+          display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+          padding: 16px 10px; border-radius: 18px; border: 1.5px solid ${S.border};
+          background: ${S.surface}; color: ${S.text}; font-size: 13px; font-weight: 700;
+          cursor: pointer; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+          font-family: 'Fredoka One', cursive; position: relative;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .qa-btn:hover { transform: translateY(-4px); border-color: ${S.accent}; box-shadow: 0 8px 20px ${S.accent}22; }
+        .qa-btn:active { transform: scale(0.95); }
+        .qa-free { position: absolute; top: 6px; right: 6px; background: #EF4444; color: #fff; font-size: 8px; font-weight: 800; padding: 2px 6px; border-radius: 6px; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4); }
+        .qa-ico { font-size: 24px; }
 
         /* Flagship Design (v2) */
         .flagship-banner {
@@ -429,31 +439,44 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
               style={{ borderColor: `${S.accent}55`, color: S.accent, background: S.accentFill }}
               onClick={() => { play('click'); onOpenWheel() }}
             >
-              🎡 Lucky Wheel
+              <span className="qa-ico">🎡</span>
+              Lucky Wheel
               {hasFreeSpins && <span className="qa-free">FREE</span>}
+            </button>
+            <button
+              className="qa-btn"
+              style={{ borderColor: `${S.accent}55`, color: S.accent, background: S.accentFill }}
+              onClick={() => { play('click'); onFriends?.() }}
+            >
+              <span className="qa-ico">🤝</span>
+              Teman
             </button>
             <button
               className="qa-btn"
               style={{ borderColor: `${S.accent}55`, color: S.accent, background: S.accentFill }}
               onClick={() => { play('click'); onGames?.() }}
             >
-              🎮 Cari Game
+              <span className="qa-ico">🎮</span>
+              Katalog
             </button>
             <button
               className="qa-btn"
               style={{ borderColor: `${S.gold}55`, color: S.gold, background: dark ? 'rgba(234,179,8,0.06)' : 'rgba(249,168,37,0.04)' }}
               onClick={() => { play('click'); onShop?.() }}
             >
-              🏪 Shop
+              <span className="qa-ico">🏪</span>
+              Shop
             </button>
             {onStats && (
               <button className="qa-btn" onClick={() => { play('click'); onStats?.() }}>
-                📊 Stats
+                <span className="qa-ico">📊</span>
+                Stats
               </button>
             )}
             {onProfile && (
               <button className="qa-btn" onClick={() => { play('click'); onProfile?.() }}>
-                👤 Profil
+                <span className="qa-ico">👤</span>
+                Profil
               </button>
             )}
           </div>

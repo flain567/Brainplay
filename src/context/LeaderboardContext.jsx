@@ -237,11 +237,12 @@ export function LeaderboardProvider({ children }) {
       const progress = JSON.parse(localStorage.getItem('bp_progress') || '{}')
       const selectedTitle = progress.selectedTitle || null
       const selectedBorder = progress.selectedBorder || null
+      const selectedAvatar = progress.selectedAvatar || null
 
       const attemptData = {
         gameId, diffId, sessionId,
         name: entry.name || 'Pemain',
-        selectedTitle, selectedBorder,
+        selectedTitle, selectedBorder, selectedAvatar,
         score: entry.score,
         wave: entry.wave || null,
         time: entry.time || null,

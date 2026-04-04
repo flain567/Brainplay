@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { LEVEL_TITLES, getBorderForLevel, CUSTOM_BORDERS } from '../context/ProgressContext.jsx'
+import { LEVEL_TITLES, getBorderForLevel, CUSTOM_BORDERS, AVATAR_CATALOG } from '../context/ProgressContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { useSocial } from '../context/SocialContext.jsx'
 import gsap from 'gsap'
@@ -97,8 +97,10 @@ export default function UserProfileModal({ uid, onClose }) {
         .upm-avatar-inner {
           position: absolute; inset: 12px;
           border-radius: 50%; display: flex; align-items: center; justify-content: center;
-          font-size: 50px; background: ${borderData.bgColor || '#333'};
+          display: flex; align-items: center; justify-content: center;
+          font-size: 50px; background: ${profile?.progress?.selectedAvatar ? (AVATAR_CATALOG.find(a=>a.id===profile.progress.selectedAvatar)?.color || (borderData.bgColor || '#333')) : (borderData.bgColor || '#333')};
           overflow: hidden; z-index: 1;
+          box-shadow: ${profile?.progress?.selectedAvatar ? 'inset 0 0 15px rgba(0,0,0,0.5)' : 'none'};
         }
         .upm-border-overlay {
           position: absolute; inset: 0;
@@ -133,7 +135,9 @@ export default function UserProfileModal({ uid, onClose }) {
 
           <div className="upm-avatar-container">
             <div className="upm-avatar-inner">
-              {profile.photoURL ? (
+              {profile?.progress?.selectedAvatar ? (
+                <img src={AVATAR_CATALOG.find(a=>a.id===profile.progress.selectedAvatar)?.img} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : profile?.photoURL ? (
                 <img src={profile.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
               ) : (
                 '👤'

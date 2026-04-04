@@ -4,7 +4,7 @@ import { useSound } from '../hooks/useSound.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, BASE_SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, PATTERN_THEMES, REACTION_THEMES, DASH_THEMES, BREAKER_THEMES, WORDLE_THEMES, RACER_THEMES, RACER_MAP_CATALOG, MATH_THEMES, BINARY_THEMES, MINE_THEMES, SLIDING_THEMES, BORDER_CATALOG, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
-import { useProgress, CUSTOM_BORDERS } from '../context/ProgressContext.jsx'
+import { useProgress, CUSTOM_BORDERS, AVATAR_CATALOG } from '../context/ProgressContext.jsx'
 import { WHEEL_EXCLUSIVES, useLuckyWheel } from '../context/LuckyWheelContext.jsx'
 
 // ─── Generic cosmetic list renderer ─────────────────────────────────────────
@@ -138,9 +138,9 @@ export default function Shop({ onBack }) {
     ownedSlidingThemes, activeSlidingTheme,
     ownedBorders,
     hints, timeFreezes, dailyStreak, isDailyClaimable,
-    buyCosmetic, equipCosmetic, buyConsumable, claimDaily, transactions, earnCoins,
+    buyCosmetic, equipCosmetic, buyConsumable, claimDaily, transactions, earnCoins, spendCoins
   } = useCoins()
-  const { progress, setSelectedBorder, unlockBorder } = useProgress()
+  const { progress, setSelectedBorder, unlockBorder, setSelectedAvatar, unlockAvatar } = useProgress()
   const tc = useThemeColors()
 
   const [tab, setTab] = useState('packs')
@@ -205,6 +205,21 @@ export default function Shop({ onBack }) {
     if (item.exclusive || item.wheelOnly) { play('mismatch'); showToast('Item ini hanya dari Lucky Wheel! 🎰'); return }
     if (coins < item.price) { play('mismatch'); showToast('Coin tidak cukup! 😅'); return }
     setBuyingId(item.id); play('click')
+    
+    if (type === 'avatars') {
+      setTimeout(async () => {
+        const ok = await spendCoins(item.price, `Beli ${item.name}`)
+        setBuyingId(null)
+        if (ok) {
+          unlockAvatar(item.id)
+          play('win'); showToast(`${item.name} berhasil dibeli! 🎉`)
+        } else {
+          play('mismatch'); showToast('Gagal membeli')
+        }
+      }, 600)
+      return
+    }
+
     setTimeout(async () => {
       const result = await buyCosmetic(type, item.id)
       setBuyingId(null)
@@ -219,6 +234,7 @@ export default function Shop({ onBack }) {
   const handleEquip = (type, itemId) => {
     play('click')
     if (type === 'borders') setSelectedBorder(itemId)
+    else if (type === 'avatars') setSelectedAvatar(itemId)
     else equipCosmetic(type, itemId)
     showToast('Diaktifkan! ✅')
   }
@@ -262,6 +278,7 @@ export default function Shop({ onBack }) {
     { id:'minesweeper',label:'💣 Minesweep' },
     { id:'sliding',    label:'🧩 Sliding'   },
     { id:'webtheme',   label:'🎨 Tema'      },
+    { id:'avatars',    label:'👤 Avatar'    },
     { id:'borders',    label:'🖼️ Bingkai'   },
     { id:'history',    label:'📜 Riwayat',  },
   ]
@@ -310,18 +327,36 @@ export default function Shop({ onBack }) {
         .pack-icon-cell:hover { transform:scale(1.2); }
         @keyframes buyPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
         .shop-tab-row { 
-          display:flex; gap:20px; margin-bottom:24px; overflow-x:auto; 
-          padding: 4px 0 12px; border-bottom: 1.5px solid rgba(255,255,255,0.08);
-          scrollbar-width: none; -webkit-overflow-scrolling: touch;
+          display: grid; 
+          grid-template-columns: repeat(3, 1fr); 
+          gap: 6px; 
+          margin-bottom: 20px;
+          padding: 10px; 
+          background: ${dark ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.04)'};
+          border-radius: 16px; 
+          border: 1.5px solid ${borderCol};
+        }
+        @media (min-width: 600px) {
+          .shop-tab-row { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (min-width: 800px) {
+          .shop-tab-row { grid-template-columns: repeat(6, 1fr); }
         }
         .shop-tab-row::-webkit-scrollbar { display:none; }
         .shop-tab {
-          padding: 8px 0; border: none; background: transparent;
-          font-family: 'Fredoka One', cursive; font-size: 14px;
-          color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.2s;
-          white-space: nowrap; border-bottom: 3px solid transparent;
+          padding: 8px 4px; border: 1px solid transparent; background: transparent;
+          font-family: 'Fredoka One', cursive; font-size: 11px;
+          color: ${textMuted}; cursor: pointer; transition: all 0.2s ease;
+          white-space: nowrap; border-radius: 10px;
+          text-align: center; overflow: hidden; text-overflow: ellipsis;
         }
-        .shop-tab.active { color: var(--accent-vivid); border-color: var(--accent-vivid); }
+        .shop-tab:hover { background: ${dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'}; color: ${textMain}; }
+        .shop-tab.active { 
+          background: ${dark ? 'rgba(124,111,232,0.15)' : 'rgba(108,92,231,0.08)'}; 
+          color: ${dark ? '#7C6FE8' : '#6C5CE7'}; 
+          border-color: ${dark ? 'rgba(124,111,232,0.3)' : 'rgba(108,92,231,0.2)'};
+          box-shadow: 0 4px 12px rgba(124,111,232,0.1);
+        }
         .tx-row {
           display:flex; align-items:center; gap:12px; padding:10px 14px;
           border-radius:12px; margin-bottom:6px;
@@ -1187,7 +1222,56 @@ export default function Shop({ onBack }) {
             </div>
           )}
 
-          {/* ── Avatar Borders (NEW) ── */}
+          {/* ── Avatar (NEW) ── */}
+          {tab === 'avatars' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
+                Kustomisasi avatar profil kamu
+              </p>
+              <CosmeticList
+                items={AVATAR_CATALOG} ownedList={progress.unlockedAvatars||[]} activeId={progress.selectedAvatar || (progress.unlockedAvatars?.[0])} type="avatars"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('avatars', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                renderPreview={(item) => {
+                  const bd = CUSTOM_BORDERS[progress.selectedBorder] || {}
+                  return (
+                    <div style={{ 
+                      marginTop:12, padding:20, borderRadius:16, 
+                      background:dark?'rgba(0,0,0,0.2)':'rgba(0,0,0,0.05)', 
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      position:'relative'
+                    }}>
+                      <div style={{ position:'relative', width:100, height:100, background: item.color, borderRadius:'50%', overflow:'hidden', boxShadow:`0 0 20px ${item.color}88` }}>
+                        <img src={item.img} alt={item.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                        {bd.url ? (
+                          <div style={{
+                            position:'absolute', inset:-10,
+                            backgroundImage: `url(${bd.url})`,
+                            backgroundSize: '100% 100%',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat',
+                            zIndex: 2, pointerEvents: 'none'
+                          }} />
+                        ) : bd.border && (
+                          <div style={{
+                            position:'absolute', inset:-5, borderRadius:'50%',
+                            border: bd.border,
+                            boxShadow: bd.boxShadow,
+                            zIndex: 2, pointerEvents: 'none' // Basic border doesn't clip
+                          }} />
+                        )}
+                      </div>
+                    </div>
+                  )
+                }}
+              />
+            </div>
+          )}
+
+          {/* ── Avatar Borders ── */}
           {tab === 'borders' && (
             <div style={{ animation:'slide-up 0.3s ease both' }}>
               <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>

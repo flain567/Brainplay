@@ -61,8 +61,16 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
             'progress', 'coins', 'inventory', 'displayName', 'updatedAt'
           ])
-        // Anti-DDoS: limit document size (< 50KB for cloud save data)
         && request.resource.size() < 51200;
+
+      // ── Subcollection: Friends ──
+      match /friends/{friendId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.keys().hasOnly(['addedAt'])
+          && request.resource.size() < 100;
+        allow delete: if isOwner(userId);
+      }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -120,7 +128,7 @@ service cloud.firestore {
           // Schema injection protection: only allow known fields
           && request.resource.data.keys().hasOnly([
               'gameId', 'diffId', 'sessionId', 'name',
-              'selectedTitle', 'selectedBorder',
+              'selectedTitle', 'selectedBorder', 'selectedAvatar',
               'score', 'wave', 'time', 'level',
               'uid', 'photoURL', 'deviceId', 'checksum', 'createdAt'
             ]);
@@ -175,6 +183,12 @@ service cloud.firestore {
     match /admins/{uid} {
       allow read: if isAuthenticated() && request.auth.uid == uid;
       allow write: if false;
+    }
+
+    match /userCodes/{uid} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(uid) && request.resource.data.keys().hasOnly(['code', 'uid']);
+      allow update, delete: if false;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

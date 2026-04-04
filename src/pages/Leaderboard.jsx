@@ -4,7 +4,8 @@ import { useSound } from '../hooks/useSound.js'
 import { useLeaderboard } from '../context/LeaderboardContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
-import { CUSTOM_BORDERS, getBorderForLevel, getLevelInfo, useProgress } from '../context/ProgressContext.jsx'
+import { useFriends } from '../context/FriendsContext.jsx'
+import { CUSTOM_BORDERS, getBorderForLevel, getLevelInfo, useProgress, AVATAR_CATALOG } from '../context/ProgressContext.jsx'
 
 const GAME_TABS = [
   { id:'memory-card',    emoji:'🃏', label:'Memory' },
@@ -34,6 +35,7 @@ const GAME_TABS = [
 
 const DIFF_TABS = [
   { id: null, label: '🏆 Semua' },
+  { id: 'friends', label: '🤝 Teman' },
   { id: 'easy', label: '🟢 Mudah' },
   { id: 'medium', label: '🟡 Sedang' },
   { id: 'hard', label: '🔴 Sulit' },
@@ -329,10 +331,14 @@ function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname, onInspec
             {/* Avatar Content */}
             <div style={{
               position: 'absolute', inset: 4, borderRadius: 20,
-              background: 'rgba(255,255,255,0.05)', overflow: 'hidden',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
+              background: entry.selectedAvatar ? (AVATAR_CATALOG.find(a=>a.id===entry.selectedAvatar)?.color || 'rgba(255,255,255,0.05)') : 'rgba(255,255,255,0.05)',
+              overflow: 'hidden',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: entry.selectedAvatar ? `inset 0 0 10px rgba(0,0,0,0.5)` : 'none'
             }}>
-              {entry.photoURL ? (
+              {entry.selectedAvatar ? (
+                <img src={AVATAR_CATALOG.find(a=>a.id===entry.selectedAvatar)?.img} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : entry.photoURL ? (
                 <img src={entry.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
               ) : (
                 <div style={{ fontSize: isFirst ? 36 : 28 }}>👤</div>
@@ -413,6 +419,7 @@ export default function Leaderboard({ onBack, games, onInspect }) {
   const { nickname, setNickname, getOnlineScores, getLocalBoard, clearCache, loading, lastError, firebaseStatus } = useLeaderboard()
   const { playerName, photoURL, isLoggedIn, userId } = useAuth()
   const { progress } = useProgress()
+  const { friends } = useFriends()
   const tc = useThemeColors()
   const localBorder = progress.selectedBorder || null
 
@@ -436,15 +443,25 @@ export default function Leaderboard({ onBack, games, onInspect }) {
     async function load() {
       let data
       if (mode === 'online') {
-        data = await getOnlineScores(gameTab, diffTab)
+        const fetchDiff = diffTab === 'friends' ? null : diffTab
+        data = await getOnlineScores(gameTab, fetchDiff)
+        if (data && diffTab === 'friends') {
+          // Filter out scores that are not from actual friends (and include current user)
+          const friendUids = new Set(friends.map(f => f.uid))
+          if (userId) friendUids.add(userId) // Add self
+          const filtered = data.filter(r => friendUids.has(r.uid))
+          // Re-rank them
+          data = filtered.map((r, i) => ({ ...r, rank: i + 1 }))
+        }
       } else {
-        data = getLocalBoard(gameTab, diffTab)
+        const fetchDiff = diffTab === 'friends' ? null : diffTab
+        data = getLocalBoard(gameTab, fetchDiff)
       }
       if (!cancelled) setScores(data || [])
     }
     load()
     return () => { cancelled = true }
-  }, [gameTab, diffTab, mode, refreshKey, getOnlineScores, getLocalBoard])
+  }, [gameTab, diffTab, mode, refreshKey, getOnlineScores, getLocalBoard, friends, userId])
 
   const saveNickname = () => {
     const n = nameInput.trim()
@@ -771,20 +788,22 @@ export default function Leaderboard({ onBack, games, onInspect }) {
                     </div>
                     {/* Avatar with border */}
                     <div style={{ position: 'relative', width: 36, height: 36, flexShrink: 0 }}>
-                      {entry.photoURL ? (
-                        <img src={entry.photoURL} alt="" style={{
-                          width: 32, height: 32, borderRadius: 10, objectFit: 'cover',
-                          position: 'absolute', top: 2, left: 2,
-                        }} referrerPolicy="no-referrer" />
-                      ) : (
-                        <div style={{
-                          width: 32, height: 32, borderRadius: 10,
-                          position: 'absolute', top: 2, left: 2,
-                          background: 'rgba(255,255,255,0.06)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 16,
-                        }}>👤</div>
-                      )}
+                      <div style={{
+                        width: 32, height: 32, borderRadius: 10,
+                        position: 'absolute', top: 2, left: 2,
+                        background: entry.selectedAvatar ? (AVATAR_CATALOG.find(a=>a.id===entry.selectedAvatar)?.color || 'rgba(255,255,255,0.06)') : 'rgba(255,255,255,0.06)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        overflow: 'hidden',
+                        boxShadow: entry.selectedAvatar ? `inset 0 0 8px rgba(0,0,0,0.5)` : 'none'
+                      }}>
+                        {entry.selectedAvatar ? (
+                          <img src={AVATAR_CATALOG.find(a=>a.id===entry.selectedAvatar)?.img} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : entry.photoURL ? (
+                          <img src={entry.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                        ) : (
+                          <div style={{ fontSize: 16 }}>👤</div>
+                        )}
+                      </div>
                       {/* Border Overlay */}
                       {entryBorderData ? (
                         <BorderOverlay borderData={entryBorderData} borderRadius={12} />

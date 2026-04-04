@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
-import { useProgress, ACHIEVEMENTS, getLevelInfo, getBorderForLevel, getTitleColorForLevel, CUSTOM_BORDERS } from '../context/ProgressContext.jsx'
+import { useProgress, ACHIEVEMENTS, getLevelInfo, getBorderForLevel, getTitleColorForLevel, CUSTOM_BORDERS, AVATAR_CATALOG } from '../context/ProgressContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCloudSave } from '../context/CloudSaveContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
@@ -29,7 +29,7 @@ function formatPlayTime(seconds) {
   return `${m}m`
 }
 
-export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
+export default function Profile({ onBack, games, onAnalytics, onAdmin, onFriends }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { progress } = useProgress()
@@ -197,11 +197,14 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
                 {/* Avatar Content */}
                 <div style={{
                   position: 'absolute', inset: 8, borderRadius: '50%',
-                  background: photoURL ? 'transparent' : (borderData.bgColor || 'rgba(0,0,0,0.1)'),
+                  background: progress.selectedAvatar ? (AVATAR_CATALOG.find(a=>a.id===progress.selectedAvatar)?.color || 'transparent') : photoURL ? 'transparent' : (borderData.bgColor || 'rgba(0,0,0,0.1)'),
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 36, overflow: 'hidden', zIndex: 1
+                  fontSize: 36, overflow: 'hidden', zIndex: 1,
+                  boxShadow: progress.selectedAvatar ? `inset 0 0 15px rgba(0,0,0,0.5)` : 'none'
                 }}>
-                  {photoURL ? (
+                  {progress.selectedAvatar ? (
+                    <img src={AVATAR_CATALOG.find(a=>a.id===progress.selectedAvatar)?.img} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : photoURL ? (
                     <img src={photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
                   ) : (
                     levelInfo.level < 5 ? '🌱' : levelInfo.level < 10 ? '⚔️' : levelInfo.level < 15 ? '👑' : '🌟'
@@ -572,11 +575,12 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
             )}
           </div>
 
+
           {/* ── Analytics Dashboard Link ── */}
           <div style={{
             background: surface, border: `2px solid ${borderCol}`,
-            borderRadius: 24, padding: 20, marginBottom: 20, marginTop: 20,
-            animation: 'slide-up 0.4s 0.35s ease both',
+            borderRadius: 24, padding: 20, marginBottom: 20,
+            animation: 'slide-up 0.4s 0.4s ease both',
           }}>
             <button onClick={() => { play('click'); onAnalytics && onAnalytics() }} style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',

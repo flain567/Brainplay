@@ -64,6 +64,8 @@ function mergeProgress(local, cloud) {
     claimedBPTiers: mergeArrayUnion(local.claimedBPTiers, cloud.claimedBPTiers),
     selectedBorder: local.selectedBorder || cloud.selectedBorder,
     unlockedBorders: mergeArrayUnion(local.unlockedBorders, cloud.unlockedBorders),
+    selectedAvatar: local.selectedAvatar || cloud.selectedAvatar,
+    unlockedAvatars: mergeArrayUnion(local.unlockedAvatars, cloud.unlockedAvatars),
     selectedTitle: local.selectedTitle || cloud.selectedTitle,
     unlockedTitles: mergeArrayUnion(local.unlockedTitles, cloud.unlockedTitles),
   }
