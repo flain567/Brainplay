@@ -346,11 +346,15 @@ export function LeaderboardProvider({ children }) {
   }, [])
 
   useEffect(() => {
-    testFirebaseConnection().then(result => {
-      setFirebaseStatus(result.ok ? 'connected' : 'error')
-      setFirebaseMessage(result.message)
-      if (result.ok) flushPendingScores()
-    })
+    // Small delay to ensure Auth is initialized before checking connection
+    const t = setTimeout(() => {
+      testFirebaseConnection().then(result => {
+        setFirebaseStatus(result.ok ? 'connected' : 'error')
+        setFirebaseMessage(result.message)
+        if (result.ok) flushPendingScores()
+      })
+    }, 1000)
+    return () => clearTimeout(t)
   }, [testFirebaseConnection, flushPendingScores])
 
   useEffect(() => {

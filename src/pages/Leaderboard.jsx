@@ -160,28 +160,18 @@ function FirebaseStatusBanner({ dark, surface, borderCol, textMain, textMuted })
 {`rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    match /sessions/{sessionId} {
+      allow read, write: if request.auth != null && sessionId.endsWith(request.auth.uid);
+    }
     match /leaderboard/{docId} {
       allow read: if true;
-      allow create: if request.resource.data.keys()
-        .hasAll(['gameId','score','name'])
-        && request.resource.data.score is number
-        && request.resource.data.score >= 0
-        && request.resource.data.score <= 9999999;
-      allow update: if request.resource.data.score
-        is number
-        && request.resource.data.score > resource.data.score
-        && request.resource.data.score <= 9999999;
+      allow create, update: if request.auth != null 
+        && docId.endsWith(request.auth.uid)
+        && request.resource.data.score is int;
     }
     match /users/{userId} {
-      // Allow others to read basic profile info for Social Features
       allow read: if true;
-      allow write: if request.auth != null
-        && request.auth.uid == userId;
-    }
-    match /activity/{docId} {
-      // Activity feed is public to read, but only auth users can create
-      allow read: if true;
-      allow create: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }`}
@@ -266,21 +256,28 @@ function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname, onInspec
 
             {/* Custom Border Overlay */}
             {entry.selectedBorder && CUSTOM_BORDERS[entry.selectedBorder]?.url ? (
-              <div style={{
-                position: 'absolute', inset: 0,
-                backgroundImage: `url(${CUSTOM_BORDERS[entry.selectedBorder].url})`,
-                backgroundSize: '100% 100%',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                zIndex: 2, pointerEvents: 'none'
-              }} />
+              <div 
+                className="premium-border-glow"
+                style={{
+                  position: 'absolute', inset: 0,
+                  backgroundImage: `url(${CUSTOM_BORDERS[entry.selectedBorder].url})`,
+                  backgroundSize: '100% 100%',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  zIndex: 2, pointerEvents: 'none',
+                  '--glow-color': CUSTOM_BORDERS[entry.selectedBorder].glowColor || CUSTOM_BORDERS[entry.selectedBorder].color || '#7C6FE8'
+                }} 
+              />
             ) : (
-              <div style={{
-                position: 'absolute', inset: 0,
-                borderRadius: 24, border: `3.5px solid ${accent}`,
-                boxShadow: `0 0 30px ${accent}33, inset 0 0 15px ${accent}22`,
-                zIndex: 2, pointerEvents: 'none'
-              }} />
+              <div 
+                className="legacy-border-glow"
+                style={{
+                  position: 'absolute', inset: 0,
+                  borderRadius: 24, border: `3.5px solid ${accent}`,
+                  zIndex: 2, pointerEvents: 'none',
+                  '--glow-color': accent
+                }} 
+              />
             )}
           </div>
           <div style={{

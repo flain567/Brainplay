@@ -210,22 +210,30 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin }) {
 
                 {/* Border Layer */}
                 {borderData.url ? (
-                  <div style={{
-                    position: 'absolute', inset: 0,
-                    backgroundImage: `url(${borderData.url})`,
-                    backgroundSize: '100% 100%',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                    zIndex: 2, pointerEvents: 'none'
-                  }} />
+                  <div 
+                    className="premium-border-glow"
+                    style={{
+                      position: 'absolute', inset: 0,
+                      backgroundImage: `url(${borderData.url})`,
+                      backgroundSize: '100% 100%',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                      zIndex: 2, pointerEvents: 'none',
+                      '--glow-color': borderData.glowColor || '#7C6FE8'
+                    }} 
+                  />
                 ) : (
-                  <div style={{
-                    position: 'absolute', inset: 6,
-                    borderRadius: '50%', border: borderData.border,
-                    boxShadow: borderData.boxShadow,
-                    animation: borderData.animation || 'none',
-                    zIndex: 2, pointerEvents: 'none'
-                  }} />
+                  <div 
+                    className="legacy-border-glow"
+                    style={{
+                      position: 'absolute', inset: 6,
+                      borderRadius: '50%', border: borderData.border,
+                      boxShadow: borderData.boxShadow,
+                      animation: borderData.animation || 'none',
+                      zIndex: 2, pointerEvents: 'none',
+                      '--glow-color': borderData.glowColor || '#7C6FE8'
+                    }} 
+                  />
                 )}
               </div>
               <div style={{ flex: 1 }}>

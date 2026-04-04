@@ -26,65 +26,65 @@ export const LEVEL_TITLES = [
 
 export const CUSTOM_BORDERS = {
   // --- Basic Level Borders (CSS Based) ---
-  'wood':   { id: 'wood',   name: 'Bingkai Kayu',   color: '#8d6e63', border: '5px solid #8d6e63', bgColor: '#8d6e6322' },
-  'silver': { id: 'silver', name: 'Bingkai Perak',  color: '#b0bec5', border: '5px solid #b0bec5', boxShadow: '0 0 12px #b0bec588', bgColor: '#b0bec522' },
-  'gold':   { id: 'gold',   name: 'Bingkai Emas',   color: '#ffd700', border: '5px solid #ffd700', boxShadow: '0 0 16px #ffd700aa', bgColor: '#ffd70022' },
-  'neon':   { id: 'neon',   name: 'Bingkai Neon',   color: '#00f5ff', border: '5px solid #00f5ff', boxShadow: '0 0 20px #00f5ffcc', bgColor: '#00f5ff22' },
+  'wood':   { id: 'wood',   name: 'Bingkai Kayu',   color: '#8d6e63', border: '5px solid #8d6e63', bgColor: '#8d6e6322', glowColor: '#8d6e6388' },
+  'silver': { id: 'silver', name: 'Bingkai Perak',  color: '#b0bec5', border: '5px solid #b0bec5', boxShadow: '0 0 12px #b0bec588', bgColor: '#b0bec522', glowColor: '#b0bec5' },
+  'gold':   { id: 'gold',   name: 'Bingkai Emas',   color: '#ffd700', border: '5px solid #ffd700', boxShadow: '0 0 16px #ffd700aa', bgColor: '#ffd70022', glowColor: '#ffd700' },
+  'neon':   { id: 'neon',   name: 'Bingkai Neon',   color: '#00f5ff', border: '5px solid #00f5ff', boxShadow: '0 0 20px #00f5ffcc', bgColor: '#00f5ff22', glowColor: '#00f5ff' },
   
   // --- Premium Image Borders ---
   'royal-gold': { 
     id: 'royal-gold', name: 'Royal Gold', color: '#FFD700', 
-    url: royal_gold,
+    url: royal_gold, glowColor: '#FFD700',
     premium: true, rarity: 'Legendary'
   },
   'neon-cyber': { 
     id: 'neon-cyber', name: 'Neon Cyber', color: '#00f5ff', 
-    url: neon_cyber,
+    url: neon_cyber, glowColor: '#00f5ff',
     premium: true, rarity: 'Epic'
   },
   'ice-crystal': { 
     id: 'ice-crystal', name: 'Ice Crystal', color: '#74b9ff', 
-    url: ice_crystal,
+    url: ice_crystal, glowColor: '#74b9ff',
     premium: true, rarity: 'Rare'
   },
   'magma-surge': { 
     id: 'magma-surge', name: 'Magma Surge', color: '#ff7675', 
-    url: magma_surge,
+    url: magma_surge, glowColor: '#ff7675',
     premium: true, rarity: 'Epic'
   },
   'void-phantom': { 
     id: 'void-phantom', name: 'Void Phantom', color: '#a29bfe', 
-    url: void_phantom,
+    url: void_phantom, glowColor: '#a29bfe',
     premium: true, rarity: 'Legendary'
   },
   'neon-blue': {
     id: 'neon-blue', name: 'Neon Blue', color: '#00d2ff',
-    url: neon_cyber, 
+    url: neon_cyber, glowColor: '#00d2ff',
     premium: true, rarity: 'Epic'
   },
   'mythic-celestial': {
     id: 'mythic-celestial', name: 'Mythic Celestial', color: '#ff00ff',
-    url: void_phantom,
+    url: void_phantom, glowColor: '#ff00ff',
     premium: true, rarity: 'Mythic'
   },
   'void-overlord': {
     id: 'void-overlord', name: 'Void Overlord', color: '#6c5ce7',
-    url: void_phantom,
+    url: void_phantom, glowColor: '#6c5ce7',
     premium: true, rarity: 'Mythic'
   },
   'neon-matrix': {
     id: 'neon-matrix', name: 'Neon Matrix', color: '#00ff88',
-    url: neon_cyber,
+    url: neon_cyber, glowColor: '#00ff88',
     premium: true, rarity: 'Epic'
   },
   'solar-flare': {
     id: 'solar-flare', name: 'Solar Flare', color: '#ff4500',
-    url: magma_surge,
+    url: magma_surge, glowColor: '#ff4500',
     premium: true, rarity: 'Legendary'
   },
   'plasma-glow': {
     id: 'plasma-glow', name: 'Plasma Glow', color: '#00f5ff',
-    url: neon_cyber,
+    url: neon_cyber, glowColor: '#00f5ff',
     premium: true, rarity: 'Transcendent'
   }
 }

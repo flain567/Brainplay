@@ -384,22 +384,30 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
 
                 {/* Border Overlay */}
                 {currentBorder?.url ? (
-                  <div style={{
-                    position: 'absolute', inset: 0,
-                    backgroundImage: `url(${currentBorder.url})`,
-                    backgroundSize: '100% 100%',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                    zIndex: 2, pointerEvents: 'none'
-                  }} />
+                  <div 
+                    className="premium-border-glow"
+                    style={{
+                      position: 'absolute', inset: 0,
+                      backgroundImage: `url(${currentBorder.url})`,
+                      backgroundSize: '100% 100%',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                      zIndex: 2, pointerEvents: 'none',
+                      '--glow-color': currentBorder.glowColor || '#7C6FE8'
+                    }} 
+                  />
                 ) : (
-                  <div style={{
-                    position: 'absolute', inset: 3,
-                    borderRadius: '50%', border: currentBorder?.border || '1.5px solid rgba(124,111,232,0.3)',
-                    boxShadow: currentBorder?.boxShadow || 'none',
-                    animation: currentBorder?.animation || 'none',
-                    zIndex: 2, pointerEvents: 'none'
-                  }} />
+                  <div 
+                    className="legacy-border-glow"
+                    style={{
+                      position: 'absolute', inset: 3,
+                      borderRadius: '50%', border: currentBorder?.border || '1.5px solid rgba(124,111,232,0.3)',
+                      boxShadow: currentBorder?.boxShadow || 'none',
+                      animation: currentBorder?.animation || 'none',
+                      zIndex: 2, pointerEvents: 'none',
+                      '--glow-color': currentBorder?.glowColor || '#7C6FE8'
+                    }} 
+                  />
                 )}
               </div>
             </div>

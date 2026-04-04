@@ -140,9 +140,22 @@ export default function UserProfileModal({ uid, onClose }) {
               )}
             </div>
             {borderData.url ? (
-              <div className="upm-border-overlay" style={{ backgroundImage: `url(${borderData.url})` }} />
+              <div 
+                className="upm-border-overlay premium-border-glow"
+                style={{ 
+                  backgroundImage: `url(${borderData.url})`,
+                  '--glow-color': borderData.glowColor || borderData.color || '#7C6FE8'
+                }} 
+              />
             ) : (
-              <div className="upm-border-legacy" />
+              <div 
+                className="upm-border-legacy legacy-border-glow"
+                style={{ 
+                  '--glow-color': borderData.glowColor || borderData.color || '#7C6FE8',
+                  border: borderData.border,
+                  boxShadow: borderData.boxShadow
+                }} 
+              />
             )}
           </div>
 
