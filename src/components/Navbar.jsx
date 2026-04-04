@@ -74,16 +74,20 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
       <style>{`
         .nav-root {
           position: sticky; top: 0; z-index: 200;
-          transition: background 0.35s, box-shadow 0.35s, border-color 0.35s;
-          backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-          padding: var(--safe-top, 0px) 28px 0 28px; border-bottom: 2px solid transparent;
+          transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+          backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px);
+          padding: var(--safe-top, 0px) 28px 0 28px; border-bottom: 1px solid transparent;
+          background: transparent;
         }
         @media (max-width: 640px) {
-          .nav-root { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+          .nav-root { padding: var(--safe-top, 0px) 14px 0 14px; }
         }
         .nav-root.scrolled {
-          box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-          border-bottom-color: ${dark ? 'rgba(162,155,254,0.2)' : 'rgba(255,230,109,0.6)'};
+          backdrop-filter: blur(40px) saturate(180%);
+          -webkit-backdrop-filter: blur(40px) saturate(180%);
+          background: ${dark ? 'rgba(10, 5, 20, 0.5)' : 'rgba(255, 255, 255, 0.6)'};
+          box-shadow: 0 10px 40px rgba(0,0,0,0.15), inset 0 -1px 0 ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.4)'};
+          border-bottom-color: ${dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'};
         }
         .nav-inner {
           max-width: 1140px; margin: 0 auto; height: 68px;
@@ -292,7 +296,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
         }
       `}</style>
 
-      <nav className={`nav-root${scrolled ? ' scrolled' : ''}`} style={{ background: navBg }}>
+      <nav className={`nav-root${scrolled ? ' scrolled' : ''}`}>
         <div className="nav-inner">
           {/* Logo */}
           <div className="nav-logo" onClick={() => nav(onHome)}>

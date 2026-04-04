@@ -25,6 +25,7 @@ import Mascot from '../components/Mascot.jsx'
 import InfiniteTicker from '../components/InfiniteTicker.jsx'
 import BlueprintIntro from '../components/BlueprintIntro.jsx'
 import BorderGlow from '../components/BorderGlow.jsx'
+import Tilt from '../components/Tilt.jsx'
 gsap.registerPlugin(Flip)
 
 const ROADMAP_FUTURE = [
@@ -573,6 +574,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           )}
 
           {/* ── Interactive Companion Mascot ── */}
+          <Tilt tiltMaxAngleX={6} tiltMaxAngleY={6}>
           <BorderGlow glowColor={S.accent} borderRadius="24px" style={{ display: 'block', width: '100%', marginBottom: 32 }}>
           <div
             id="mascot-home-card"
@@ -650,9 +652,11 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             </div>
           </div>
           </BorderGlow>
+          </Tilt>
 
           {/* ── Flagship Design (v2) ── */}
           {flagshipGame && (
+            <Tilt tiltMaxAngleX={4} tiltMaxAngleY={4}>
             <BorderGlow glowColor="rgba(82, 30, 148, 0.7)" borderRadius="20px" style={{ display: 'block', width: '100%' }}>
             <div className="flagship-banner" data-anime-reveal>
               <div className="fs-emoji">{flagshipGame.emoji}</div>
@@ -680,6 +684,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
               </button>
             </div>
             </BorderGlow>
+            </Tilt>
           )}
 
           {/* ── Battle Pass Season Banner ── */}
@@ -688,6 +693,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             if (!seasonInfo) return null
             const pct = Math.round(seasonInfo.progress * 100)
             return (
+              <Tilt tiltMaxAngleX={4} tiltMaxAngleY={4}>
               <BorderGlow glowColor="#00f5ff" borderRadius="20px" style={{ display: 'block', width: '100%', marginBottom: 16 }}>
               <div
                 className="section-card"
@@ -726,6 +732,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                 </div>
               </div>
               </BorderGlow>
+              </Tilt>
             )
           })()}
 
