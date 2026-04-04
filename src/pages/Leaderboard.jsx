@@ -4,6 +4,7 @@ import { useSound } from '../hooks/useSound.js'
 import { useLeaderboard } from '../context/LeaderboardContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
+import { CUSTOM_BORDERS, getBorderForLevel, getLevelInfo, useProgress } from '../context/ProgressContext.jsx'
 
 const GAME_TABS = [
   { id:'memory-card',    emoji:'🃏', label:'Memory' },
@@ -222,9 +223,60 @@ service cloud.firestore {
   )
 }
 
+// ─── Helper: Resolve border data for an entry ──────────────────────────────
+
+function resolveBorderData(entry, currentUserId, localBorder) {
+  // For the current user's own entries, use their locally selected border
+  const borderId = (entry.uid && entry.uid === currentUserId && localBorder)
+    ? localBorder
+    : entry.selectedBorder
+  if (!borderId || !CUSTOM_BORDERS[borderId]) return null
+  return CUSTOM_BORDERS[borderId]
+}
+
+// ─── Border Overlay Component (shared by podium & list) ─────────────────────
+
+function BorderOverlay({ borderData, borderRadius, size }) {
+  if (!borderData) return null
+  
+  if (borderData.url) {
+    // Premium image border
+    return (
+      <div 
+        className="premium-border-glow"
+        style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: `url(${borderData.url})`,
+          backgroundSize: '100% 100%',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          zIndex: 2, pointerEvents: 'none',
+          borderRadius,
+          '--glow-color': borderData.glowColor || borderData.color || '#7C6FE8'
+        }} 
+      />
+    )
+  }
+  
+  // CSS-based border (wood, silver, gold, neon)
+  return (
+    <div 
+      className="legacy-border-glow"
+      style={{
+        position: 'absolute', inset: 0,
+        borderRadius,
+        border: borderData.border || `3.5px solid ${borderData.color}`,
+        boxShadow: borderData.boxShadow || 'none',
+        zIndex: 2, pointerEvents: 'none',
+        '--glow-color': borderData.glowColor || borderData.color || '#7C6FE8'
+      }} 
+    />
+  )
+}
+
 // ─── Podium Card Component ───────────────────────────────────────────────────
 
-function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname, onInspect }) {
+function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname, onInspect, currentUserId, localBorder }) {
   if (!entry) return <div style={{ flex: 1 }} />
   
   const isFirst = rank === 1
@@ -232,6 +284,7 @@ function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname, onInspec
   const accent = isFirst ? '#FDCB6E' : (rank === 2 ? '#E0E0E0' : '#CD7F32')
   const scale = isFirst ? 1.15 : 0.95
   const paddingTop = isFirst ? 0 : 25
+  const borderData = resolveBorderData(entry, currentUserId, localBorder)
 
   return (
     <div 
@@ -286,20 +339,9 @@ function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname, onInspec
               )}
             </div>
 
-            {/* Custom Border Overlay */}
-            {entry.selectedBorder && CUSTOM_BORDERS[entry.selectedBorder]?.url ? (
-              <div 
-                className="premium-border-glow"
-                style={{
-                  position: 'absolute', inset: 0,
-                  backgroundImage: `url(${CUSTOM_BORDERS[entry.selectedBorder].url})`,
-                  backgroundSize: '100% 100%',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                  zIndex: 2, pointerEvents: 'none',
-                  '--glow-color': CUSTOM_BORDERS[entry.selectedBorder].glowColor || CUSTOM_BORDERS[entry.selectedBorder].color || '#7C6FE8'
-                }} 
-              />
+            {/* Custom Border Overlay — from profile/shop */}
+            {borderData ? (
+              <BorderOverlay borderData={borderData} borderRadius={24} />
             ) : (
               <div 
                 className="legacy-border-glow"
@@ -317,7 +359,7 @@ function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname, onInspec
             width: 32, height: 32, borderRadius: '50%', background: accent,
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
             boxShadow: `0 4px 15px rgba(0,0,0,0.5), 0 0 10px ${accent}`, 
-            border: '2,5px solid rgba(255,255,255,0.3)', zIndex: 4,
+            border: '2.5px solid rgba(255,255,255,0.3)', zIndex: 4,
             fontWeight: 800
           }}>
             {medal}
@@ -369,8 +411,10 @@ export default function Leaderboard({ onBack, games, onInspect }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { nickname, setNickname, getOnlineScores, getLocalBoard, clearCache, loading, lastError, firebaseStatus } = useLeaderboard()
-  const { playerName, photoURL, isLoggedIn } = useAuth()
+  const { playerName, photoURL, isLoggedIn, userId } = useAuth()
+  const { progress } = useProgress()
   const tc = useThemeColors()
+  const localBorder = progress.selectedBorder || null
 
   const [gameTab, setGameTab] = useState('space-shooter')
   const [diffTab, setDiffTab] = useState(null)
@@ -694,17 +738,18 @@ export default function Leaderboard({ onBack, games, onInspect }) {
                   minHeight: 180, position: 'relative'
                 }}>
                   {/* Rank 2 (Left) */}
-                  <PodiumCard entry={scores[1]} rank={2} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} onInspect={onInspect} />
+                  <PodiumCard entry={scores[1]} rank={2} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} onInspect={onInspect} currentUserId={userId} localBorder={localBorder} />
                   {/* Rank 1 (Center) */}
-                  <PodiumCard entry={scores[0]} rank={1} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} onInspect={onInspect} />
+                  <PodiumCard entry={scores[0]} rank={1} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} onInspect={onInspect} currentUserId={userId} localBorder={localBorder} />
                   {/* Rank 3 (Right) */}
-                  <PodiumCard entry={scores[2]} rank={3} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} onInspect={onInspect} />
+                  <PodiumCard entry={scores[2]} rank={3} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} onInspect={onInspect} currentUserId={userId} localBorder={localBorder} />
                 </div>
               )}
 
               {/* Rest of the list (Rank 4+) */}
               {scores.slice(3).map((entry, i) => {
                 const rank = entry.rank || i + 4
+                const entryBorderData = resolveBorderData(entry, userId, localBorder)
                 return (
                   <div key={entry.id || `${i}-${entry.score}`}
                     className={`lb-row ${rank <= 10 ? 'top-rank' : ''}`}
@@ -724,12 +769,27 @@ export default function Leaderboard({ onBack, games, onInspect }) {
                     }}>
                       {rank}
                     </div>
-                    {/* Name + photo + date */}
-                    {entry.photoURL && (
-                      <img src={entry.photoURL} alt="" style={{
-                        width:32, height:32, borderRadius:10, objectFit:'cover', flexShrink:0,
-                      }} referrerPolicy="no-referrer" />
-                    )}
+                    {/* Avatar with border */}
+                    <div style={{ position: 'relative', width: 36, height: 36, flexShrink: 0 }}>
+                      {entry.photoURL ? (
+                        <img src={entry.photoURL} alt="" style={{
+                          width: 32, height: 32, borderRadius: 10, objectFit: 'cover',
+                          position: 'absolute', top: 2, left: 2,
+                        }} referrerPolicy="no-referrer" />
+                      ) : (
+                        <div style={{
+                          width: 32, height: 32, borderRadius: 10,
+                          position: 'absolute', top: 2, left: 2,
+                          background: 'rgba(255,255,255,0.06)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 16,
+                        }}>👤</div>
+                      )}
+                      {/* Border Overlay */}
+                      {entryBorderData ? (
+                        <BorderOverlay borderData={entryBorderData} borderRadius={12} />
+                      ) : null}
+                    </div>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{
                         fontFamily:"'Fredoka One',cursive", fontSize:14, color:'#fff',
