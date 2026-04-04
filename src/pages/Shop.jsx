@@ -160,16 +160,25 @@ export default function Shop({ onBack }) {
       { scale: 0.8, opacity: 0 },
       { scale: 1, opacity: 1, stagger: 0.04, duration: 0.6, ease: 'back.out(1.7)', delay: 0.3 }
     )
+    // Header entrance
+    gsap.fromTo('.shop-header-block',
+      { opacity: 0, y: -20 },
+      { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }
+    )
+    // Coin badge pop
+    gsap.fromTo('.shop-coin-badge',
+      { scale: 0, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2)', delay: 0.4 }
+    )
   }, [])
 
-  // Animasi saat ganti tab
+  // Animasi saat ganti tab — enhanced with bounce
   useEffect(() => {
-    // Pastikan ref atau selector terpilih
     const packs = document.querySelectorAll('.shop-pack')
     if (packs.length) {
       gsap.fromTo(packs, 
-        { opacity: 0, y: 15 },
-        { opacity: 1, y: 0, stagger: 0.02, duration: 0.4, ease: 'power2.out' }
+        { opacity: 0, y: 20, scale: 0.95 },
+        { opacity: 1, y: 0, scale: 1, stagger: 0.03, duration: 0.45, ease: 'back.out(1.4)', clearProps: 'all' }
       )
     }
   }, [tab])
@@ -456,10 +465,10 @@ export default function Shop({ onBack }) {
           <button className="shop-back" onClick={() => { play('click'); onBack() }}>← Kembali</button>
 
           {/* Header */}
-          <div style={{ textAlign:'center', marginBottom:32, animation:'slide-up 0.4s ease both' }}>
+          <div className="shop-header-block" style={{ textAlign:'center', marginBottom:32 }}>
             <div style={{ fontSize:56, marginBottom:12, filter: 'drop-shadow(0 0 12px rgba(253,203,110,0.3))' }}>🏪</div>
             <h1 style={{ fontFamily:"'Fredoka One',cursive", fontSize:36, color: '#fff', marginBottom:8, letterSpacing: '1px' }}>MARKETPLACE</h1>
-            <div style={{
+            <div className="shop-coin-badge" style={{
               display:'inline-flex', alignItems:'center', gap:10,
               background: 'rgba(253,203,110,0.1)',
               border:'1.5px solid rgba(253,203,110,0.3)', borderRadius:100, padding:'10px 28px',

@@ -66,6 +66,106 @@ const DIALOGS = {
   ],
 }
 
+// ─── Page-Specific Dialog Overrides ──────────────────────────────────────────
+const PAGE_DIALOGS = {
+  shop: {
+    greet: [
+      { text: 'Selamat datang di Marketplace! 🏪 Mau belanja apa hari ini?', actions: ['Tips belanja', 'Skin favorit?', 'Mini-game'], mood: 'excited' },
+      { text: 'Wah lagi shopping ya! Jangan lupa cek item-item baru lho! ✨', actions: ['Item baru', 'Tips koin', 'Mini-game'], mood: 'happy' },
+      { text: 'Halo shoppers! Cek koleksi skin dan topi terbaru ku! 🎩', actions: ['Lihat kosmetik', 'Tips belanja', 'Fun fact'], mood: 'wink' },
+    ],
+    tips: [
+      { text: '💰 Klaim Hadiah Harian setiap hari! Streak 7 hari = bonus koin maksimal!', actions: ['Tips lagi', 'Mini-game', 'Kembali'], mood: 'think' },
+      { text: '💰 Lucky Wheel bisa kasih item eksklusif yang nggak bisa dibeli di shop! Spin terus!', actions: ['Tips lagi', 'Fun fact', 'Kembali'], mood: 'excited' },
+      { text: '💰 Skin Legendary punya efek spesial! Cek yang ada bintang ★ di samping namanya.', actions: ['Tips lagi', 'Mini-game', 'Kembali'], mood: 'happy' },
+      { text: '💰 Hemat koin buat item mahal! Snake Skin dan Ship bisa bikin game terasa beda banget.', actions: ['Tips lagi', 'Fun fact', 'Kembali'], mood: 'think' },
+    ],
+    idle: [
+      { text: 'Psstt! Ada diskon rahasia nggak ya? 👀 Hehe becanda! Tapi serius, cek item-item baru!', actions: ['Tips belanja', 'Mini-game', 'Fun fact'], mood: 'wink' },
+      { text: 'Koin kamu cukup buat beli sesuatu nih! 🪙', actions: ['Tips belanja', 'Mini-game', 'Kembali'], mood: 'excited' },
+    ],
+    // Page-specific actions
+    shopTips: [
+      { text: '🛍️ Beli Icon Pack buat kustomisasi tampilan game kamu! Setiap pack punya 6 icon unik.', actions: ['Tips lagi', 'Lihat kosmetik', 'Kembali'], mood: 'happy' },
+      { text: '🛍️ Tile Theme bisa bikin puzzle game terlihat lebih fresh! Ada yang premium dan eksklusif!', actions: ['Tips lagi', 'Fun fact', 'Kembali'], mood: 'excited' },
+    ],
+    skinFav: [
+      { text: 'Aku paling suka skin Neon Blue karena bikin aku glowing! ✨ Tapi Pixel Art juga keren!', actions: ['Tips belanja', 'Fun fact', 'Kembali'], mood: 'excited' },
+      { text: 'Topi Crown itu favorit aku! Berasa jadi raja BrainPlay 👑', actions: ['Tips belanja', 'Mini-game', 'Kembali'], mood: 'happy' },
+    ],
+    coinTips: [
+      { text: '🪙 Cara cepat kumpulin koin: mainkan game harian, klaim daily reward, dan selesaikan misi harian!', actions: ['Tips lagi', 'Mini-game', 'Kembali'], mood: 'think' },
+      { text: '🪙 Jangan lupa daily login! Streak 7 hari bisa kasih 60 koin sekaligus!', actions: ['Tips lagi', 'Fun fact', 'Kembali'], mood: 'excited' },
+    ],
+    newItems: [
+      { text: '🆕 Cek tab Skins untuk skin maskot terbaru! Ada yang wheel-exclusive lho!', actions: ['Tips belanja', 'Lihat kosmetik', 'Kembali'], mood: 'excited' },
+      { text: '🆕 Tab Ships punya koleksi pesawat untuk Space Shooter! Setiap ship punya stat berbeda!', actions: ['Tips belanja', 'Fun fact', 'Kembali'], mood: 'happy' },
+    ],
+    cosmetics: [
+      { text: '🎨 Kosmetik di BrainPlay: Skin Maskot, Topi, Snake Skin, Ship, Tile Theme, dan masih banyak lagi!', actions: ['Tips belanja', 'Tips koin', 'Kembali'], mood: 'excited' },
+      { text: '🎨 Setiap game punya tema visual sendiri! Cek Racer Themes untuk Voxel Racer!', actions: ['Tips belanja', 'Fun fact', 'Kembali'], mood: 'happy' },
+    ],
+  },
+  games: {
+    greet: [
+      { text: 'Koleksi game BrainPlay! 🎮 Mau coba yang mana duluan?', actions: ['Rekomendasi', 'Tips game', 'Mini-game'], mood: 'excited' },
+      { text: 'Siap asah otak? Pilih game favorit kamu! 🧠', actions: ['Game baru', 'Tips game', 'Fun fact'], mood: 'happy' },
+      { text: 'Games Hub ini punya 24+ game! Wah banyak banget! 🚀', actions: ['Rekomendasi', 'Fun fact', 'Mini-game'], mood: 'wink' },
+    ],
+    tips: [
+      { text: '🎯 Coba filter kategori untuk cari game yang pas! Ada Puzzle, Action, Kata, dan lainnya.', actions: ['Tips lagi', 'Rekomendasi', 'Kembali'], mood: 'think' },
+      { text: '🎯 Game yang belum pernah kamu mainkan ditandai "Belum pernah main" — saatnya coba!', actions: ['Tips lagi', 'Fun fact', 'Kembali'], mood: 'happy' },
+      { text: '🎯 Setiap game punya tingkat kesulitan berbeda. Mulai dari Easy biar terbiasa!', actions: ['Tips lagi', 'Mini-game', 'Kembali'], mood: 'happy' },
+    ],
+    idle: [
+      { text: 'Bingung mau main apa? Tanya aku rekomendasi! 🎮', actions: ['Rekomendasi', 'Mini-game', 'Fun fact'], mood: 'wink' },
+      { text: 'Coba game yang belum pernah kamu mainkan! Siapa tahu jadi favorit baru! 🌟', actions: ['Rekomendasi', 'Tips game', 'Kembali'], mood: 'excited' },
+    ],
+    recommend: [
+      { text: '🌟 Kalau suka puzzle coba Sudoku atau Binary Puzzle! Bikin otak kerja keras!', actions: ['Rekomendasi lagi', 'Tips game', 'Kembali'], mood: 'excited' },
+      { text: '🌟 Suka action? Space Shooter dan Neon Dash bakal bikin jantung deg-degan!', actions: ['Rekomendasi lagi', 'Fun fact', 'Kembali'], mood: 'happy' },
+      { text: '🌟 Santai aja? Brick Breaker dan Memory Card Match cocok buat relax!', actions: ['Rekomendasi lagi', 'Tips game', 'Kembali'], mood: 'happy' },
+      { text: '🌟 Mau tes kecepatan? Coba Reaction Test! Berapa milidetik refleks kamu?', actions: ['Rekomendasi lagi', 'Fun fact', 'Kembali'], mood: 'excited' },
+    ],
+    newGame: [
+      { text: '🆕 Fields Adventure baru rilis! RPG puzzle di dunia fantasy — wajib coba!', actions: ['Rekomendasi', 'Tips game', 'Kembali'], mood: 'excited' },
+      { text: '🆕 Voxel Racer punya track 3D! Racing game dengan grafis retro yang keren!', actions: ['Rekomendasi', 'Fun fact', 'Kembali'], mood: 'happy' },
+    ],
+  },
+  profile: {
+    greet: [
+      { text: 'Ini profil kamu! 👤 Keren banget progress-nya!', actions: ['Tips profil', 'Fun fact', 'Mini-game'], mood: 'excited' },
+      { text: 'Wah stats kamu bagus! Terus main ya! 📊', actions: ['Tips achievement', 'Fun fact', 'Mini-game'], mood: 'happy' },
+      { text: 'Profile page! Cek achievement dan level kamu! 🏆', actions: ['Tips profil', 'Mini-game', 'Fun fact'], mood: 'wink' },
+    ],
+    tips: [
+      { text: '🏅 Ganti Gelar dan Bingkai buat tampilan profil yang lebih kece di leaderboard!', actions: ['Tips lagi', 'Mini-game', 'Kembali'], mood: 'think' },
+      { text: '🏅 Login Google supaya progress kamu aman di Cloud Save! Jangan sampai hilang!', actions: ['Tips lagi', 'Fun fact', 'Kembali'], mood: 'happy' },
+      { text: '🏅 Trophy Road punya hadiah di setiap level! Klik untuk lihat reward yang bisa diklaim!', actions: ['Tips lagi', 'Mini-game', 'Kembali'], mood: 'excited' },
+    ],
+    idle: [
+      { text: 'Cek achievement yang belum di-unlock! Ada banyak tantangan menarik! 🏆', actions: ['Tips achievement', 'Mini-game', 'Fun fact'], mood: 'wink' },
+      { text: 'Level up untuk buka Border baru! Tampilan profil makin premium! ✨', actions: ['Tips profil', 'Fun fact', 'Kembali'], mood: 'excited' },
+    ],
+    profileTips: [
+      { text: '📊 Total play time kamu tercatat di sini! Semakin sering main = achievement lebih banyak!', actions: ['Tips lagi', 'Fun fact', 'Kembali'], mood: 'happy' },
+      { text: '📊 Streak hari main berturut-turut bisa unlock achievement Streak! Jangan sampai putus!', actions: ['Tips lagi', 'Mini-game', 'Kembali'], mood: 'excited' },
+    ],
+    achievementTips: [
+      { text: '🏆 Achievement dibagi per kategori: Milestone, Skill, Streak, Score, dan lainnya!', actions: ['Tips lagi', 'Fun fact', 'Kembali'], mood: 'think' },
+      { text: '🏆 Achievement "Sempurna" didapat dari main tanpa kesalahan! Challenging tapi worth it!', actions: ['Tips lagi', 'Mini-game', 'Kembali'], mood: 'excited' },
+    ],
+  },
+}
+
+// Get effective dialogs based on page context
+function getDialogs(pageContext) {
+  if (!pageContext || !PAGE_DIALOGS[pageContext]) return DIALOGS
+  const pageOverrides = PAGE_DIALOGS[pageContext]
+  return { ...DIALOGS, ...pageOverrides }
+}
+
+
 // Scroll-aware section reactions
 const SECTION_REACTIONS = {
   games:    { text: 'Wah, koleksi game-nya! Mana yang mau kamu coba duluan? 🎮', mood: 'excited' },
@@ -95,8 +195,9 @@ export default function MascotCompanion({
   hat = null,
   level = 1,
   style: containerStyle = {},
-  observeSections = [],     // array of { id: string, ref: RefObject }
+  observeSections = [],
   floating = false,
+  pageContext = 'home',
 }) {
   const { play } = useSound()
   const tc = useThemeColors()
@@ -135,6 +236,9 @@ export default function MascotCompanion({
     accentBorder: dark ? 'rgba(124,111,232,0.35)' : 'rgba(108,92,231,0.25)',
   }
 
+  // Get context-aware dialogs
+  const dialogs = getDialogs(pageContext)
+
   // ─── Show bubble with typing effect ───
   const showDialog = useCallback((dialog, overrideMood) => {
     clearTimeout(autoHideTimer.current)
@@ -147,7 +251,6 @@ export default function MascotCompanion({
       setTyping(false)
       setBubbleText(dialog.text)
       setBubbleActions(dialog.actions || [])
-      // Auto-hide after 20s
       autoHideTimer.current = setTimeout(() => closeBubble(), 20000)
     }, 500 + Math.random() * 300)
   }, [])
@@ -204,26 +307,39 @@ export default function MascotCompanion({
     idleCounter.current = 0
 
     const map = {
-      'Siapa kamu?':     () => { showDialog(pick(DIALOGS.about)); animateMascot('wiggle'); flashMood('😊') },
-      'Tips game':       () => { showDialog(pick(DIALOGS.tips)); animateMascot('jump'); flashMood('💡') },
-      'Tips lagi':       () => { showDialog(pick(DIALOGS.tips)); animateMascot('nod'); flashMood('💡') },
-      'Fun fact':        () => { showDialog(pick(DIALOGS.funfact)); animateMascot('excited'); flashMood('🤓') },
-      'Lagi dong!':      () => { showDialog(pick(DIALOGS.funfact)); animateMascot('jump'); flashMood('🧠') },
-      'Cerita BrainPlay':() => { showDialog(pick(DIALOGS.brainplay)); animateMascot('nod'); flashMood('🎮') },
-      'Fitur favorit?':  () => { showDialog(pick(DIALOGS.favFeature)); animateMascot('excited'); flashMood('⭐') },
-      'Game favorit?':   () => { showDialog(pick(DIALOGS.favGame)); animateMascot('jump'); flashMood('🚀') },
+      'Siapa kamu?':     () => { showDialog(pick(dialogs.about)); animateMascot('wiggle'); flashMood('😊') },
+      'Tips game':       () => { showDialog(pick(dialogs.tips)); animateMascot('jump'); flashMood('💡') },
+      'Tips lagi':       () => { showDialog(pick(dialogs.tips)); animateMascot('nod'); flashMood('💡') },
+      'Fun fact':        () => { showDialog(pick(dialogs.funfact)); animateMascot('excited'); flashMood('🤓') },
+      'Lagi dong!':      () => { showDialog(pick(dialogs.funfact)); animateMascot('jump'); flashMood('🧠') },
+      'Cerita BrainPlay':() => { showDialog(pick(dialogs.brainplay)); animateMascot('nod'); flashMood('🎮') },
+      'Fitur favorit?':  () => { showDialog(pick(dialogs.favFeature)); animateMascot('excited'); flashMood('⭐') },
+      'Game favorit?':   () => { showDialog(pick(dialogs.favGame)); animateMascot('jump'); flashMood('🚀') },
       'Mini-game':       () => startTicTacToe(),
       'Main lagi':       () => startTicTacToe(),
       'Reset':           () => startTicTacToe(),
-      'Kembali':         () => { showDialog(pick(DIALOGS.greet)); animateMascot('nod') },
-      'Maaf hehe':       () => { showDialog(pick(DIALOGS.sorry)); animateMascot('wiggle'); flashMood('💚') },
-      'Iya dong!':       () => { showDialog(pick(DIALOGS.yes)); animateMascot('excited'); flashMood('💚') },
+      'Kembali':         () => { showDialog(pick(dialogs.greet)); animateMascot('nod') },
+      'Maaf hehe':       () => { showDialog(pick(dialogs.sorry)); animateMascot('wiggle'); flashMood('💚') },
+      'Iya dong!':       () => { showDialog(pick(dialogs.yes)); animateMascot('excited'); flashMood('💚') },
+      // ── Shop-specific actions ──
+      'Tips belanja':    () => { showDialog(pick(dialogs.shopTips || dialogs.tips)); animateMascot('nod'); flashMood('🛍️') },
+      'Skin favorit?':   () => { showDialog(pick(dialogs.skinFav || dialogs.about)); animateMascot('excited'); flashMood('✨') },
+      'Tips koin':       () => { showDialog(pick(dialogs.coinTips || dialogs.tips)); animateMascot('jump'); flashMood('🪙') },
+      'Item baru':       () => { showDialog(pick(dialogs.newItems || dialogs.greet)); animateMascot('excited'); flashMood('🆕') },
+      'Lihat kosmetik':  () => { showDialog(pick(dialogs.cosmetics || dialogs.greet)); animateMascot('wiggle'); flashMood('🎨') },
+      // ── Games-specific actions ──
+      'Rekomendasi':     () => { showDialog(pick(dialogs.recommend || dialogs.tips)); animateMascot('excited'); flashMood('🌟') },
+      'Rekomendasi lagi':() => { showDialog(pick(dialogs.recommend || dialogs.tips)); animateMascot('jump'); flashMood('🎮') },
+      'Game baru':       () => { showDialog(pick(dialogs.newGame || dialogs.greet)); animateMascot('excited'); flashMood('🆕') },
+      // ── Profile-specific actions ──
+      'Tips profil':     () => { showDialog(pick(dialogs.profileTips || dialogs.tips)); animateMascot('nod'); flashMood('📊') },
+      'Tips achievement':() => { showDialog(pick(dialogs.achievementTips || dialogs.tips)); animateMascot('excited'); flashMood('🏆') },
     }
 
     const fn = map[action]
     if (fn) fn()
-    else { showDialog(pick(DIALOGS.greet)); animateMascot('nod') }
-  }, [showDialog, animateMascot, play])
+    else { showDialog(pick(dialogs.greet)); animateMascot('nod') }
+  }, [showDialog, animateMascot, play, dialogs])
 
   // ─── Mascot tap ───
   const onMascotTap = useCallback(() => {
@@ -232,17 +348,17 @@ export default function MascotCompanion({
     setClickCount(c => c + 1)
 
     if (clickCount > 4 && clickCount % 3 === 0) {
-      showDialog(pick(DIALOGS.poke))
+      showDialog(pick(dialogs.poke))
       animateMascot('wiggle')
       flashMood('😆')
     } else if (!bubbleOpen) {
-      showDialog(pick(DIALOGS.greet))
+      showDialog(pick(dialogs.greet))
       animateMascot('jump')
       flashMood('👋')
     } else {
       closeBubble()
     }
-  }, [clickCount, bubbleOpen, showDialog, animateMascot, closeBubble, play])
+  }, [clickCount, bubbleOpen, showDialog, animateMascot, closeBubble, play, dialogs])
 
   // ─── TicTacToe ───
   const startTicTacToe = useCallback(() => {
@@ -251,11 +367,11 @@ export default function MascotCompanion({
     setPlayerTurn(true)
     setWinCombo(null)
     setGameResult(null)
-    const d = pick(DIALOGS.tictactoe)
+    const d = pick(dialogs.tictactoe)
     showDialog(d, 'excited')
     animateMascot('jump')
     flashMood('🎮')
-  }, [showDialog, animateMascot])
+  }, [showDialog, animateMascot, dialogs])
 
   const playerMove = useCallback((i) => {
     if (!gameActive || !playerTurn || board[i]) return
@@ -268,12 +384,12 @@ export default function MascotCompanion({
     const w = checkWin(newBoard, 'X')
     if (w) {
       setWinCombo(w); setGameActive(false); setGameResult('win')
-      setTimeout(() => { showDialog(pick(DIALOGS.win)); animateMascot('excited'); flashMood('🏆') }, 600)
+      setTimeout(() => { showDialog(pick(dialogs.win)); animateMascot('excited'); flashMood('🏆') }, 600)
       return
     }
     if (checkDraw(newBoard)) {
       setGameActive(false); setGameResult('draw')
-      setTimeout(() => { showDialog(pick(DIALOGS.draw)); animateMascot('nod'); flashMood('🤝') }, 600)
+      setTimeout(() => { showDialog(pick(dialogs.draw)); animateMascot('nod'); flashMood('🤝') }, 600)
       return
     }
 
@@ -287,17 +403,17 @@ export default function MascotCompanion({
       const w2 = checkWin(newBoard, 'O')
       if (w2) {
         setWinCombo(w2); setGameActive(false); setGameResult('lose')
-        setTimeout(() => { showDialog(pick(DIALOGS.lose)); animateMascot('wiggle'); flashMood('😎') }, 600)
+        setTimeout(() => { showDialog(pick(dialogs.lose)); animateMascot('wiggle'); flashMood('😎') }, 600)
         return
       }
       if (checkDraw(newBoard)) {
         setGameActive(false); setGameResult('draw')
-        setTimeout(() => { showDialog(pick(DIALOGS.draw)); animateMascot('nod'); flashMood('🤝') }, 600)
+        setTimeout(() => { showDialog(pick(dialogs.draw)); animateMascot('nod'); flashMood('🤝') }, 600)
         return
       }
       setPlayerTurn(true)
     }, 400)
-  }, [board, gameActive, playerTurn, play, showDialog, animateMascot])
+  }, [board, gameActive, playerTurn, play, showDialog, animateMascot, dialogs])
 
   // ─── Idle behavior (disabled in floating mode) ───
   useEffect(() => {
@@ -307,7 +423,7 @@ export default function MascotCompanion({
       if (idleCounter.current > 6 && !bubbleOpen) {
         const r = Math.random()
         if (r < 0.4) {
-          showDialog(pick(DIALOGS.idle))
+          showDialog(pick(dialogs.idle))
           animateMascot('jump')
           flashMood('💬')
         } else if (r < 0.6) {
@@ -319,7 +435,7 @@ export default function MascotCompanion({
       }
     }, 5000)
     return () => clearInterval(timer)
-  }, [floating, bubbleOpen, showDialog, animateMascot])
+  }, [floating, bubbleOpen, showDialog, animateMascot, dialogs])
 
   // ─── Scroll section observer ───
   useEffect(() => {
@@ -351,12 +467,12 @@ export default function MascotCompanion({
   useEffect(() => {
     if (floating) return // Floating mascot stays quiet until clicked
     const t = setTimeout(() => {
-      showDialog(pick(DIALOGS.greet), 'excited')
+      showDialog(pick(dialogs.greet), 'excited')
       animateMascot('jump')
       flashMood('👋')
     }, 2500)
     return () => clearTimeout(t)
-  }, [floating])
+  }, [floating, showDialog, animateMascot, dialogs])
 
   // ─── Render ───
   const bubbleBg = dark ? 'rgba(26,31,53,0.95)' : 'rgba(255,255,255,0.95)'

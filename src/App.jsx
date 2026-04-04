@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { SettingsProvider, useSettings } from './context/SettingsContext.jsx'
-import { ProgressProvider, useProgress } from './context/ProgressContext.jsx'
+import { ProgressProvider, useProgress, getLevelInfo } from './context/ProgressContext.jsx'
 import { CoinProvider, useCoins } from './context/CoinContext.jsx'
 import { NotifProvider } from './context/NotifContext.jsx'
 import { LeaderboardProvider } from './context/LeaderboardContext.jsx'
@@ -25,6 +25,7 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 import ThemeApplicator from './components/ThemeApplicator.jsx'
 import QuickSettings from './components/QuickSettings.jsx'
 import BottomNav from './components/BottomNav.jsx'
+import MascotCompanion from './components/MascotCompanion.jsx'
 import LuckyWheel from './components/LuckyWheel.jsx'
 import Home from './pages/Home.jsx'
 import { migrateOldStorage } from './utils/storage.js'
@@ -421,6 +422,7 @@ function AppInner() {
   const { muted, musicOff } = useSettings()
   const { earnCoins } = useCoins()
   const { progress, clearLevelUp: originalClearLevelUp } = useProgress()
+  const levelInfo = getLevelInfo(progress?.xp || 0)
   const { currentMode } = useLimitedMode()
   const { logActivity } = useSocial()
   const { trackEvent } = useLocalAnalytics()
@@ -770,6 +772,18 @@ function AppInner() {
           }} 
         />
       )}
+      
+      {/* ── Global Floating Mascot Assistant ── */}
+      <MascotCompanion
+        floating={true}
+        mascotName={progress.mascotName || 'Brainy'}
+        skin={progress.selectedMascotSkin}
+        hat={progress.selectedMascotHat}
+        level={levelInfo.level}
+        pageContext={screen}
+        observeSections={[]} // Can optionally pass sections if desired, but less relevant globally
+      />
+
       <div className="crt-overlay" />
     </div>
   )

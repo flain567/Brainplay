@@ -21,7 +21,6 @@ import useScrambleNumber from '../hooks/useScrambleNumber.js'
 import gsap from 'gsap'
 import { Flip } from 'gsap/Flip'
 import ActivityTicker from '../components/ActivityTicker.jsx'
-import MascotCompanion from '../components/MascotCompanion.jsx'
 import Mascot from '../components/Mascot.jsx'
 import InfiniteTicker from '../components/InfiniteTicker.jsx'
 import BlueprintIntro from '../components/BlueprintIntro.jsx'
@@ -1038,20 +1037,6 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           }}
         />
       )}
-
-      {/* ── Floating Mascot Assistant ── */}
-      <MascotCompanion
-        floating={true}
-        mascotName={progress.mascotName || 'Brainy'}
-        skin={progress.selectedMascotSkin}
-        hat={progress.selectedMascotHat}
-        level={levelInfo.level}
-        observeSections={[
-          { id: 'games-section' },
-          { id: 'features-section' },
-          { id: 'roadmap-section' },
-        ]}
-      />
     </>
   )
 }

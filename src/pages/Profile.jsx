@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef, useLayoutEffect } from 'react'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useProgress, ACHIEVEMENTS, getLevelInfo, getBorderForLevel, getTitleColorForLevel, CUSTOM_BORDERS, AVATAR_CATALOG } from '../context/ProgressContext.jsx'
@@ -9,6 +9,7 @@ import { ADMIN_IDS } from '../config/admin.js'
 import TitleSelector from '../components/TitleSelector.jsx'
 import BorderSelector from '../components/BorderSelector.jsx'
 import LevelRoad from '../components/LevelRoad.jsx'
+import gsap from 'gsap'
 
 const CATEGORY_META = {
   milestone: { label: 'Milestone',  icon: '🎮', color: '#4ECDC4' },
@@ -56,6 +57,14 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin, onFriends
   const unlockedCount = unlockedSet.size
   const totalAchievements = ACHIEVEMENTS.length
 
+  // ── GSAP Refs ──
+  const heroRef = useRef(null)
+  const statsRef = useRef(null)
+  const achRef = useRef(null)
+  const gameStatsRef = useRef(null)
+  const xpBarRef = useRef(null)
+  const hasAnimated = useRef(false)
+
   const categories = ['all', ...Object.keys(CATEGORY_META)]
   const filteredAchievements = achFilter === 'all'
     ? ACHIEVEMENTS
@@ -66,6 +75,67 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin, onFriends
   const textMain = tc.textMain
   const textMuted= tc.textMuted
   const borderCol= tc.borderCol
+
+  // ── GSAP Entrance Animations ──
+  useLayoutEffect(() => {
+    if (hasAnimated.current) return
+    hasAnimated.current = true
+
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+
+    // Hero card entrance
+    if (heroRef.current) {
+      tl.fromTo(heroRef.current, { opacity: 0, y: 30, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.6 })
+    }
+
+    // Stats grid stagger
+    if (statsRef.current) {
+      const statCards = statsRef.current.querySelectorAll('.prof-stat')
+      tl.fromTo(statCards,
+        { opacity: 0, y: 20, scale: 0.9 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.4, stagger: 0.07 },
+        '-=0.3'
+      )
+    }
+
+    // XP bar fill from 0
+    if (xpBarRef.current) {
+      gsap.fromTo(xpBarRef.current,
+        { width: '0%' },
+        { width: `${Math.round(levelInfo.progress * 100)}%`, duration: 1.2, ease: 'power2.out', delay: 0.5 }
+      )
+    }
+
+    // Game stats section
+    if (gameStatsRef.current) {
+      const rows = gameStatsRef.current.querySelectorAll('.game-stat-row')
+      tl.fromTo(rows,
+        { opacity: 0, x: -20 },
+        { opacity: 1, x: 0, duration: 0.35, stagger: 0.04 },
+        '-=0.2'
+      )
+    }
+
+    // Achievement section
+    if (achRef.current) {
+      tl.fromTo(achRef.current,
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.5 },
+        '-=0.2'
+      )
+    }
+  }, [])
+
+  // ── Achievement filter change animation ──
+  useEffect(() => {
+    if (!achRef.current) return
+    const items = achRef.current.querySelectorAll('.ach-item')
+    if (!items.length) return
+    gsap.fromTo(items,
+      { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.3, stagger: 0.03, ease: 'power2.out', clearProps: 'all' }
+    )
+  }, [achFilter])
 
   return (
     <>
@@ -90,7 +160,6 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin, onFriends
           background: ${surface}; border: 2px solid ${borderCol};
           border-radius: 24px; padding: 28px; margin-bottom: 20px;
           position: relative; overflow: hidden;
-          animation: slide-up 0.4s ease both;
         }
         .prof-level-card::before {
           content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
@@ -101,7 +170,6 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin, onFriends
         .prof-stats {
           display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
           margin-bottom: 20px;
-          animation: slide-up 0.4s 0.1s ease both;
         }
         .prof-stat {
           background: ${surface}; border: 2px solid ${borderCol};
@@ -114,7 +182,6 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin, onFriends
         .prof-ach-section {
           background: ${surface}; border: 2px solid ${borderCol};
           border-radius: 24px; padding: 24px; margin-bottom: 20px;
-          animation: slide-up 0.4s 0.2s ease both;
         }
 
         /* Achievement filter */
@@ -173,7 +240,6 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin, onFriends
         .prof-leader {
           background: ${surface}; border: 2px solid ${borderCol};
           border-radius: 24px; padding: 24px;
-          animation: slide-up 0.4s 0.3s ease both;
         }
 
         @media (max-width: 480px) {
@@ -191,7 +257,7 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin, onFriends
           </button>
 
           {/* ── Level Card ── */}
-          <div className="prof-level-card">
+          <div className="prof-level-card" ref={heroRef}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20 }}>
               <div style={{ position: 'relative', width: 90, height: 90, flexShrink: 0 }}>
                 {/* Avatar Content */}
@@ -361,8 +427,10 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin, onFriends
                   background: 'linear-gradient(90deg, #A29BFE, #FDCB6E)',
                   width: `${Math.round(levelInfo.progress * 100)}%`,
                   transition: 'width 0.8s cubic-bezier(0.34,1.56,0.64,1)',
-                  position: 'relative'
-                }}>
+                  position: 'relative',
+                }}
+                ref={xpBarRef}
+              >
                   <div style={{position:'absolute', inset:0, background:'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)', animation:'shimmer 2s infinite'}} />
                 </div>
               </div>
@@ -400,7 +468,7 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin, onFriends
           </div>
 
           {/* ── Stats Grid ── */}
-          <div className="prof-stats">
+          <div className="prof-stats" ref={statsRef}>
             {[
               { icon: '🎮', label: 'Game Dimainkan', value: progress.totalGamesPlayed || 0 },
               { icon: '🔥', label: 'Streak', value: `${progress.currentStreak || 0} hari` },
@@ -419,7 +487,7 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin, onFriends
 
           {/* ── Per-game breakdown ── */}
           {games && games.length > 0 && (
-            <div className="prof-leader">
+            <div className="prof-leader" ref={gameStatsRef}>
               <h3 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 18, color: textMain, marginBottom: 16 }}>
                 📊 Statistik Per Game
               </h3>
@@ -440,7 +508,7 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin, onFriends
                   : g.id === 'voxel-racer' ? `${best} poin`
                   : best.toLocaleString()
                 return (
-                  <div key={g.id} style={{
+                  <div key={g.id} className="game-stat-row" style={{
                     display: 'flex', alignItems: 'center', gap: 14,
                     padding: '12px 14px', borderRadius: 14, marginBottom: 8,
                     background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
@@ -468,7 +536,7 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin, onFriends
           )}
 
           {/* ── Achievements ── */}
-          <div className="prof-ach-section" style={{ marginTop: 20 }}>
+          <div className="prof-ach-section" style={{ marginTop: 20 }} ref={achRef}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <h3 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 18, color: textMain }}>
                 🏆 Achievements
