@@ -241,12 +241,14 @@ export default function Shop({ onBack }) {
     if (coins < item.price) { play('mismatch'); showToast('Coin tidak cukup! 😅'); return }
     setBuyingId(item.id); play('click')
     
-    if (type === 'avatars') {
+    if (type === 'avatars' || type === 'mascotSkins' || type === 'mascotHats') {
       setTimeout(async () => {
         const ok = await spendCoins(item.price, `Beli ${item.name}`)
         setBuyingId(null)
         if (ok) {
-          unlockAvatar(item.id)
+          if (type === 'avatars') unlockAvatar(item.id)
+          else if (type === 'mascotSkins') unlockMascotSkin(item.id)
+          else if (type === 'mascotHats') unlockMascotHat(item.id)
           play('win'); showToast(`${item.name} berhasil dibeli! 🎉`)
         } else {
           play('mismatch'); showToast('Gagal membeli')

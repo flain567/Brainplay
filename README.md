@@ -1,4 +1,4 @@
-# 🎮 BrainPlay v0.9.8
+# 🎮 BrainPlay v0.9.9
 
 **Platform Web Game 30 Hari — Santai & Mengasah Otak**
 
@@ -8,14 +8,15 @@ Dibuat oleh **Dwi Agus Hidayat**
 
 ## Teknologi
 - React 18 + Vite 8
-- Pure CSS animations (no external UI lib)
-- Canvas-based games (Slither Worm, Space Shooter, dll.)
+- Pure CSS animations & **GSAP (GreenSock)** untuk animasi premium
+- Canvas-based games (Slither Worm, Space Shooter, Voxel Racer, dll.)
 - localStorage persistence + Firebase (auth, Firestore leaderboard/analytics, cloud save)
+- Firebase App Check & Security Rules (Anti-Cheat)
 - Capacitor 6 (Android)
 - Push Notifications API (browser)
 - Deploy: Vercel
 
-## Game aktif (22 game)
+## Game aktif (24 game)
 
 | # | Game | Tipe | Hari |
 |---|------|------|------|
@@ -41,20 +42,25 @@ Dibuat oleh **Dwi Agus Hidayat**
 | 20 | Sliding Puzzle | Puzzle | 20 |
 | 21 | Tower of Hanoi | Logika | 21 |
 | 22 | Minesweeper | Logika | 22 |
+| 23 | Fields of Adventure | Action | 23 |
+| 24 | Letter Tiles | Kata | 24 |
 
 Sumber kebenaran daftar game: array `GAMES` di `src/App.jsx`.
 
-## Fitur
-- 22 game dengan 3 level kesulitan masing-masing (umumnya)
-- Coin system + Shop (skins, tema game, **website themes**, dll.)
-- Achievements + XP / level progression
-- Streak combo multiplier (1.2x 3 hari, 1.5x 7 hari, 2.0x 14 hari)
-- Daily login reward (7-day streak)
-- **Push notification** — daily challenge, streak, milestone
-- **Website themes** — tema global app (light + dark) lewat Shop
-- Dark mode + responsive mobile
-- Sound effects + background music
-- Leaderboard lokal + online (Firestore)
+## Fitur Unggulan
+- **24 Game Eksklusif** dengan 3 level kesulitan masing-masing.
+- **Global Context-Aware Mascot 🤖** — Maskot melayang cerdas yang menemani pemain di seluruh menu dan memberikan obrolan dinamis tergantung posisi halaman (Shop, Games, Profile, dll).
+- **Lucky Wheel (Gacha System) 🎰** — Putar roda keberuntungan tiap hari untuk mengoleksi item eksklusif dan koin.
+- **Anti-Cheat & Security 🛡️** — Arsitektur keamanan tinggi dengan Firebase App Check, Server-Side validation, dan Attempt-Log model untuk kompetisi yang adil.
+- **Shop & Cosmetics 🛍️** — Sesuaikan penampilan antarmuka dengan:
+  - Tema global app (Dark/Light mode & Website Themes)
+  - Maskot Skin & Topi
+  - Visual kustom untuk banyak game spesifik (misal skin cacing, partikel balapan).
+- Achievements + XP / level progression.
+- Streak combo multiplier (1.2x 3 hari, 1.5x 7 hari, 2.0x 14 hari).
+- **Push notification** — daily challenge, streak, milestone.
+- Sound effects + background music lengkap.
+- Leaderboard lokal + online tersinkronisasi Firebase.
 
 ## Admin dashboard (analytics)
 
@@ -86,15 +92,11 @@ npm run cap:sync   # build + sync
 npm run cap:open   # buka Android Studio
 ```
 
-## Changelog ringkas (v0.9.8)
+## Changelog ringkas (v0.9.9)
 
-- Dokumentasi diselaraskan dengan jumlah game dan stack (Vite 8).
-- Admin UID lewat `VITE_ADMIN_UIDS` (lihat `.env.example`).
-- `@capacitor/cli` diselaraskan ke 6.x bersama `@capacitor/core` / Android.
-- Script `npm run lint` (ESLint 9 + React + React Hooks).
-
-### Riwayat fitur besar (v0.9.5)
-
-- **NotificationManager** — bell + panel notifikasi in-app; browser push untuk daily challenge, hadiah harian, streak at risk, milestone.
-- **Website themes** — 9 tema global (Classic gratis + beli di Shop); `ThemeApplicator` + CSS variables.
-- **Architecture** — SettingsContext + ThemeApplicator; CoinContext untuk web themes.
+- Peningkatan UI/UX besar-besaran dengan efek animasi GSAP yang premium di Home, Profile, dan Shop.
+- Diperkenalkannya **Global Mascot Assistant** dengan konteks pintar per-halaman. Termasuk *mini-game TicTacToe* rahasia di bubble interaksi.
+- Penambahan dua game baru: *Fields of Adventure* dan *Letter Tiles*.
+- Mode keamanan *Anti-Cheat* dan *App Check Firebase* diaktifkan.
+- **Lucky Wheel** system hadir untuk pembagian *daily reward* yang interaktif.
+- Optimalisasi pembagian komponen ke status *lazy loading*.

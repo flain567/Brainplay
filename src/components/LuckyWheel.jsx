@@ -472,23 +472,13 @@ export default function LuckyWheel({ open, onClose }) {
           overflow: visible;
           transition: transform ${SPIN_DURATION}ms cubic-bezier(0.17, 0.67, 0.12, 0.99);
           filter: drop-shadow(0 0 30px rgba(162,155,254,0.3));
-          animation: wheel-float 4s ease-in-out infinite;
         }
         .wheel-disc.spinning {
-          animation: wheel-glow-pulse 1.5s ease-in-out infinite, wheel-spin-vibe 0.5s linear infinite;
-        }
-        @keyframes wheel-float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-5px); }
+          animation: wheel-glow-pulse 1.5s ease-in-out infinite;
         }
         @keyframes wheel-glow-pulse {
           0%, 100% { filter: drop-shadow(0 0 20px rgba(162,155,254,0.4)); }
           50% { filter: drop-shadow(0 0 45px rgba(162,155,254,0.7)); }
-        }
-        @keyframes wheel-spin-vibe {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.02); }
-          100% { transform: scale(1); }
         }
         .wheel-pointer {
           position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
