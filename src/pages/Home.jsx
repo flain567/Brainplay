@@ -3,7 +3,7 @@ import GameCard from '../components/GameCard.jsx'
 import ParticleBackground from '../components/ParticleBackground.jsx'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
-import { useProgress, getLevelInfo, getBorderForLevel, getTitleColorForLevel } from '../context/ProgressContext.jsx'
+import { useProgress, getLevelInfo, getBorderForLevel, getTitleColorForLevel, CUSTOM_BORDERS, AVATAR_CATALOG } from '../context/ProgressContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
 import { useDailyChallenge } from '../context/DailyChallengeContext.jsx'
@@ -21,6 +21,9 @@ import useScrambleNumber from '../hooks/useScrambleNumber.js'
 import gsap from 'gsap'
 import { Flip } from 'gsap/Flip'
 import ActivityTicker from '../components/ActivityTicker.jsx'
+import Mascot from '../components/Mascot.jsx'
+import InfiniteTicker from '../components/InfiniteTicker.jsx'
+import BlueprintIntro from '../components/BlueprintIntro.jsx'
 gsap.registerPlugin(Flip)
 
 const ROADMAP_FUTURE = [
@@ -57,6 +60,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
   } = useDailyChallenge()
   const { currentMode, isBonusClaimedToday, markBonusAsClaimed, getNextWeekendEvent, getWeekNumber } = useLimitedMode()
   const { hasFreeSpins } = useLuckyWheel()
+  const [showIntro, setShowIntro] = useState(!sessionStorage.getItem('bp_intro_played'))
   const tc = useThemeColors()
   const { trackEvent } = useLocalAnalytics()
   const [scrollTop, setScrollTop] = useState(false)
@@ -104,6 +108,62 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
   const coinsRef = useScrambleNumber(coins, { skipFirst: false })
   const streakRef = useScrambleNumber(streak, { duration: 0.6, revealDelay: 0.25, skipFirst: false })
   const xpRef = useScrambleNumber(progress.totalXP || 0, { duration: 1.0, skipFirst: false })
+
+  useEffect(() => {
+    if (reduceMotion) return
+    // Stagger entrance for Quick Actions
+    gsap.from('.qa-btn', {
+      y: 20,
+      opacity: 0,
+      stagger: 0.08,
+      duration: 0.8,
+      ease: 'power3.out',
+      delay: 0.4,
+      clearProps: 'all'
+    })
+  }, [reduceMotion])
+
+  const onHoverQA = (e, enter) => {
+    if (reduceMotion) return
+    gsap.to(e.currentTarget, {
+      y: enter ? -5 : 0,
+      scale: enter ? 1.04 : 1,
+      duration: 0.4,
+      ease: 'power2.out',
+      borderColor: enter ? S.accent : S.border,
+      boxShadow: enter ? `0 12px 24px ${S.accent}22` : 'none',
+      backgroundColor: enter ? S.accentFill : S.surface
+    })
+    const ico = e.currentTarget.querySelector('.qa-ico')
+    if (ico) {
+      gsap.to(ico, {
+        y: enter ? -3 : 0,
+        scale: enter ? 1.15 : 1,
+        rotation: enter ? 5 : 0,
+        duration: 0.45,
+        ease: 'back.out(2)'
+      })
+    }
+  }
+
+  const [mascotMsg, setMascotMsg] = useState('Halo! Aku Brainy. Ayo main!')
+
+  useEffect(() => {
+    if (reduceMotion) return
+    // Mascot random messages
+    const messages = [
+      'Sudah asah otakmu hari ini? 🧠',
+      'Daily Streak kamu keren banget! 🔥',
+      'Ingat istirahat ya, biar otak tetep seger! 🥛',
+      'Ayo coba pecahkan skor tertinggi hari ini! 🏆',
+      'Main bareng teman-teman makin seru lho! 🤝',
+      'Aku suka petualangan otak ini! ✨'
+    ]
+    const timer = setInterval(() => {
+      setMascotMsg(messages[Math.floor(Math.random() * messages.length)])
+    }, 15000)
+    return () => clearInterval(timer)
+  }, [reduceMotion])
 
   useEffect(() => {
     const fn = () => setScrollTop(window.scrollY > 400)
@@ -161,9 +221,46 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
 
   return (
     <>
+      <BlueprintIntro onComplete={() => setShowIntro(false)} />
+      
       <style>{`
         .home-root { min-height:100vh; position:relative; overflow:hidden; transition:background 0.4s; padding-top: 0; }
-        .home-content { position:relative; z-index:1; max-width:860px; margin:0 auto; padding:0 20px 100px; }
+        .home-content { position:relative; z-index:1; max-width:860px; margin:0 auto; padding:20px 20px 100px; }
+
+        /* Renaissance Hero Overhaul */
+        .renaissance-hero {
+          position: relative;
+          padding: 40px 0;
+          margin-bottom: 32px;
+          border-bottom: 1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'};
+          animation: fade-in 1s ease both;
+        }
+        .hero-title-main {
+          font-family: var(--font-serif);
+          font-size: 52px;
+          line-height: 0.9;
+          letter-spacing: -2px;
+          color: ${S.text};
+          margin-bottom: 24px;
+        }
+        .hero-subtitle {
+          font-family: var(--font-mono);
+          font-size: 10px;
+          letter-spacing: 4px;
+          color: ${S.accent};
+          text-transform: uppercase;
+          margin-bottom: 8px;
+        }
+
+        /* Profile Banner Re-styled */
+        .profile-strip {
+          display: flex; align-items: center; gap: 12px;
+          padding: 12px 16px; border-radius: 16px;
+          background: ${dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'};
+          border: 1px solid ${S.border};
+          cursor: pointer; transition: all 0.2s;
+        }
+        .profile-strip:hover { border-color: ${S.accent}; transform: translateX(4px); }
 
         /* Profile Banner */
         .profile-banner {
@@ -402,83 +499,139 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
 
         <div className="home-content">
 
-          {/* ── Welcome & Progress ── */}
-          <div style={{ padding: '16px 0 24px', animation: 'slide-up 0.4s ease both' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 }}>
-              <div>
-                <div style={{ fontSize: 13, color: S.muted, fontWeight: 700, marginBottom: 4 }}>Selamat datang, {playerName || 'Pemain'}!</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span className="pb-level-badge">LV. {levelInfo.level}</span>
-                  <span style={{ fontSize: 13, color: S.muted, fontWeight: 700 }}>{levelInfo.nextThreshold - (progress.totalXP || 0)} XP lagi ke Lv.{levelInfo.level + 1}</span>
-                </div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 20, fontFamily: "'Fredoka One',cursive", color: S.accent }}>{coins.toLocaleString()} 🪙</div>
-              </div>
-            </div>
-            <div className="pb-xp-track" style={{ height: 8 }}>
-              <div className="pb-xp-fill" style={{ width: `${Math.round(levelInfo.progress * 100)}%` }} />
-            </div>
-          </div>
+          {/* ── Renaissance Hero Section ── */}
+          <section className="renaissance-hero">
+            <div className="mesh-bg" />
+            <div className="hero-subtitle mono-label">BrainPlay.Renaissance.v1.0</div>
+            <h1 className="hero-title-main serif-title">
+              The <span style={{ color: S.accent }}>Discovery</span> <br />
+              of Intelligence
+            </h1>
 
-          <ActivityTicker />
+            <div style={{ padding: '24px 0', borderTop: `1px solid ${S.border}`, borderBottom: `1px solid ${S.border}`, margin: '24px 0', position: 'relative' }}>
+              <InfiniteTicker 
+                items={['MEMORY MASTER', 'LOGIC BOOSTER', 'VOCAB VORTEX', 'NUMBER NINJA', 'PATTERN PATH']} 
+                mode="serif" 
+                speed="30s"
+              />
+            </div>
 
-          {/* ── Quick Actions ── */}
-          <div className="quick-actions" data-anime-dashboard>
-            {isDailyClaimable && (
-              <button
-                className="qa-btn"
-                style={{ borderColor: `${S.gold}55`, color: S.gold, background: dark ? 'rgba(234,179,8,0.08)' : 'rgba(249,168,37,0.06)' }}
-                onClick={() => { play('levelUp'); claimDaily() }}
-              >
-                🎁 Klaim Harian
-              </button>
-            )}
+            <div className="profile-strip" onClick={() => onProfile?.()}>
+               <div className="pb-avatar" style={{ width: 42, height: 42, fontSize: 20 }}>
+                 {AVATAR_CATALOG.find(a => a.id === progress.selectedAvatar)?.emoji || '👤'}
+                 {progress.selectedBorder && (
+                    <div style={{ 
+                      position:'absolute', inset:-4, borderRadius:'50%', 
+                      border: CUSTOM_BORDERS[progress.selectedBorder]?.border,
+                      boxShadow: CUSTOM_BORDERS[progress.selectedBorder]?.boxShadow,
+                      zIndex: 10
+                    }} />
+                 )}
+               </div>
+               <div style={{ flex: 1 }}>
+                 <div style={{ fontSize: 13, fontWeight: 800, color: S.text }}>{playerName || 'User'}</div>
+                 <div style={{ fontSize: 10, color: S.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
+                   Tier {getSeasonInfo?.().currentTier} • {progress.selectedTitle || 'Novice'}
+                 </div>
+               </div>
+               <div style={{ textAlign: 'right' }}>
+                 <div style={{ fontSize: 16, fontWeight: 900, color: S.gold, fontFamily: 'var(--font-display)' }}>
+                   {coins.toLocaleString()}
+                 </div>
+                 <div style={{ fontSize: 9, color: S.muted, textTransform: 'uppercase', letterSpacing: 1 }}>Coins</div>
+               </div>
+            </div>
+          </section>
+
+          {/* ── Quick Actions Grid ── */}
+          <div className="quick-actions" style={{ marginBottom: 32 }}>
             <button
-              className="qa-btn"
-              style={{ borderColor: `${S.accent}55`, color: S.accent, background: S.accentFill }}
-              onClick={() => { play('click'); onOpenWheel() }}
+               className="qa-btn"
+               style={{ border: `1.5px solid ${hasFreeSpins ? S.gold : S.border}` }}
+               onClick={() => { play('click'); onOpenWheel() }}
+               onMouseEnter={e => onHoverQA(e, true)}
+               onMouseLeave={e => onHoverQA(e, false)}
             >
               <span className="qa-ico">🎡</span>
-              Lucky Wheel
+              Wheel
               {hasFreeSpins && <span className="qa-free">FREE</span>}
             </button>
             <button
               className="qa-btn"
-              style={{ borderColor: `${S.accent}55`, color: S.accent, background: S.accentFill }}
-              onClick={() => { play('click'); onFriends?.() }}
-            >
-              <span className="qa-ico">🤝</span>
-              Teman
-            </button>
-            <button
-              className="qa-btn"
-              style={{ borderColor: `${S.accent}55`, color: S.accent, background: S.accentFill }}
-              onClick={() => { play('click'); onGames?.() }}
-            >
-              <span className="qa-ico">🎮</span>
-              Katalog
-            </button>
-            <button
-              className="qa-btn"
-              style={{ borderColor: `${S.gold}55`, color: S.gold, background: dark ? 'rgba(234,179,8,0.06)' : 'rgba(249,168,37,0.04)' }}
               onClick={() => { play('click'); onShop?.() }}
+              onMouseEnter={e => onHoverQA(e, true)}
+              onMouseLeave={e => onHoverQA(e, false)}
             >
               <span className="qa-ico">🏪</span>
               Shop
             </button>
-            {onStats && (
-              <button className="qa-btn" onClick={() => { play('click'); onStats?.() }}>
-                <span className="qa-ico">📊</span>
-                Stats
-              </button>
-            )}
-            {onProfile && (
-              <button className="qa-btn" onClick={() => { play('click'); onProfile?.() }}>
-                <span className="qa-ico">👤</span>
-                Profil
-              </button>
-            )}
+            <button
+               className="qa-btn"
+               onClick={() => { play('click'); onGames?.() }}
+               onMouseEnter={e => onHoverQA(e, true)}
+               onMouseLeave={e => onHoverQA(e, false)}
+            >
+              <span className="qa-ico">🎮</span>
+              Games
+            </button>
+          </div>
+
+          {!showIntro && (
+            <div style={{ animation: 'fade-in 1s 0.2s ease both', marginBottom: 32 }}>
+              <InfiniteTicker 
+                 items={['SYSTEMS READY', 'DAILY CHALLENGE UPDATED', 'COMMUNITY RECORD BROKEN', 'EVENT ACTIVE']} 
+                 mode="mono" 
+                 speed="45s"
+              />
+            </div>
+          )}
+
+          {/* ── Companion Mascot Card (Integrated) ── */}
+          <div 
+            id="mascot-home-card"
+            style={{
+              background: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
+              borderRadius: 28,
+              padding: '20px',
+              marginBottom: 32,
+              border: `1.5px solid ${S.border}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 20,
+              position: 'relative',
+              overflow: 'hidden',
+              animation: 'slide-up 0.4s 0.1s ease both',
+              cursor: 'pointer'
+            }}
+            onClick={() => play('click')}
+          >
+            <div style={{ flexShrink: 0, position: 'relative', zIndex: 2 }}>
+              <Mascot 
+                skin={progress.selectedMascotSkin} 
+                hat={progress.selectedMascotHat} 
+                size={80} 
+              />
+            </div>
+            <div style={{ flex: 1, zIndex: 2 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 14, fontWeight: 900, color: S.accent, letterSpacing: 0.5 }}>
+                  {progress.mascotName || 'Brainy'}
+                </span>
+                <span className="pb-level-badge" style={{ fontSize: 9 }}>Lvl.{levelInfo.level}</span>
+              </div>
+              <div style={{ 
+                position: 'relative', background: dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', 
+                padding: '12px 16px', borderRadius: '0 16px 16px 16px', fontSize: 14, color: S.text,
+                lineHeight: 1.5, fontWeight: 600
+              }}>
+                {mascotMsg}
+                <div style={{ 
+                  position: 'absolute', left: -6, top: 0, width: 0, height: 0, 
+                  borderTop: '0px solid transparent', borderBottom: '10px solid transparent', 
+                  borderRight: `10px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'}` 
+                }} />
+              </div>
+            </div>
           </div>
 
           {/* ── Flagship Design (v2) ── */}

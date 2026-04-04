@@ -237,8 +237,29 @@ export const BASE_SHIP_CATALOG = [
       5:{ type:'ice-shard', count:3 }
     },
     img: '/wheel_ship.png',
-    design:{ body:'#00BFFF', wing:'#006994', cockpit:'#E0FFFF', engine:'#00CED1', accent:'#B0E0E6' }
+    design:{ body:'#00FF88', wing:'#006994', cockpit:'#E0FFFF', engine:'#00CED1', accent:'#B0E0E6' }
   },
+]
+
+// ─── Mascot Skins (Brainy) ───────────────────────────────────────────────────
+export const MASCOT_SKINS = [
+  { id: 'neon-blue', name: 'Neon Blue', desc: 'Warna biru neon ikonik BrainPlay', price: 0, icon: '🔵', color: '#00d2ff' },
+  { id: 'classic-pink', name: 'Classic Pink', desc: 'Warna otak klasik yang cerdas', price: 200, icon: '🧠', color: '#ff7eb3' },
+  { id: 'stealth-black', name: 'Stealth Black', desc: 'Gaya rahasia yang misterius dan keren', price: 400, icon: '🌑', color: '#2d3436' },
+  { id: 'cyber-pink', name: 'Cyber Pink', desc: 'Aura futuristik dengan pendaran pink', price: 500, icon: '💖', color: '#FF6B9D' },
+  { id: 'emerald-green', name: 'Emerald', desc: 'Hijau zamrud yang melambangkan pertumbuhan', price: 600, icon: '💚', color: '#55EFC4' },
+  { id: 'royal-gold', name: 'Royal Gold', desc: 'Emas murni untuk maskot sang master', price: 1500, icon: '👑', color: '#FFD700', rarity: 'legendary' },
+  { id: 'hologram', name: 'Hologram', desc: 'Efek transparan digital masa depan', price: 3000, icon: '🔮', color: '#a29bfe', rarity: 'mythic' },
+]
+
+// ─── Mascot Hats/Accessories ────────────────────────────────────────────────
+export const MASCOT_HATS = [
+  { id: 'grad-cap', name: 'Topi Sarjana', desc: 'Simbol kecerdasan yang luar biasa', price: 300, icon: '🎓', color: '#2d3436' },
+  { id: 'gamer-headset', name: 'Gamer Headset', desc: 'Selalu siap untuk sesi gaming maraton', price: 500, icon: '🎧', color: '#7c6fe8' },
+  { id: 'wizard-hat', name: 'Topi Penyihir', desc: 'Kekuatan sihir di setiap jawabanmu', price: 800, icon: '🧙', color: '#6c5ce7' },
+  { id: 'crown', name: 'Mahkota Emas', desc: 'Hanya untuk penguasa papan peringkat', price: 1200, icon: '👑', color: '#FFD700' },
+  { id: 'detective', name: 'Topi Detektif', desc: 'Siap memecahkan setiap teka-teki sulit', price: 400, icon: '🕵️', color: '#8d6e63' },
+  { id: 'chef-hat', name: 'Topi Koki', desc: 'Meracik strategi kemenangan yang lezat', price: 250, icon: '👨‍🍳', color: '#fff' },
 ]
 
 // ─── Battle Pass Ships (Season 1 - V2) ───────────────────────────────────────

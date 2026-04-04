@@ -320,6 +320,11 @@ function getDefaultProgress() {
     unlockedBorders: [],     // List of unlocked border IDs
     selectedAvatar: null,    // Custom avatar ID (from AVATAR_CATALOG)
     unlockedAvatars: ['raccoon','fox','kiddo','lynx','wolf'], // 5 free avatars unlocked by default
+    selectedMascotSkin: 'neon-blue',
+    selectedMascotHat: null,
+    unlockedMascotSkins: ['neon-blue'],
+    unlockedMascotHats: [],
+    mascotName: 'Brainy',
   }
 }
 
@@ -667,6 +672,37 @@ export function ProgressProvider({ children }) {
     })
   }, [])
 
+  // Mascot management
+  const setSelectedMascotSkin = useCallback((skinId) => {
+    setProgress(p => ({ ...p, selectedMascotSkin: skinId }))
+  }, [])
+
+  const unlockMascotSkin = useCallback((id) => {
+    setProgress(p => {
+      const set = new Set(p.unlockedMascotSkins || ['neon-blue'])
+      if (set.has(id)) return p
+      set.add(id)
+      return { ...p, unlockedMascotSkins: [...set] }
+    })
+  }, [])
+
+  const setSelectedMascotHat = useCallback((hatId) => {
+    setProgress(p => ({ ...p, selectedMascotHat: hatId }))
+  }, [])
+
+  const unlockMascotHat = useCallback((id) => {
+    setProgress(p => {
+      const set = new Set(p.unlockedMascotHats || [])
+      if (set.has(id)) return p
+      set.add(id)
+      return { ...p, unlockedMascotHats: [...set] }
+    })
+  }, [])
+
+  const setMascotName = useCallback((name) => {
+    setProgress(p => ({ ...p, mascotName: name }))
+  }, [])
+
   const clearNewAchievements = useCallback(() => {
     setProgress(p => ({ ...p, newAchievements: [] }))
   }, [])
@@ -682,6 +718,12 @@ export function ProgressProvider({ children }) {
       setSelectedTitle, unlockTitle,
       setSelectedAvatar, unlockAvatar,
       claimBPTier, claimLevelReward, setSelectedBorder, selectBorder: setSelectedBorder, unlockBorder,
+      setSelectedMascotSkin, unlockMascotSkin, setSelectedMascotHat, unlockMascotHat, setMascotName,
+      selectedMascotSkin: progress.selectedMascotSkin || 'neon-blue',
+      unlockedMascotSkins: progress.unlockedMascotSkins || ['neon-blue'],
+      selectedMascotHat: progress.selectedMascotHat || null,
+      unlockedMascotHats: progress.unlockedMascotHats || [],
+      mascotName: progress.mascotName || 'Brainy',
       getLevelInfo: () => getLevelInfo(progress.totalXP || 0),
       getSeasonInfo: () => {
         const curXP = progress.seasonXP || 0

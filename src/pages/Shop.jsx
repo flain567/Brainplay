@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
+import gsap from 'gsap'
+import Mascot from '../components/Mascot.jsx'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useAuth } from '../context/AuthContext.jsx'
-import { useCoins, ICON_PACKS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, BASE_SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, PATTERN_THEMES, REACTION_THEMES, DASH_THEMES, BREAKER_THEMES, WORDLE_THEMES, RACER_THEMES, RACER_MAP_CATALOG, MATH_THEMES, BINARY_THEMES, MINE_THEMES, SLIDING_THEMES, BORDER_CATALOG, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
+import { useCoins, ICON_PACKS, MASCOT_SKINS, MASCOT_HATS, SNAKE_SKINS, TILE_THEMES, HIGHLIGHT_PACKS, SHIP_CATALOG, BASE_SHIP_CATALOG, HANGMAN_THEMES, TUBE_THEMES, SUDOKU_THEMES, JIGSAW_THEMES, WEBSITE_THEMES, PATTERN_THEMES, REACTION_THEMES, DASH_THEMES, BREAKER_THEMES, WORDLE_THEMES, RACER_THEMES, RACER_MAP_CATALOG, MATH_THEMES, BINARY_THEMES, MINE_THEMES, SLIDING_THEMES, BORDER_CATALOG, CONSUMABLES, COIN_REWARDS } from '../context/CoinContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { useProgress, CUSTOM_BORDERS, AVATAR_CATALOG } from '../context/ProgressContext.jsx'
 import { WHEEL_EXCLUSIVES, useLuckyWheel } from '../context/LuckyWheelContext.jsx'
@@ -140,13 +142,37 @@ export default function Shop({ onBack }) {
     hints, timeFreezes, dailyStreak, isDailyClaimable,
     buyCosmetic, equipCosmetic, buyConsumable, claimDaily, transactions, earnCoins, spendCoins
   } = useCoins()
-  const { progress, setSelectedBorder, unlockBorder, setSelectedAvatar, unlockAvatar } = useProgress()
+  const { 
+    progress, setSelectedBorder, unlockBorder, setSelectedAvatar, unlockAvatar,
+    selectedMascotSkin, setSelectedMascotSkin, unlockMascotSkin, unlockedMascotSkins,
+    selectedMascotHat, setSelectedMascotHat, unlockMascotHat, unlockedMascotHats
+  } = useProgress()
   const tc = useThemeColors()
 
   const [tab, setTab] = useState('packs')
   const [toast, setToast] = useState('')
   const [buyingId, setBuyingId] = useState(null)
   const [previewId, setPreviewId] = useState(null)
+
+  useEffect(() => {
+    // GSAP Stagger Entrance for Shop Tabs — using fromTo to be safer
+    gsap.fromTo('.shop-tab', 
+      { scale: 0.8, opacity: 0 },
+      { scale: 1, opacity: 1, stagger: 0.04, duration: 0.6, ease: 'back.out(1.7)', delay: 0.3 }
+    )
+  }, [])
+
+  // Animasi saat ganti tab
+  useEffect(() => {
+    // Pastikan ref atau selector terpilih
+    const packs = document.querySelectorAll('.shop-pack')
+    if (packs.length) {
+      gsap.fromTo(packs, 
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, stagger: 0.02, duration: 0.4, ease: 'power2.out' }
+      )
+    }
+  }, [tab])
 
   const dark = tc.dark
   const bg = tc.bg
@@ -225,6 +251,8 @@ export default function Shop({ onBack }) {
       setBuyingId(null)
       if (result.success) { 
         if (type === 'borders') unlockBorder(item.id)
+        if (type === 'mascotSkins') unlockMascotSkin(item.id)
+        if (type === 'mascotHats') unlockMascotHat(item.id)
         play('win'); showToast(`${item.name} berhasil dibeli! 🎉`) 
       }
       else { play('mismatch'); showToast(result.reason) }
@@ -235,6 +263,8 @@ export default function Shop({ onBack }) {
     play('click')
     if (type === 'borders') setSelectedBorder(itemId)
     else if (type === 'avatars') setSelectedAvatar(itemId)
+    else if (type === 'mascotSkins') setSelectedMascotSkin(itemId)
+    else if (type === 'mascotHats') setSelectedMascotHat(itemId)
     else equipCosmetic(type, itemId)
     showToast('Diaktifkan! ✅')
   }
@@ -262,6 +292,8 @@ export default function Shop({ onBack }) {
     { id:'tiles',      label:'🔗 Tiles',    },
     { id:'highlights', label:'🔍 Highlight' },
     { id:'ships',      label:'🚀 Ships'     },
+    { id:'mascotSkins',label:'🤖 Maskot'    },
+    { id:'mascotHats', label:'🎩 Aksesoris' },
     { id:'hangman',    label:'💀 Hangman'   },
     { id:'tubes',      label:'🧪 Tubes'     },
     { id:'sudoku',     label:'🔢 Sudoku'    },
@@ -344,18 +376,26 @@ export default function Shop({ onBack }) {
         }
         .shop-tab-row::-webkit-scrollbar { display:none; }
         .shop-tab {
-          padding: 8px 4px; border: 1px solid transparent; background: transparent;
-          font-family: 'Fredoka One', cursive; font-size: 11px;
-          color: ${textMuted}; cursor: pointer; transition: all 0.2s ease;
-          white-space: nowrap; border-radius: 10px;
-          text-align: center; overflow: hidden; text-overflow: ellipsis;
+          padding: 10px 4px; border: 1.5px solid transparent; background: transparent;
+          font-family: 'Fredoka One', cursive; font-size: 12px;
+          color: ${dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)'}; 
+          cursor: pointer; transition: all 0.2s ease;
+          white-space: normal; border-radius: 12px;
+          display: flex; align-items: center; justify-content: center;
+          text-align: center; line-height: 1.2;
+          background: ${dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'};
         }
-        .shop-tab:hover { background: ${dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'}; color: ${textMain}; }
+        .shop-tab:hover { 
+          background: ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}; 
+          color: ${textMain};
+          transform: translateY(-2px);
+        }
         .shop-tab.active { 
-          background: ${dark ? 'rgba(124,111,232,0.15)' : 'rgba(108,92,231,0.08)'}; 
-          color: ${dark ? '#7C6FE8' : '#6C5CE7'}; 
-          border-color: ${dark ? 'rgba(124,111,232,0.3)' : 'rgba(108,92,231,0.2)'};
-          box-shadow: 0 4px 12px rgba(124,111,232,0.1);
+          background: ${dark ? 'rgba(124,111,232,0.2)' : 'rgba(108,92,231,0.1)'}; 
+          color: ${dark ? '#A29BFE' : '#6C5CE7'}; 
+          border-color: ${dark ? 'rgba(124,111,232,0.4)' : 'rgba(108,92,231,0.3)'};
+          box-shadow: 0 4px 15px rgba(124,111,232,0.15);
+          opacity: 1 !important;
         }
         .tx-row {
           display:flex; align-items:center; gap:12px; padding:10px 14px;
@@ -1324,6 +1364,56 @@ export default function Shop({ onBack }) {
                     </div>
                   )
                 }}
+              />
+            </div>
+          )}
+
+          {/* ── Mascot Skins ── */}
+          {tab === 'mascotSkins' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
+                Ubah pendaran warna Brainy sesuai seleramu!
+              </p>
+              <CosmeticList
+                items={MASCOT_SKINS} ownedList={unlockedMascotSkins} activeId={selectedMascotSkin} type="mascotSkins"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('mascotSkins', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
+                renderPreview={(item) => (
+                  <div style={{ display:'flex', justifyContent:'center', padding:10 }}>
+                    <div style={{ background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)', borderRadius: 16, padding: 10 }}>
+                      <Mascot skin={item.id} hat={selectedMascotHat} size={100} interactive={false} />
+                    </div>
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          {/* ── Mascot Hats ── */}
+          {tab === 'mascotHats' && (
+            <div style={{ animation:'slide-up 0.3s ease both' }}>
+              <p style={{ fontSize:13, color:tc.textMuted, marginBottom:18, textAlign:'center' }}>
+                Beri Brainy aksesoris keren untuk menemanimu
+              </p>
+              <CosmeticList
+                items={MASCOT_HATS} ownedList={unlockedMascotHats} activeId={selectedMascotHat} type="mascotHats"
+                dark={dark} surface={surface} textMain={textMain} textMuted={textMuted}
+                borderCol={borderCol} coins={coins}
+                onBuy={(item) => handleBuyCosmetic('mascotHats', item)}
+                onEquip={handleEquip} buyingId={buyingId}
+                previewId={previewId} setPreviewId={setPreviewId}
+                wonExclusives={wonExclusives}
+                renderPreview={(item) => (
+                  <div style={{ display:'flex', justifyContent:'center', padding:10 }}>
+                    <div style={{ background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)', borderRadius: 16, padding: 10 }}>
+                      <Mascot skin={selectedMascotSkin} hat={item.id} size={100} interactive={false} />
+                    </div>
+                  </div>
+                )}
               />
             </div>
           )}
