@@ -630,6 +630,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       if (g.score > bestScore) { localStorage.setItem(`space-best-${difficulty.id}`, g.score); setBestScore(g.score) }
       if (g.wave > bestWave) { localStorage.setItem(`space-bestwave-${difficulty.id}`, g.wave); setBestWave(g.wave) }
       if (won) {
+        g.finalScore = g.score  // snapshot score for victory counting
         setVScore(0)
         g.enemyBullets = []
         g.player.invTimer = 999999
@@ -713,15 +714,11 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       p.x = clamp(p.x, p.w/2+4, g.W-p.w/2-4); p.y = clamp(p.y, p.h/2+50, g.H-30)
       if (p.shieldTimer>0) p.shieldTimer--; if (p.invTimer>0) p.invTimer--
 
-      // Victory Sequence Logic
+      // Victory Sequence Logic — fireworks only, counting is handled by a separate useEffect
       if (phaseRef.current === 'victory_sequence') {
         if (g.gameTime % 5 === 0) {
           createFirework(g, rand(g.W*0.1, g.W*0.9), rand(g.H*0.1, g.H*0.5), `hsl(${rand(0,360)}, 80%, 60%)`)
           play('explosion-base')
-        }
-        if (vScore < score) {
-          const step = Math.max(1, Math.floor(score / 50))
-          setVScore(prev => Math.min(score, prev + step))
         }
       }
 
@@ -1102,6 +1099,34 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
     return () => cancelAnimationFrame(animRef.current)
   }, [phase])
 
+  // Victory score counting animation — separate from game loop to avoid stale closures
+  useEffect(() => {
+    if (phase !== 'victory_sequence') return
+    const g = gameRef.current
+    const targetScore = g?.finalScore ?? score
+    if (targetScore <= 0) { setVScore(0); return }
+
+    const step = Math.max(1, Math.floor(targetScore / 50))
+    const interval = setInterval(() => {
+      setVScore(prev => {
+        const next = prev + step
+        if (next >= targetScore) {
+          clearInterval(interval)
+          return targetScore
+        }
+        return next
+      })
+    }, 30)
+
+    // Safety: guarantee button appears after 5 seconds max
+    const safety = setTimeout(() => {
+      clearInterval(interval)
+      setVScore(targetScore)
+    }, 5000)
+
+    return () => { clearInterval(interval); clearTimeout(safety) }
+  }, [phase])
+
   // Report results
   useEffect(() => {
     if ((phase==='dead'||phase==='win') && score>0) {
@@ -1293,7 +1318,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
                 {vScore.toLocaleString()}
               </div>
             </div>
-            {vScore >= score && (
+            {vScore >= (gameRef.current?.finalScore ?? score) && (
               <div className="mt-12 animate-bounce">
                 <button 
                   className="pointer-events-auto px-12 py-5 bg-white text-black font-black italic text-2xl rounded-full hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(255,255,255,0.6)] border-4 border-black"

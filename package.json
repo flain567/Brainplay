@@ -10,7 +10,8 @@
     "lint": "eslint src --ext .js,.jsx",
     "cap:sync": "vite build && npx cap sync android",
     "cap:open": "npx cap open android",
-    "cap:run": "vite build && npx cap sync android && npx cap run android"
+    "cap:run": "vite build && npx cap sync android && npx cap run android",
+    "acp": "git add -A && git commit -m \"auto-commit $(date)\" && git push"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.1",
