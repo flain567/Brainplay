@@ -787,7 +787,7 @@ function AppInner() {
       )}
       
       {/* ── Global Floating Mascot Assistant ── */}
-      {screen !== 'home' && screen !== 'splash' && (
+      {screen !== 'game' && screen !== 'splash' && (
         <MascotCompanion
           floating={true}
           mascotName={progress.mascotName || 'Brainy'}

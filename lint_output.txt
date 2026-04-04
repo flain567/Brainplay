@@ -1,0 +1,450 @@
+
+> brainplay@0.9.8 lint
+> eslint src --ext .js,.jsx
+
+
+/home/dwiagus/Documents/brainplay/src/App.jsx
+   15:27  warning  'useFriends' is defined but never used. Allowed unused vars must match /^_/u     no-unused-vars
+   26:8   warning  'QuickSettings' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+   37:69  warning  'isNative' is defined but never used. Allowed unused vars must match /^_/u       no-unused-vars
+  673:10  error    'PauseModal' is not defined                                                      react/jsx-no-undef
+  677:17  error    'tc' is not defined                                                              no-undef
+
+/home/dwiagus/Documents/brainplay/src/components/BattlePass.jsx
+   1:35  warning  'BP_SEASON' is defined but never used. Allowed unused vars must match /^_/u        no-unused-vars
+   2:10  warning  'useCoins' is defined but never used. Allowed unused vars must match /^_/u         no-unused-vars
+   2:20  warning  'BP_SHIP_CATALOG' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  87:9   warning  'tc' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/BlueprintIntro.jsx
+  12:9  warning  'lineRef' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/DifficultySelector.jsx
+  13:11  warning  'darkMode' is assigned a value but never used. Allowed unused vars must match /^_/u   no-unused-vars
+  22:9   warning  'textMuted' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/GameCard.jsx
+  14:11  warning  'darkMode' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/GameDetailModal.jsx
+  1:45  warning  'useEffect' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/GameLayout.jsx
+    1:56  warning  'useCallback' is defined but never used. Allowed unused vars must match /^_/u    no-unused-vars
+    4:10  warning  'useProgress' is defined but never used. Allowed unused vars must match /^_/u    no-unused-vars
+    5:10  warning  'useCoins' is defined but never used. Allowed unused vars must match /^_/u       no-unused-vars
+    7:8   warning  'Confetti' is defined but never used. Allowed unused vars must match /^_/u       no-unused-vars
+    8:8   warning  'TutorialModal' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+   86:35  warning  'dark' is defined but never used. Allowed unused args must match /^_/u           no-unused-vars
+  113:42  warning  'dark' is defined but never used. Allowed unused args must match /^_/u           no-unused-vars
+  159:44  warning  'dark' is defined but never used. Allowed unused args must match /^_/u           no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/LevelRoad.jsx
+  1:29  warning  'useState' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/LoginModal.jsx
+  7:11  warning  'darkMode' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/LuckyWheel.jsx
+  145:51  warning  'e' is defined but never used                                                         no-unused-vars
+  169:54  warning  'e' is defined but never used                                                         no-unused-vars
+  413:9   warning  'textMuted' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/Mascot.jsx
+  1:29  warning  'useCallback' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/Navbar.jsx
+  14:11  warning  'darkMode' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  94:9   warning  'navBg' is assigned a value but never used. Allowed unused vars must match /^_/u     no-unused-vars
+  95:9   warning  'surface' is assigned a value but never used. Allowed unused vars must match /^_/u   no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/NicknameModal.jsx
+  7:11  warning  'darkMode' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/NotificationManager.jsx
+   39:40  warning  'icon' is assigned a value but never used. Allowed unused args must match /^_/u         no-unused-vars
+   48:12  warning  'e' is defined but never used                                                           no-unused-vars
+   56:29  warning  'dailyStreak' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  220:9   warning  'textMuted' is assigned a value but never used. Allowed unused vars must match /^_/u    no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/NotificationSettingsModal.jsx
+   16:9    warning  'surface' is assigned a value but never used. Allowed unused vars must match /^_/u    no-unused-vars
+   19:9    warning  'textMuted' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+   82:89   error    'tc' is not defined                                                                   no-undef
+   92:68   error    'tc' is not defined                                                                   no-undef
+  108:48   error    'tc' is not defined                                                                   no-undef
+  110:122  error    'tc' is not defined                                                                   no-undef
+  138:52   error    'tc' is not defined                                                                   no-undef
+  148:66   error    'tc' is not defined                                                                   no-undef
+  167:52   error    'tc' is not defined                                                                   no-undef
+
+/home/dwiagus/Documents/brainplay/src/components/QuickSettings.jsx
+  1:56  warning  'useCallback' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/ThemeApplier.jsx
+  2:20  warning  'APP_THEMES' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/TitleSelector.jsx
+  5:10  warning  'useState' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/TutorialModal.jsx
+   9:11  warning  'darkMode' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  15:9   warning  'dark' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+  30:73  warning  'e' is defined but never used                                                        no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/components/UserProfileModal.jsx
+  5:8  warning  'gsap' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/context/AuthContext.jsx
+    5:3   warning  'signInWithRedirect' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+   11:3   warning  'GoogleAuthProvider' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+   85:76  warning  'e' is defined but never used                                                         no-unused-vars
+   95:31  error    'GUEST_KEY' is not defined                                                            no-undef
+  123:78  warning  'e' is defined but never used                                                         no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/context/CloudSaveContext.jsx
+   18:7   warning  'SAVE_KEYS' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  188:15  warning  'e' is defined but never used                                                         no-unused-vars
+  256:15  warning  'e' is defined but never used                                                         no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/context/CoinContext.jsx
+  792:75  warning  'e' is defined but never used  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/context/FriendsContext.jsx
+  3:28  warning  'StorageKeys' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/context/InventoryContext.jsx
+   62:45   warning  'e' is defined but never used                                                              no-unused-vars
+   79:78   warning  'e' is defined but never used                                                              no-unused-vars
+  101:60   warning  'err' is defined but never used                                                            no-unused-vars
+  106:66   warning  'err' is defined but never used                                                            no-unused-vars
+  125:9    warning  'removeChest' is assigned a value but never used. Allowed unused vars must match /^_/u     no-unused-vars
+  126:9    warning  'addMaterial' is assigned a value but never used. Allowed unused vars must match /^_/u     no-unused-vars
+  127:9    warning  'removeMaterial' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  211:119  warning  'e' is defined but never used                                                              no-unused-vars
+  216:146  warning  'e' is defined but never used                                                              no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/context/LeaderboardContext.jsx
+   35:10  warning  'makeDocId' is defined but never used. Allowed unused vars must match /^_/u               no-unused-vars
+  154:7   warning  'activeSession' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  155:7   warning  'sessionSalt' is assigned a value but never used. Allowed unused vars must match /^_/u    no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/context/LimitedModeContext.jsx
+  169:15  warning  'key' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/context/LocalAnalyticsContext.jsx
+  2:10  warning  'getJSON' is defined but never used. Allowed unused vars must match /^_/u      no-unused-vars
+  2:19  warning  'setJSON' is defined but never used. Allowed unused vars must match /^_/u      no-unused-vars
+  2:28  warning  'StorageKeys' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/context/LuckyWheelContext.jsx
+   2:10  warning  'getJSON' is defined but never used. Allowed unused vars must match /^_/u        no-unused-vars
+   2:19  warning  'setJSON' is defined but never used. Allowed unused vars must match /^_/u        no-unused-vars
+   2:28  warning  'StorageKeys' is defined but never used. Allowed unused vars must match /^_/u    no-unused-vars
+  72:9   warning  'jan4' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/context/NotifContext.jsx
+   1:60  warning  'useRef' is defined but never used. Allowed unused vars must match /^_/u               no-unused-vars
+  85:9   warning  'isGradient' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/context/ProgressContext.jsx
+  349:30  warning  'p' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+  394:13  warning  'e' is defined but never used                                        no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/context/SocialContext.jsx
+  17:29  warning  'setLoadingActivities' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/hooks/useMusic.js
+  68:13  warning  'e' is defined but never used  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/hooks/useSound.js
+  2:31  warning  'useEffect' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/Friends.jsx
+  11:11  warning  'darkMode' is assigned a value but never used. Allowed unused vars must match /^_/u    no-unused-vars
+  14:32  warning  'loading' is assigned a value but never used. Allowed unused vars must match /^_/u     no-unused-vars
+  14:41  warning  'error' is assigned a value but never used. Allowed unused vars must match /^_/u       no-unused-vars
+  15:11  warning  'isLoggedIn' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  15:23  warning  'isGuest' is assigned a value but never used. Allowed unused vars must match /^_/u     no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/GameStatsPage.jsx
+  3:10  warning  'useSettings' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/Games.jsx
+   17:52  warning  'onBack' is defined but never used. Allowed unused args must match /^_/u             no-unused-vars
+   18:11  warning  'darkMode' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  300:37  warning  'i' is defined but never used. Allowed unused args must match /^_/u                  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/Home.jsx
+    1:75   warning  'Suspense' is defined but never used. Allowed unused vars must match /^_/u                   no-unused-vars
+    2:8    warning  'GameCard' is defined but never used. Allowed unused vars must match /^_/u                   no-unused-vars
+    6:56   warning  'getTitleColorForLevel' is defined but never used. Allowed unused vars must match /^_/u      no-unused-vars
+   16:7    warning  'AnimatedHeroText' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+   23:8    warning  'ActivityTicker' is defined but never used. Allowed unused vars must match /^_/u             no-unused-vars
+   41:7    warning  'ALL_TAGS' is assigned a value but never used. Allowed unused vars must match /^_/u          no-unused-vars
+   42:7    warning  'TAG_META' is assigned a value but never used. Allowed unused vars must match /^_/u          no-unused-vars
+   52:82   warning  'onStats' is defined but never used. Allowed unused args must match /^_/u                    no-unused-vars
+   52:113  warning  'onFriends' is defined but never used. Allowed unused args must match /^_/u                  no-unused-vars
+   53:11   warning  'darkMode' is assigned a value but never used. Allowed unused vars must match /^_/u          no-unused-vars
+   57:18   warning  'isDailyClaimable' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+   57:36   warning  'claimDaily' is assigned a value but never used. Allowed unused vars must match /^_/u        no-unused-vars
+   70:10   warning  'searchQuery' is assigned a value but never used. Allowed unused vars must match /^_/u       no-unused-vars
+   70:23   warning  'setSearchQuery' is assigned a value but never used. Allowed unused vars must match /^_/u    no-unused-vars
+   75:9    warning  'handleTagChange' is assigned a value but never used. Allowed unused vars must match /^_/u   no-unused-vars
+  110:9    warning  'coinsRef' is assigned a value but never used. Allowed unused vars must match /^_/u          no-unused-vars
+  111:9    warning  'streakRef' is assigned a value but never used. Allowed unused vars must match /^_/u         no-unused-vars
+  112:9    warning  'xpRef' is assigned a value but never used. Allowed unused vars must match /^_/u             no-unused-vars
+  167:9    warning  'showContinue' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+  168:9    warning  'DIFF_LABEL' is assigned a value but never used. Allowed unused vars must match /^_/u        no-unused-vars
+  170:9    warning  'comboLabel' is assigned a value but never used. Allowed unused vars must match /^_/u        no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/Inventory.jsx
+    1:28   warning  'useEffect' is defined but never used. Allowed unused vars must match /^_/u       no-unused-vars
+   10:11   warning  'coins' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  367:91   error    Duplicate key 'padding'                                                           no-dupe-keys
+  367:108  error    Duplicate key 'borderRadius'                                                      no-dupe-keys
+
+/home/dwiagus/Documents/brainplay/src/pages/Leaderboard.jsx
+    8:26  warning  'getBorderForLevel' is defined but never used. Allowed unused vars must match /^_/u    no-unused-vars
+    8:45  warning  'getLevelInfo' is defined but never used. Allowed unused vars must match /^_/u         no-unused-vars
+   59:39  warning  'surface' is defined but never used. Allowed unused args must match /^_/u              no-unused-vars
+  244:52  warning  'size' is defined but never used. Allowed unused args must match /^_/u                 no-unused-vars
+  284:36  warning  'dark' is defined but never used. Allowed unused args must match /^_/u                 no-unused-vars
+  284:42  warning  'textMain' is defined but never used. Allowed unused args must match /^_/u             no-unused-vars
+  284:52  warning  'textMuted' is defined but never used. Allowed unused args must match /^_/u            no-unused-vars
+  420:47  warning  'games' is defined but never used. Allowed unused args must match /^_/u                no-unused-vars
+  421:11  warning  'darkMode' is assigned a value but never used. Allowed unused vars must match /^_/u    no-unused-vars
+  424:11  warning  'playerName' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/Profile.jsx
+  33:72  warning  'onFriends' is defined but never used. Allowed unused args must match /^_/u          no-unused-vars
+  34:11  warning  'darkMode' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  44:9   warning  'isAdmin' is assigned a value but never used. Allowed unused vars must match /^_/u   no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/Shop.jsx
+    7:116  warning  'BASE_SHIP_CATALOG' is defined but never used. Allowed unused vars must match /^_/u             no-unused-vars
+    7:393  warning  'CONSUMABLES' is defined but never used. Allowed unused vars must match /^_/u                   no-unused-vars
+   13:65   warning  'surface' is defined but never used. Allowed unused args must match /^_/u                       no-unused-vars
+   13:95   warning  'borderCol' is defined but never used. Allowed unused args must match /^_/u                     no-unused-vars
+  116:11   warning  'darkMode' is assigned a value but never used. Allowed unused vars must match /^_/u             no-unused-vars
+  142:5    warning  'hints' is assigned a value but never used. Allowed unused vars must match /^_/u                no-unused-vars
+  142:12   warning  'timeFreezes' is assigned a value but never used. Allowed unused vars must match /^_/u          no-unused-vars
+  290:9    warning  'handleBuyConsumable' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/BinaryPuzzle.jsx
+    4:10  warning  'useSettings' is defined but never used. Allowed unused vars must match /^_/u       no-unused-vars
+  159:56  warning  'game' is defined but never used. Allowed unused args must match /^_/u              no-unused-vars
+  239:9   warning  'timePct' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/BrickBreaker.jsx
+   11:39  warning  'useCallback' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  281:38  warning  'e' is defined but never used                                                  no-unused-vars
+  336:54  warning  'e' is defined but never used                                                  no-unused-vars
+  393:57  warning  'e' is defined but never used                                                  no-unused-vars
+  413:57  warning  'e' is defined but never used                                                  no-unused-vars
+  456:60  warning  'e' is defined but never used                                                  no-unused-vars
+  502:54  warning  'e' is defined but never used                                                  no-unused-vars
+  536:58  warning  'e' is defined but never used                                                  no-unused-vars
+  552:58  warning  'e' is defined but never used                                                  no-unused-vars
+  566:55  warning  'e' is defined but never used                                                  no-unused-vars
+  609:34  warning  'W' is defined but never used. Allowed unused args must match /^_/u            no-unused-vars
+  609:37  warning  'H' is defined but never used. Allowed unused args must match /^_/u            no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/ColorSortGame.jsx
+  3:44  warning  'useRef' is defined but never used. Allowed unused vars must match /^_/u       no-unused-vars
+  4:10  warning  'useSettings' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/FieldsAdventure.jsx
+   47:7   warning  'T_GRASS' is assigned a value but never used. Allowed unused vars must match /^_/u        no-unused-vars
+   50:7   warning  'T_GRASS4' is assigned a value but never used. Allowed unused vars must match /^_/u       no-unused-vars
+   51:7   warning  'T_GRASS5' is assigned a value but never used. Allowed unused vars must match /^_/u       no-unused-vars
+   52:7   warning  'T_GRASSCLEAN' is assigned a value but never used. Allowed unused vars must match /^_/u   no-unused-vars
+   56:7   warning  'T_DIRT2' is assigned a value but never used. Allowed unused vars must match /^_/u        no-unused-vars
+   68:7   warning  'T_ROCK_TL' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+   69:7   warning  'T_ROCK_TR' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+   70:7   warning  'T_ROCK_BL' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+   71:7   warning  'T_ROCK_BR' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+   73:7   warning  'T_ROCK_SM2' is assigned a value but never used. Allowed unused vars must match /^_/u     no-unused-vars
+   91:7   warning  'T_CAVE_TL' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+   92:7   warning  'T_CAVE_TR' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+   93:7   warning  'T_CAVE_ML' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+   94:7   warning  'T_CAVE_MR' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+   95:7   warning  'T_CAVE_BL' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+   96:7   warning  'T_CAVE_BR' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+   97:7   warning  'T_CAVE_D' is assigned a value but never used. Allowed unused vars must match /^_/u       no-unused-vars
+  100:7   warning  'T_FENCE_V' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+  102:7   warning  'T_FENCE_TL' is assigned a value but never used. Allowed unused vars must match /^_/u     no-unused-vars
+  103:7   warning  'T_FENCE_TR' is assigned a value but never used. Allowed unused vars must match /^_/u     no-unused-vars
+  104:7   warning  'T_GATE' is assigned a value but never used. Allowed unused vars must match /^_/u         no-unused-vars
+  108:7   warning  'T_BRIDGE2' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+  124:7   warning  'T_FLOWER2' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+  125:7   warning  'T_SUNFLWR' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+  126:7   warning  'T_SUNFLWR2' is assigned a value but never used. Allowed unused vars must match /^_/u     no-unused-vars
+  296:17  error    'BASE_MAP' is not defined                                                                 no-undef
+  344:7   warning  'MAP' is assigned a value but never used. Allowed unused vars must match /^_/u            no-unused-vars
+  349:7   warning  'DIFF_CFG' is assigned a value but never used. Allowed unused vars must match /^_/u       no-unused-vars
+  374:11  warning  'vibrateLight' is assigned a value but never used. Allowed unused vars must match /^_/u   no-unused-vars
+  374:25  warning  'vibrateMedium' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  381:16  warning  'TILE_SRC_MAP' is assigned a value but never used. Allowed unused vars must match /^_/u   no-unused-vars
+  381:46  error    'useMemo' is not defined                                                                  no-undef
+  383:11  warning  'chests' is assigned a value but never used. Allowed unused vars must match /^_/u         no-unused-vars
+  387:13  warning  'tx' is assigned a value but never used. Allowed unused vars must match /^_/u             no-unused-vars
+  387:29  warning  'ty' is assigned a value but never used. Allowed unused vars must match /^_/u             no-unused-vars
+  412:25  error    'cfg' is not defined                                                                      no-undef
+  437:20  error    'cfg' is not defined                                                                      no-undef
+  439:7   error    'cfg' is not defined                                                                      no-undef
+  457:11  error    'cfg' is not defined                                                                      no-undef
+  457:26  error    'cfg' is not defined                                                                      no-undef
+  466:65  error    'cfg' is not defined                                                                      no-undef
+  466:80  error    'cfg' is not defined                                                                      no-undef
+  468:7   error    'cfg' is not defined                                                                      no-undef
+  583:17  error    'cfg' is not defined                                                                      no-undef
+  614:30  error    'cfg' is not defined                                                                      no-undef
+  799:18  error    'cfg' is not defined                                                                      no-undef
+
+/home/dwiagus/Documents/brainplay/src/pages/games/Game2048.jsx
+  13:10  warning  'useSettings' is defined but never used. Allowed unused vars must match /^_/u               no-unused-vars
+  64:52  warning  'game' is defined but never used. Allowed unused args must match /^_/u                      no-unused-vars
+  86:24  warning  'setInvalidFlash' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/HangmanGame.jsx
+    4:10  warning  'useSettings' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  249:38  warning  'maxWrong' is defined but never used. Allowed unused args must match /^_/u     no-unused-vars
+  659:25  error    Duplicate key 'border'                                                         no-dupe-keys
+
+/home/dwiagus/Documents/brainplay/src/pages/games/JigsawPuzzle.jsx
+    4:10  warning  'useSettings' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  263:22  warning  'finalGrid' is defined but never used. Allowed unused args must match /^_/u    no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/LetterTiles.jsx
+  215:55  warning  'game' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/MathChallenge.jsx
+   16:10  warning  'GameHeader' is defined but never used. Allowed unused vars must match /^_/u             no-unused-vars
+   16:22  warning  'StatsBar' is defined but never used. Allowed unused vars must match /^_/u               no-unused-vars
+   16:32  warning  'ActionButtons' is defined but never used. Allowed unused vars must match /^_/u          no-unused-vars
+   16:57  warning  'BestRecord' is defined but never used. Allowed unused vars must match /^_/u             no-unused-vars
+   39:7   warning  'op' is assigned a value but never used. Allowed unused vars must match /^_/u            no-unused-vars
+  133:7   warning  'COMBO_COLORS' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  148:57  warning  'game' is defined but never used. Allowed unused args must match /^_/u                   no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/MemoryCardMatch.jsx
+    4:10  warning  'useSettings' is defined but never used. Allowed unused vars must match /^_/u             no-unused-vars
+  203:10  warning  'hintCells' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+  245:9   warning  'winCoinAmount' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/MemoryPatternPro.jsx
+   29:57  warning  'game' is defined but never used. Allowed unused args must match /^_/u          no-unused-vars
+   40:9   warning  'uCo' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  114:67  warning  'e' is defined but never used                                                   no-unused-vars
+  122:32  warning  'e' is defined but never used                                                   no-unused-vars
+  134:44  warning  'e' is defined but never used                                                   no-unused-vars
+  144:34  warning  'e' is defined but never used                                                   no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/Minesweeper.jsx
+  70:55  warning  'game' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/NeonDash.jsx
+  153:64  warning  'vibrateError' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  162:31  warning  'uLv' is assigned a value but never used. Allowed unused vars must match /^_/u           no-unused-vars
+  228:47  warning  'e' is defined but never used                                                            no-unused-vars
+  270:49  warning  'e' is defined but never used                                                            no-unused-vars
+  281:46  warning  'e' is defined but never used                                                            no-unused-vars
+  376:56  warning  'e' is defined but never used                                                            no-unused-vars
+  386:54  warning  'e' is defined but never used                                                            no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/NumberSequence.jsx
+  142:58  warning  'game' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/QuizTrivia.jsx
+    4:10  warning  'useSettings' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  109:54  warning  'game' is defined but never used. Allowed unused args must match /^_/u         no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/ReactionTest.jsx
+   17:22  warning  'StatsBar' is defined but never used. Allowed unused vars must match /^_/u               no-unused-vars
+   17:32  warning  'ActionButtons' is defined but never used. Allowed unused vars must match /^_/u          no-unused-vars
+   42:7   warning  'COLOR_WORDS' is assigned a value but never used. Allowed unused vars must match /^_/u   no-unused-vars
+   43:7   warning  'COLOR_VALUES' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+   45:56  warning  'game' is defined but never used. Allowed unused args must match /^_/u                   no-unused-vars
+   46:11  warning  'darkMode' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+   60:10  warning  'resetKey' is assigned a value but never used. Allowed unused vars must match /^_/u      no-unused-vars
+  100:36  warning  'e' is defined but never used                                                            no-unused-vars
+  120:38  warning  'e' is defined but never used                                                            no-unused-vars
+  130:35  warning  'e' is defined but never used                                                            no-unused-vars
+  175:35  warning  'e' is defined but never used                                                            no-unused-vars
+  177:38  warning  'e' is defined but never used                                                            no-unused-vars
+  222:38  warning  'e' is defined but never used                                                            no-unused-vars
+  223:13  warning  'reactionTime' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  233:32  warning  'e' is defined but never used                                                            no-unused-vars
+  237:35  warning  'e' is defined but never used                                                            no-unused-vars
+  288:33  warning  'e' is defined but never used                                                            no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/SlidingPuzzle.jsx
+   64:57  warning  'game' is defined but never used. Allowed unused args must match /^_/u               no-unused-vars
+  135:55  warning  'textMain' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/SlitherWorm.jsx
+   10:39  warning  'useCallback' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  337:60  warning  'i' is defined but never used. Allowed unused args must match /^_/u            no-unused-vars
+  419:21  warning  'dt' is defined but never used. Allowed unused args must match /^_/u           no-unused-vars
+  886:24  warning  'e' is defined but never used. Allowed unused args must match /^_/u            no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/SpaceShooter.jsx
+   11:39  warning  'useCallback' is defined but never used. Allowed unused vars must match /^_/u                                          no-unused-vars
+   14:20  warning  'SHIP_CATALOG' is defined but never used. Allowed unused vars must match /^_/u                                         no-unused-vars
+  262:42  warning  'rows' is assigned a value but never used. Allowed unused vars must match /^_/u                                        no-unused-vars
+  272:15  warning  'rows' is assigned a value but never used. Allowed unused vars must match /^_/u                                        no-unused-vars
+  360:20  error    This branch can never execute. Its condition is a duplicate or covered by previous conditions in the if-else-if chain  no-dupe-else-if
+
+/home/dwiagus/Documents/brainplay/src/pages/games/SudokuGame.jsx
+  4:10  warning  'useSettings' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/TicTacToe.jsx
+  134:53  warning  'game' is defined but never used. Allowed unused args must match /^_/u                 no-unused-vars
+  135:11  warning  'darkMode' is assigned a value but never used. Allowed unused vars must match /^_/u    no-unused-vars
+  184:40  warning  'e' is defined but never used                                                          no-unused-vars
+  189:36  warning  'e' is defined but never used                                                          no-unused-vars
+  193:34  warning  'e' is defined but never used                                                          no-unused-vars
+  218:33  warning  'e' is defined but never used                                                          no-unused-vars
+  230:33  warning  'e' is defined but never used                                                          no-unused-vars
+  235:34  warning  'e' is defined but never used                                                          no-unused-vars
+  313:3   warning  'finalScore' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/TowerOfHanoi.jsx
+   24:56  warning  'game' is defined but never used. Allowed unused args must match /^_/u               no-unused-vars
+  158:55  warning  'textMain' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/VoxelRacer.jsx
+   71:36  warning  'lvl' is defined but never used. Allowed unused args must match /^_/u              no-unused-vars
+   91:51  warning  'game' is defined but never used. Allowed unused args must match /^_/u             no-unused-vars
+  100:31  warning  'uLv' is assigned a value but never used. Allowed unused vars must match /^_/u     no-unused-vars
+  100:53  warning  'uPr' is assigned a value but never used. Allowed unused vars must match /^_/u     no-unused-vars
+  103:9   warning  'uSpd' is assigned a value but never used. Allowed unused vars must match /^_/u    no-unused-vars
+  197:18  warning  'reason' is defined but never used. Allowed unused args must match /^_/u           no-unused-vars
+  205:34  warning  'e' is defined but never used                                                      no-unused-vars
+  211:29  warning  'e' is defined but never used                                                      no-unused-vars
+  395:39  warning  'e' is defined but never used                                                      no-unused-vars
+  401:38  warning  'e' is defined but never used                                                      no-unused-vars
+  569:17  warning  'isDark' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/WordSearch.jsx
+  273:36  warning  'e' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/WordSearchGame.jsx
+    3:10  warning  'useSettings' is defined but never used. Allowed unused vars must match /^_/u          no-unused-vars
+  216:10  warning  'words' is assigned a value but never used. Allowed unused vars must match /^_/u       no-unused-vars
+  231:10  warning  'stats' is assigned a value but never used. Allowed unused vars must match /^_/u       no-unused-vars
+  238:10  warning  'totalScore' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/WordleGame.jsx
+  216:54  warning  'game' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+
+/home/dwiagus/Documents/brainplay/src/pages/games/WordleIndonesia.jsx
+   17:32  warning  'ActionButtons' is defined but never used. Allowed unused vars must match /^_/u      no-unused-vars
+  164:59  warning  'game' is defined but never used. Allowed unused args must match /^_/u               no-unused-vars
+  165:11  warning  'darkMode' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  193:10  warning  'resetKey' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  499:13  warning  'scale' is assigned a value but never used. Allowed unused vars must match /^_/u     no-unused-vars
+
+✖ 305 problems (27 errors, 278 warnings)
+

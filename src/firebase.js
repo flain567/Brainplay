@@ -1,201 +1,71 @@
-rules_version = '2';
-service cloud.firestore {
-  match / databases / { database } / documents {
+import { initializeApp } from 'firebase/app'
+import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SECURITY HELPERS
-    // ═══════════════════════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyApf_nnK0DWKd9f90hGjdGDjYPqugfiieY",
+  authDomain: "brainplay-83395.firebaseapp.com",
+  projectId: "brainplay-83395",
+  storageBucket: "brainplay-83395.firebasestorage.app",
+  messagingSenderId: "742870469159",
+  appId: "1:742870469159:web:bdf33b69f4098bd3591c02"
+}
 
-    function isAuthenticated() {
-      return request.auth != null;
-    }
+const app = initializeApp(firebaseConfig)
+export const auth = getAuth(app)
+export const googleProvider = new GoogleAuthProvider()
+export default app
 
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
+// ─── Firebase App Check (Anti-Bot / Anti-Curl) ───────────────────────────────
+// This ensures only the real BrainPlay web app can access Firestore.
+// To activate:
+//   1. Go to Firebase Console → App Check
+//   2. Register your web app with reCAPTCHA Enterprise
+//   3. Copy the Site Key and replace 'YOUR_RECAPTCHA_SITE_KEY' below
+//   4. Enable "Enforce" on Firestore in App Check settings
 
-    function isAdmin() {
-      return isAuthenticated() && exists(/databases/$(database) / documents / admins / $(request.auth.uid));
-    }
+let _appCheckInitialized = false
 
-    // Ensures a timestamp field equals the current server time (anti-spoof)
-    function isAtServerTime(dataDict, fieldName) {
-      return dataDict[fieldName] == request.time;
-    }
-
-    // Per-game maximum scores — hardcoded to prevent believable-but-fake scores
-    function getMaxScore(gameId) {
-      let caps = {
-        'memory-card': 5500, 'slither-worm': 60000, '2048': 120000,
-        'word-search': 12000, 'space-shooter': 250000, 'hangman': 6000,
-        'color-sort': 6000, 'sudoku': 6000, 'jigsaw': 6000,
-        'reaction-test': 2500, 'neon-dash': 12000, 'brick-breaker': 60000,
-        'memory-pattern': 18000, 'voxel-racer': 18000, 'wordle': 2000,
-        'math-challenge': 60000, 'number-sequence': 60000, 'quiz-trivia': 25000,
-        'binary-puzzle': 6000, 'sliding-puzzle': 12000, 'tower-hanoi': 18000,
-        'minesweeper': 12000, 'fields-adventure': 18000
-      };
-      return caps.get(gameId, 1000000);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // USERS COLLECTION — Field-Level Validation
-    // ═══════════════════════════════════════════════════════════════════════════
-    match / users / { userId } {
-      // Public read for Social features (leaderboard, profiles)
-      allow read: if true;
-
-      // Only owner can write, with strict field validation
-      allow create: if isOwner(userId)
-        && request.resource.data.keys().hasAll(['updatedAt'])
-        && isAtServerTime(request.resource.data, 'updatedAt')
-        // STRICT: Only allow the exact same fields as update
-        && request.resource.data.keys().hasOnly([
-          'progress', 'coins', 'inventory', 'displayName', 'updatedAt'
-        ])
-        // Anti-DDoS: limit document size (< 50KB for cloud save data)
-        && request.resource.size() < 51200;
-
-      allow update: if isOwner(userId)
-        && isAtServerTime(request.resource.data, 'updatedAt')
-        && request.resource.data.keys().hasOnly([
-          'progress', 'coins', 'inventory', 'displayName', 'updatedAt'
-        ])
-        && request.resource.size() < 51200;
-
-      // ── Subcollection: Friends ──
-      match / friends / { friendId } {
-        allow read: if isOwner(userId);
-        allow create, update: if isOwner(userId)
-          && request.resource.data.keys().hasOnly(['addedAt'])
-          && request.resource.size() < 100;
-        allow delete: if isOwner(userId);
+export function initAppCheck() {
+  if (_appCheckInitialized) return
+  _appCheckInitialized = true
+  
+  import('firebase/app-check').then(({ initializeAppCheck, ReCaptchaEnterpriseProvider }) => {
+    try {
+      // In development, use debug mode
+      if (import.meta.env.DEV) {
+        // Debug token will be printed to console — register it in Firebase Console
+        self.FIREBASE_APPCHECK_DEBUG_TOKEN = true
       }
+      
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider('YOUR_RECAPTCHA_SITE_KEY'),
+        isTokenAutoRefreshEnabled: true,
+      })
+      console.log('[AppCheck] ✅ Initialized')
+    } catch (err) {
+      console.warn('[AppCheck] ⚠️ Not configured yet:', err.message)
     }
+  }).catch(() => {
+    console.warn('[AppCheck] ⚠️ Module not available')
+  })
+}
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SESSIONS — Immutable, Server-Timed, Anti-Spoof
-    // ═══════════════════════════════════════════════════════════════════════════
-    match / sessions / { sessionId } {
-      // Create: Force server time, enforce UID match, limit fields
-      allow create: if isAuthenticated()
-        && request.resource.data.uid == request.auth.uid
-        && isAtServerTime(request.resource.data, 'startTime')
-        && request.resource.data.keys().hasAll(['gameId', 'uid', 'startTime'])
-        // Anti-DDoS: Only allow exactly these fields (no payload stuffing)
-        && request.resource.data.keys().hasOnly(['gameId', 'diffId', 'uid', 'startTime'])
-        // Anti-DDoS: Limit document size (< 2KB)
-        && request.resource.size() < 2048;
+// ─── Lazy Firestore (loaded on-demand, not at startup) ───────────────────────
+let _db = null
+let _dbPromise = null
 
-      // Read: Only owner
-      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
-
-      // Sessions CANNOT be updated or deleted (immutable audit trail)
-      allow update: if false;
-      allow delete: if isAdmin();
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // LEADERBOARD — Immutable Attempt Log (No Update = No Reuse)
-    // ═══════════════════════════════════════════════════════════════════════════
-    match / leaderboard / { docId } {
-      allow read: if true;
-
-      function isValidSubmission() {
-        let gameId = request.resource.data.gameId;
-        let sessionParts = docId.split('_');
-        let sessionDocId = sessionParts[0] + "_" + sessionParts[1] + "_" + request.auth.uid;
-        let sessionPath = /databases/$(database) / documents / sessions / $(sessionDocId);
-
-        return isAuthenticated()
-          // DocId schema: exactly 3 parts (gameId_sessionNonce_uid)
-          && sessionParts.size() == 3
-          // Session must exist (not fake)
-          && exists(sessionPath)
-          // UID must match across auth, doc, and session
-          && request.resource.data.uid == request.auth.uid
-          && docId.endsWith(request.auth.uid)
-          // Score validation
-          && request.resource.data.score is int
-            && request.resource.data.score > 0
-            && request.resource.data.score <= getMaxScore(gameId)
-            // Timestamp must be server-controlled
-            && isAtServerTime(request.resource.data, 'createdAt')
-            // Duration check: must have played at least 3 seconds
-            && (request.time - get(sessionPath).data.startTime) >= duration.value(3, 's')
-            // Anti-DDoS: limit document size (< 5KB)
-            && request.resource.size() < 5120
-            // Schema injection protection: only allow known fields
-            && request.resource.data.keys().hasOnly([
-              'gameId', 'diffId', 'sessionId', 'name',
-              'selectedTitle', 'selectedBorder', 'selectedAvatar',
-              'score', 'wave', 'time', 'level',
-              'uid', 'photoURL', 'deviceId', 'checksum', 'createdAt'
-            ]);
-      }
-
-      // CREATE ONLY — each session produces exactly one attempt
-      allow create: if isValidSubmission();
-      // NO UPDATE = NO SESSION REUSE
-      allow update: if false; 
-      allow delete: if isAdmin();
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ACTIVITY / SOCIAL FEED — Auth Required + Size Limited
-    // ═══════════════════════════════════════════════════════════════════════════
-    match / activity / { docId } {
-      allow read: if true;
-      allow create: if isAuthenticated()
-        && request.resource.data.userId == request.auth.uid
-        // Anti-DDoS: limit document size (< 5KB)
-        && request.resource.size() < 5120
-        // Only allow known fields
-        && request.resource.data.keys().hasOnly([
-          'userId', 'userName', 'type', 'details', 'icon', 'timestamp'
-        ]);
-      allow delete: if isOwner(resource.data.userId) || isAdmin();
-      allow update: if false;
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ANALYTICS EVENTS — Auth Required + Strict Limits (Anti-DDoS Billing)
-    // ═══════════════════════════════════════════════════════════════════════════
-    match / analytics_events / { docId } {
-      allow read: if isAdmin();
-      // CHANGED: Was `allow create: if true` (CRITICAL vulnerability)
-      // Now requires auth + field whitelist + size limit
-      allow create: if isAuthenticated()
-        // Anti-DDoS: Only allow known analytics fields
-        && request.resource.data.keys().hasOnly([
-          'userId', 'userName', 'gameId', 'difficulty', 'score',
-          'stars', 'coinEarned', 'xpEarned', 'eventId', 'eventName',
-          'timestamp', 'date', 'type'
-        ])
-        // Anti-DDoS: limit document size (< 2KB)
-        && request.resource.size() < 2048;
-      allow update, delete: if false;
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ADMINS — Read-Only, Managed via Console
-    // ═══════════════════════════════════════════════════════════════════════════
-    match / admins / { uid } {
-      allow read: if isAuthenticated() && request.auth.uid == uid;
-      allow write: if false;
-    }
-
-    match / userCodes / { uid } {
-      allow read: if isAuthenticated();
-      allow create: if isOwner(uid) && request.resource.data.keys().hasOnly(['code', 'uid']);
-      allow update, delete: if false;
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // DEFAULT DENY — Everything not matched is blocked
-    // ═══════════════════════════════════════════════════════════════════════════
-    match / { path=**} {
-      allow read, write: if false;
-    }
+export function getDb() {
+  if (_db) return Promise.resolve(_db)
+  if (!_dbPromise) {
+    _dbPromise = import('firebase/firestore').then(({ getFirestore }) => {
+      _db = getFirestore(app)
+      return _db
+    })
   }
+  return _dbPromise
+}
+
+// Preload firestore after initial render (don't block first paint)
+export function preloadFirestore() {
+  if (!_dbPromise) getDb()
 }
