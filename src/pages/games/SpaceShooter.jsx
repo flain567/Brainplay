@@ -631,6 +631,8 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       if (g.wave > bestWave) { localStorage.setItem(`space-bestwave-${difficulty.id}`, g.wave); setBestWave(g.wave) }
       if (won) {
         setVScore(0)
+        g.enemyBullets = []
+        g.player.invTimer = 999999
         setPhase('victory_sequence')
         play('victory')
       } else {
@@ -692,7 +694,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
     }
 
     function update() {
-      const g = gameRef.current; if (!g || phaseRef.current !== 'playing') return
+      const g = gameRef.current; if (!g || (phaseRef.current !== 'playing' && phaseRef.current !== 'victory_sequence')) return
       const p = g.player, inp = inputRef.current
       g.gameTime++; if (g.gameTime%60===0) setGameTime(Math.floor(g.gameTime/60))
       g.formationSway += 0.02
@@ -1095,7 +1097,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
     }
 
     let lastTime = 0
-    function loop(ts) { if(phaseRef.current!=='playing')return;if(ts-lastTime>=14){update();draw();lastTime=ts};animRef.current=requestAnimationFrame(loop) }
+    function loop(ts) { if(phaseRef.current!=='playing'&&phaseRef.current!=='victory_sequence')return;if(ts-lastTime>=14){update();draw();lastTime=ts};animRef.current=requestAnimationFrame(loop) }
     animRef.current = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(animRef.current)
   }, [phase])
