@@ -22,6 +22,7 @@ import gsap from 'gsap'
 import { Flip } from 'gsap/Flip'
 import ActivityTicker from '../components/ActivityTicker.jsx'
 import MascotCompanion from '../components/MascotCompanion.jsx'
+import Mascot from '../components/Mascot.jsx'
 import InfiniteTicker from '../components/InfiniteTicker.jsx'
 import BlueprintIntro from '../components/BlueprintIntro.jsx'
 gsap.registerPlugin(Flip)
@@ -582,17 +583,40 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
               animation: 'slide-up 0.4s 0.1s ease both',
             }}
           >
-            <MascotCompanion
-              mascotName={progress.mascotName || 'Brainy'}
-              skin={progress.selectedMascotSkin}
-              hat={progress.selectedMascotHat}
-              level={levelInfo.level}
-              observeSections={[
-                { id: 'games-section' },
-                { id: 'features-section' },
-                { id: 'roadmap-section' },
-              ]}
-            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              <div style={{
+                width: 80, height: 80, borderRadius: '50%',
+                background: 'rgba(124,111,232,0.1)',
+                border: '2.5px solid rgba(124,111,232,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 40, boxShadow: '0 0 20px rgba(124,111,232,0.15)'
+              }}>
+                <Mascot skin={progress.selectedMascotSkin} hat={progress.selectedMascotHat} size={54} expression="happy" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <h3 style={{ margin: 0, fontSize: 20, color: S.text }}>{progress.mascotName || 'Brainy'}</h3>
+                  <span style={{ fontSize: 10, background: S.accent, color: '#fff', padding: '2px 8px', borderRadius: 6 }}>LVL {levelInfo.level}</span>
+                </div>
+                <div style={{ display: 'flex', gap: 15 }}>
+                  <div>
+                    <div style={{ fontSize: 10, color: S.muted, textTransform: 'uppercase', letterSpacing: 1 }}>Koin</div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#FFD700' }}>🪙 {progress.coins || 0}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, color: S.muted, textTransform: 'uppercase', letterSpacing: 1 }}>Total XP</div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: S.accent }}>✨ {progress.xp || 0}</div>
+                  </div>
+                </div>
+              </div>
+              <button 
+                className="fs-btn" 
+                style={{ padding: '8px 16px', fontSize: 11 }}
+                onClick={() => { play('click'); window.dispatchEvent(new CustomEvent('openShop', { detail: { tab: 'mascots' } })) }}
+              >
+                STUDIO
+              </button>
+            </div>
           </div>
 
           {/* ── Flagship Design (v2) ── */}
@@ -1014,6 +1038,20 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           }}
         />
       )}
+
+      {/* ── Floating Mascot Assistant ── */}
+      <MascotCompanion
+        floating={true}
+        mascotName={progress.mascotName || 'Brainy'}
+        skin={progress.selectedMascotSkin}
+        hat={progress.selectedMascotHat}
+        level={levelInfo.level}
+        observeSections={[
+          { id: 'games-section' },
+          { id: 'features-section' },
+          { id: 'roadmap-section' },
+        ]}
+      />
     </>
   )
 }

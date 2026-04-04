@@ -96,6 +96,7 @@ export default function MascotCompanion({
   level = 1,
   style: containerStyle = {},
   observeSections = [],     // array of { id: string, ref: RefObject }
+  floating = false,
 }) {
   const { play } = useSound()
   const tc = useThemeColors()
@@ -156,6 +157,10 @@ export default function MascotCompanion({
     setGameActive(false)
     setGameResult(null)
     setWinCombo(null)
+    setBoard(Array(9).fill(''))
+    setPlayerTurn(true)
+    setBubbleText('')
+    setBubbleActions([])
     setTimeout(() => setExpression('happy'), 300)
   }, [])
 
@@ -294,8 +299,9 @@ export default function MascotCompanion({
     }, 400)
   }, [board, gameActive, playerTurn, play, showDialog, animateMascot])
 
-  // ─── Idle behavior ───
+  // ─── Idle behavior (disabled in floating mode) ───
   useEffect(() => {
+    if (floating) return // Don't auto-open chat in floating mode
     const timer = setInterval(() => {
       idleCounter.current++
       if (idleCounter.current > 6 && !bubbleOpen) {
@@ -313,7 +319,7 @@ export default function MascotCompanion({
       }
     }, 5000)
     return () => clearInterval(timer)
-  }, [bubbleOpen, showDialog, animateMascot])
+  }, [floating, bubbleOpen, showDialog, animateMascot])
 
   // ─── Scroll section observer ───
   useEffect(() => {
@@ -341,15 +347,16 @@ export default function MascotCompanion({
     return () => obs.disconnect()
   }, [observeSections, bubbleOpen, showDialog, animateMascot])
 
-  // ─── Auto-greet on mount ───
+  // ─── Auto-greet on mount (disabled in floating mode) ───
   useEffect(() => {
+    if (floating) return // Floating mascot stays quiet until clicked
     const t = setTimeout(() => {
       showDialog(pick(DIALOGS.greet), 'excited')
       animateMascot('jump')
       flashMood('👋')
     }, 2500)
     return () => clearTimeout(t)
-  }, [])
+  }, [floating])
 
   // ─── Render ───
   const bubbleBg = dark ? 'rgba(26,31,53,0.95)' : 'rgba(255,255,255,0.95)'
@@ -357,16 +364,20 @@ export default function MascotCompanion({
 
   return (
     <div style={{
-      display: 'flex', alignItems: 'flex-start', gap: 16,
-      position: 'relative',
+      display: 'flex', flexDirection: 'column-reverse', alignItems: 'flex-end', gap: 12,
+      position: floating ? 'fixed' : 'relative',
+      bottom: floating ? 88 : 'auto',
+      right: floating ? 24 : 'auto',
+      zIndex: floating ? 2000 : 1,
+      pointerEvents: 'none', // Allow clicking through the container
       ...containerStyle,
     }}>
       {/* Mascot Avatar */}
-      <div style={{ flexShrink: 0, position: 'relative' }} ref={mascotRootRef}>
+      <div style={{ flexShrink: 0, position: 'relative', pointerEvents: 'auto' }} ref={mascotRootRef}>
         <Mascot
           skin={skin}
           hat={hat}
-          size={80}
+          size={floating ? 64 : 80}
           expression={expression}
           trackEyes={true}
           interactive={true}
@@ -384,16 +395,21 @@ export default function MascotCompanion({
         )}
       </div>
 
-      {/* Bubble + content */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      {/* Bubble + content — hidden when closed */}
+      {bubbleOpen && (
+      <div style={{
+        width: '100%', maxWidth: '280px', pointerEvents: 'auto',
+        animation: 'mc-bubble-in 0.35s cubic-bezier(.16,1,.3,1)',
+      }}>
         {/* Name + level */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-          <span style={{ fontSize: 14, fontWeight: 900, color: S.accent, letterSpacing: 0.5 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8 }}>
+          <span style={{ fontSize: 13, fontWeight: 900, color: S.accent, letterSpacing: 0.5 }}>
             {mascotName}
           </span>
           <span style={{
-            background: S.accent, color: '#E0D9FF', fontSize: 9,
-            fontWeight: 800, padding: '2px 9px', borderRadius: 8,
+            background: S.accent, color: '#FFFFFF', fontSize: 10,
+            fontWeight: 800, padding: '2px 10px', borderRadius: 8,
+            boxShadow: `0 2px 10px ${S.accent}44`,
             fontFamily: "'Fredoka One',cursive",
           }}>
             Lvl.{level}
@@ -408,16 +424,13 @@ export default function MascotCompanion({
             background: bubbleBg,
             backdropFilter: 'blur(12px)',
             border: `1.5px solid ${bubbleBorder}`,
-            borderRadius: '2px 18px 18px 18px',
-            padding: bubbleOpen ? '14px 18px 2px' : '12px 16px',
+            borderRadius: 24,
+            padding: '14px 18px 2px',
             fontSize: 14, color: S.text, lineHeight: 1.55, fontWeight: 600,
-            cursor: bubbleOpen ? 'default' : 'pointer',
             display: 'flex', flexDirection: 'column',
-            transition: 'max-height 0.4s ease, opacity 0.3s ease',
-            maxHeight: bubbleOpen ? 400 : 80,
+            maxHeight: 400,
             overflow: 'hidden',
           }}
-          onClick={!bubbleOpen ? onMascotTap : undefined}
         >
           {/* Content Scroll Area */}
           <div style={{ 
@@ -428,11 +441,12 @@ export default function MascotCompanion({
           }}>
             {/* Bubble tail */}
             <div style={{
-              position: 'absolute', left: -8, top: 8,
+              position: 'absolute', bottom: -10, left: '50%',
+              transform: 'translateX(-50%)',
               width: 0, height: 0,
-              borderTop: '0px solid transparent',
-              borderBottom: '10px solid transparent',
-              borderRight: `10px solid ${bubbleBg}`,
+              borderLeft: '10px solid transparent',
+              borderRight: '10px solid transparent',
+              borderTop: `10px solid ${bubbleBg}`,
             }} />
 
             {/* Main Content */}
@@ -514,6 +528,7 @@ export default function MascotCompanion({
           </div>
         </div>
       </div>
+      )}
 
       {/* Inline keyframes */}
       <style>{`
@@ -525,6 +540,10 @@ export default function MascotCompanion({
         @keyframes mc-typing-dot {
           0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
           30% { opacity: 1; transform: translateY(-5px); }
+        }
+        @keyframes mc-bubble-in {
+          0% { opacity: 0; transform: translateY(10px) scale(0.92); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
         }
       `}</style>
     </div>

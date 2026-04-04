@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrainPlay — Editions 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;--fg:#f0ede6;--accent:#c8ff00;--accent2:#7b61ff;
+  --accent3:#ff6b6b;--accent4:#00d4aa;--muted:#555;
+  --card-bg:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);
+  --glow:0 0 60px rgba(200,255,0,0.15);
+}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{background:var(--bg);color:var(--fg);font-family:'Sora',sans-serif;overflow-x:hidden}
+::selection{background:var(--accent);color:var(--bg)}
+
+/* LOADER */
+.loader{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity .8s ease,visibility .8s ease}
+.loader.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.loader-text{font-family:'Instrument Serif',serif;font-size:clamp(2rem,6vw,5rem);font-style:italic;color:var(--accent);opacity:0;animation:loaderFade 1.8s ease forwards}
+.loader-bar{width:200px;height:2px;background:var(--border);margin-top:2rem;border-radius:1px;overflow:hidden}
+.loader-bar::after{content:'';display:block;width:100%;height:100%;background:var(--accent);animation:loaderBar 2s ease forwards;transform-origin:left}
+@keyframes loaderFade{0%{opacity:0;transform:translateY(20px)}50%{opacity:1;transform:translateY(0)}100%{opacity:1}}
+@keyframes loaderBar{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.2rem 3rem;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);background:rgba(10,10,15,0.7);border-bottom:1px solid var(--border);transition:transform .4s ease}
+nav.hidden{transform:translateY(-100%)}
+.nav-logo{font-family:'Instrument Serif',serif;font-size:1.6rem;font-style:italic;color:var(--accent);text-decoration:none;letter-spacing:-0.02em}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:.8rem;text-transform:uppercase;letter-spacing:.12em;transition:color .3s ease;position:relative}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--accent);transition:width .3s ease}
+.nav-links a:hover{color:var(--fg)}
+.nav-links a:hover::after{width:100%}
+.nav-tag{font-size:.65rem;padding:.25rem .6rem;border:1px solid var(--accent);color:var(--accent);border-radius:20px;font-family:'Space Mono',monospace}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding:2rem}
+.hero-bg{position:absolute;inset:0;overflow:hidden}
+.hero-bg canvas{width:100%;height:100%;opacity:.3}
+.hero-badge{font-family:'Space Mono',monospace;font-size:.7rem;text-transform:uppercase;letter-spacing:.25em;color:var(--accent);border:1px solid rgba(200,255,0,0.3);padding:.5rem 1.5rem;border-radius:30px;margin-bottom:2rem;backdrop-filter:blur(10px);opacity:0;animation:fadeUp .8s ease .3s forwards}
+.hero h1{font-family:'Instrument Serif',serif;font-size:clamp(3rem,12vw,10rem);line-height:.9;font-style:italic;letter-spacing:-0.04em;opacity:0;animation:fadeUp 1s ease .5s forwards}
+.hero h1 span{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:clamp(1rem,2vw,1.4rem);color:var(--muted);margin-top:1.5rem;font-weight:300;max-width:500px;opacity:0;animation:fadeUp 1s ease .7s forwards}
+.hero-cta{margin-top:3rem;display:flex;gap:1rem;opacity:0;animation:fadeUp 1s ease .9s forwards}
+.btn{padding:.9rem 2.2rem;border-radius:50px;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .3s ease;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;font-family:'Sora',sans-serif}
+.btn-primary{background:var(--accent);color:var(--bg);border:none}
+.btn-primary:hover{box-shadow:var(--glow);transform:translateY(-2px)}
+.btn-secondary{background:transparent;color:var(--fg);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.scroll-indicator{position:absolute;bottom:3rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;opacity:0;animation:fadeUp 1s ease 1.2s forwards}
+.scroll-indicator em{font-size:.65rem;text-transform:uppercase;letter-spacing:.2em;color:var(--muted);font-style:normal}
+.scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--accent),transparent);animation:scrollPulse 2s ease infinite}
+@keyframes scrollPulse{0%,100%{opacity:.3;transform:scaleY(.5)}50%{opacity:1;transform:scaleY(1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+/* STATS */
+.stats-bar{display:flex;justify-content:center;gap:4rem;padding:4rem 2rem;border-top:1px solid var(--border);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.stat{text-align:center}
+.stat-number{font-family:'Instrument Serif',serif;font-size:clamp(2.5rem,5vw,4rem);font-style:italic;color:var(--accent);line-height:1}
+.stat-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.15em;color:var(--muted);margin-top:.5rem}
+
+/* SECTIONS */
+.section{padding:8rem 3rem;position:relative}
+.section-header{max-width:800px;margin:0 auto 5rem;opacity:0;transform:translateY(50px);transition:all .8s cubic-bezier(.16,1,.3,1)}
+.section-header.visible{opacity:1;transform:translateY(0)}
+.section-tag{font-family:'Space Mono',monospace;font-size:.65rem;text-transform:uppercase;letter-spacing:.3em;color:var(--accent2);margin-bottom:1rem;display:block}
+.section-header h2{font-family:'Instrument Serif',serif;font-size:clamp(2rem,5vw,3.5rem);font-style:italic;line-height:1.1}
+.section-header p{font-size:1rem;color:var(--muted);margin-top:1rem;line-height:1.7;font-weight:300}
+
+/* CARDS */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;max-width:1200px;margin:0 auto}
+.feature-card{background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:2.5rem;position:relative;overflow:hidden;cursor:pointer;transition:all .5s cubic-bezier(.16,1,.3,1);opacity:0;transform:translateY(40px)}
+.feature-card.visible{opacity:1;transform:translateY(0)}
+.feature-card:hover{border-color:rgba(200,255,0,0.2);transform:translateY(-8px) !important;box-shadow:var(--glow)}
+.feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:200px;background:radial-gradient(ellipse at top,rgba(200,255,0,0.05),transparent);opacity:0;transition:opacity .5s ease}
+.feature-card:hover::before{opacity:1}
+.card-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1.5rem}
+.card-icon.c1{background:linear-gradient(135deg,rgba(200,255,0,0.15),rgba(200,255,0,0.05))}
+.card-icon.c2{background:linear-gradient(135deg,rgba(123,97,255,0.15),rgba(123,97,255,0.05))}
+.card-icon.c3{background:linear-gradient(135deg,rgba(255,107,107,0.15),rgba(255,107,107,0.05))}
+.card-icon.c4{background:linear-gradient(135deg,rgba(0,212,170,0.15),rgba(0,212,170,0.05))}
+.feature-card h3{font-size:1.15rem;font-weight:700;margin-bottom:.5rem}
+.feature-card p{color:var(--muted);font-size:.85rem;line-height:1.6}
+.card-arrow{position:absolute;top:2rem;right:2rem;width:32px;height:32px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all .3s ease;font-size:.8rem;color:var(--muted)}
+.feature-card:hover .card-arrow{border-color:var(--accent);color:var(--accent);transform:rotate(-45deg)}
+
+/* BENTO */
+.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:1.5rem;max-width:1200px;margin:0 auto}
+.bento-item{background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:2.5rem;position:relative;overflow:hidden;opacity:0;transform:translateY(40px);transition:all .6s cubic-bezier(.16,1,.3,1)}
+.bento-item.visible{opacity:1;transform:translateY(0)}
+.bento-item:hover{border-color:rgba(123,97,255,0.3)}
+.b1{grid-column:span 7;min-height:380px}.b2{grid-column:span 5;min-height:380px}
+.b3{grid-column:span 4}.b4{grid-column:span 4}.b5{grid-column:span 4}
+.bento-item h3{font-family:'Instrument Serif',serif;font-size:1.8rem;font-style:italic;margin-bottom:.8rem}
+.bento-item p{color:var(--muted);font-size:.85rem;line-height:1.6;max-width:400px}
+.bento-tag{display:inline-block;font-family:'Space Mono',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.15em;padding:.3rem .8rem;border-radius:20px;margin-bottom:1rem}
+.bento-tag.t1{background:rgba(200,255,0,0.1);color:var(--accent)}
+.bento-tag.t2{background:rgba(123,97,255,0.1);color:var(--accent2)}
+.bento-tag.t3{background:rgba(255,107,107,0.1);color:var(--accent3)}
+.bento-tag.t4{background:rgba(0,212,170,0.1);color:var(--accent4)}
+
+/* MARQUEE */
+.marquee{overflow:hidden;padding:3rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.marquee-track{display:flex;gap:3rem;animation:marquee 25s linear infinite;width:max-content}
+.marquee-item{font-family:'Instrument Serif',serif;font-size:clamp(2rem,4vw,3.5rem);font-style:italic;white-space:nowrap;color:var(--fg);opacity:.15;transition:opacity .3s}
+.marquee-item:hover{opacity:1;color:var(--accent)}
+.marquee-dot{color:var(--accent);opacity:.5}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* PARALLAX */
+.parallax-section{min-height:70vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.parallax-content{text-align:center;z-index:1}
+.parallax-content h2{font-family:'Instrument Serif',serif;font-size:clamp(2.5rem,8vw,6rem);font-style:italic;line-height:.95}
+.parallax-content h2 em{color:var(--accent)}
+.parallax-shapes{position:absolute;inset:0;pointer-events:none}
+.p-shape{position:absolute;border:1px solid var(--border);border-radius:50%;opacity:.2}
+
+/* GAME TILES */
+.game-showcase{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:1rem;max-width:1200px;margin:0 auto}
+.game-tile{aspect-ratio:1;border-radius:16px;position:relative;overflow:hidden;cursor:pointer;border:1px solid var(--border);transition:all .4s cubic-bezier(.16,1,.3,1);opacity:0;transform:scale(.8);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.5rem}
+.game-tile.visible{opacity:1;transform:scale(1)}
+.game-tile:hover{transform:scale(1.08);z-index:2;border-color:var(--accent)}
+.game-glow{position:absolute;inset:0;background:radial-gradient(circle,rgba(200,255,0,0.08),transparent);opacity:0;transition:opacity .3s}
+.game-tile:hover .game-glow{opacity:1}
+.game-emoji{font-size:2rem;z-index:1;transition:transform .3s}
+.game-tile:hover .game-emoji{transform:scale(1.2) rotate(-5deg)}
+.game-name{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);z-index:1;text-align:center;transition:color .3s}
+.game-tile:hover .game-name{color:var(--accent)}
+
+/* TIMELINE */
+.timeline{max-width:800px;margin:0 auto}
+.timeline-wrap{position:relative;padding-left:3rem}
+.timeline-wrap::before{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,var(--border),var(--border),transparent)}
+.timeline-item{padding-bottom:3rem;position:relative;opacity:0;transform:translateX(-20px);transition:all .6s cubic-bezier(.16,1,.3,1)}
+.timeline-item.visible{opacity:1;transform:translateX(0)}
+.timeline-item::before{content:'';position:absolute;left:-3rem;margin-left:-4px;top:.5rem;width:9px;height:9px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);transition:all .3s}
+.timeline-item:hover::before{box-shadow:0 0 20px var(--accent);transform:scale(1.5)}
+.timeline-date{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--accent);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.5rem}
+.timeline-item h4{font-size:1.1rem;font-weight:600;margin-bottom:.3rem}
+.timeline-item p{color:var(--muted);font-size:.85rem;line-height:1.6}
+
+/* FOOTER */
+footer{padding:6rem 3rem 3rem;border-top:1px solid var(--border)}
+.footer-grid{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:4rem;max-width:1200px;margin:0 auto}
+.footer-brand h3{font-family:'Instrument Serif',serif;font-size:2rem;font-style:italic;color:var(--accent);margin-bottom:1rem}
+.footer-brand p{color:var(--muted);font-size:.85rem;line-height:1.6;max-width:300px}
+.footer-col h4{font-size:.7rem;text-transform:uppercase;letter-spacing:.2em;color:var(--muted);margin-bottom:1.2rem}
+.footer-col a{display:block;color:var(--fg);text-decoration:none;font-size:.88rem;padding:.4rem 0;transition:color .2s;opacity:.6}
+.footer-col a:hover{color:var(--accent);opacity:1}
+.footer-bottom{max-width:1200px;margin:4rem auto 0;padding-top:2rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.footer-bottom p{font-size:.7rem;color:var(--muted)}
+
+/* MOUSE GLOW */
+.mouse-glow{position:fixed;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(200,255,0,0.03),transparent 70%);pointer-events:none;z-index:0;transform:translate(-50%,-50%);transition:left .3s,top .3s}
+
+/* PARTICLES */
+.particles{position:fixed;inset:0;pointer-events:none;z-index:-1}
+.particle{position:absolute;width:2px;height:2px;background:var(--accent);border-radius:50%;opacity:0;animation:particleFloat linear infinite}
+@keyframes particleFloat{0%{opacity:0;transform:translateY(100vh)}10%{opacity:.3}90%{opacity:.3}100%{opacity:0;transform:translateY(-10vh)}}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(40px);transition:all .7s cubic-bezier(.16,1,.3,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ====================== */
+/* MASCOT SYSTEM          */
+/* ====================== */
+.mascot-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+
+/* SPEECH BUBBLE */
+.speech-bubble{background:rgba(20,20,30,0.95);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:16px 16px 4px 16px;padding:14px 18px;max-width:280px;font-size:.82rem;line-height:1.6;color:var(--fg);opacity:0;transform:translateY(10px) scale(0.9);transition:all .4s cubic-bezier(.16,1,.3,1);pointer-events:none;position:relative}
+.speech-bubble.show{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+.speech-bubble::after{content:'';position:absolute;bottom:-8px;right:20px;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:8px solid rgba(20,20,30,0.95)}
+.speech-bubble .typing{display:inline-flex;gap:4px;align-items:center;height:20px}
+.speech-bubble .typing span{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:typingDot 1.2s ease-in-out infinite}
+.speech-bubble .typing span:nth-child(2){animation-delay:.15s}
+.speech-bubble .typing span:nth-child(3){animation-delay:.3s}
+@keyframes typingDot{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+.speech-name{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+
+/* ACTION BUTTONS */
+.mascot-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.mascot-actions button{background:rgba(200,255,0,0.1);border:1px solid rgba(200,255,0,0.2);color:var(--accent);padding:5px 12px;border-radius:20px;font-size:.68rem;font-family:'Sora',sans-serif;cursor:pointer;transition:all .2s;white-space:nowrap}
+.mascot-actions button:hover{background:rgba(200,255,0,0.2);transform:scale(1.05)}
+
+/* MASCOT BODY */
+.mascot-body{width:90px;height:90px;cursor:pointer;position:relative;transition:transform .3s cubic-bezier(.16,1,.3,1);filter:drop-shadow(0 0 20px rgba(200,255,0,0.2))}
+.mascot-body:hover{transform:scale(1.1)}
+.mascot-body:active{transform:scale(0.95)}
+.mascot-body svg{width:100%;height:100%}
+
+/* MASCOT ANIMATIONS */
+.mascot-bounce{animation:mascotBounce 2s ease-in-out infinite}
+@keyframes mascotBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.mascot-wave .wave-arm{animation:wave 0.5s ease-in-out 3}
+@keyframes wave{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-20deg)}}
+.mascot-jump{animation:mascotJump .5s cubic-bezier(.16,1,.3,1)}
+@keyframes mascotJump{0%{transform:translateY(0) scale(1)}30%{transform:translateY(-30px) scale(1.1)}60%{transform:translateY(-30px) scale(1.05)}100%{transform:translateY(0) scale(1)}}
+.mascot-spin{animation:mascotSpin .6s cubic-bezier(.16,1,.3,1)}
+@keyframes mascotSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.mascot-wiggle{animation:mascotWiggle .4s ease-in-out 3}
+@keyframes mascotWiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+.mascot-excited{animation:mascotExcited .3s ease-in-out 4}
+@keyframes mascotExcited{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+
+/* MASCOT MOOD INDICATOR */
+.mood-indicator{position:absolute;top:-8px;right:-4px;font-size:16px;animation:moodPop .4s cubic-bezier(.16,1,.3,1);pointer-events:none}
+@keyframes moodPop{0%{transform:scale(0);opacity:0}50%{transform:scale(1.3)}100%{transform:scale(1);opacity:1}}
+
+/* MASCOT NOTIFICATION DOT */
+.mascot-notif{position:absolute;top:0;right:0;width:14px;height:14px;background:var(--accent3);border-radius:50%;border:2px solid var(--bg);animation:notifPulse 2s infinite}
+@keyframes notifPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+
+/* MINI GAME IN BUBBLE */
+.mini-game{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:10px}
+.mini-game button{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.03);color:var(--fg);font-size:1rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.mini-game button:hover{background:rgba(200,255,0,0.1);border-color:var(--accent)}
+.mini-game button.win{background:rgba(200,255,0,0.2);border-color:var(--accent)}
+.mini-game button.lose{background:rgba(255,107,107,0.2);border-color:var(--accent3)}
+
+@media(max-width:768px){
+  nav{padding:1rem 1.5rem}
+  .nav-links{display:none}
+  .section{padding:4rem 1.5rem}
+  .bento-item{grid-column:span 12!important}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:2rem}
+  .mascot-container{bottom:16px;right:16px}
+  .speech-bubble{max-width:240px}
+  .game-showcase{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<div class="mouse-glow" id="mouseGlow"></div>
+<div class="particles" id="particles"></div>
+
+<!-- LOADER -->
+<div class="loader" id="loader">
+  <div class="loader-text">BrainPlay</div>
+  <div class="loader-bar"></div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">BrainPlay</a>
+  <ul class="nav-links">
+    <li><a href="#games">Games</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#updates">Updates</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+  </ul>
+  <span class="nav-tag">Editions 2026</span>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"><canvas id="heroCanvas"></canvas></div>
+  <div class="hero-badge">🧠 25 Games · 150+ Features · Infinite Fun</div>
+  <h1>Play.<br><span>Think.</span><br>Grow.</h1>
+  <p class="hero-sub">Platform gaming & brain training terlengkap. Latih otakmu, tingkatkan skillmu, raih achievement.</p>
+  <div class="hero-cta">
+    <a href="#games" class="btn btn-primary">Explore Games ↓</a>
+    <a href="#features" class="btn btn-secondary">See Features</a>
+  </div>
+  <div class="scroll-indicator"><em>Scroll</em><div class="scroll-line"></div></div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat"><div class="stat-number" data-target="25">0</div><div class="stat-label">Brain Games</div></div>
+  <div class="stat"><div class="stat-number" data-target="150">0</div><div class="stat-label">Features</div></div>
+  <div class="stat"><div class="stat-number" data-target="30">0</div><div class="stat-label">Day Challenge</div></div>
+  <div class="stat"><div class="stat-number" data-target="9">0</div><div class="stat-label">Themes</div></div>
+</div>
+
+<!-- MARQUEE -->
+<div class="marquee">
+  <div class="marquee-track">
+    <span class="marquee-item">Memory Card</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Space Shooter</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Wordle Indonesia</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Brick Breaker</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Slither Worm</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Neon Dash</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Sudoku</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Minesweeper</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Tower of Hanoi</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Voxel Racer</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Memory Card</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Space Shooter</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Wordle Indonesia</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Brick Breaker</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Slither Worm</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Neon Dash</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Sudoku</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Minesweeper</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Tower of Hanoi</span><span class="marquee-dot"> ✦ </span>
+    <span class="marquee-item">Voxel Racer</span><span class="marquee-dot"> ✦ </span>
+  </div>
+</div>
+
+<!-- GAMES -->
+<section class="section" id="games">
+  <div class="section-header reveal">
+    <span class="section-tag">Game Library</span>
+    <h2>25 Games, Satu Platform</h2>
+    <p>Dari puzzle santai hingga action cepat. Setiap game dirancang untuk melatih aspek berbeda dari otakmu.</p>
+  </div>
+  <div class="game-showcase">
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">🧠</div><div class="game-name">Memory Card</div></div>
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">🚀</div><div class="game-name">Space Shooter</div></div>
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">🔤</div><div class="game-name">Wordle ID</div></div>
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">🧱</div><div class="game-name">Brick Breaker</div></div>
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">🐍</div><div class="game-name">Slither Worm</div></div>
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">⚡</div><div class="game-name">Neon Dash</div></div>
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">🔢</div><div class="game-name">Sudoku</div></div>
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">💣</div><div class="game-name">Minesweeper</div></div>
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">🗼</div><div class="game-name">Tower Hanoi</div></div>
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">🏎️</div><div class="game-name">Voxel Racer</div></div>
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">❓</div><div class="game-name">Quiz Trivia</div></div>
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">🧩</div><div class="game-name">Jigsaw</div></div>
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">🎯</div><div class="game-name">Reaction Test</div></div>
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">🔵</div><div class="game-name">Binary Puzzle</div></div>
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">📐</div><div class="game-name">Sliding Puzzle</div></div>
+    <div class="game-tile reveal"><div class="game-glow"></div><div class="game-emoji">🎮</div><div class="game-name">Block Pals</div></div>
+  </div>
+</section>
+
+<!-- PARALLAX -->
+<div class="parallax-section">
+  <div class="parallax-shapes">
+    <div class="p-shape" data-speed="0.02" style="width:300px;height:300px;top:10%;left:5%"></div>
+    <div class="p-shape" data-speed="-0.03" style="width:200px;height:200px;bottom:15%;right:10%"></div>
+    <div class="p-shape" data-speed="0.015" style="width:150px;height:150px;top:40%;right:20%;border-color:var(--accent);opacity:.1"></div>
+  </div>
+  <div class="parallax-content reveal">
+    <h2>Level up your<br><em>brain power</em></h2>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-header reveal">
+    <span class="section-tag">Platform Features</span>
+    <h2>Lebih dari Sekedar Game</h2>
+    <p>Ekosistem lengkap dengan XP, coin economy, leaderboard, daily challenges, dan cosmetics shop.</p>
+  </div>
+  <div class="bento">
+    <div class="bento-item b1 reveal">
+      <span class="bento-tag t1">Economy</span>
+      <h3>XP & Coin System</h3>
+      <p>Kumpulkan XP untuk naik level dan coin untuk beli cosmetics. Setiap game memberikan reward berdasarkan performa.</p>
+    </div>
+    <div class="bento-item b2 reveal">
+      <span class="bento-tag t2">Social</span>
+      <h3>Global Leaderboard</h3>
+      <p>Bersaing dengan pemain lain. Firebase-synced, real-time, cross-device.</p>
+    </div>
+    <div class="bento-item b3 reveal"><span class="bento-tag t3">Daily</span><h3>Challenges</h3><p>3 misi baru setiap hari.</p></div>
+    <div class="bento-item b4 reveal"><span class="bento-tag t1">Gacha</span><h3>Lucky Wheel</h3><p>Spin mingguan dengan 5× multi-spin.</p></div>
+    <div class="bento-item b5 reveal"><span class="bento-tag t4">Shop</span><h3>Cosmetics Store</h3><p>9 global themes, game skins, exclusive items.</p></div>
+  </div>
+</section>
+
+<!-- UPDATES -->
+<section class="section" id="updates">
+  <div class="section-header reveal">
+    <span class="section-tag">What's New</span>
+    <h2>Latest Updates</h2>
+  </div>
+  <div class="cards-grid">
+    <div class="feature-card reveal"><div class="card-icon c1">🎬</div><div class="card-arrow">→</div><h3>GSAP Animations</h3><p>Flip, ScrollTrigger, ScrambleText — animasi kelas dunia.</p></div>
+    <div class="feature-card reveal"><div class="card-icon c2">🎰</div><div class="card-arrow">→</div><h3>Lucky Wheel Revamp</h3><p>Weekly rotation, 5× sequential multi-spin, wheel-exclusive cosmetics.</p></div>
+    <div class="feature-card reveal"><div class="card-icon c3">🎨</div><div class="card-arrow">→</div><h3>Pixel Art Pack</h3><p>Memory Card kini punya Pixel Art theme eksklusif.</p></div>
+    <div class="feature-card reveal"><div class="card-icon c4">📦</div><div class="card-arrow">→</div><h3>42% Faster Load</h3><p>Bundle optimization dengan lazy-loaded Firebase chunks.</p></div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section class="section" id="roadmap">
+  <div class="section-header reveal">
+    <span class="section-tag">Roadmap</span>
+    <h2>What's Coming Next</h2>
+  </div>
+  <div class="timeline">
+    <div class="timeline-wrap">
+      <div class="timeline-item reveal"><div class="timeline-date">Flagship Game</div><h4>Block Pals / Dungeon Escape</h4><p>Game utama Day 25 dengan match-3 puzzle atau procedural maze.</p></div>
+      <div class="timeline-item reveal"><div class="timeline-date">Cosmetics</div><h4>6 Game CSS Themes</h4><p>Shop tabs baru untuk 6 game yang belum punya cosmetics.</p></div>
+      <div class="timeline-item reveal"><div class="timeline-date">Launch</div><h4>Google Play Store</h4><p>C2 listing prep — screenshots, metadata, dan release.</p></div>
+      <div class="timeline-item reveal"><div class="timeline-date">Future</div><h4>Multiplayer & Social</h4><p>Real-time multiplayer mode dan friend system.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand"><h3>BrainPlay</h3><p>Platform gaming & brain training terlengkap. Dibuat dengan banyak kopi.</p></div>
+    <div class="footer-col"><h4>Platform</h4><a href="#">Web App</a><a href="#">Android</a><a href="#">PWA</a></div>
+    <div class="footer-col"><h4>Resources</h4><a href="#">Docs</a><a href="#">Changelog</a><a href="#">GitHub</a></div>
+    <div class="footer-col"><h4>Connect</h4><a href="#">Twitter</a><a href="#">Discord</a><a href="#">Email</a></div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 BrainPlay. All rights reserved.</p>
+    <p style="font-family:'Space Mono';font-size:.6rem;color:var(--accent);opacity:.5">React + Vite + Firebase</p>
+  </div>
+</footer>
+
+<!-- ==================== -->
+<!-- MASCOT: BRAINY       -->
+<!-- ==================== -->
+<div class="mascot-container" id="mascotContainer">
+  <div class="speech-bubble" id="speechBubble">
+    <div class="speech-name">Brainy</div>
+    <div id="speechText"></div>
+    <div class="mascot-actions" id="mascotActions"></div>
+  </div>
+  <div class="mascot-body mascot-bounce" id="mascotBody" onclick="onMascotClick()">
+    <div class="mascot-notif" id="mascotNotif" style="display:none"></div>
+    <div class="mood-indicator" id="moodIndicator" style="display:none"></div>
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- Shadow -->
+      <ellipse cx="100" cy="185" rx="35" ry="6" fill="rgba(200,255,0,0.1)"/>
+      <!-- Brain body -->
+      <ellipse cx="100" cy="100" rx="48" ry="44" fill="#c8ff00" id="brainBody"/>
+      <ellipse cx="100" cy="100" rx="48" ry="44" fill="none" stroke="#a8d900" stroke-width="2"/>
+      <!-- Folds -->
+      <path d="M68 88 Q82 74 96 88 Q110 74 124 88" fill="none" stroke="#a8d900" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M64 102 Q78 93 92 104 Q106 93 120 102" fill="none" stroke="#a8d900" stroke-width="2" stroke-linecap="round"/>
+      <path d="M72 116 Q86 108 100 118 Q112 110 126 116" fill="none" stroke="#a8d900" stroke-width="2" stroke-linecap="round"/>
+      <!-- Eyes -->
+      <g id="mascotEyes">
+        <ellipse cx="82" cy="96" rx="9" ry="11" fill="white" id="eyeL"/>
+        <ellipse cx="118" cy="96" rx="9" ry="11" fill="white" id="eyeR"/>
+        <circle cx="84" cy="95" r="5.5" fill="#1a1a2e" id="pupilL"/>
+        <circle cx="120" cy="95" r="5.5" fill="#1a1a2e" id="pupilR"/>
+        <circle cx="87" cy="92" r="2.2" fill="white"/>
+        <circle cx="123" cy="92" r="2.2" fill="white"/>
+      </g>
+      <!-- Mouth -->
+      <path d="M88 113 Q100 124 112 113" fill="none" stroke="#1a1a2e" stroke-width="2.5" stroke-linecap="round" id="mascotMouth"/>
+      <!-- Blush -->
+      <circle cx="70" cy="108" r="6" fill="#ff6b6b" opacity="0" id="blushL"/>
+      <circle cx="130" cy="108" r="6" fill="#ff6b6b" opacity="0" id="blushR"/>
+      <!-- Headband -->
+      <rect x="60" y="74" width="80" height="11" rx="5.5" fill="#7b61ff"/>
+      <circle cx="100" cy="74" r="7" fill="#7b61ff" stroke="#5a40d9" stroke-width="1.5"/>
+      <text x="100" y="77" text-anchor="middle" font-size="7" fill="white" font-weight="700" font-family="Space Mono,monospace">BP</text>
+      <!-- Arms -->
+      <g id="armRight" style="transform-origin:142px 100px">
+        <path d="M142 98 Q156 88 160 74" fill="none" stroke="#c8ff00" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="160" cy="72" r="5" fill="#c8ff00" stroke="#a8d900" stroke-width="1.5"/>
+      </g>
+      <g id="armLeft">
+        <path d="M58 102 Q44 112 40 124" fill="none" stroke="#c8ff00" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="39" cy="126" r="5" fill="#c8ff00" stroke="#a8d900" stroke-width="1.5"/>
+      </g>
+      <!-- Legs -->
+      <path d="M84 142 L80 162" stroke="#c8ff00" stroke-width="4" stroke-linecap="round"/>
+      <path d="M116 142 L120 162" stroke="#c8ff00" stroke-width="4" stroke-linecap="round"/>
+      <ellipse cx="78" cy="165" rx="8" ry="4" fill="#c8ff00"/>
+      <ellipse cx="122" cy="165" rx="8" ry="4" fill="#c8ff00"/>
+    </svg>
+  </div>
+</div>
+
+<script>
+// === GLOBAL STATE ===
+let mx=0,my=0,mascotState='idle',clickCount=0,bubbleTimer=null,mascotMood='happy';
+const mascotBody=document.getElementById('mascotBody');
+const speechBubble=document.getElementById('speechBubble');
+const speechText=document.getElementById('speechText');
+const mascotActions=document.getElementById('mascotActions');
+const moodEl=document.getElementById('moodIndicator');
+const notifEl=document.getElementById('mascotNotif');
+
+// === LOADER ===
+window.addEventListener('load',()=>{setTimeout(()=>{
+  document.getElementById('loader').classList.add('hidden');
+  setTimeout(()=>mascotGreet(),1500);
+},2200)});
+
+// === MOUSE TRACK ===
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;
+  document.getElementById('mouseGlow').style.left=mx+'px';
+  document.getElementById('mouseGlow').style.top=my+'px';
+  // Eye tracking
+  const rect=mascotBody.getBoundingClientRect();
+  const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  const dx=(mx-cx)/window.innerWidth*4,dy=(my-cy)/window.innerHeight*3;
+  const pL=document.getElementById('pupilL'),pR=document.getElementById('pupilR');
+  if(pL&&pR){pL.setAttribute('cx',84+dx);pL.setAttribute('cy',95+dy);pR.setAttribute('cx',120+dx);pR.setAttribute('cy',95+dy)}
+});
+
+// === NAV SCROLL ===
+let lastScroll=0;
+window.addEventListener('scroll',()=>{const st=window.scrollY;document.getElementById('nav').classList.toggle('hidden',st>lastScroll&&st>100);lastScroll=st;
+  document.querySelectorAll('[data-speed]').forEach(el=>{el.style.transform=`translateY(${st*parseFloat(el.dataset.speed)}px)`});
+});
+
+// === CANVAS HERO ===
+const canvas=document.getElementById('heroCanvas'),ctx=canvas.getContext('2d');
+function resizeC(){canvas.width=window.innerWidth;canvas.height=window.innerHeight}
+resizeC();window.addEventListener('resize',resizeC);
+let time=0;
+function drawGrid(){ctx.clearRect(0,0,canvas.width,canvas.height);
+  const gap=60;for(let i=0;i<Math.ceil(canvas.width/gap)+1;i++){for(let j=0;j<Math.ceil(canvas.height/gap)+1;j++){
+    const x=i*gap,y=j*gap,dist=Math.sqrt((x-mx)**2+(y-my)**2);
+    ctx.beginPath();ctx.arc(x,y,Math.max(0.5,3-dist/300),0,Math.PI*2);
+    ctx.fillStyle=`rgba(200,255,0,${Math.max(0.02,0.15-dist/2000+Math.sin(time+i*.3+j*.2)*.05)})`;ctx.fill()}}
+  time+=.015;requestAnimationFrame(drawGrid)}
+drawGrid();
+
+// === REVEALS ===
+const rObs=new IntersectionObserver(es=>{es.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('visible'),i*80);rObs.unobserve(e.target)}})},{threshold:.1,rootMargin:'0px 0px -50px 0px'});
+document.querySelectorAll('.reveal,.feature-card,.bento-item,.game-tile,.timeline-item,.section-header').forEach(el=>rObs.observe(el));
+
+// === COUNTERS ===
+const cObs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const el=e.target,t=+el.dataset.target;let c=0;const s=t/50;const iv=setInterval(()=>{c+=s;if(c>=t){c=t;clearInterval(iv)}el.textContent=Math.round(c)},30);cObs.unobserve(el)}})},{threshold:.5});
+document.querySelectorAll('[data-target]').forEach(el=>cObs.observe(el));
+
+// === PARTICLES ===
+const pEl=document.getElementById('particles');
+for(let i=0;i<25;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDuration=(15+Math.random()*25)+'s';p.style.animationDelay=Math.random()*20+'s';pEl.appendChild(p)}
+
+// === CARD TILT ===
+document.querySelectorAll('.feature-card,.bento-item').forEach(c=>{
+  c.addEventListener('mousemove',e=>{const r=c.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;c.style.transform=`perspective(600px) rotateY(${x*5}deg) rotateX(${-y*5}deg)`});
+  c.addEventListener('mouseleave',()=>{c.style.transform=''})});
+
+// === GAME TILE STAGGER ===
+document.querySelectorAll('.game-tile').forEach((t,i)=>{t.style.transitionDelay=`${i*.04}s`});
+
+// ============================
+// MASCOT BRAIN (Full System)
+// ============================
+
+const dialogs = {
+  greet: [
+    {text:"Halo! Aku <b>Brainy</b>, maskot BrainPlay! Klik aku untuk ngobrol 🧠", actions:["Siapa kamu?","Tips game","Main mini-game"]},
+    {text:"Hai hai! Selamat datang di BrainPlay! Aku di sini untuk nemenin kamu.", actions:["Cerita tentang BrainPlay","Kasih fun fact","Main mini-game"]},
+  ],
+  about: [
+    {text:"Aku Brainy! Otak hijau neon yang doyan main game. Aku lahir di BrainPlay untuk bantu kamu latih otak sambil having fun!", actions:["Fitur favorit?","Fun fact","Balik"]},
+    {text:"Nama aku Brainy. Hobi aku ngasih tips, bikin quiz, dan bounce-bounce di pojok layar kamu. Salam kenal!", actions:["Game apa yang seru?","Fun fact","Balik"]},
+  ],
+  tips: [
+    {text:"💡 <b>Tips:</b> Di Memory Card, mulai dari pojok! Otak lebih gampang ingat posisi berdasarkan lokasi spatial.", actions:["Tips lagi","Main mini-game","Balik"]},
+    {text:"💡 <b>Tips:</b> Di Sudoku, cari baris yang sudah hampir penuh dulu. Eliminasi itu senjata utama!", actions:["Tips lagi","Main mini-game","Balik"]},
+    {text:"💡 <b>Tips:</b> Spin Lucky Wheel setiap minggu! Jangan lupa, 5× spin berturut-turut = peluang Legendary naik!", actions:["Tips lagi","Fun fact","Balik"]},
+    {text:"💡 <b>Tips:</b> Neon Dash butuh refleks cepat. Fokus ke 2 obstacle depan aja, jangan lihat terlalu jauh!", actions:["Tips lagi","Fun fact","Balik"]},
+  ],
+  funfact: [
+    {text:"🤓 <b>Fun fact:</b> Otak manusia bisa memproses gambar dalam 13 milidetik! Makanya Reaction Test di BrainPlay seru banget.", actions:["Lagi dong!","Tips game","Balik"]},
+    {text:"🤓 <b>Fun fact:</b> Main puzzle secara rutin bisa meningkatkan daya ingat sampai 20%! BrainPlay = gym untuk otak.", actions:["Lagi dong!","Tips game","Balik"]},
+    {text:"🤓 <b>Fun fact:</b> BrainPlay punya 22+ game dan tiap game dibuat dalam 1 file! Modular banget.", actions:["Lagi dong!","Cerita BrainPlay","Balik"]},
+    {text:"🤓 <b>Fun fact:</b> Warna hijau neon aku (#c8ff00) dipilih karena merangsang kreativitas dan fokus!", actions:["Lagi dong!","Tips game","Balik"]},
+  ],
+  brainplay: [
+    {text:"BrainPlay itu platform 25 game brain training + casual gaming. Ada XP system, coin economy, Lucky Wheel, leaderboard, dan banyak cosmetics!", actions:["Fitur favorit?","Game apa yang seru?","Balik"]},
+  ],
+  favFeature: [
+    {text:"Lucky Wheel dong! Spin 5× berturut-turut, ada Legendary item 1% chance. Deg-degan tapi bikin ketagihan! 🎰", actions:["Fun fact","Tips game","Balik"]},
+    {text:"Daily Challenges! 3 misi baru tiap hari bikin aku selalu semangat balik lagi. Bonus XP-nya mantap! 🎯", actions:["Fun fact","Tips game","Balik"]},
+  ],
+  favGame: [
+    {text:"Space Shooter! 6 ship, boss fight, combo system — serunya luar biasa. Tapi Wordle Indonesia juga bikin ketagihan! 🚀", actions:["Tips game","Fun fact","Balik"]},
+    {text:"Aku suka Slither Worm! Ada 15 smart bots, minimap, dan collision yang realistis. Seru banget ngalahin mereka! 🐍", actions:["Tips game","Fun fact","Balik"]},
+  ],
+  poke: [
+    {text:"Hehe, geli! Jangan pencet-pencet terus dong! 😆", actions:["Maaf hehe","Fun fact","Main mini-game"]},
+    {text:"Waduh! Kamu suka banget pencet aku ya 😂", actions:["Iya dong!","Tips game","Main mini-game"]},
+    {text:"Oiii santai! Aku bukan tombol! Tapi oke deh, mau ngobrol apa?", actions:["Fun fact","Tips game","Balik"]},
+  ],
+  tictactoe: [
+    {text:"🎮 <b>Mini TicTacToe!</b> Kamu ❌, aku ⭕. Klik untuk main!", actions:["Reset","Balik"]},
+  ],
+  win: [{text:"GG! Kamu menang! Otakmu emang encer! 🏆🎉",actions:["Main lagi","Fun fact","Balik"]}],
+  lose: [{text:"Haha aku menang! Jangan sedih, latihan lagi di BrainPlay ya! 😎",actions:["Main lagi","Tips game","Balik"]}],
+  draw: [{text:"Seri! Kita sama-sama pinter nih! 🤝",actions:["Main lagi","Fun fact","Balik"]}],
+  sorry: [{text:"Gapapa kok! Aku seneng kamu mau main sama aku. Mau apa nih?",actions:["Tips game","Fun fact","Main mini-game"]}],
+  yes: [{text:"Makasih! Kamu emang yang paling seru diajak ngobrol 💚",actions:["Fun fact","Tips game","Main mini-game"]}],
+};
+
+function pickRandom(arr){return arr[Math.floor(Math.random()*arr.length)]}
+
+function showMood(emoji){
+  moodEl.style.display='block';moodEl.textContent=emoji;
+  setTimeout(()=>{moodEl.style.display='none'},1500);
+}
+
+function animateMascot(type){
+  mascotBody.className='mascot-body';
+  void mascotBody.offsetWidth;
+  mascotBody.classList.add('mascot-'+type);
+  setTimeout(()=>{mascotBody.className='mascot-body mascot-bounce'},1500);
+}
+
+function setExpression(mood){
+  const mouth=document.getElementById('mascotMouth');
+  const bL=document.getElementById('blushL'),bR=document.getElementById('blushR');
+  const eL=document.getElementById('eyeL'),eR=document.getElementById('eyeR');
+  switch(mood){
+    case'happy':mouth.setAttribute('d','M88 113 Q100 124 112 113');bL.setAttribute('opacity','0');eL.setAttribute('ry','11');eR.setAttribute('ry','11');break;
+    case'excited':mouth.setAttribute('d','M85 111 Q100 128 115 111');bL.setAttribute('opacity','0.3');bR.setAttribute('opacity','0.3');eL.setAttribute('ry','11');eR.setAttribute('ry','11');break;
+    case'shy':mouth.setAttribute('d','M92 115 Q100 120 108 115');bL.setAttribute('opacity','0.5');bR.setAttribute('opacity','0.5');eL.setAttribute('ry','11');eR.setAttribute('ry','11');break;
+    case'surprised':mouth.setAttribute('d','M94 116 Q100 122 106 116');bL.setAttribute('opacity','0');eL.setAttribute('ry','13');eR.setAttribute('ry','13');break;
+    case'wink':mouth.setAttribute('d','M88 113 Q100 124 112 113');eL.setAttribute('ry','11');eR.setAttribute('ry','2');bL.setAttribute('opacity','0');break;
+    case'sad':mouth.setAttribute('d','M90 118 Q100 112 110 118');bL.setAttribute('opacity','0');eL.setAttribute('ry','9');eR.setAttribute('ry','9');break;
+    case'smug':mouth.setAttribute('d','M88 114 Q96 120 112 112');bL.setAttribute('opacity','0');eL.setAttribute('ry','8');eR.setAttribute('ry','11');break;
+  }
+}
+
+function showBubble(dialog,mood='happy'){
+  clearTimeout(bubbleTimer);
+  // Typing indicator
+  speechText.innerHTML='<div class="typing"><span></span><span></span><span></span></div>';
+  mascotActions.innerHTML='';
+  speechBubble.classList.add('show');
+  setExpression(mood);
+
+  setTimeout(()=>{
+    speechText.innerHTML=dialog.text;
+    if(dialog.actions){
+      mascotActions.innerHTML=dialog.actions.map(a=>`<button onclick="handleAction('${a}')">${a}</button>`).join('');
+    }
+    // Auto hide after 15s if no interaction
+    bubbleTimer=setTimeout(()=>{hideBubble()},15000);
+  },600);
+}
+
+function hideBubble(){
+  speechBubble.classList.remove('show');
+  setExpression('happy');
+}
+
+function mascotGreet(){
+  notifEl.style.display='block';
+  animateMascot('wave');
+  showMood('👋');
+  showBubble(pickRandom(dialogs.greet),'excited');
+  setTimeout(()=>{notifEl.style.display='none'},3000);
+}
+
+// === TIC TAC TOE STATE ===
+let board=['','','','','','','','',''],gameActive=false,isPlayerTurn=true;
+const winCombos=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+function renderBoard(){
+  let html='<div class="mini-game" id="tttBoard">';
+  board.forEach((c,i)=>{
+    let cls='';
+    if(c)cls=c==='X'?'':'';
+    html+=`<button onclick="playerMove(${i})" ${c?'disabled':''}>${c}</button>`;
+  });
+  html+='</div>';
+  return html;
+}
+
+function checkWin(b,p){return winCombos.find(c=>c.every(i=>b[i]===p))}
+function checkDraw(b){return b.every(c=>c!=='')}
+
+function playerMove(i){
+  if(!gameActive||!isPlayerTurn||board[i])return;
+  board[i]='X';isPlayerTurn=false;
+  updateBoardUI();
+  const w=checkWin(board,'X');
+  if(w){endGame('win',w);return}
+  if(checkDraw(board)){endGame('draw');return}
+  setTimeout(aiMove,500);
+}
+
+function aiMove(){
+  // Simple AI: try to win, block, or pick best
+  let move=-1;
+  // Try to win
+  for(let i=0;i<9;i++){if(!board[i]){board[i]='O';if(checkWin(board,'O')){board[i]='';move=i;break}board[i]=''}}
+  // Block player
+  if(move===-1){for(let i=0;i<9;i++){if(!board[i]){board[i]='X';if(checkWin(board,'X')){board[i]='';move=i;break}board[i]=''}}}
+  // Center
+  if(move===-1&&!board[4])move=4;
+  // Random
+  if(move===-1){const empty=board.map((c,i)=>c===''?i:-1).filter(i=>i!==-1);move=empty[Math.floor(Math.random()*empty.length)]}
+  board[move]='O';
+  updateBoardUI();
+  const w=checkWin(board,'O');
+  if(w){endGame('lose',w);return}
+  if(checkDraw(board)){endGame('draw');return}
+  isPlayerTurn=true;
+}
+
+function updateBoardUI(){
+  const btns=document.querySelectorAll('#tttBoard button');
+  btns.forEach((b,i)=>{b.textContent=board[i];if(board[i])b.disabled=true});
+}
+
+function endGame(result,combo){
+  gameActive=false;
+  if(combo){
+    const btns=document.querySelectorAll('#tttBoard button');
+    combo.forEach(i=>btns[i].classList.add(result==='win'?'win':'lose'));
+  }
+  setTimeout(()=>{
+    if(result==='win'){showBubble(pickRandom(dialogs.win),'surprised');animateMascot('excited');showMood('🏆')}
+    else if(result==='lose'){showBubble(pickRandom(dialogs.lose),'smug');animateMascot('wiggle');showMood('😎')}
+    else{showBubble(pickRandom(dialogs.draw),'happy');animateMascot('spin');showMood('🤝')}
+  },800);
+}
+
+function startTicTacToe(){
+  board=['','','','','','','','',''];gameActive=true;isPlayerTurn=true;
+  const d=pickRandom(dialogs.tictactoe);
+  d.text+= renderBoard();
+  showBubble(d,'excited');
+  animateMascot('jump');
+  showMood('🎮');
+}
+
+// === ACTION HANDLER ===
+function handleAction(action){
+  switch(action){
+    case'Siapa kamu?':showBubble(pickRandom(dialogs.about),'shy');animateMascot('wiggle');showMood('😊');break;
+    case'Tips game':showBubble(pickRandom(dialogs.tips),'happy');animateMascot('jump');showMood('💡');break;
+    case'Tips lagi':showBubble(pickRandom(dialogs.tips),'happy');animateMascot('jump');showMood('💡');break;
+    case'Main mini-game':startTicTacToe();break;
+    case'Main lagi':startTicTacToe();break;
+    case'Fun fact':showBubble(pickRandom(dialogs.funfact),'excited');animateMascot('spin');showMood('🤓');break;
+    case'Lagi dong!':showBubble(pickRandom(dialogs.funfact),'excited');animateMascot('jump');showMood('🧠');break;
+    case'Kasih fun fact':showBubble(pickRandom(dialogs.funfact),'excited');animateMascot('spin');showMood('🤓');break;
+    case'Cerita tentang BrainPlay':case'Cerita BrainPlay':showBubble(pickRandom(dialogs.brainplay),'happy');animateMascot('wave');showMood('🎮');break;
+    case'Fitur favorit?':showBubble(pickRandom(dialogs.favFeature),'excited');animateMascot('excited');showMood('⭐');break;
+    case'Game apa yang seru?':showBubble(pickRandom(dialogs.favGame),'excited');animateMascot('jump');showMood('🚀');break;
+    case'Balik':showBubble(pickRandom(dialogs.greet),'happy');animateMascot('wave');break;
+    case'Reset':startTicTacToe();break;
+    case'Maaf hehe':showBubble(pickRandom(dialogs.sorry),'shy');animateMascot('wiggle');showMood('💚');break;
+    case'Iya dong!':showBubble(pickRandom(dialogs.yes),'excited');animateMascot('excited');showMood('💚');break;
+    default:showBubble(pickRandom(dialogs.greet),'happy');
+  }
+}
+
+// === MASCOT CLICK ===
+function onMascotClick(){
+  clickCount++;
+  notifEl.style.display='none';
+  if(clickCount>5&&clickCount%3===0){
+    showBubble(pickRandom(dialogs.poke),'surprised');
+    animateMascot('wiggle');
+    showMood('😆');
+  } else if(!speechBubble.classList.contains('show')){
+    showBubble(pickRandom(dialogs.greet),'happy');
+    animateMascot('wave');
+    showMood('👋');
+  } else {
+    hideBubble();
+  }
+}
+
+// === IDLE BEHAVIORS ===
+let idleTimer=0;
+setInterval(()=>{
+  idleTimer++;
+  // Random idle actions
+  if(idleTimer>20&&!speechBubble.classList.contains('show')){
+    const r=Math.random();
+    if(r<0.3){
+      notifEl.style.display='block';
+      showBubble({text:"Psst! Klik aku kalau mau tips atau main mini-game! 👆",actions:["Tips game","Main mini-game","Fun fact"]},'wink');
+      animateMascot('jump');
+      showMood('💬');
+    } else if(r<0.5){
+      showMood('💤');
+      setExpression('sad');
+      setTimeout(()=>setExpression('happy'),2000);
+    }
+    idleTimer=0;
+  }
+},3000);
+
+// === SCROLL-BASED MASCOT REACTIONS ===
+let lastSection='';
+const sectionObs=new IntersectionObserver(es=>{es.forEach(e=>{
+  if(e.isIntersecting&&e.target.id&&e.target.id!==lastSection){
+    lastSection=e.target.id;
+    if(!speechBubble.classList.contains('show')){
+      const reactions={
+        games:{text:"Wah, ini dia koleksi game-nya! Mana yang mau kamu coba duluan? 🎮",mood:'excited'},
+        features:{text:"Fitur BrainPlay lengkap banget! XP, coins, leaderboard — semuanya ada!",mood:'happy'},
+        updates:{text:"Update terbaru nih! GSAP animations bikin semuanya smooth banget! ✨",mood:'excited'},
+        roadmap:{text:"Exciting stuff yang bakal dateng! Block Pals atau Dungeon Escape, pilih mana? 🤔",mood:'happy'},
+      };
+      const r=reactions[e.target.id];
+      if(r){showMood('👀');setTimeout(()=>{showBubble({text:r.text,actions:["Cool!","Tips game","Balik"]},r.mood);animateMascot('jump')},500)}
+    }
+  }
+})},{threshold:.3});
+document.querySelectorAll('section[id]').forEach(s=>sectionObs.observe(s));
+</script>
+</body>
+</html>
