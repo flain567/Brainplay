@@ -125,12 +125,34 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
         .nav-logo {
           display: flex; align-items: center; gap: 10px;
           cursor: pointer; user-select: none; text-decoration: none;
+          position: relative;
+        }
+        .nav-logo::before {
+          content: ""; position: absolute;
+          left: -20px; right: -20px; top: -10px; bottom: -10px;
+          background: radial-gradient(circle at center, rgba(255, 118, 117, 0.4), rgba(124, 111, 232, 0.2), transparent 70%);
+          z-index: -1; opacity: 0;
+          transition: opacity 0.5s;
+          pointer-events: none;
+          animation: pulse-glow 3s infinite alternate ease-in-out;
+        }
+        @keyframes pulse-glow {
+          0% { opacity: 0.3; transform: scale(0.9); }
+          100% { opacity: 0.7; transform: scale(1.1); }
         }
         .nav-logo-text {
           font-family: 'Fredoka One', cursive; font-size: 26px;
-          background: linear-gradient(135deg,#7C6FE8,#FD79A8);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
           text-transform: uppercase; letter-spacing: 1.5px;
+          color: #FD79A8; /* fallback for un-split text */
+        }
+        .nav-logo-text span {
+          background: linear-gradient(135deg, #FF9F43, #FF7675, #FD79A8, #7C6FE8);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          text-shadow: 0 4px 15px rgba(255, 159, 67, 0.4);
+          display: inline-block; /* required for jumps and rotations */
         }
         .nav-center { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .nav-crumb { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
