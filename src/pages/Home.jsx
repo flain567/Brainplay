@@ -211,6 +211,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         /* Renaissance Hero Overhaul */
         .renaissance-hero {
           position: relative;
+          z-index: 1; /* Creates stacking context keeping mesh-bg inside */
           padding: 40px 0;
           margin-bottom: 32px;
           border-bottom: 1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'};
@@ -221,16 +222,18 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           font-size: 52px;
           line-height: 0.9;
           letter-spacing: -2px;
-          color: ${S.text};
+          color: #FFFFFF;
           margin-bottom: 24px;
+          text-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
         .hero-subtitle {
           font-family: var(--font-mono);
           font-size: 10px;
           letter-spacing: 4px;
-          color: ${S.accent};
+          color: #FFD700;
           text-transform: uppercase;
           margin-bottom: 8px;
+          text-shadow: 0 2px 10px rgba(0,0,0,0.4);
         }
 
         /* Profile Banner Re-styled */
@@ -477,12 +480,13 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
 
       <div className="home-root" style={{ background: tc.bg }}>
         <ParticleBackground dark={dark} reduceMotion={reduceMotion} />
+        <div className="mesh-bg" />
 
         <div className="home-content">
 
           {/* ── Renaissance Hero Section ── */}
           <section className="renaissance-hero">
-            <div className="mesh-bg" />
+
             <div className="hero-subtitle mono-label">BrainPlay.Renaissance.v1.0</div>
             <h1 className="hero-title-main serif-title">
               The <span style={{ color: S.accent }}>Discovery</span> <br />
