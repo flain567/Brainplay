@@ -3,6 +3,13 @@ import { getJSON, setJSON, StorageKeys } from '../utils/storage.js'
 import { useLimitedMode } from './LimitedModeContext.jsx'
 import { useCoins } from './CoinContext.jsx'
 
+// Import Border Assets
+import royal_gold from '../assets/borders/royal_gold.png'
+import neon_cyber from '../assets/borders/neon_cyber.png'
+import ice_crystal from '../assets/borders/ice_crystal.png'
+import magma_surge from '../assets/borders/magma_surge.png'
+import void_phantom from '../assets/borders/void_phantom.png'
+
 const ProgressContext = createContext(null)
 
 // ─── XP Level thresholds ─────────────────────────────────────────────────────
@@ -27,57 +34,57 @@ export const CUSTOM_BORDERS = {
   // --- Premium Image Borders ---
   'royal-gold': { 
     id: 'royal-gold', name: 'Royal Gold', color: '#FFD700', 
-    url: '/src/assets/borders/royal_gold.png',
+    url: royal_gold,
     premium: true, rarity: 'Legendary'
   },
   'neon-cyber': { 
     id: 'neon-cyber', name: 'Neon Cyber', color: '#00f5ff', 
-    url: '/src/assets/borders/neon_cyber.png',
+    url: neon_cyber,
     premium: true, rarity: 'Epic'
   },
   'ice-crystal': { 
     id: 'ice-crystal', name: 'Ice Crystal', color: '#74b9ff', 
-    url: '/src/assets/borders/ice_crystal.png',
+    url: ice_crystal,
     premium: true, rarity: 'Rare'
   },
   'magma-surge': { 
     id: 'magma-surge', name: 'Magma Surge', color: '#ff7675', 
-    url: '/src/assets/borders/magma_surge.png',
+    url: magma_surge,
     premium: true, rarity: 'Epic'
   },
   'void-phantom': { 
     id: 'void-phantom', name: 'Void Phantom', color: '#a29bfe', 
-    url: '/src/assets/borders/void_phantom.png',
+    url: void_phantom,
     premium: true, rarity: 'Legendary'
   },
   'neon-blue': {
     id: 'neon-blue', name: 'Neon Blue', color: '#00d2ff',
-    url: '/src/assets/borders/neon_cyber.png', // Fallback to existing or placeholder
+    url: neon_cyber, 
     premium: true, rarity: 'Epic'
   },
   'mythic-celestial': {
     id: 'mythic-celestial', name: 'Mythic Celestial', color: '#ff00ff',
-    url: '/src/assets/borders/void_phantom.png',
+    url: void_phantom,
     premium: true, rarity: 'Mythic'
   },
   'void-overlord': {
     id: 'void-overlord', name: 'Void Overlord', color: '#6c5ce7',
-    url: '/src/assets/borders/void_phantom.png',
+    url: void_phantom,
     premium: true, rarity: 'Mythic'
   },
   'neon-matrix': {
     id: 'neon-matrix', name: 'Neon Matrix', color: '#00ff88',
-    url: '/src/assets/borders/neon_cyber.png',
+    url: neon_cyber,
     premium: true, rarity: 'Epic'
   },
   'solar-flare': {
     id: 'solar-flare', name: 'Solar Flare', color: '#ff4500',
-    url: '/src/assets/borders/magma_surge.png',
+    url: magma_surge,
     premium: true, rarity: 'Legendary'
   },
   'plasma-glow': {
     id: 'plasma-glow', name: 'Plasma Glow', color: '#00f5ff',
-    url: '/src/assets/borders/neon_cyber.png',
+    url: neon_cyber,
     premium: true, rarity: 'Transcendent'
   }
 }
