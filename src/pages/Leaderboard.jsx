@@ -227,13 +227,16 @@ service cloud.firestore {
 
 // ─── Helper: Resolve border data for an entry ──────────────────────────────
 
-function resolveBorderData(entry, currentUserId, localBorder) {
-  // For the current user's own entries, use their locally selected border
-  const borderId = (entry.uid && entry.uid === currentUserId && localBorder)
-    ? localBorder
-    : entry.selectedBorder
+function resolveBorderData(entry, currentUserId, localBorder, nickname) {
+  const isMine = (entry.uid && entry.uid === currentUserId) || (!entry.uid && entry.name === nickname)
+  const borderId = isMine && localBorder ? localBorder : entry.selectedBorder
   if (!borderId || !CUSTOM_BORDERS[borderId]) return null
   return CUSTOM_BORDERS[borderId]
+}
+
+function resolveAvatarString(entry, currentUserId, localAvatar, nickname) {
+  const isMine = (entry.uid && entry.uid === currentUserId) || (!entry.uid && entry.name === nickname)
+  return isMine && localAvatar ? localAvatar : entry.selectedAvatar
 }
 
 // ─── Border Overlay Component (shared by podium & list) ─────────────────────
@@ -278,7 +281,7 @@ function BorderOverlay({ borderData, borderRadius, size }) {
 
 // ─── Podium Card Component ───────────────────────────────────────────────────
 
-function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname, onInspect, currentUserId, localBorder }) {
+function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname, onInspect, currentUserId, localBorder, localAvatar }) {
   if (!entry) return <div style={{ flex: 1 }} />
   
   const isFirst = rank === 1
@@ -286,7 +289,8 @@ function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname, onInspec
   const accent = isFirst ? '#FDCB6E' : (rank === 2 ? '#E0E0E0' : '#CD7F32')
   const scale = isFirst ? 1.15 : 0.95
   const paddingTop = isFirst ? 0 : 25
-  const borderData = resolveBorderData(entry, currentUserId, localBorder)
+  const borderData = resolveBorderData(entry, currentUserId, localBorder, nickname)
+  const effAvatar = resolveAvatarString(entry, currentUserId, localAvatar, nickname)
 
   return (
     <div 
@@ -331,13 +335,13 @@ function PodiumCard({ entry, rank, dark, textMain, textMuted, nickname, onInspec
             {/* Avatar Content */}
             <div style={{
               position: 'absolute', inset: 4, borderRadius: 20,
-              background: entry.selectedAvatar ? (AVATAR_CATALOG.find(a=>a.id===entry.selectedAvatar)?.color || 'rgba(255,255,255,0.05)') : 'rgba(255,255,255,0.05)',
+              background: effAvatar ? (AVATAR_CATALOG.find(a=>a.id===effAvatar)?.color || 'rgba(255,255,255,0.05)') : 'rgba(255,255,255,0.05)',
               overflow: 'hidden',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: entry.selectedAvatar ? `inset 0 0 10px rgba(0,0,0,0.5)` : 'none'
+              boxShadow: effAvatar ? `inset 0 0 10px rgba(0,0,0,0.5)` : 'none'
             }}>
-              {entry.selectedAvatar ? (
-                <img src={AVATAR_CATALOG.find(a=>a.id===entry.selectedAvatar)?.img} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              {effAvatar ? (
+                <img src={AVATAR_CATALOG.find(a=>a.id===effAvatar)?.img} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : entry.photoURL ? (
                 <img src={entry.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
               ) : (
@@ -422,6 +426,7 @@ export default function Leaderboard({ onBack, games, onInspect }) {
   const { friends } = useFriends()
   const tc = useThemeColors()
   const localBorder = progress.selectedBorder || null
+  const localAvatar = progress.selectedAvatar || null
 
   const [gameTab, setGameTab] = useState('space-shooter')
   const [diffTab, setDiffTab] = useState(null)
@@ -755,18 +760,19 @@ export default function Leaderboard({ onBack, games, onInspect }) {
                   minHeight: 180, position: 'relative'
                 }}>
                   {/* Rank 2 (Left) */}
-                  <PodiumCard entry={scores[1]} rank={2} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} onInspect={onInspect} currentUserId={userId} localBorder={localBorder} />
+                  <PodiumCard entry={scores[1]} rank={2} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} onInspect={onInspect} currentUserId={userId} localBorder={localBorder} localAvatar={localAvatar} />
                   {/* Rank 1 (Center) */}
-                  <PodiumCard entry={scores[0]} rank={1} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} onInspect={onInspect} currentUserId={userId} localBorder={localBorder} />
+                  <PodiumCard entry={scores[0]} rank={1} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} onInspect={onInspect} currentUserId={userId} localBorder={localBorder} localAvatar={localAvatar} />
                   {/* Rank 3 (Right) */}
-                  <PodiumCard entry={scores[2]} rank={3} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} onInspect={onInspect} currentUserId={userId} localBorder={localBorder} />
+                  <PodiumCard entry={scores[2]} rank={3} dark={dark} textMain={textMain} textMuted={textMuted} nickname={nickname} onInspect={onInspect} currentUserId={userId} localBorder={localBorder} localAvatar={localAvatar} />
                 </div>
               )}
 
               {/* Rest of the list (Rank 4+) */}
               {scores.slice(3).map((entry, i) => {
                 const rank = entry.rank || i + 4
-                const entryBorderData = resolveBorderData(entry, userId, localBorder)
+                const entryBorderData = resolveBorderData(entry, userId, localBorder, nickname)
+                const effAvatar = resolveAvatarString(entry, userId, localAvatar, nickname)
                 return (
                   <div key={entry.id || `${i}-${entry.score}`}
                     className={`lb-row ${rank <= 10 ? 'top-rank' : ''}`}
@@ -791,13 +797,13 @@ export default function Leaderboard({ onBack, games, onInspect }) {
                       <div style={{
                         width: 32, height: 32, borderRadius: 10,
                         position: 'absolute', top: 2, left: 2,
-                        background: entry.selectedAvatar ? (AVATAR_CATALOG.find(a=>a.id===entry.selectedAvatar)?.color || 'rgba(255,255,255,0.06)') : 'rgba(255,255,255,0.06)',
+                        background: effAvatar ? (AVATAR_CATALOG.find(a=>a.id===effAvatar)?.color || 'rgba(255,255,255,0.06)') : 'rgba(255,255,255,0.06)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         overflow: 'hidden',
-                        boxShadow: entry.selectedAvatar ? `inset 0 0 8px rgba(0,0,0,0.5)` : 'none'
+                        boxShadow: effAvatar ? `inset 0 0 8px rgba(0,0,0,0.5)` : 'none'
                       }}>
-                        {entry.selectedAvatar ? (
-                          <img src={AVATAR_CATALOG.find(a=>a.id===entry.selectedAvatar)?.img} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        {effAvatar ? (
+                          <img src={AVATAR_CATALOG.find(a=>a.id===effAvatar)?.img} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : entry.photoURL ? (
                           <img src={entry.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
                         ) : (
