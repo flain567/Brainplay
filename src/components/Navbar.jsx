@@ -146,7 +146,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
           color: #FD79A8; /* fallback for un-split text */
         }
         .nav-logo-text span {
-          background: linear-gradient(135deg, #FF9F43, #FF7675, #FD79A8, #7C6FE8);
+          background: linear-gradient(135deg, #A29BFE, #FF9F43);
           background-size: 200% auto;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -351,7 +351,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
         <div className="nav-inner">
           {/* Logo */}
           <div className="nav-logo" onClick={() => nav(onHome)}>
-            <span className="nav-logo-text" ref={logoRef} style={{ display: 'inline-block' }}>BrainPlay</span>
+            <span className="nav-logo-text" ref={logoRef} style={{ display: 'inline-block' }}>brainplay</span>
           </div>
 
           {/* Center — desktop only */}
