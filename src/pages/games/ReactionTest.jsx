@@ -122,13 +122,13 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
   // Auto-start for multiplayer
   useEffect(() => {
     if (isMultiplayer && !mode) {
-      startMode('tap')
+      startMode('sequence')
     }
   }, [isMultiplayer])
 
   // Sync results for multiplayer
   useEffect(() => {
-    if (isMultiplayer && mode === 'tap' && myUid) {
+    if (isMultiplayer && mode && myUid) {
       const newState = { 
         ...multiplayerMatch.state, 
         [myUid]: { results, finished: gameState === 'done' } 
@@ -339,12 +339,23 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
     if (score > prevModeBest) localStorage.setItem(modeKey, score)
 
     if (isMultiplayer) {
-       // Compare avg times
-       const myAvg = avgTime
-       const oppResults = opponentData.results.filter(r => r.time > 0)
-       const oppAvg = oppResults.length > 0 ? Math.round(oppResults.reduce((s, r) => s + r.time, 0) / oppResults.length) : 9999
+       // Compare performance
+       let isWinner = false
+       if (mode === 'sequence') {
+          // Compare scores for sequence mode
+          const oppValid = opponentData.results.filter(r => r.time > 0)
+          const oppAcc = opponentData.results.length > 0 ? Math.round((oppValid.length / opponentData.results.length) * 100) : 0
+          const oppSeqLen = oppValid.reduce((s, r) => s + (r.seqLen || 0), 0)
+          const oppScore = Math.round(oppSeqLen * 100 + oppAcc * 3)
+          isWinner = score > oppScore
+       } else {
+          // Compare avg times for other modes
+          const myAvg = avgTime
+          const oppResults = opponentData.results.filter(r => r.time > 0)
+          const oppAvg = oppResults.length > 0 ? Math.round(oppResults.reduce((s, r) => s + r.time, 0) / oppResults.length) : 9999
+          isWinner = myAvg < oppAvg
+       }
        
-       const isWinner = myAvg < oppAvg
        if (isWinner) finishMatch?.(multiplayerMatch.id, myUid)
     }
   }, [results, mode, cfg, difficulty.id, bestScore, isMultiplayer, opponentData, multiplayerMatch, userId])
