@@ -66,8 +66,8 @@
           && request.resource.size() < 51200;
 
         // ── Subcollection: Friends (Bidirectional) ──
-        // Kedua pihak boleh menulis: owner ATAU friend yang bersangkutan
-        // Ini diperlukan agar acceptFriendRequest bisa menulis di kedua sisi
+        // Kedua pihak (userId atau friendId) boleh read/write
+        // Agar saat B accept request dari A, B bisa tulis ke users/A/friends/B
         match /friends/{friendId} {
           allow read: if isAuthenticated();
           allow create, update: if isAuthenticated()
@@ -229,6 +229,32 @@
           request.auth.uid == resource.data.fromUid || 
           request.auth.uid == resource.data.targetUid
         );
+      }
+
+      // ═══════════════════════════════════════════════════════════════════════════
+      // MATCH SYSTEM — PvP Multiplayer
+      // ═══════════════════════════════════════════════════════════════════════════
+      match /matches/{matchId} {
+        allow read: if isAuthenticated() && (
+          request.auth.uid == resource.data.hostUid || 
+          request.auth.uid == resource.data.guestUid
+        );
+        allow create: if isAuthenticated() 
+          && request.resource.data.hostUid == request.auth.uid;
+        allow update: if isAuthenticated() && (
+          // Guest accepting
+          (request.auth.uid == resource.data.guestUid && 
+           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']) &&
+           request.resource.data.status == 'active') ||
+          // Player making a move or updating score
+          (request.auth.uid in [resource.data.hostUid, resource.data.guestUid] && 
+           resource.data.status == 'active' &&
+           request.resource.data.diff(resource.data).affectedKeys().hasAny(['state', 'updatedAt', 'status', 'winner'])) ||
+          // Host/Guest cancelling
+          (request.auth.uid in [resource.data.hostUid, resource.data.guestUid] && 
+           request.resource.data.status in ['cancelled', 'finished'])
+        );
+        allow delete: if isAdmin();
       }
 
       // ═══════════════════════════════════════════════════════════════════════════
