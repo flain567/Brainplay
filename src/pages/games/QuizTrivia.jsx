@@ -8,6 +8,7 @@ import { useCoins } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useMatch } from '../../context/MatchContext.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
+import { auth } from '../../firebase.js'
 import { WinModal } from '../../components/GameLayout.jsx'
 import PvpScoreBar from '../../components/PvpScoreBar.jsx'
 
@@ -122,13 +123,14 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty, multiplay
   const { reportGameResult } = useProgress()
   const { earnCoins } = useCoins()
   const tc = useThemeColors()
-  const { updateMatchState, finishMatch, setActiveMatch } = useMatch() || {}
-  const { userId } = useAuth?.() || {}
+  const matchCtx = useMatch() || {}
+  const { updateMatchState, finishMatch, setActiveMatch } = matchCtx
+  const { userId } = useAuth()
   const diff = CFG[difficulty?.id] || CFG.easy
 
   // ── PvP state ──
   const isMultiplayer = !!multiplayerMatch
-  const myUid = userId || auth?.currentUser?.uid
+  const myUid = userId || auth.currentUser?.uid
   const opponentUid = isMultiplayer ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestUid : multiplayerMatch.hostUid) : null
   const opponentData = isMultiplayer ? (multiplayerMatch.state?.[opponentUid] || { score: 0, finished: false }) : null
   const opponentProfile = isMultiplayer
