@@ -233,7 +233,7 @@ export function CloudSaveProvider({ children }) {
       // Force re-render by dispatching event
       window.dispatchEvent(new CustomEvent('bp-cloud-sync'))
     } catch (err) {
-      console.error('[CloudSave] ❌ Sync failed:', err.message)
+      console.error('[CloudSave] ❌ Sync failed:', err.code, err.message)
       setSyncStatus('error')
       setInitialSyncDone(true)
     } finally {
@@ -271,7 +271,7 @@ export function CloudSaveProvider({ children }) {
       setLastSync(Date.now())
       setSyncStatus('synced')
     } catch (err) {
-      console.error('[CloudSave] ❌ Save failed:', err.message)
+      console.error('[CloudSave] ❌ Save failed:', err.code, err.message)
       setSyncStatus('error')
     }
   }, [])

@@ -9,6 +9,7 @@ import { NotificationBell, useNotifications } from './NotificationManager.jsx'
 import SettingsModal from './SettingsModal.jsx'
 import BattlePass from './BattlePass.jsx'
 import { animate, splitText, stagger } from 'animejs'
+import { useFriends } from '../context/FriendsContext.jsx'
 
 export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGames, onInventory, onFriends, currentGame }) {
   const { darkMode, muted } = useSettings()
@@ -28,6 +29,8 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
   const notifState = useNotifications()
   const levelInfo = getLevelInfo(progress.totalXP || 0)
   const seasonInfo = getSeasonInfo()
+  const { requests } = useFriends() || { requests: [] }
+  const pendingCount = requests.length
   
   const currentBorder = progress.selectedBorder ? CUSTOM_BORDERS[progress.selectedBorder] : getBorderForLevel(levelInfo.level)
 
@@ -392,7 +395,21 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
               <button className="nav-btn" title="Katalog Game" onClick={() => nav(onGames)} style={{ border:'none', background:'transparent', width:40 }}>🎮</button>
               <button className="nav-btn" title="Tas & Inventaris" onClick={() => nav(onInventory)} style={{ border:'none', background:'transparent', width:40 }}>🎒</button>
               <button className="nav-btn" title="Leaderboard" onClick={() => nav(onLeaderboard)} style={{ border:'none', background:'transparent', width:40 }}>🏆</button>
-              <button className="nav-btn" title="Sistem Teman" onClick={() => nav(onFriends)} style={{ border:'none', background:'transparent', width:40 }}>🤝</button>
+              <button className="nav-btn" title="Sistem Teman" onClick={() => nav(onFriends)} style={{ border:'none', background:'transparent', width:40, position:'relative' }}>
+                🤝
+                {pendingCount > 0 && (
+                  <div style={{
+                    position:'absolute', top:2, right:2, width:16, height:16,
+                    background:'#FF6B6B', color:'#fff', borderRadius:'50%',
+                    fontSize:10, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center',
+                    border:`2px solid ${dark ? '#1a1a2e' : '#fff'}`,
+                    boxShadow:'0 2px 5px rgba(0,0,0,0.2)',
+                    animation: 'pulse 1.5s infinite'
+                  }}>
+                    {pendingCount}
+                  </div>
+                )}
+              </button>
               <div style={{ width: 1.5, height: 20, background: borderCol, margin: '0 4px' }} />
               <button className="nav-btn" title="Shop" onClick={() => nav(onShop)} data-coin-counter
                 style={{ 
@@ -536,11 +553,25 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
             </div>
 
             <div className="nav-drawer-item" onClick={() => nav(onFriends)}>
-              <div className="nav-drawer-item-icon" style={{ background:dark?'rgba(78,205,196,0.1)':'#F0FFFE' }}>🤝</div>
-              <div>
+              <div className="nav-drawer-item-icon" style={{ background:dark?'rgba(78,205,196,0.1)':'#F0FFFE', position:'relative' }}>
+                🤝
+                {pendingCount > 0 && (
+                  <div style={{
+                    position:'absolute', top:-2, right:-2, width:18, height:18,
+                    background:'#FF6B6B', color:'#fff', borderRadius:'50%',
+                    fontSize:11, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center',
+                    border:`2px solid ${drawerBg}`,
+                    boxShadow:'0 2px 5px rgba(0,0,0,0.2)'
+                  }}>
+                    {pendingCount}
+                  </div>
+                )}
+              </div>
+              <div style={{ flex: 1 }}>
                 <div className="nav-drawer-item-text">Sistem Teman</div>
                 <div className="nav-drawer-item-desc">Tambahkan & main bersama teman</div>
               </div>
+              {pendingCount > 0 && <div style={{ fontSize:10, background:'#FF6B6B', color:'#fff', padding:'2px 8px', borderRadius:10, fontWeight:800 }}>MINTA</div>}
             </div>
 
             <div className="nav-drawer-item" onClick={() => nav(onInventory)}>

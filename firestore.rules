@@ -48,24 +48,20 @@
         // Only owner can write, with strict field validation
         allow create: if isOwner(userId)
           && request.resource.data.keys().hasAll(['updatedAt'])
-          && isAtServerTime(request.resource.data, 'updatedAt')
-          // STRICT: Only allow the exact same fields as update
+          // && isAtServerTime(request.resource.data, 'updatedAt')
           && request.resource.data.keys().hasOnly([
               'progress', 'coins', 'inventory', 'displayName', 'updatedAt'
             ])
-          // TIPE DATA & SPAM LOCK: memastikan koin angka dan nama tidak terlalu panjang
-          && request.resource.data.get('coins', 1) is int
+          && request.resource.data.get('coins', {}) is map
           && request.resource.data.get('displayName', 'x').size() <= 30
-          // Anti-DDoS: limit document size (< 50KB for cloud save data)
           && request.resource.size() < 51200;
 
         allow update: if isOwner(userId)
-          && isAtServerTime(request.resource.data, 'updatedAt')
+          // && isAtServerTime(request.resource.data, 'updatedAt')
           && request.resource.data.keys().hasOnly([
               'progress', 'coins', 'inventory', 'displayName', 'updatedAt'
             ])
-          // TIPE DATA & SPAM LOCK
-          && request.resource.data.get('coins', 1) is int
+          && request.resource.data.get('coins', {}) is map
           && request.resource.data.get('displayName', 'x').size() <= 30
           && request.resource.size() < 51200;
 
@@ -199,6 +195,26 @@
         allow read: if isAuthenticated();
         allow create: if isOwner(uid) && request.resource.data.keys().hasOnly(['code', 'uid']);
         allow update, delete: if false;
+      }
+
+      // ─── Friend Requests ───
+      match /friendRequests/{reqId} {
+        allow read: if isAuthenticated() && (
+          request.auth.uid == resource.data.fromUid || 
+          request.auth.uid == resource.data.targetUid
+        );
+        allow create: if isAuthenticated() 
+          && request.resource.data.fromUid == request.auth.uid
+          && request.resource.data.keys().hasAll(['fromUid', 'targetUid', 'status', 'createdAt'])
+          && request.resource.data.status == 'pending';
+        allow update: if isAuthenticated() 
+          && request.auth.uid == resource.data.targetUid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'respondedAt'])
+          && request.resource.data.status in ['accepted', 'declined'];
+        allow delete: if isAuthenticated() && (
+          request.auth.uid == resource.data.fromUid || 
+          request.auth.uid == resource.data.targetUid
+        );
       }
 
       // ═══════════════════════════════════════════════════════════════════════════

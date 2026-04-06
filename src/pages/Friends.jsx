@@ -11,7 +11,7 @@ export default function Friends({ onBack }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const tc = useThemeColors()
-  const { friends, friendCode, loading, error, addFriendByCode, removeFriend } = useFriends()
+  const { friends, friendCode, requests, loading, error, addFriendByCode, removeFriend, acceptFriendRequest, declineFriendRequest } = useFriends()
   const { isLoggedIn, isGuest } = useAuth()
   const { getProfile } = useSocial()
 
@@ -20,6 +20,7 @@ export default function Friends({ onBack }) {
   const [addMessage, setAddMessage] = useState(null)
   
   const [friendProfiles, setFriendProfiles] = useState({})
+  const [requestProfiles, setRequestProfiles] = useState({})
   const [inspectingUid, setInspectingUid] = useState(null)
   
   const dark = tc.dark
@@ -49,6 +50,27 @@ export default function Friends({ onBack }) {
     fetchFriends()
     return () => { mounted = false }
   }, [friends, getProfile])
+
+  // Fetch profiles for requests
+  useEffect(() => {
+    let mounted = true
+    const fetchRequests = async () => {
+      const profiles = { ...requestProfiles }
+      let changed = false
+      for (const r of requests) {
+        if (!profiles[r.fromUid]) {
+          const p = await getProfile(r.fromUid)
+          if (p) {
+            profiles[r.fromUid] = p
+            changed = true
+          }
+        }
+      }
+      if (mounted && changed) setRequestProfiles(profiles)
+    }
+    fetchRequests()
+    return () => { mounted = false }
+  }, [requests, getProfile])
 
   const copyCode = () => {
     if (!friendCode) return
@@ -80,6 +102,18 @@ export default function Friends({ onBack }) {
     if (confirm('Yakin ingin menghapus teman ini? 😢')) {
       await removeFriend(uid)
     }
+  }
+
+  const handleAccept = async (e, req) => {
+    e.stopPropagation()
+    play('level_up')
+    await acceptFriendRequest(req)
+  }
+
+  const handleDecline = async (e, reqId) => {
+    e.stopPropagation()
+    play('click')
+    await declineFriendRequest(reqId)
   }
 
   return (
@@ -203,6 +237,80 @@ export default function Friends({ onBack }) {
             <p style={{ fontSize: 13, color: textMuted, lineHeight: 1.5 }}>
               Berikan kode ini ke temanmu agar mereka bisa menambahkanmu ke daftar teman.
             </p>
+          </div>
+
+          {/* Incoming Requests Section with Error/Loading Handling */}
+          <div className="f-card" style={{ 
+            animationDelay: '0.15s', 
+            border: requests.length > 0 ? '2px solid #A29BFE' : `2px solid ${borderCol}`,
+            background: requests.length > 0 ? (dark ? 'rgba(162,155,254,0.05)' : '#F0F0FF') : surface
+          }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ fontSize:20 }}>📬</span>
+                <h2 style={{ fontFamily:"'Fredoka One',cursive", fontSize:18, color: textMain, margin:0 }}>Permintaan Pertemanan</h2>
+              </div>
+              {requests.length > 0 && <div className="pulse-dot" style={{ width:10, height:10, background:'#FF6B6B', borderRadius:'50%' }} />}
+            </div>
+
+            {error && (
+              <div style={{ color: '#FF6B6B', fontSize: 12, fontWeight: 700, padding: 10, background: 'rgba(255,107,107,0.1)', borderRadius: 10, marginBottom: 12 }}>
+                ⚠️ {error}
+              </div>
+            )}
+
+            {requests.length === 0 ? (
+              <div style={{ textAlign:'center', padding:'10px 0', color:textMuted, fontSize:13 }}>
+                {loading ? '⏳ Mencari permintaan...' : 'Belum ada permintaan baru.'}
+              </div>
+            ) : (
+              <div>
+                {requests.map((r, i) => {
+                  const prof = requestProfiles[r.fromUid]
+                  return (
+                    <div 
+                      key={r.id} 
+                      className="friend-item" 
+                      style={{ animation: `slide-up 0.3s ${i * 0.05}s ease both`, background: dark ? 'rgba(255,255,255,0.03)' : 'white' }}
+                      onClick={() => setInspectingUid(r.fromUid)}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                          {prof?.photoURL ? (
+                            <img src={prof.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <div style={{ fontSize: 20 }}>👤</div>
+                          )}
+                        </div>
+                        <div>
+                          <div style={{ fontFamily:"'Fredoka One',cursive", fontSize: 15, color: textMain }}>
+                            {prof?.displayName || 'Pemain'}
+                          </div>
+                          <div style={{ fontSize: 10, color: '#A29BFE', fontWeight: 800, textTransform: 'uppercase', marginTop: 2 }}>
+                            Ingin Berteman!
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button 
+                          onClick={(e) => handleAccept(e, r)}
+                          style={{ padding: '8px 16px', borderRadius: 10, background: '#4ECDC4', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Fredoka One', cursive", fontSize: 12 }}
+                        >
+                          TERIMA
+                        </button>
+                        <button 
+                          onClick={(e) => handleDecline(e, r.id)}
+                          style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255,107,107,0.1)', color: '#FF6B6B', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
           {/* Friends List */}
