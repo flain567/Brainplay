@@ -65,13 +65,17 @@
           && request.resource.data.get('displayName', 'x').size() <= 30
           && request.resource.size() < 51200;
 
-        // ── Subcollection: Friends ──
+        // ── Subcollection: Friends (Bidirectional) ──
+        // Kedua pihak boleh menulis: owner ATAU friend yang bersangkutan
+        // Ini diperlukan agar acceptFriendRequest bisa menulis di kedua sisi
         match /friends/{friendId} {
-          allow read: if isOwner(userId);
-          allow create, update: if isOwner(userId)
-            && request.resource.data.keys().hasOnly(['addedAt'])
-            && request.resource.size() < 100;
-          allow delete: if isOwner(userId);
+          allow read: if isAuthenticated();
+          allow create, update: if isAuthenticated()
+            && (request.auth.uid == userId || request.auth.uid == friendId)
+            && request.resource.data.keys().hasOnly(['addedAt', 'displayName', 'photoURL'])
+            && request.resource.size() < 512;
+          allow delete: if isAuthenticated()
+            && (request.auth.uid == userId || request.auth.uid == friendId);
         }
       }
 
@@ -191,13 +195,22 @@
         allow write: if false;
       }
 
+      // ═══════════════════════════════════════════════════════════════════════════
+      // USER CODES — Friend Code System
+      // ═══════════════════════════════════════════════════════════════════════════
       match /userCodes/{uid} {
         allow read: if isAuthenticated();
-        allow create: if isOwner(uid) && request.resource.data.keys().hasOnly(['code', 'uid']);
-        allow update, delete: if false;
+        allow create: if isOwner(uid)
+          && request.resource.data.keys().hasAll(['code', 'uid'])
+          && request.resource.data.keys().hasOnly(['code', 'uid', 'displayName', 'photoURL']);
+        allow update: if isOwner(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'photoURL']);
+        allow delete: if false;
       }
 
-      // ─── Friend Requests ───
+      // ═══════════════════════════════════════════════════════════════════════════
+      // FRIEND REQUESTS — Bidirectional Friend System
+      // ═══════════════════════════════════════════════════════════════════════════
       match /friendRequests/{reqId} {
         allow read: if isAuthenticated() && (
           request.auth.uid == resource.data.fromUid || 
@@ -206,6 +219,7 @@
         allow create: if isAuthenticated() 
           && request.resource.data.fromUid == request.auth.uid
           && request.resource.data.keys().hasAll(['fromUid', 'targetUid', 'status', 'createdAt'])
+          && request.resource.data.keys().hasOnly(['fromUid', 'fromName', 'fromPhoto', 'targetUid', 'status', 'createdAt'])
           && request.resource.data.status == 'pending';
         allow update: if isAuthenticated() 
           && request.auth.uid == resource.data.targetUid
@@ -215,30 +229,6 @@
           request.auth.uid == resource.data.fromUid || 
           request.auth.uid == resource.data.targetUid
         );
-      }
-
-      // ─── Match System ───
-      match /matches/{matchId} {
-        allow read: if isAuthenticated() && (
-          request.auth.uid == resource.data.hostUid || 
-          request.auth.uid == resource.data.guestUid
-        );
-        allow create: if isAuthenticated() 
-          && request.resource.data.hostUid == request.auth.uid;
-        allow update: if isAuthenticated() && (
-          // Guest accepting
-          (request.auth.uid == resource.data.guestUid && 
-           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']) &&
-           request.resource.data.status == 'active') ||
-          // Player making a move or updating score
-          (request.auth.uid in [resource.data.hostUid, resource.data.guestUid] && 
-           resource.data.status == 'active' &&
-           request.resource.data.diff(resource.data).affectedKeys().hasAny(['state', 'updatedAt', 'status', 'winner'])) ||
-          // Host/Guest cancelling
-          (request.auth.uid in [resource.data.hostUid, resource.data.guestUid] && 
-           request.resource.data.status in ['cancelled', 'finished'])
-        );
-        allow delete: if isAdmin();
       }
 
       // ═══════════════════════════════════════════════════════════════════════════
