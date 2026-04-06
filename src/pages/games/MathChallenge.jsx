@@ -158,6 +158,15 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
   const { uid: userId, photoURL } = useAuth()
   const tc = useThemeColors()
   const diff = CFG[difficulty?.id] || CFG.easy
+  
+  // ─── Theme Colors ──────────────────────────────────────────────────
+  const bg = tc.bg
+  const surface = tc.surface
+  const textMain = tc.textMain
+  const textMuted = tc.textMuted
+  const accent = '#6C5CE7'
+  const accentLight = '#A29BFE'
+  const timerCol = tc.accent || '#6C5CE7'
 
   // ─── State ──────────────────────────────────────────────────────────
   const [phase, setPhase] = useState('tutorial') // tutorial | ready | playing | result
@@ -242,6 +251,37 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
       clearTimeout(levelUpTimerRef.current)
     }
   }, [])
+
+
+  // ─── End game ────────────────────────────────────────────────────────
+  const endGame = useCallback((reason) => {
+    clearInterval(timerRef.current)
+    clearTimeout(feedbackTimerRef.current)
+    setGameOverReason(reason)
+    setPhase('result')
+    
+    if (isMultiplayer && multiplayerMatch?.id) {
+      const curScore = scoreRef.current
+      const curLevel = levelRef.current
+      const curLives = livesRef.current
+      
+      const isWinner = reason === 'target' || (reason === 'lives' && opponentData?.finished && curScore > (opponentData?.score || 0))
+      
+      const newState = { 
+        ...multiplayerMatch.state, 
+        [myUid]: { score: curScore, level: curLevel, finished: true, lives: curLives } 
+      }
+      updateMatchState?.(multiplayerMatch?.id, newState)
+      if (isWinner) finishMatch?.(multiplayerMatch?.id, myUid)
+    }
+
+    if (reason === 'target') {
+      setShowConfetti(true)
+      play('win')
+    } else {
+      play('gameOver')
+    }
+  }, [play, isMultiplayer, multiplayerMatch?.id, multiplayerMatch?.state, opponentData, myUid])
 
   // ─── Generate new question ──────────────────────────────────────────
   const nextQuestion = useCallback((lvl) => {
@@ -351,35 +391,6 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
     }
   }, [feedback, selectedAnswer, question, streak, level, correctInLevel, timeLeft, play, diff, nextQuestion, endGame])
 
-  // ─── End game ────────────────────────────────────────────────────────
-  const endGame = useCallback((reason) => {
-    clearInterval(timerRef.current)
-    clearTimeout(feedbackTimerRef.current)
-    setGameOverReason(reason)
-    setPhase('result')
-    
-    if (isMultiplayer && multiplayerMatch?.id) {
-      const curScore = scoreRef.current
-      const curLevel = levelRef.current
-      const curLives = livesRef.current
-      
-      const isWinner = reason === 'target' || (reason === 'lives' && opponentData?.finished && curScore > (opponentData?.score || 0))
-      
-      const newState = { 
-        ...multiplayerMatch.state, 
-        [myUid]: { score: curScore, level: curLevel, finished: true, lives: curLives } 
-      }
-      updateMatchState?.(multiplayerMatch?.id, newState)
-      if (isWinner) finishMatch?.(multiplayerMatch?.id, myUid)
-    }
-
-    if (reason === 'target') {
-      setShowConfetti(true)
-      play('win')
-    } else {
-      play('gameOver')
-    }
-  }, [play, isMultiplayer, multiplayerMatch?.id, multiplayerMatch?.state, opponentData, myUid])
 
   // ─── Calculate rewards ──────────────────────────────────────────────
   const won = gameOverReason === 'target'
@@ -433,14 +444,6 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
        setPhase('ready')
     }
   }, [isMultiplayer])
-
-  // ─── Styles ──────────────────────────────────────────────────────────
-  const bg = tc.bg
-  const surface = tc.surface
-  const textMain = tc.textMain
-  const textMuted = tc.textMuted
-  const accent = '#6C5CE7'
-  const accentLight = '#A29BFE'
 
   const timerPct = (timeLeft / diff.timePerQ) * 100
   const timerColor = timerPct > 50 ? '#00B894' : timerPct > 25 ? '#FDCB6E' : '#FF6B6B'
