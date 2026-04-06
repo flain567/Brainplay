@@ -369,7 +369,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
     <div style={{ minHeight:'100dvh', background:bg, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:20 }}>
       <div style={{ textAlign:'center', maxWidth:400 }}>
         <div style={{ fontSize:72, marginBottom:12 }}>🧮</div>
-        <h1 style={{ fontFamily:\"'Fredoka One',cursive\", color:accent, fontSize:28, margin:'0 0 8px' }}>Math Challenge</h1>
+        <h1 style={{ fontFamily:"'Fredoka One',cursive", color:accent, fontSize:28, margin:'0 0 8px' }}>Math Challenge</h1>
         <p style={{ color:textMuted, fontSize:14, marginBottom:24, lineHeight:1.5 }}>
           Jawab soal matematika secepat mungkin!<br/>Capai Level {diff.targetLevel} untuk menang.
         </p>
@@ -388,7 +388,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
           </div>
         </div>
         <button onClick={startGame} style={{
-          fontFamily:\"'Fredoka One',cursive\", fontSize:18, padding:'14px 48px',
+          fontFamily:"'Fredoka One',cursive", fontSize:18, padding:'14px 48px',
           background:`linear-gradient(135deg, ${accent}, ${accentLight})`, color:'#fff',
           border:'none', borderRadius:14, cursor:'pointer', boxShadow:`0 4px 20px ${accent}44`,
         }}>MULAI! 🚀</button>
@@ -423,9 +423,9 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
         {isMultiplayer && (
           <div style={{ position:'fixed', top:20, width:'100%', textAlign:'center', zIndex:2000 }}>
              <div style={{ background: surface, padding:'10px 20px', borderRadius:20, display:'inline-flex', gap:20, border:`2px solid ${accent}` }}>
-                <div><div style={{ fontSize:10, color:textMuted }}>SKOR KAMU</div><div style={{ fontFamily:\"'Fredoka One',cursive\", color:accent }}>{score}</div></div>
+                <div><div style={{ fontSize:10, color:textMuted }}>SKOR KAMU</div><div style={{ fontFamily:"'Fredoka One',cursive", color:accent }}>{score}</div></div>
                 <div style={{ fontSize:20, opacity:0.3 }}>VS</div>
-                <div><div style={{ fontSize:10, color:textMuted }}>SKOR {opponentProfile?.displayName?.toUpperCase() || 'LAWAN'}</div><div style={{ fontFamily:\"'Fredoka One',cursive\", color:'#FF6B6B' }}>{opponentData?.score || 0}</div></div>
+                <div><div style={{ fontSize:10, color:textMuted }}>SKOR {opponentProfile?.displayName?.toUpperCase() || 'LAWAN'}</div><div style={{ fontFamily:"'Fredoka One',cursive", color:'#FF6B6B' }}>{opponentData?.score || 0}</div></div>
              </div>
           </div>
         )}
@@ -447,7 +447,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
             <span key={i} style={{ fontSize:18, opacity: i < lives ? 1 : 0.2, transition:'opacity 0.3s' }}>❤️</span>
           ))}
         </div>
-        <div style={{ fontFamily:\"'Fredoka One',cursive\", color:accent, fontSize:16 }}>{score.toLocaleString()}</div>
+        <div style={{ fontFamily:"'Fredoka One',cursive", color:accent, fontSize:16 }}>{score.toLocaleString()}</div>
       </div>
 
       <div style={{ height:6, background:surface, margin:'0 16px', borderRadius:3, overflow:'hidden' }}>
@@ -463,7 +463,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
       </div>
 
       <div style={{ textAlign:'center', height:28, display:'flex', alignItems:'center', justifyContent:'center' }}>
-        {comboLabel && <div style={{ fontFamily:\"'Fredoka One',cursive\", fontSize:16, color:comboColor, animation:'comboPulse 0.6s ease infinite alternate' }}>{comboLabel}</div>}
+        {comboLabel && <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color:comboColor, animation:'comboPulse 0.6s ease infinite alternate' }}>{comboLabel}</div>}
         {streak > 0 && streak < 3 && <div style={{ fontSize:13, color:textMuted }}>🔥 Streak: {streak}</div>}
       </div>
 
@@ -471,15 +471,15 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
         <div style={{ padding:'0 16px', marginBottom:12, display:'flex', alignItems:'center', justifyContent:'space-between', background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)', borderRadius: 16, margin:'0 16px 12px' }}>
            <div style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0' }}>
               <div style={{ width:32, height:32, borderRadius:8, background:accent, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>
-                {photoURL ? <img src={photoURL} alt=\"\" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:8 }} /> : '👤'}
+                {photoURL ? <img src={photoURL} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:8 }} /> : '👤'}
               </div>
-              <div><div style={{ fontSize:10, fontWeight:800, color:accent }}>KAMU</div><div style={{ fontFamily:\"'Fredoka One',cursive\", fontSize:14, color:textMain }}>{score}</div></div>
+              <div><div style={{ fontSize:10, fontWeight:800, color:accent }}>KAMU</div><div style={{ fontFamily:"'Fredoka One',cursive", fontSize:14, color:textMain }}>{score}</div></div>
            </div>
-           <div style={{ fontFamily:\"'Fredoka One',cursive\", fontSize:18, opacity:0.3, color:textMain }}>VS</div>
+           <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:18, opacity:0.3, color:textMain }}>VS</div>
            <div style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', textAlign:'right', flexDirection:'row' }}>
-              <div><div style={{ fontSize:10, fontWeight:800, color:'#FF6B6B' }}>{opponentProfile?.displayName?.toUpperCase() || 'LAWAN'}</div><div style={{ fontFamily:\"'Fredoka One',cursive\", fontSize:14, color:textMain }}>{opponentData?.score || 0}</div></div>
+              <div><div style={{ fontSize:10, fontWeight:800, color:'#FF6B6B' }}>{opponentProfile?.displayName?.toUpperCase() || 'LAWAN'}</div><div style={{ fontFamily:"'Fredoka One',cursive", fontSize:14, color:textMain }}>{opponentData?.score || 0}</div></div>
               <div style={{ width:32, height:32, borderRadius:8, background:'#FF6B6B', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>
-                {opponentProfile?.photoURL ? <img src={opponentProfile.photoURL} alt=\"\" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:8 }} /> : '👤'}
+                {opponentProfile?.photoURL ? <img src={opponentProfile.photoURL} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:8 }} /> : '👤'}
               </div>
            </div>
         </div>
@@ -490,7 +490,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
           <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center' }}>
             <div style={{ textAlign:'center', animation:'levelUpBounce 0.5s ease' }}>
               <div style={{ fontSize:64 }}>📈</div>
-              <div style={{ fontFamily:\"'Fredoka One',cursive\", fontSize:32, color:'#FDCB6E', marginTop:8 }}>LEVEL UP!</div>
+              <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:32, color:'#FDCB6E', marginTop:8 }}>LEVEL UP!</div>
               <div style={{ fontSize:18, color:'#fff', marginTop:4 }}>Level {level} — {LEVEL_NAMES[level] || ''}</div>
             </div>
           </div>
@@ -504,7 +504,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
               animation: feedback?.type === 'wrong' || feedback?.type === 'timeout' ? 'shakeX 0.4s ease' : feedback?.type === 'correct' ? 'popCorrect 0.3s ease' : 'none',
               border: feedback?.type === 'correct' ? '2px solid #00B894' : feedback?.type === 'wrong' || feedback?.type === 'timeout' ? '2px solid #FF6B6B' : `2px solid ${tc.borderCol || '#ccc'}`,
             }}>
-              <div style={{ fontFamily:\"'Fredoka One',cursive\", fontSize: question.display.length > 12 ? 32 : 42, color:textMain, letterSpacing:2 }}>{question.display}</div>
+              <div style={{ fontFamily:"'Fredoka One',cursive", fontSize: question.display.length > 12 ? 32 : 42, color:textMain, letterSpacing:2 }}>{question.display}</div>
               <div style={{ fontSize:14, color:textMuted, marginTop:4 }}>= ?</div>
             </div>
 
@@ -525,7 +525,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
                 }
                 return (
                   <button key={i} onClick={() => handleAnswer(opt)} disabled={!!feedback} style={{
-                    fontFamily:\"'Fredoka One',cursive\", fontSize:22, padding:'16px 8px', background:btnBg, color:btnColor, border:`2px solid ${btnBorder}`,
+                    fontFamily:"'Fredoka One',cursive", fontSize:22, padding:'16px 8px', background:btnBg, color:btnColor, border:`2px solid ${btnBorder}`,
                     borderRadius:14, cursor: feedback ? 'default' : 'pointer', transform: isSelected ? 'scale(0.95)' : 'scale(1)', transition: 'all 0.1s'
                   }}>{opt}</button>
                 )
