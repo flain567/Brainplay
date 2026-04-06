@@ -2,14 +2,16 @@ import { useMatch } from '../context/MatchContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { useSound } from '../hooks/useSound.js'
 import { useState, useEffect } from 'react'
+import { auth } from '../firebase.js'
 
 export default function MatchInviteToast() {
-  const { incomingInvites, acceptMatch } = useMatch()
+  const { incomingInvites, acceptMatch, setActiveMatch } = useMatch()
   const { play } = useSound()
   const tc = useThemeColors()
   
   const [activeInvite, setActiveInvite] = useState(null)
   const [isExiting, setIsExiting] = useState(false)
+  const [processing, setProcessing] = useState(null) // 'accept' | null
 
   useEffect(() => {
     if (incomingInvites.length > 0 && !activeInvite) {
@@ -30,10 +32,24 @@ export default function MatchInviteToast() {
   }
 
   const handleAccept = async () => {
-    if (!activeInvite) return
-    play('click')
-    await acceptMatch(activeInvite.id)
-    handleClose()
+    if (!activeInvite || processing) return
+    setProcessing('accept')
+    play('level_up')
+    const res = await acceptMatch(activeInvite.id)
+    if (res.success) {
+      // Manually set activeMatch so App.jsx can redirect immediately with gameId
+      setActiveMatch({
+        id: activeInvite.id,
+        ...activeInvite,
+        status: 'active',
+        guestProfile: {
+          displayName: auth.currentUser?.displayName || 'Pemain',
+          photoURL: auth.currentUser?.photoURL || ''
+        }
+      })
+      handleClose()
+    }
+    setProcessing(null)
   }
 
   if (!activeInvite) return null
@@ -97,8 +113,10 @@ export default function MatchInviteToast() {
           </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
-          <button className="toast-btn-accept" onClick={handleAccept}>TERIMA</button>
-          <button className="toast-btn-ignore" onClick={handleClose}>ABAIKAN</button>
+          <button className="toast-btn-accept" onClick={handleAccept} disabled={!!processing}>
+            {processing === 'accept' ? '...' : 'TERIMA'}
+          </button>
+          <button className="toast-btn-ignore" onClick={handleClose} disabled={!!processing}>ABAIKAN</button>
         </div>
       </div>
     </>
