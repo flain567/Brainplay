@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react'
 const NAV_ITEMS = [
   { id: 'home', label: 'Home', icon: '🏠' },
   { id: 'games', label: 'Games', icon: '🎮' },
+  { id: 'friends', label: 'Teman', icon: '🤝' },
   { id: 'wheel', label: 'Wheel', icon: '🎡' },
   { id: 'inventory', label: 'Tas', icon: '🎒' },
   { id: 'shop', label: 'Shop', icon: '🏪' },

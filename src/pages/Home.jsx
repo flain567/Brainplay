@@ -279,7 +279,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         /* Quick Actions Grid */
         .quick-actions { 
           display: grid; 
-          grid-template-columns: repeat(3, 1fr); 
+          grid-template-columns: repeat(4, 1fr); 
           gap: 10px; 
           margin-bottom: 24px; 
           animation: slide-up 0.4s 0.05s ease both; 
@@ -560,6 +560,15 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             >
               <span className="qa-ico">🎮</span>
               Games
+            </button>
+            <button
+              className="qa-btn"
+              onClick={() => { play('click'); onFriends?.() }}
+              onMouseEnter={e => onHoverQA(e, true)}
+              onMouseLeave={e => onHoverQA(e, false)}
+            >
+              <span className="qa-ico">🤝</span>
+              Friends
             </button>
           </div>
 

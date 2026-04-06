@@ -644,6 +644,33 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin, onFriends
           </div>
 
 
+          {/* ── Friends Link ── */}
+          <div style={{
+            background: surface, border: `2px solid ${borderCol}`,
+            borderRadius: 24, padding: 20, marginBottom: 20,
+            animation: 'slide-up 0.4s 0.38s ease both',
+          }}>
+            <button onClick={() => { play('click'); onFriends && onFriends() }} style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              gap: 14, padding: '14px 16px', borderRadius: 14,
+              background: 'linear-gradient(135deg, #4ECDC422, #00B89422)',
+              border: `1.5px solid ${borderCol}`, cursor: 'pointer',
+              transition: 'all 0.2s', fontFamily: "'Nunito', sans-serif",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#4ECDC4'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = borderCol; e.currentTarget.style.transform = 'translateY(0)' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 20 }}>🤝</span>
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 14, color: textMain, fontWeight: 700 }}>Sistem Teman</div>
+                  <div style={{ fontSize: 11, color: textMuted }}>Manage friends & invite others</div>
+                </div>
+              </div>
+              <span style={{ fontSize: 16, color: textMuted }}>→</span>
+            </button>
+          </div>
+
           {/* ── Analytics Dashboard Link ── */}
           <div style={{
             background: surface, border: `2px solid ${borderCol}`,

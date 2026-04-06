@@ -657,7 +657,7 @@ function AppInner() {
         </Suspense>
       )}
       {!isFullscreen && (
-        <Navbar onHome={goHome} onProfile={goProfile} onShop={goShop} onInventory={goInventory} onLeaderboard={goLeaderboard} onGames={goGames} currentGame={screen === 'game' ? currentGame : null} />
+        <Navbar onHome={goHome} onProfile={goProfile} onShop={goShop} onInventory={goInventory} onLeaderboard={goLeaderboard} onGames={goGames} onFriends={goFriends} currentGame={screen === 'game' ? currentGame : null} />
       )}
       <AchievementToast />
       <CoinToast />
@@ -782,6 +782,7 @@ function AppInner() {
             else if (target === 'profile') goProfile()
             else if (target === 'games') goGames()
             else if (target === 'inventory') goInventory()
+            else if (target === 'friends') goFriends()
           }} 
         />
       )}

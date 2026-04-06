@@ -10,7 +10,7 @@ import SettingsModal from './SettingsModal.jsx'
 import BattlePass from './BattlePass.jsx'
 import { animate, splitText, stagger } from 'animejs'
 
-export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGames, onInventory, currentGame }) {
+export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGames, onInventory, onFriends, currentGame }) {
   const { darkMode, muted } = useSettings()
   const { play, setMuted } = useSound()
   const { coins } = useCoins()
@@ -392,6 +392,7 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
               <button className="nav-btn" title="Katalog Game" onClick={() => nav(onGames)} style={{ border:'none', background:'transparent', width:40 }}>🎮</button>
               <button className="nav-btn" title="Tas & Inventaris" onClick={() => nav(onInventory)} style={{ border:'none', background:'transparent', width:40 }}>🎒</button>
               <button className="nav-btn" title="Leaderboard" onClick={() => nav(onLeaderboard)} style={{ border:'none', background:'transparent', width:40 }}>🏆</button>
+              <button className="nav-btn" title="Sistem Teman" onClick={() => nav(onFriends)} style={{ border:'none', background:'transparent', width:40 }}>🤝</button>
               <div style={{ width: 1.5, height: 20, background: borderCol, margin: '0 4px' }} />
               <button className="nav-btn" title="Shop" onClick={() => nav(onShop)} data-coin-counter
                 style={{ 
@@ -531,6 +532,14 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
               <div>
                 <div className="nav-drawer-item-text">Katalog Game</div>
                 <div className="nav-drawer-item-desc">Cari dan temukan semua game</div>
+              </div>
+            </div>
+
+            <div className="nav-drawer-item" onClick={() => nav(onFriends)}>
+              <div className="nav-drawer-item-icon" style={{ background:dark?'rgba(78,205,196,0.1)':'#F0FFFE' }}>🤝</div>
+              <div>
+                <div className="nav-drawer-item-text">Sistem Teman</div>
+                <div className="nav-drawer-item-desc">Tambahkan & main bersama teman</div>
               </div>
             </div>
 
