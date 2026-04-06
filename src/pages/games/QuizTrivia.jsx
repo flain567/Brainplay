@@ -292,7 +292,7 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty, multiplay
   }, [diff, startTimer, isMultiplayer, multiplayerMatch?.seed])
 
   const accent = '#0984E3'; const accentLight = '#74B9FF'
-  const bg = tc.bg; const surface = tc.surface; const textMain = tc.text; const textMuted = tc.muted
+  const bg = tc.bg; const surface = tc.surface; const textMain = tc.textMain; const textMuted = tc.textMuted
   const timerPct = (timeLeft / diff.timePerQ) * 100
   const timerColor = timerPct > 50 ? '#00B894' : timerPct > 25 ? '#FDCB6E' : '#FF6B6B'
 

@@ -155,7 +155,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
   const { earnCoins } = useCoins()
   const matchCtx = useMatch() || {}
   const { updateMatchState, finishMatch, setActiveMatch } = matchCtx
-  const { uid: userId } = useAuth()
+  const { uid: userId, photoURL } = useAuth()
   const tc = useThemeColors()
   const diff = CFG[difficulty?.id] || CFG.easy
 
@@ -186,6 +186,14 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
   const timerRef = useRef(null)
   const feedbackTimerRef = useRef(null)
   const levelUpTimerRef = useRef(null)
+  const scoreRef = useRef(0)
+  const levelRef = useRef(diff.startLevel)
+  const livesRef = useRef(diff.lives)
+
+  // Keep refs in sync for safe timeout/PvP usage
+  useEffect(() => { scoreRef.current = score }, [score])
+  useEffect(() => { levelRef.current = level }, [level])
+  useEffect(() => { livesRef.current = lives }, [lives])
 
   // ─── Best scores from localStorage ──────────────────────────────────
   const bestKey = `math-challenge-best-${difficulty?.id || 'easy'}`
@@ -205,23 +213,23 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
 
   // Sync multiplayer state
   useEffect(() => {
-    if (isMultiplayer && phase === 'playing') {
+    if (isMultiplayer && phase === 'playing' && myUid) {
       const newState = { 
         ...multiplayerMatch.state, 
         [myUid]: { score, level, finished: false, lives } 
       }
-      updateMatchState?.(multiplayerMatch.id, newState)
+      updateMatchState?.(multiplayerMatch?.id, newState)
     }
-  }, [score, level, lives, isMultiplayer, phase])
+  }, [score, level, lives, isMultiplayer, phase, multiplayerMatch?.id, myUid])
 
   // Monitor opponent's progress and finish
   useEffect(() => {
     if (isMultiplayer && phase === 'playing') {
-      if (opponentData.finished) {
+      if (opponentData?.finished) {
         // Opponent finished! Compare scores or see who reached target first
         feedbackTimerRef.current = setTimeout(() => endGame('opponent_win'), 1000)
       }
-      if (multiplayerMatch.status === 'cancelled') {
+      if (multiplayerMatch?.status === 'cancelled') {
         endGame('opponent_quit')
       }
     }
@@ -341,7 +349,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
         return next
       })
     }
-  }, [feedback, selectedAnswer, question, streak, level, correctInLevel, timeLeft, play, diff, nextQuestion])
+  }, [feedback, selectedAnswer, question, streak, level, correctInLevel, timeLeft, play, diff, nextQuestion, endGame])
 
   // ─── End game ────────────────────────────────────────────────────────
   const endGame = useCallback((reason) => {
@@ -350,14 +358,19 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
     setGameOverReason(reason)
     setPhase('result')
     
-    if (isMultiplayer) {
-      const isWinner = reason === 'target' || (reason === 'lives' && opponentData.finished && score > opponentData.score)
+    if (isMultiplayer && multiplayerMatch?.id) {
+      const curScore = scoreRef.current
+      const curLevel = levelRef.current
+      const curLives = livesRef.current
+      
+      const isWinner = reason === 'target' || (reason === 'lives' && opponentData?.finished && curScore > (opponentData?.score || 0))
+      
       const newState = { 
         ...multiplayerMatch.state, 
-        [myUid]: { score, level, finished: true, lives } 
+        [myUid]: { score: curScore, level: curLevel, finished: true, lives: curLives } 
       }
-      updateMatchState?.(multiplayerMatch.id, newState)
-      if (isWinner) finishMatch?.(multiplayerMatch.id, myUid)
+      updateMatchState?.(multiplayerMatch?.id, newState)
+      if (isWinner) finishMatch?.(multiplayerMatch?.id, myUid)
     }
 
     if (reason === 'target') {
@@ -366,7 +379,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
     } else {
       play('gameOver')
     }
-  }, [play, isMultiplayer, multiplayerMatch, score, level, lives, opponentData, userId])
+  }, [play, isMultiplayer, multiplayerMatch?.id, multiplayerMatch?.state, opponentData, myUid])
 
   // ─── Calculate rewards ──────────────────────────────────────────────
   const won = gameOverReason === 'target'
@@ -424,8 +437,8 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
   // ─── Styles ──────────────────────────────────────────────────────────
   const bg = tc.bg
   const surface = tc.surface
-  const textMain = tc.text
-  const textMuted = tc.muted
+  const textMain = tc.textMain
+  const textMuted = tc.textMuted
   const accent = '#6C5CE7'
   const accentLight = '#A29BFE'
 

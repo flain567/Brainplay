@@ -55,6 +55,10 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
   const { uid: userId } = useAuth()
   const tc = useThemeColors()
   const dark = tc.dark
+  const bg = tc.bg
+  const surface = tc.surface
+  const textMain = tc.textMain
+  const textMuted = tc.textMuted
 
   const cfg = CFG[difficulty.id]
   const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('bp_tut_reaction-test'))
@@ -88,7 +92,7 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
   const isMultiplayer = !!multiplayerMatch
   const myUid = userId || auth.currentUser?.uid
   const opponentUid = isMultiplayer ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestUid : multiplayerMatch.hostUid) : null
-  const opponentData = isMultiplayer ? multiplayerMatch.state[opponentUid] || { results: [], finished: false } : null
+  const opponentData = isMultiplayer ? multiplayerMatch.state?.[opponentUid] || { results: [], finished: false } : null
   const opponentProfile = isMultiplayer ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestProfile : multiplayerMatch.hostProfile) : null
 
   const bestKey = `reaction-test-best-${difficulty.id}`
@@ -124,14 +128,14 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
 
   // Sync results for multiplayer
   useEffect(() => {
-    if (isMultiplayer && mode === 'tap') {
+    if (isMultiplayer && mode === 'tap' && myUid) {
       const newState = { 
         ...multiplayerMatch.state, 
-        [myUid]: { results, finished: phase === 'done' } 
+        [myUid]: { results, finished: gameState === 'done' } 
       }
-      updateMatchState?.(multiplayerMatch.id, newState)
+      updateMatchState?.(multiplayerMatch?.id, newState)
     }
-  }, [results, isMultiplayer, mode, phase])
+  }, [results, isMultiplayer, mode, gameState, myUid, multiplayerMatch?.id])
 
   // ═══════ TAP MODE ═══════
   const startTapRound = useCallback(() => {
@@ -382,9 +386,6 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
   finalScore = Math.round(finalScore)
   const finalStars = accuracy >= 90 ? 3 : accuracy >= 70 ? 2 : 1
   const coinAmt = ({ easy: 15, medium: 25, hard: 40 }[difficulty.id] || 15) + Math.floor(finalScore / 100) + (finalStars === 3 ? 20 : 0)
-
-  const bg = tc.bg
-  const textMain = tc.textMain
 
   // ═══════ COUNTDOWN SCREEN ═══════
   if (countdown > 0) {
