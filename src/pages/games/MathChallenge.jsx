@@ -17,6 +17,7 @@ import { useMatch } from '../../context/MatchContext.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { auth } from '../../firebase.js'
 import { GameHeader, StatsBar, ActionButtons, WinModal, BestRecord } from '../../components/GameLayout.jsx'
+import PvpScoreBar from '../../components/PvpScoreBar.jsx'
 
 // ─── Configuration ──────────────────────────────────────────────────────────
 const CFG = {
@@ -138,6 +139,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
   const [lives, setLives] = useState(diff.lives)
   const [score, setScore] = useState(0)
   const [totalCorrect, setTotalCorrect] = useState(0)
+  const [totalWrong, setTotalWrong] = useState(0)
   const [totalAnswered, setTotalAnswered] = useState(0)
   const [streak, setStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
@@ -190,14 +192,26 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
       const curScore = scoreRef.current
       const curLevel = levelRef.current
       const curLives = livesRef.current
-      const isWinner = reason === 'target' || (reason === 'lives' && opponentData?.finished && curScore > (opponentData?.score || 0))
       
       const newState = { 
         ...multiplayerMatch.state, 
-        [myUid]: { score: curScore, level: curLevel, finished: true, lives: curLives } 
+        [myUid]: { 
+          score: curScore, 
+          level: curLevel, 
+          finished: true, 
+          lives: curLives,
+          correct: totalCorrect,
+          wrong: totalWrong
+        } 
       }
       updateMatchState?.(multiplayerMatch.id, newState)
-      if (isWinner) finishMatch?.(multiplayerMatch.id, myUid)
+
+      // If opponent also finished, determine winner
+      if (opponentData?.finished) {
+        const winner = curScore > (opponentData?.score || 0) ? myUid
+          : curScore < (opponentData?.score || 0) ? opponentUid : 'draw'
+        finishMatch?.(multiplayerMatch.id, winner)
+      }
     }
 
     if (reason === 'target') { setShowConfetti(true); play('win') }
@@ -209,18 +223,24 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
     play('error')
     setFeedback({ type: 'timeout', points: 0, answer: q.answer })
     setStreak(0)
+    setTotalWrong(prev => prev + 1)
     setTotalAnswered(ta => ta + 1)
-    setLives(prev => {
-      const next = prev - 1
-      if (next <= 0) {
-        clearTimeout(feedbackTimerRef.current)
-        feedbackTimerRef.current = setTimeout(() => endGame('lives'), 1200)
-      } else {
-        feedbackTimerRef.current = setTimeout(() => nextQuestion(), 1200)
-      }
-      return next
-    })
-  }, [play, endGame])
+    
+    if (isMultiplayer) {
+      feedbackTimerRef.current = setTimeout(() => nextQuestion(), 1200)
+    } else {
+      setLives(prev => {
+        const next = prev - 1
+        if (next <= 0) {
+          clearTimeout(feedbackTimerRef.current)
+          feedbackTimerRef.current = setTimeout(() => endGame('lives'), 1200)
+        } else {
+          feedbackTimerRef.current = setTimeout(() => nextQuestion(), 1200)
+        }
+        return next
+      })
+    }
+  }, [play, endGame, isMultiplayer])
 
   const nextQuestion = useCallback((lvl) => {
     const q = generateQuestion(lvl ?? level)
@@ -288,19 +308,25 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
     } else {
       play('error')
       setStreak(0)
+      setTotalWrong(prev => prev + 1)
       setTotalAnswered(prev => prev + 1)
       setFeedback({ type: 'wrong', points: 0, answer: question.answer })
-      setLives(prev => {
-        const next = prev - 1
-        if (next <= 0) {
-          feedbackTimerRef.current = setTimeout(() => endGame('lives'), 1200)
-        } else {
-          feedbackTimerRef.current = setTimeout(() => nextQuestion(), 1200)
-        }
-        return next
-      })
+      
+      if (isMultiplayer) {
+        feedbackTimerRef.current = setTimeout(() => nextQuestion(), 1200)
+      } else {
+        setLives(prev => {
+          const next = prev - 1
+          if (next <= 0) {
+            feedbackTimerRef.current = setTimeout(() => endGame('lives'), 1200)
+          } else {
+            feedbackTimerRef.current = setTimeout(() => nextQuestion(), 1200)
+          }
+          return next
+        })
+      }
     }
-  }, [feedback, selectedAnswer, question, streak, level, correctInLevel, timeLeft, play, diff, nextQuestion, endGame])
+  }, [feedback, selectedAnswer, question, streak, level, correctInLevel, timeLeft, play, diff, nextQuestion, endGame, isMultiplayer])
 
   const startGame = useCallback(() => {
     setPhase('playing')
@@ -330,17 +356,29 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
 
   useEffect(() => {
     if (isMultiplayer && phase === 'playing' && myUid) {
-      const newState = { ...multiplayerMatch.state, [myUid]: { score, level, finished: false, lives } }
+      const newState = { 
+        ...multiplayerMatch.state, 
+        [myUid]: { score, level, finished: false, lives, correct: totalCorrect, wrong: totalWrong } 
+      }
       updateMatchState?.(multiplayerMatch?.id, newState)
     }
-  }, [score, level, lives, isMultiplayer, phase, multiplayerMatch?.id, myUid, updateMatchState])
+  }, [score, level, lives, totalCorrect, totalWrong, isMultiplayer, phase, multiplayerMatch?.id, myUid, updateMatchState])
 
   useEffect(() => {
     if (isMultiplayer && phase === 'playing') {
-      if (opponentData?.finished) feedbackTimerRef.current = setTimeout(() => endGame('opponent_win'), 1000)
       if (multiplayerMatch?.status === 'cancelled') endGame('opponent_quit')
     }
-  }, [opponentData?.finished, multiplayerMatch?.status, isMultiplayer, phase, endGame])
+  }, [multiplayerMatch?.status, isMultiplayer, phase, endGame])
+
+  // PvP: if opponent finishes after us, determine winner
+  useEffect(() => {
+    if (phase !== 'result' || !isMultiplayer) return
+    if (opponentData?.finished && multiplayerMatch?.status === 'active') {
+      const winner = score > opponentData.score ? myUid
+        : score < opponentData.score ? opponentUid : 'draw'
+      finishMatch?.(multiplayerMatch.id, winner)
+    }
+  }, [opponentData?.finished, isMultiplayer, phase, score, myUid, opponentUid, multiplayerMatch?.id, multiplayerMatch?.status, finishMatch])
 
   useEffect(() => {
     if (phase !== 'result') return
@@ -379,8 +417,10 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
             <div style={{ fontSize:11, color:textMuted }}>per soal</div>
           </div>
           <div style={{ background:surface, borderRadius:12, padding:'12px 20px', textAlign:'center' }}>
-            <div style={{ fontSize:20, fontWeight:700, color:'#FF6B6B' }}>{'❤️'.repeat(diff.lives)}</div>
-            <div style={{ fontSize:11, color:textMuted }}>{diff.lives} nyawa</div>
+            <div style={{ fontSize:20, fontWeight:700, color:'#FF6B6B' }}>
+              {isMultiplayer ? '✨' : '❤️'.repeat(diff.lives)}
+            </div>
+            <div style={{ fontSize:11, color:textMuted }}>{isMultiplayer ? 'Mode Kuis' : `${diff.lives} nyawa`}</div>
           </div>
           <div style={{ background:surface, borderRadius:12, padding:'12px 20px', textAlign:'center' }}>
             <div style={{ fontSize:20, fontWeight:700, color:'#00B894' }}>Lv{diff.targetLevel}</div>
@@ -402,6 +442,46 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
   if (phase === 'result') {
     const accuracy = totalAnswered > 0 ? Math.round(totalCorrect / totalAnswered * 100) : 0
     const coinReward = won ? Math.floor(score / 50) + stars * 5 : Math.floor(score / 100)
+
+    if (isMultiplayer) {
+      const waiting = !multiplayerMatch?.winner
+      const pvpWon = multiplayerMatch?.winner === myUid
+      const pvpDraw = multiplayerMatch?.winner === 'draw'
+      return (
+        <div style={{ minHeight:'100dvh', background:bg, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:20 }}>
+          {showConfetti && <Confetti />}
+          <div style={{ textAlign:'center', maxWidth:400, background:surface, borderRadius:24, padding:32, border:`2px solid ${tc.border}` }}>
+            <div style={{ fontSize:64, marginBottom:12 }}>
+              {waiting ? '⏳' : pvpWon ? '🏆' : pvpDraw ? '🤝' : '😔'}
+            </div>
+            <h2 style={{ fontFamily:"'Fredoka One',cursive", fontSize:24, color:textMain, margin:'0 0 8px' }}>
+              {waiting ? 'Menunggu lawan selesai...' : pvpWon ? 'KAMU MENANG!' : pvpDraw ? 'SERI!' : 'KAMU KALAH!'}
+            </h2>
+            <div style={{ display:'flex', justifyContent:'center', gap:24, margin:'20px 0' }}>
+              <div style={{ textAlign:'center' }}>
+                <div style={{ fontSize:11, fontWeight:800, color:'#6C5CE7' }}>SKOR KAMU</div>
+                <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:28, color:'#00B894' }}>{score.toLocaleString()}</div>
+                <div style={{ fontSize:12, color:textMuted }}>{totalCorrect} benar</div>
+              </div>
+              <div style={{ fontSize:24, alignSelf:'center' }}>VS</div>
+              <div style={{ textAlign:'center' }}>
+                <div style={{ fontSize:11, fontWeight:800, color:'#FF6B6B' }}>{opponentProfile?.displayName || 'LAWAN'}</div>
+                <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:28, color:'#FF6B6B' }}>{(opponentData?.score || 0).toLocaleString()}</div>
+                <div style={{ fontSize:12, color:textMuted }}>{(opponentData?.correct || 0)} benar</div>
+              </div>
+            </div>
+            <button onClick={() => { setActiveMatch?.(null); onHome() }} style={{
+              fontFamily:"'Fredoka One',cursive", fontSize:16, padding:'12px 36px',
+              background:`linear-gradient(135deg, ${accent}, ${accentLight})`, color:'#fff',
+              border:'none', borderRadius:14, cursor:'pointer', marginTop:12
+            }}>
+              KEMBALI
+            </button>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div style={{ minHeight:'100dvh', background:bg }}>
         {showConfetti && <Confetti />}
@@ -412,23 +492,14 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
           stats={[
             { label: 'Skor', value: score.toLocaleString(), color: '#6C5CE7' },
             { label: 'Level', value: `${level} — ${LEVEL_NAMES[level] || ''}`, color: '#A29BFE' },
-            { label: 'Benar', value: `${totalCorrect}/${totalAnswered}`, color: '#00B894' },
+            { label: 'Benar', value: String(totalCorrect), color: '#00B894' },
+            { label: 'Salah', value: String(totalWrong), color: '#FF6B6B' },
             { label: 'Akurasi', value: `${accuracy}%`, color: '#FDCB6E' },
             { label: 'Best streak', value: String(bestStreak), color: '#FD79A8' },
           ]}
           stars={won ? stars : 0} coinReward={coinReward}
-          highlight={isMultiplayer ? (multiplayerMatch.winner === myUid ? '⚔️ KAMU MENANG!' : '💀 KAMU KALAH!') : ''}
           onRestart={restart} onBack={onBack} onHome={onHome} dark={darkMode} gameColor={accent}
         />
-        {isMultiplayer && (
-          <div style={{ position:'fixed', top:20, width:'100%', textAlign:'center', zIndex:2000 }}>
-             <div style={{ background: surface, padding:'10px 20px', borderRadius:20, display:'inline-flex', gap:20, border:`2px solid ${accent}` }}>
-                <div><div style={{ fontSize:10, color:textMuted }}>SKOR KAMU</div><div style={{ fontFamily:"'Fredoka One',cursive", color:accent }}>{score}</div></div>
-                <div style={{ fontSize:20, opacity:0.3 }}>VS</div>
-                <div><div style={{ fontSize:10, color:textMuted }}>SKOR {opponentProfile?.displayName?.toUpperCase() || 'LAWAN'}</div><div style={{ fontFamily:"'Fredoka One',cursive", color:'#FF6B6B' }}>{opponentData?.score || 0}</div></div>
-             </div>
-          </div>
-        )}
       </div>
     )
   }
@@ -440,12 +511,31 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
 
   return (
     <div style={{ minHeight:'100dvh', background:bg, display:'flex', flexDirection:'column' }}>
+      {isMultiplayer && (
+        <PvpScoreBar
+          opponentProfile={opponentProfile}
+          opponentScore={opponentData?.score || 0}
+          opponentExtra={`${opponentData?.correct || 0} benar`}
+          opponentFinished={opponentData?.finished}
+          myScore={score}
+          onQuit={() => { matchCtx.quitMatch?.(multiplayerMatch?.id); setActiveMatch?.(null); onBack() }}
+        />
+      )}
+
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', gap:8 }}>
         <button onClick={onBack} style={{ background:'none', border:'none', color:textMuted, fontSize:20, cursor:'pointer', padding:4 }}>←</button>
-        <div style={{ display:'flex', gap:4, alignItems:'center' }}>
-          {Array.from({ length: diff.lives }, (_, i) => (
-            <span key={i} style={{ fontSize:18, opacity: i < lives ? 1 : 0.2, transition:'opacity 0.3s' }}>❤️</span>
-          ))}
+        <div style={{ display:'flex', gap:isMultiplayer ? 8 : 4, alignItems:'center' }}>
+          {isMultiplayer ? (
+            <>
+              <span style={{ fontSize:13, fontWeight:700, color:'#00B894' }}>✓ {totalCorrect}</span>
+              <span style={{ fontSize:12, color:textMuted }}>|</span>
+              <span style={{ fontSize:13, fontWeight:700, color:'#FF6B6B' }}>✗ {totalWrong}</span>
+            </>
+          ) : (
+            Array.from({ length: diff.lives }, (_, i) => (
+              <span key={i} style={{ fontSize:18, opacity: i < lives ? 1 : 0.2, transition:'opacity 0.3s' }}>❤️</span>
+            ))
+          )}
         </div>
         <div style={{ fontFamily:"'Fredoka One',cursive", color:accent, fontSize:16 }}>{score.toLocaleString()}</div>
       </div>
@@ -467,23 +557,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
         {streak > 0 && streak < 3 && <div style={{ fontSize:13, color:textMuted }}>🔥 Streak: {streak}</div>}
       </div>
 
-      {isMultiplayer && (
-        <div style={{ padding:'0 16px', marginBottom:12, display:'flex', alignItems:'center', justifyContent:'space-between', background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)', borderRadius: 16, margin:'0 16px 12px' }}>
-           <div style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0' }}>
-              <div style={{ width:32, height:32, borderRadius:8, background:accent, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>
-                {photoURL ? <img src={photoURL} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:8 }} /> : '👤'}
-              </div>
-              <div><div style={{ fontSize:10, fontWeight:800, color:accent }}>KAMU</div><div style={{ fontFamily:"'Fredoka One',cursive", fontSize:14, color:textMain }}>{score}</div></div>
-           </div>
-           <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:18, opacity:0.3, color:textMain }}>VS</div>
-           <div style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', textAlign:'right', flexDirection:'row' }}>
-              <div><div style={{ fontSize:10, fontWeight:800, color:'#FF6B6B' }}>{opponentProfile?.displayName?.toUpperCase() || 'LAWAN'}</div><div style={{ fontFamily:"'Fredoka One',cursive", fontSize:14, color:textMain }}>{opponentData?.score || 0}</div></div>
-              <div style={{ width:32, height:32, borderRadius:8, background:'#FF6B6B', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>
-                {opponentProfile?.photoURL ? <img src={opponentProfile.photoURL} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:8 }} /> : '👤'}
-              </div>
-           </div>
-        </div>
-      )}
+      {/* Remove previous inline VS bar as PvpScoreBar is now at the top */}
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'0 20px', gap:24 }}>
         {showLevelUp && (
