@@ -11,16 +11,25 @@ async function getFirestoreHelpers() {
   return _firestoreMod
 }
 
+// Games yang support PvP
+export const PVP_GAMES = [
+  { id: 'math-challenge', name: 'Math Challenge', emoji: '🧮', desc: 'Siapa paling cepat hitung!' },
+  { id: 'reaction-test', name: 'Reaction Test', emoji: '⚡', desc: 'Tes kecepatan reaksi!' },
+  { id: 'quiz-trivia', name: 'Quiz Trivia', emoji: '🇮🇩', desc: 'Adu pengetahuan Indonesia!' },
+  { id: 'memory-card', name: 'Memory Card', emoji: '🃏', desc: 'Siapa paling sedikit gerakan!' },
+  { id: 'memory-pattern', name: 'Memory Pattern', emoji: '🧠', desc: 'Siapa ingatan terkuat!' },
+]
+
 export function MatchProvider({ children }) {
   const [activeMatch, setActiveMatch] = useState(null)
   const [incomingInvites, setIncomingInvites] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  
+
   const unsubInvitesRef = useRef(null)
   const unsubMatchRef = useRef(null)
 
-  // Listen for incoming match invitations
+  // ── Listen incoming match invitations ──
   useEffect(() => {
     const user = auth.currentUser
     if (!user) {
@@ -33,20 +42,22 @@ export function MatchProvider({ children }) {
       try {
         const db = await getDb()
         const { collection, query, where, onSnapshot } = await getFirestoreHelpers()
-        
+
         const q = query(
-          collection(db, 'matches'), 
-          where('guestUid', '==', user.uid), 
+          collection(db, 'matches'),
+          where('guestUid', '==', user.uid),
           where('status', '==', 'pending')
         )
-        
+
         unsubInvitesRef.current = onSnapshot(q, (snap) => {
           if (!mounted) return
-          const invites = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+          const invites = snap.docs.map(d => ({ id: d.id, ...d.data() }))
           setIncomingInvites(invites)
+        }, (err) => {
+          console.error('[Match] Invite listener error:', err)
         })
       } catch (err) {
-        console.error('[Match] Invite listener error:', err)
+        console.error('[Match] Invite listener init error:', err)
       }
     }
     startInviteListener()
@@ -57,7 +68,7 @@ export function MatchProvider({ children }) {
     }
   }, [auth.currentUser])
 
-  // Listen for state changes in the active match
+  // ── Listen active match state changes ──
   useEffect(() => {
     if (!activeMatch?.id) {
       if (unsubMatchRef.current) unsubMatchRef.current()
@@ -69,18 +80,14 @@ export function MatchProvider({ children }) {
       try {
         const db = await getDb()
         const { doc, onSnapshot } = await getFirestoreHelpers()
-        
+
         unsubMatchRef.current = onSnapshot(doc(db, 'matches', activeMatch.id), (snap) => {
           if (!mounted) return
           if (!snap.exists()) {
             setActiveMatch(null)
             return
           }
-          const data = { id: snap.id, ...snap.data() }
-          setActiveMatch(data)
-          
-          // If match status changed to active and we're just waiting, trigger redirect logic in UI
-          // If match status changed to finished, the UI can handle showing the result
+          setActiveMatch({ id: snap.id, ...snap.data() })
         })
       } catch (err) {
         console.error('[Match] Match listener error:', err)
@@ -94,28 +101,34 @@ export function MatchProvider({ children }) {
     }
   }, [activeMatch?.id])
 
-  // Actions
-  const createMatch = useCallback(async (targetUid, gameId, hostProfile) => {
+  // ── Create a match (challenge a friend) ──
+  const createMatch = useCallback(async (targetUid, gameId, hostProfile, guestProfile) => {
     setLoading(true)
+    setError(null)
     const user = auth.currentUser
-    if (!user) return { success: false, error: 'Login required' }
+    if (!user) { setLoading(false); return { success: false, error: 'Login required' } }
 
     try {
       const db = await getDb()
       const { collection, addDoc, serverTimestamp } = await getFirestoreHelpers()
-      
+
+      // Generate shared seed untuk game yang butuh data sama (quiz questions, card layout)
+      const seed = Date.now() + Math.floor(Math.random() * 100000)
+
       const matchData = {
         hostUid: user.uid,
         guestUid: targetUid,
-        hostProfile: hostProfile || { displayName: user.displayName || 'Pemain', photoURL: user.photoURL },
+        hostProfile: hostProfile || { displayName: user.displayName || 'Pemain', photoURL: user.photoURL || '' },
+        guestProfile: guestProfile || { displayName: 'Pemain', photoURL: '' },
         gameId,
+        seed,
         status: 'pending',
-        createdAt: serverTimestamp(),
-        turn: user.uid,
         state: {},
+        winner: '',
+        createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       }
-      
+
       const docRef = await addDoc(collection(db, 'matches'), matchData)
       const newMatch = { id: docRef.id, ...matchData }
       setActiveMatch(newMatch)
@@ -128,19 +141,25 @@ export function MatchProvider({ children }) {
     }
   }, [])
 
+  // ── Accept a match invitation ──
   const acceptMatch = useCallback(async (matchId) => {
     setLoading(true)
+    const user = auth.currentUser
+    if (!user) { setLoading(false); return { success: false } }
+
     try {
       const db = await getDb()
       const { doc, updateDoc, serverTimestamp } = await getFirestoreHelpers()
-      
-      const matchRef = doc(db, 'matches', matchId)
-      await updateDoc(matchRef, {
+
+      await updateDoc(doc(db, 'matches', matchId), {
         status: 'active',
+        guestProfile: {
+          displayName: user.displayName || 'Pemain',
+          photoURL: user.photoURL || ''
+        },
         updatedAt: serverTimestamp()
       })
-      
-      // Local state will be updated by onSnapshot
+
       setLoading(false)
       return { success: true }
     } catch (err) {
@@ -150,31 +169,46 @@ export function MatchProvider({ children }) {
     }
   }, [])
 
-  const updateMatchState = useCallback(async (matchId, newState, nextTurn) => {
+  // ── Decline a match invitation ──
+  const declineMatch = useCallback(async (matchId) => {
     try {
       const db = await getDb()
       const { doc, updateDoc, serverTimestamp } = await getFirestoreHelpers()
-      
-      const matchRef = doc(db, 'matches', matchId)
-      const updateData = {
-        state: newState,
+
+      await updateDoc(doc(db, 'matches', matchId), {
+        status: 'cancelled',
         updatedAt: serverTimestamp()
-      }
-      if (nextTurn) updateData.turn = nextTurn
-      
-      await updateDoc(matchRef, updateData)
+      })
       return { success: true }
     } catch (err) {
-      console.error('[Match] Update state error:', err)
-      return { success: false, error: err.message }
+      console.error('[Match] Decline error:', err)
+      return { success: false }
     }
   }, [])
 
+  // ── Update match game state (score sync) ──
+  const updateMatchState = useCallback(async (matchId, newState) => {
+    try {
+      const db = await getDb()
+      const { doc, updateDoc, serverTimestamp } = await getFirestoreHelpers()
+
+      await updateDoc(doc(db, 'matches', matchId), {
+        state: newState,
+        updatedAt: serverTimestamp()
+      })
+      return { success: true }
+    } catch (err) {
+      console.error('[Match] Update state error:', err)
+      return { success: false }
+    }
+  }, [])
+
+  // ── Finish match with winner ──
   const finishMatch = useCallback(async (matchId, winnerUid) => {
     try {
       const db = await getDb()
       const { doc, updateDoc, serverTimestamp } = await getFirestoreHelpers()
-      
+
       await updateDoc(doc(db, 'matches', matchId), {
         status: 'finished',
         winner: winnerUid || 'draw',
@@ -183,15 +217,16 @@ export function MatchProvider({ children }) {
       return { success: true }
     } catch (err) {
       console.error('[Match] Finish error:', err)
-      return { success: false, error: err.message }
+      return { success: false }
     }
   }, [])
 
+  // ── Quit / cancel match ──
   const quitMatch = useCallback(async (matchId) => {
     try {
       const db = await getDb()
       const { doc, updateDoc, serverTimestamp } = await getFirestoreHelpers()
-      
+
       await updateDoc(doc(db, 'matches', matchId), {
         status: 'cancelled',
         updatedAt: serverTimestamp()
@@ -207,7 +242,7 @@ export function MatchProvider({ children }) {
   return (
     <MatchContext.Provider value={{
       activeMatch, setActiveMatch, incomingInvites, loading, error,
-      createMatch, acceptMatch, updateMatchState, finishMatch, quitMatch
+      createMatch, acceptMatch, declineMatch, updateMatchState, finishMatch, quitMatch
     }}>
       {children}
     </MatchContext.Provider>

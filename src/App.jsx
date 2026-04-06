@@ -19,6 +19,7 @@ import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
 import PageTransition from './components/PageTransition.jsx'
 import AchievementToast from './components/AchievementToast.jsx'
+import MatchInviteToast from './components/MatchInviteToast.jsx'
 import CoinToast from './components/CoinToast.jsx'
 import CoinFlyManager from './components/CoinFlyManager.jsx'
 import LevelUpModal from './components/LevelUpModal.jsx'
@@ -672,6 +673,7 @@ function AppInner() {
       {!isFullscreen && (
         <Navbar onHome={goHome} onProfile={goProfile} onShop={goShop} onInventory={goInventory} onLeaderboard={goLeaderboard} onGames={goGames} onFriends={goFriends} currentGame={screen === 'game' ? currentGame : null} />
       )}
+      <MatchInviteToast />
       <AchievementToast />
       <CoinToast />
       <CoinFlyManager />
