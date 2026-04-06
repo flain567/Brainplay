@@ -13,6 +13,8 @@ import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
+import { useMatch } from '../../context/MatchContext.jsx'
+import { useAuth } from '../../context/AuthContext.jsx'
 import { GameHeader, StatsBar, ActionButtons, WinModal, BestRecord } from '../../components/GameLayout.jsx'
 
 // ─── Configuration ──────────────────────────────────────────────────────────
@@ -145,11 +147,13 @@ const LEVEL_NAMES = [
   'Legenda', 'Mythic', 'Transcendent', 'Infinity'
 ]
 
-export default function MathChallenge({ onBack, onHome, game, difficulty }) {
+export default function MathChallenge({ onBack, onHome, game, difficulty, multiplayerMatch }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins } = useCoins()
+  const { updateMatchState, finishMatch, setActiveMatch } = useMatch()
+  const { userId } = useAuth()
   const tc = useThemeColors()
   const diff = CFG[difficulty?.id] || CFG.easy
 
@@ -169,7 +173,12 @@ export default function MathChallenge({ onBack, onHome, game, difficulty }) {
   const [selectedAnswer, setSelectedAnswer] = useState(null)
   const [showLevelUp, setShowLevelUp] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
-  const [gameOverReason, setGameOverReason] = useState('') // 'lives' | 'target'
+  const [gameOverReason, setGameOverReason] = useState('') // 'lives' | 'target' | 'opponent_win' | 'opponent_quit'
+
+  const isMultiplayer = !!multiplayerMatch
+  const opponentUid = isMultiplayer ? (multiplayerMatch.hostUid === userId ? multiplayerMatch.guestUid : multiplayerMatch.hostUid) : null
+  const opponentData = isMultiplayer ? multiplayerMatch.state[opponentUid] || { score: 0, level: 1, finished: false } : null
+  const opponentProfile = isMultiplayer ? (multiplayerMatch.hostUid === userId ? multiplayerMatch.guestProfile : multiplayerMatch.hostProfile) : null
 
   const timerRef = useRef(null)
   const feedbackTimerRef = useRef(null)
@@ -185,6 +194,36 @@ export default function MathChallenge({ onBack, onHome, game, difficulty }) {
   })
 
   // ─── Cleanup ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (isMultiplayer && phase === 'ready') {
+      startGame()
+    }
+  }, [isMultiplayer, phase])
+
+  // Sync multiplayer state
+  useEffect(() => {
+    if (isMultiplayer && phase === 'playing') {
+      const newState = { 
+        ...multiplayerMatch.state, 
+        [userId]: { score, level, finished: false, lives } 
+      }
+      updateMatchState(multiplayerMatch.id, newState)
+    }
+  }, [score, level, lives, isMultiplayer, phase])
+
+  // Monitor opponent's progress and finish
+  useEffect(() => {
+    if (isMultiplayer && phase === 'playing') {
+      if (opponentData.finished) {
+        // Opponent finished! Compare scores or see who reached target first
+        feedbackTimerRef.current = setTimeout(() => endGame('opponent_win'), 1000)
+      }
+      if (multiplayerMatch.status === 'cancelled') {
+        endGame('opponent_quit')
+      }
+    }
+  }, [opponentData?.finished, multiplayerMatch?.status, isMultiplayer, phase])
+
   useEffect(() => {
     return () => {
       clearInterval(timerRef.current)
@@ -307,13 +346,24 @@ export default function MathChallenge({ onBack, onHome, game, difficulty }) {
     clearTimeout(feedbackTimerRef.current)
     setGameOverReason(reason)
     setPhase('result')
+    
+    if (isMultiplayer) {
+      const isWinner = reason === 'target' || (reason === 'lives' && opponentData.finished && score > opponentData.score)
+      const newState = { 
+        ...multiplayerMatch.state, 
+        [userId]: { score, level, finished: true, lives } 
+      }
+      updateMatchState(multiplayerMatch.id, newState)
+      if (isWinner) finishMatch(multiplayerMatch.id, userId)
+    }
+
     if (reason === 'target') {
       setShowConfetti(true)
       play('win')
     } else {
       play('gameOver')
     }
-  }, [play])
+  }, [play, isMultiplayer, multiplayerMatch, score, level, lives, opponentData, userId])
 
   // ─── Calculate rewards ──────────────────────────────────────────────
   const won = gameOverReason === 'target'
@@ -360,8 +410,13 @@ export default function MathChallenge({ onBack, onHome, game, difficulty }) {
   }, [diff, nextQuestion])
 
   const restart = useCallback(() => {
-    setPhase('ready')
-  }, [])
+    if (isMultiplayer) {
+       setActiveMatch(null) // Exit multiplayer mode
+       onBack()
+    } else {
+       setPhase('ready')
+    }
+  }, [isMultiplayer])
 
   // ─── Styles ──────────────────────────────────────────────────────────
   const bg = tc.bg
@@ -453,13 +508,28 @@ export default function MathChallenge({ onBack, onHome, game, difficulty }) {
           ]}
           stars={won ? stars : 0}
           coinReward={coinReward}
-          highlight={isNewBest ? '🏆 Skor baru terbaik!' : ''}
+          highlight={isNewBest ? '🏆 Skor baru terbaik!' : isMultiplayer ? (multiplayerMatch.winner === userId ? '⚔️ KAMU MENANG!' : '💀 KAMU KALAH!') : ''}
           onRestart={restart}
           onBack={onBack}
           onHome={onHome}
           dark={darkMode}
           gameColor={accent}
         />
+        {isMultiplayer && (
+          <div style={{ position:'fixed', top:20, width:'100%', textAlign:'center', zIndex:2000 }}>
+             <div style={{ background: surface, padding:'10px 20px', borderRadius:20, display:'inline-flex', gap:20, border:`2px solid ${accent}` }}>
+                <div>
+                   <div style={{ fontSize:10, color:textMuted }}>SKOR KAMU</div>
+                   <div style={{ fontFamily:"'Fredoka One',cursive", color:accent }}>{score}</div>
+                </div>
+                <div style={{ fontSize:20, opacity:0.3 }}>VS</div>
+                <div>
+                   <div style={{ fontSize:10, color:textMuted }}>SKOR {opponentProfile?.displayName?.toUpperCase() || 'LAWAN'}</div>
+                   <div style={{ fontFamily:"'Fredoka One',cursive", color:'#FF6B6B' }}>{opponentData?.score || 0}</div>
+                </div>
+             </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -518,6 +588,37 @@ export default function MathChallenge({ onBack, onHome, game, difficulty }) {
           <div style={{ fontSize:13, color:textMuted }}>🔥 Streak: {streak}</div>
         )}
       </div>
+
+      {isMultiplayer && (
+        <div style={{ 
+          padding:'0 16px', marginBottom:12,
+          display:'flex', alignItems:'center', justifyContent:'space-between',
+          background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)',
+          borderRadius: 16, margin:'0 16px 12px'
+        }}>
+           <div style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0' }}>
+              <div style={{ width:32, height:32, borderRadius:8, background:accent, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>
+                {photoURL ? <img src={photoURL} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:8 }} /> : '👤'}
+              </div>
+              <div>
+                <div style={{ fontSize:10, fontWeight:800, color:accent }}>KAMU</div>
+                <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:14, color:textMain }}>{score}</div>
+              </div>
+           </div>
+           
+           <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:18, opacity:0.3, color:textMain }}>VS</div>
+
+           <div style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', textAlign:'right', flexDirection:'row-reverse' }}>
+              <div style={{ width:32, height:32, borderRadius:8, background:'#FF6B6B', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>
+                {opponentProfile?.photoURL ? <img src={opponentProfile.photoURL} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:8 }} /> : '👤'}
+              </div>
+              <div>
+                <div style={{ fontSize:10, fontWeight:800, color:'#FF6B6B' }}>{opponentProfile?.displayName?.toUpperCase() || 'LAWAN'}</div>
+                <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:14, color:textMain }}>{opponentData?.score || 0}</div>
+              </div>
+           </div>
+        </div>
+      )}
 
       {/* Question area */}
       <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'0 20px', gap:24 }}>

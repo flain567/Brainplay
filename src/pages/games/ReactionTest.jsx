@@ -14,6 +14,8 @@ import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
+import { useMatch } from '../../context/MatchContext.jsx'
+import { useAuth } from '../../context/AuthContext.jsx'
 import { GameHeader, StatsBar, ActionButtons, WinModal, BestRecord } from '../../components/GameLayout.jsx'
 
 const CFG = {
@@ -42,11 +44,13 @@ const SEQ_COLORS = [
 const COLOR_WORDS = ['Merah','Biru','Hijau','Kuning','Ungu','Pink','Tosca','Oranye']
 const COLOR_VALUES = ['#FF6B6B','#74B9FF','#00B894','#FDCB6E','#A29BFE','#FD79A8','#00CEC9','#E17055']
 
-export default function ReactionTest({ onBack, onHome, game, difficulty }) {
+export default function ReactionTest({ onBack, onHome, game, difficulty, multiplayerMatch }) {
   const { darkMode } = useSettings()
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins } = useCoins()
+  const { updateMatchState, finishMatch, setActiveMatch } = useMatch()
+  const { userId } = useAuth()
   const tc = useThemeColors()
   const dark = tc.dark
 
@@ -79,6 +83,11 @@ export default function ReactionTest({ onBack, onHome, game, difficulty }) {
   const [seqPhase, setSeqPhase] = useState('idle') // idle, showing, input, result
   const seqTimerRef = useRef(null)
 
+  const isMultiplayer = !!multiplayerMatch
+  const opponentUid = isMultiplayer ? (multiplayerMatch.hostUid === userId ? multiplayerMatch.guestUid : multiplayerMatch.hostUid) : null
+  const opponentData = isMultiplayer ? multiplayerMatch.state[opponentUid] || { results: [], finished: false } : null
+  const opponentProfile = isMultiplayer ? (multiplayerMatch.hostUid === userId ? multiplayerMatch.guestProfile : multiplayerMatch.hostProfile) : null
+
   const bestKey = `reaction-test-best-${difficulty.id}`
   const [bestScore, setBestScore] = useState(() => parseInt(localStorage.getItem(bestKey) || '0'))
 
@@ -102,6 +111,24 @@ export default function ReactionTest({ onBack, onHome, game, difficulty }) {
       })
     }, 700)
   }
+
+  // Auto-start for multiplayer
+  useEffect(() => {
+    if (isMultiplayer && !mode) {
+      startMode('tap')
+    }
+  }, [isMultiplayer])
+
+  // Sync results for multiplayer
+  useEffect(() => {
+    if (isMultiplayer && mode === 'tap') {
+      const newState = { 
+        ...multiplayerMatch.state, 
+        [userId]: { results, finished: phase === 'done' } 
+      }
+      updateMatchState(multiplayerMatch.id, newState)
+    }
+  }, [results, isMultiplayer, mode, phase])
 
   // ═══════ TAP MODE ═══════
   const startTapRound = useCallback(() => {
@@ -303,9 +330,24 @@ export default function ReactionTest({ onBack, onHome, game, difficulty }) {
     const modeKey = `rt-best-${mode}-${difficulty.id}`
     const prevModeBest = parseInt(localStorage.getItem(modeKey) || '0')
     if (score > prevModeBest) localStorage.setItem(modeKey, score)
-  }, [results, mode, cfg, difficulty.id, bestScore])
+
+    if (isMultiplayer) {
+       // Compare avg times
+       const myAvg = avgTime
+       const oppResults = opponentData.results.filter(r => r.time > 0)
+       const oppAvg = oppResults.length > 0 ? Math.round(oppResults.reduce((s, r) => s + r.time, 0) / oppResults.length) : 9999
+       
+       const isWinner = myAvg < oppAvg
+       if (isWinner) finishMatch(multiplayerMatch.id, userId)
+    }
+  }, [results, mode, cfg, difficulty.id, bestScore, isMultiplayer, opponentData, multiplayerMatch, userId])
 
   const restart = () => {
+    if (isMultiplayer) {
+      setActiveMatch(null)
+      onBack()
+      return
+    }
     setMode(null)
     setRound(0)
     setResults([])
@@ -451,6 +493,14 @@ export default function ReactionTest({ onBack, onHome, game, difficulty }) {
             <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, marginTop: 8 }}>
               Rata-rata: {Math.round(validResults.reduce((s,r)=>s+r.time,0) / Math.max(1, validResults.length))}ms
             </div>
+            {isMultiplayer && (
+               <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12 }}>
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>REAKSI {opponentProfile?.displayName?.toUpperCase() || 'LAWAN'}</div>
+                  <div style={{ color: '#FDCB6E', fontFamily: "'Fredoka One',cursive" }}>
+                     {opponentData.results[round]?.label || 'Menunggu...'}
+                  </div>
+               </div>
+            )}
           </div>
         )}
 
@@ -710,6 +760,7 @@ export default function ReactionTest({ onBack, onHome, game, difficulty }) {
         onHome={onHome}
         dark={dark}
         gameColor="#A29BFE"
+        highlight={isMultiplayer ? (multiplayerMatch.winner === userId ? '⚔️ KAMU MENANG!' : '💀 KAMU KALAH!') : ''}
       />
 
       <style>{`

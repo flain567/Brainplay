@@ -13,6 +13,7 @@ import { CloudSaveProvider, useCloudSave } from './context/CloudSaveContext.jsx'
 import { InventoryProvider } from './context/InventoryContext.jsx'
 import { SocialProvider, useSocial } from './context/SocialContext.jsx'
 import { FriendsProvider, useFriends } from './context/FriendsContext.jsx'
+import { MatchProvider, useMatch } from './context/MatchContext.jsx'
 import UserProfileModal from './components/UserProfileModal.jsx'
 import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
@@ -603,11 +604,23 @@ function AppInner() {
   const goStats       = () => { setIsWheelOpen(false); setScreen('stats'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goInventory   = () => { setIsWheelOpen(false); setScreen('inventory'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goFriends     = () => { setIsWheelOpen(false); setScreen('friends'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const { activeMatch, setActiveMatch, quitMatch } = useMatch()
   const goAnalytics   = () => { setIsWheelOpen(false); setScreen('analytics'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goGames       = () => { setIsWheelOpen(false); setScreen('games'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goAdmin       = () => { setIsWheelOpen(false); setScreen('admin'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const openWheel     = () => setIsWheelOpen(true)
   const restartGame   = () => { setShowPause(false); setGameKey(k => k + 1) }
+
+  // Auto-redirect to active match
+  useEffect(() => {
+    if (activeMatch?.status === 'active' && screen !== 'game') {
+      openGame(activeMatch.gameId, 'medium') // Default difficulty for matches
+    }
+    // If match finished/cancelled while in game, maybe go back home
+    if (!activeMatch && screen === 'game' && currentGame?.id === 'math-challenge' && screenRef.current === 'game') {
+      // Don't auto-exit here yet, let the game handle its own 'finished' state
+    }
+  }, [activeMatch?.status, activeMatch?.id])
   
   useEffect(() => {
     const handleOpenShop = (e) => {
@@ -766,6 +779,7 @@ function AppInner() {
                   onHome={goHome} 
                   game={currentGame} 
                   difficulty={activeDiff} 
+                  multiplayerMatch={activeMatch}
                 />
               </Suspense>
             </ErrorBoundary>
@@ -821,8 +835,10 @@ export default function App() {
                           <LuckyWheelProvider>
                             <DailyChallengeProvider>
                               <NotifProvider>
-                                <ThemeApplicator />
-                                <AppInner />
+                                <MatchProvider>
+                                  <ThemeApplicator />
+                                  <AppInner />
+                                </MatchProvider>
                               </NotifProvider>
                             </DailyChallengeProvider>
                           </LuckyWheelProvider>

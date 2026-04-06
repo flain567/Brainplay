@@ -10,6 +10,7 @@ import SettingsModal from './SettingsModal.jsx'
 import BattlePass from './BattlePass.jsx'
 import { animate, splitText, stagger } from 'animejs'
 import { useFriends } from '../context/FriendsContext.jsx'
+import { useMatch } from '../context/MatchContext.jsx'
 
 export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGames, onInventory, onFriends, currentGame }) {
   const { darkMode, muted } = useSettings()
@@ -30,7 +31,8 @@ export default function Navbar({ onHome, onProfile, onShop, onLeaderboard, onGam
   const levelInfo = getLevelInfo(progress.totalXP || 0)
   const seasonInfo = getSeasonInfo()
   const { requests } = useFriends() || { requests: [] }
-  const pendingCount = requests.length
+  const { incomingInvites } = useMatch() || { incomingInvites: [] }
+  const pendingCount = requests.length + incomingInvites.length
   
   const currentBorder = progress.selectedBorder ? CUSTOM_BORDERS[progress.selectedBorder] : getBorderForLevel(levelInfo.level)
 
