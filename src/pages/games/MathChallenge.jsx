@@ -155,7 +155,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
   const { earnCoins } = useCoins()
   const matchCtx = useMatch() || {}
   const { updateMatchState, finishMatch, setActiveMatch } = matchCtx
-  const { userId } = useAuth()
+  const { uid: userId } = useAuth()
   const tc = useThemeColors()
   const diff = CFG[difficulty?.id] || CFG.easy
 
@@ -180,7 +180,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
   const isMultiplayer = !!multiplayerMatch
   const myUid = userId || auth.currentUser?.uid
   const opponentUid = isMultiplayer ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestUid : multiplayerMatch.hostUid) : null
-  const opponentData = isMultiplayer ? multiplayerMatch.state[opponentUid] || { score: 0, level: 1, finished: false } : null
+  const opponentData = isMultiplayer ? multiplayerMatch.state?.[opponentUid] || { score: 0, level: 1, finished: false } : null
   const opponentProfile = isMultiplayer ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestProfile : multiplayerMatch.hostProfile) : null
 
   const timerRef = useRef(null)

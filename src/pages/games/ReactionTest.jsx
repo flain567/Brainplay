@@ -52,7 +52,7 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
   const { earnCoins } = useCoins()
   const matchCtx = useMatch() || {}
   const { updateMatchState, finishMatch, setActiveMatch } = matchCtx
-  const { userId } = useAuth()
+  const { uid: userId } = useAuth()
   const tc = useThemeColors()
   const dark = tc.dark
 

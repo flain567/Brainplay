@@ -125,7 +125,7 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty, multiplay
   const tc = useThemeColors()
   const matchCtx = useMatch() || {}
   const { updateMatchState, finishMatch, setActiveMatch } = matchCtx
-  const { userId } = useAuth()
+  const { uid: userId } = useAuth()
   const diff = CFG[difficulty?.id] || CFG.easy
 
   // ── PvP state ──
@@ -404,7 +404,7 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty, multiplay
           opponentExtra={`${opponentData?.correct || 0} benar`}
           opponentFinished={opponentData?.finished}
           myScore={score}
-          onQuit={() => { import('../../context/MatchContext.jsx').then(m => m.useMatch?.().quitMatch?.(multiplayerMatch.id)); setActiveMatch?.(null); onHome() }}
+          onQuit={() => { matchCtx.quitMatch?.(multiplayerMatch?.id); setActiveMatch?.(null); onHome() }}
         />
       )}
 
