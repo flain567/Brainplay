@@ -16,6 +16,7 @@ import { useCoins } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useMatch } from '../../context/MatchContext.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
+import { auth } from '../../firebase.js'
 import { GameHeader, StatsBar, ActionButtons, WinModal, BestRecord } from '../../components/GameLayout.jsx'
 
 const CFG = {
@@ -49,7 +50,8 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins } = useCoins()
-  const { updateMatchState, finishMatch, setActiveMatch } = useMatch()
+  const matchCtx = useMatch() || {}
+  const { updateMatchState, finishMatch, setActiveMatch } = matchCtx
   const { userId } = useAuth()
   const tc = useThemeColors()
   const dark = tc.dark
@@ -84,9 +86,10 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
   const seqTimerRef = useRef(null)
 
   const isMultiplayer = !!multiplayerMatch
-  const opponentUid = isMultiplayer ? (multiplayerMatch.hostUid === userId ? multiplayerMatch.guestUid : multiplayerMatch.hostUid) : null
+  const myUid = userId || auth.currentUser?.uid
+  const opponentUid = isMultiplayer ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestUid : multiplayerMatch.hostUid) : null
   const opponentData = isMultiplayer ? multiplayerMatch.state[opponentUid] || { results: [], finished: false } : null
-  const opponentProfile = isMultiplayer ? (multiplayerMatch.hostUid === userId ? multiplayerMatch.guestProfile : multiplayerMatch.hostProfile) : null
+  const opponentProfile = isMultiplayer ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestProfile : multiplayerMatch.hostProfile) : null
 
   const bestKey = `reaction-test-best-${difficulty.id}`
   const [bestScore, setBestScore] = useState(() => parseInt(localStorage.getItem(bestKey) || '0'))
@@ -124,9 +127,9 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
     if (isMultiplayer && mode === 'tap') {
       const newState = { 
         ...multiplayerMatch.state, 
-        [userId]: { results, finished: phase === 'done' } 
+        [myUid]: { results, finished: phase === 'done' } 
       }
-      updateMatchState(multiplayerMatch.id, newState)
+      updateMatchState?.(multiplayerMatch.id, newState)
     }
   }, [results, isMultiplayer, mode, phase])
 
@@ -338,7 +341,7 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
        const oppAvg = oppResults.length > 0 ? Math.round(oppResults.reduce((s, r) => s + r.time, 0) / oppResults.length) : 9999
        
        const isWinner = myAvg < oppAvg
-       if (isWinner) finishMatch(multiplayerMatch.id, userId)
+       if (isWinner) finishMatch?.(multiplayerMatch.id, myUid)
     }
   }, [results, mode, cfg, difficulty.id, bestScore, isMultiplayer, opponentData, multiplayerMatch, userId])
 
@@ -760,7 +763,7 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
         onHome={onHome}
         dark={dark}
         gameColor="#A29BFE"
-        highlight={isMultiplayer ? (multiplayerMatch.winner === userId ? '⚔️ KAMU MENANG!' : '💀 KAMU KALAH!') : ''}
+        highlight={isMultiplayer ? (multiplayerMatch.winner === myUid ? '⚔️ KAMU MENANG!' : '💀 KAMU KALAH!') : ''}
       />
 
       <style>{`

@@ -15,6 +15,7 @@ import { useCoins } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useMatch } from '../../context/MatchContext.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
+import { auth } from '../../firebase.js'
 import { GameHeader, StatsBar, ActionButtons, WinModal, BestRecord } from '../../components/GameLayout.jsx'
 
 // ─── Configuration ──────────────────────────────────────────────────────────
@@ -152,7 +153,8 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins } = useCoins()
-  const { updateMatchState, finishMatch, setActiveMatch } = useMatch()
+  const matchCtx = useMatch() || {}
+  const { updateMatchState, finishMatch, setActiveMatch } = matchCtx
   const { userId } = useAuth()
   const tc = useThemeColors()
   const diff = CFG[difficulty?.id] || CFG.easy
@@ -176,9 +178,10 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
   const [gameOverReason, setGameOverReason] = useState('') // 'lives' | 'target' | 'opponent_win' | 'opponent_quit'
 
   const isMultiplayer = !!multiplayerMatch
-  const opponentUid = isMultiplayer ? (multiplayerMatch.hostUid === userId ? multiplayerMatch.guestUid : multiplayerMatch.hostUid) : null
+  const myUid = userId || auth.currentUser?.uid
+  const opponentUid = isMultiplayer ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestUid : multiplayerMatch.hostUid) : null
   const opponentData = isMultiplayer ? multiplayerMatch.state[opponentUid] || { score: 0, level: 1, finished: false } : null
-  const opponentProfile = isMultiplayer ? (multiplayerMatch.hostUid === userId ? multiplayerMatch.guestProfile : multiplayerMatch.hostProfile) : null
+  const opponentProfile = isMultiplayer ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestProfile : multiplayerMatch.hostProfile) : null
 
   const timerRef = useRef(null)
   const feedbackTimerRef = useRef(null)
@@ -205,9 +208,9 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
     if (isMultiplayer && phase === 'playing') {
       const newState = { 
         ...multiplayerMatch.state, 
-        [userId]: { score, level, finished: false, lives } 
+        [myUid]: { score, level, finished: false, lives } 
       }
-      updateMatchState(multiplayerMatch.id, newState)
+      updateMatchState?.(multiplayerMatch.id, newState)
     }
   }, [score, level, lives, isMultiplayer, phase])
 
@@ -351,10 +354,10 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
       const isWinner = reason === 'target' || (reason === 'lives' && opponentData.finished && score > opponentData.score)
       const newState = { 
         ...multiplayerMatch.state, 
-        [userId]: { score, level, finished: true, lives } 
+        [myUid]: { score, level, finished: true, lives } 
       }
-      updateMatchState(multiplayerMatch.id, newState)
-      if (isWinner) finishMatch(multiplayerMatch.id, userId)
+      updateMatchState?.(multiplayerMatch.id, newState)
+      if (isWinner) finishMatch?.(multiplayerMatch.id, myUid)
     }
 
     if (reason === 'target') {
@@ -508,7 +511,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
           ]}
           stars={won ? stars : 0}
           coinReward={coinReward}
-          highlight={isNewBest ? '🏆 Skor baru terbaik!' : isMultiplayer ? (multiplayerMatch.winner === userId ? '⚔️ KAMU MENANG!' : '💀 KAMU KALAH!') : ''}
+          highlight={isNewBest ? '🏆 Skor baru terbaik!' : isMultiplayer ? (multiplayerMatch.winner === myUid ? '⚔️ KAMU MENANG!' : '💀 KAMU KALAH!') : ''}
           onRestart={restart}
           onBack={onBack}
           onHome={onHome}
