@@ -438,8 +438,8 @@ export function WinModal({
           </div>
         )}
 
-        {/* Stats grid */}
-        {stats.length > 0 && (
+        {/* Stats grid (Normal) */}
+        {!duelStats && stats.length > 0 && (
           <div style={{
             display: 'grid', gridTemplateColumns: `repeat(${Math.min(stats.length, 3)},1fr)`,
             gap: 10, marginBottom: 24,
@@ -461,6 +461,35 @@ export function WinModal({
                 <div style={{ fontSize: 11, color: textMuted, fontWeight: 600, marginTop: 2 }}>{s.label}</div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Duel Stats (PvP) */}
+        {duelStats && duelStats.length > 0 && (
+          <div style={{ marginBottom: 24, textAlign: 'left' }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: textMuted, marginBottom: 8, textAlign: 'center', opacity: 0.6 }}>DUEL SUMMARY</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {duelStats.map((ds, i) => (
+                <div key={ds.label} style={{
+                  background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                  borderRadius: 16, padding: '10px 14px',
+                  animation: noAnim ? 'none' : `winSlideUp 0.4s ${0.3 + i * 0.1}s ease both`,
+                }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: ds.color || '#A29BFE', marginBottom: 4, textAlign: 'center' }}>{ds.label.toUpperCase()}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ textAlign: 'left' }}>
+                        <div style={{ fontSize: 9, color: textMuted }}>KAMU</div>
+                        <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 18, color: ds.myValue >= ds.oppValue ? ds.color : textMuted }}>{ds.myValue}</div>
+                    </div>
+                    <div style={{ fontSize: 14, opacity: 0.2 }}>VS</div>
+                    <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: 9, color: textMuted }}>LAWAN</div>
+                        <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 18, color: ds.oppValue > ds.myValue ? '#FF6B6B' : textMuted }}>{ds.oppValue}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -546,6 +575,7 @@ export function LoseModal({
   homeLabel = '🏠 Beranda',
   restartLabel = '🔄 Main Lagi',
   highlight = '',
+  duelStats = null,
 }) {
   return (
     <WinModal
@@ -564,6 +594,7 @@ export function LoseModal({
       homeLabel={homeLabel}
       restartLabel={restartLabel}
       highlight={highlight}
+      duelStats={duelStats}
     />
   )
 }

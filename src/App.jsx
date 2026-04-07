@@ -29,6 +29,7 @@ import QuickSettings from './components/QuickSettings.jsx'
 import BottomNav from './components/BottomNav.jsx'
 import MascotCompanion from './components/MascotCompanion.jsx'
 import LuckyWheel from './components/LuckyWheel.jsx'
+import PvpBattleIntro from './components/PvpBattleIntro.jsx'
 import Home from './pages/Home.jsx'
 import { migrateOldStorage } from './utils/storage.js'
 import { saveLastPlayed, getLastPlayed } from './utils/lastPlayed.js'
@@ -414,10 +415,21 @@ function AppInner() {
   const [screen,      setScreen]      = useState('home')
   const [isWheelOpen, setIsWheelOpen] = useState(false)
   const [showPause,   setShowPause]   = useState(false)
+  const [showPvpIntro, setShowPvpIntro] = useState(false)
+  const lastMatchId = useRef(null)
   const [gameKey,     setGameKey]     = useState(0)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [inspectingUid, setInspectingUid] = useState(null)
-  const screenRef = useRef('home')
+  // ─── PvP Battle Intro Trigger ──────────────────────────────────────────────
+  useEffect(() => {
+    if (activeMatch?.status === 'active' && activeMatch.id !== lastMatchId.current) {
+      lastMatchId.current = activeMatch.id
+      setShowPvpIntro(true)
+    }
+    if (!activeMatch) lastMatchId.current = null
+  }, [activeMatch?.status, activeMatch?.id])
+
+  const screenRef = useRef(screen)
   const navRef = useRef({ goHome: null, goBackToDifficulty: null })
   const { isLoggedIn, isGuest, needsName, loading: authLoading, userId, playerName: nickname } = useAuth()
   const { initialSyncDone } = useCloudSave()
@@ -817,6 +829,16 @@ function AppInner() {
       )}
 
       <div className="crt-overlay" />
+
+      {/* PvP Intro Overlay */}
+      {showPvpIntro && activeMatch && (
+        <PvpBattleIntro
+          myProfile={activeMatch.hostId === userId ? activeMatch.hostProfile : activeMatch.guestProfile}
+          oppProfile={activeMatch.hostId === userId ? activeMatch.guestProfile : activeMatch.hostProfile}
+          gameTitle={GAMES.find(g => g.id === activeMatch.gameId)?.title || 'Battle'}
+          onDone={() => setShowPvpIntro(false)}
+        />
+      )}
     </div>
   )
 }

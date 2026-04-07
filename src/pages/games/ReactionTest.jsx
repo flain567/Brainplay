@@ -17,6 +17,7 @@ import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useMatch } from '../../context/MatchContext.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { auth } from '../../firebase.js'
+import PvpScoreBar from '../../components/PvpScoreBar.jsx'
 import { GameHeader, StatsBar, ActionButtons, WinModal, BestRecord } from '../../components/GameLayout.jsx'
 
 const CFG = {
@@ -131,11 +132,15 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
     if (isMultiplayer && mode && myUid) {
       const newState = { 
         ...multiplayerMatch.state, 
-        [myUid]: { results, finished: gameState === 'done' } 
+        [myUid]: { 
+          results, 
+          round,
+          finished: gameState === 'done' 
+        } 
       }
       updateMatchState?.(multiplayerMatch?.id, newState)
     }
-  }, [results, isMultiplayer, mode, gameState, myUid, multiplayerMatch?.id])
+  }, [results, round, isMultiplayer, mode, gameState, myUid, multiplayerMatch?.id])
 
   // ═══════ TAP MODE ═══════
   const startTapRound = useCallback(() => {
