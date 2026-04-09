@@ -5,13 +5,13 @@ import { useState, useEffect } from 'react'
 import { auth } from '../firebase.js'
 
 export default function MatchInviteToast() {
-  const { incomingInvites, acceptMatch, setActiveMatch } = useMatch()
+  const { incomingInvites, acceptMatch, declineMatch, setActiveMatch } = useMatch()
   const { play } = useSound()
   const tc = useThemeColors()
   
   const [activeInvite, setActiveInvite] = useState(null)
   const [isExiting, setIsExiting] = useState(false)
-  const [processing, setProcessing] = useState(null) // 'accept' | null
+  const [processing, setProcessing] = useState(null) // 'accept' | 'ignore' | null
 
   useEffect(() => {
     if (incomingInvites.length > 0 && !activeInvite) {
@@ -49,6 +49,14 @@ export default function MatchInviteToast() {
       })
       handleClose()
     }
+    setProcessing(null)
+  }
+
+  const handleIgnore = async () => {
+    if (!activeInvite || processing) return
+    setProcessing('ignore')
+    await declineMatch(activeInvite.id)
+    handleClose()
     setProcessing(null)
   }
 
@@ -116,7 +124,9 @@ export default function MatchInviteToast() {
           <button className="toast-btn-accept" onClick={handleAccept} disabled={!!processing}>
             {processing === 'accept' ? '...' : 'TERIMA'}
           </button>
-          <button className="toast-btn-ignore" onClick={handleClose} disabled={!!processing}>ABAIKAN</button>
+          <button className="toast-btn-ignore" onClick={handleIgnore} disabled={!!processing}>
+            {processing === 'ignore' ? '...' : 'ABAIKAN'}
+          </button>
         </div>
       </div>
     </>
