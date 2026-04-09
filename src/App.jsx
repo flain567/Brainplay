@@ -31,6 +31,8 @@ import MascotCompanion from './components/MascotCompanion.jsx'
 import LuckyWheel from './components/LuckyWheel.jsx'
 import PvpBattleIntro from './components/PvpBattleIntro.jsx'
 import Home from './pages/Home.jsx'
+import { PauseModal } from './components/GameLayout.jsx'
+import { useThemeColors } from './hooks/useThemeColors.js'
 import { migrateOldStorage } from './utils/storage.js'
 import { saveLastPlayed, getLastPlayed } from './utils/lastPlayed.js'
 import { useMusic } from './hooks/useMusic.js'
@@ -420,6 +422,9 @@ function AppInner() {
   const [gameKey,     setGameKey]     = useState(0)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [inspectingUid, setInspectingUid] = useState(null)
+  const tc = useThemeColors()
+  const { activeMatch, setActiveMatch, quitMatch } = useMatch()
+
   // ─── PvP Battle Intro Trigger ──────────────────────────────────────────────
   useEffect(() => {
     if (activeMatch?.status === 'active' && activeMatch.id !== lastMatchId.current) {
@@ -617,7 +622,6 @@ function AppInner() {
   const goStats       = () => { setIsWheelOpen(false); setScreen('stats'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goInventory   = () => { setIsWheelOpen(false); setScreen('inventory'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goFriends     = () => { setIsWheelOpen(false); setScreen('friends'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const { activeMatch, setActiveMatch, quitMatch } = useMatch()
   const goAnalytics   = () => { setIsWheelOpen(false); setScreen('analytics'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goGames       = () => { setIsWheelOpen(false); setScreen('games'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const goAdmin       = () => { setIsWheelOpen(false); setScreen('admin'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
