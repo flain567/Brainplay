@@ -66,8 +66,8 @@
           && request.resource.size() < 51200;
 
         // ── Subcollection: Friends (Bidirectional) ──
-        // Kedua pihak (userId atau friendId) boleh read/write
-        // Agar saat B accept request dari A, B bisa tulis ke users/A/friends/B
+        // Kedua pihak boleh menulis: owner ATAU friend yang bersangkutan
+        // Ini diperlukan agar acceptFriendRequest bisa menulis di kedua sisi
         match /friends/{friendId} {
           allow read: if isAuthenticated();
           allow create, update: if isAuthenticated()
@@ -171,13 +171,18 @@
       // ═══════════════════════════════════════════════════════════════════════════
       match /analytics_events/{docId} {
         allow read: if isAdmin();
+        // CHANGED: Was `allow create: if true` (CRITICAL vulnerability)
+        // Now requires auth + field whitelist + size limit + Server Time Lock
         allow create: if isAuthenticated()
+          // KUNCI WAKTU SERVER: Mencegah pemalsuan waktu di analitik
           && isAtServerTime(request.resource.data, 'timestamp')
+          // Anti-DDoS: Only allow known analytics fields
           && request.resource.data.keys().hasOnly([
               'userId', 'userName', 'gameId', 'difficulty', 'score',
               'stars', 'coinEarned', 'xpEarned', 'eventId', 'eventName',
               'timestamp', 'date', 'type'
             ])
+          // Anti-DDoS: limit document size (< 2KB)
           && request.resource.size() < 2048;
         allow update, delete: if false;
       }
@@ -225,18 +230,15 @@
           request.auth.uid == resource.data.targetUid
         );
       }
-
+      
       // ═══════════════════════════════════════════════════════════════════════════
       // MATCH SYSTEM — PvP Multiplayer
       // ═══════════════════════════════════════════════════════════════════════════
       match /matches/{matchId} {
-        // Only host or guest can read their match
         allow read: if isAuthenticated() && (
           request.auth.uid == resource.data.hostUid || 
           request.auth.uid == resource.data.guestUid
         );
-
-        // Host creates the match — strict field whitelist + size limit
         allow create: if isAuthenticated() 
           && request.resource.data.hostUid == request.auth.uid
           && request.resource.data.keys().hasAll(['hostUid', 'guestUid', 'gameId', 'status', 'createdAt'])
@@ -247,22 +249,17 @@
             ])
           && request.resource.data.status == 'pending'
           && request.resource.size() < 10240;
-
         allow update: if isAuthenticated() && (
-          // Guest accepting — can set status + own profile
           (request.auth.uid == resource.data.guestUid && 
            resource.data.status == 'pending' &&
            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'guestProfile', 'updatedAt']) &&
            request.resource.data.status == 'active') ||
-          // Either player syncing game state during active match
           (request.auth.uid in [resource.data.hostUid, resource.data.guestUid] && 
            resource.data.status == 'active' &&
            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['state', 'updatedAt', 'status', 'winner'])) ||
-          // Either player cancelling at any time
           (request.auth.uid in [resource.data.hostUid, resource.data.guestUid] && 
            request.resource.data.status in ['cancelled', 'finished'])
         ) && request.resource.size() < 51200;
-
         allow delete: if isAdmin();
       }
 
