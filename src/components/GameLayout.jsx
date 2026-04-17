@@ -266,6 +266,8 @@ export function WinModal({
   homeLabel = '🏠 Beranda',
   restartLabel = '🔄 Main Lagi',
   highlight = '',
+  duelStats = null,
+  onRematch = null,
 }) {
   const { play } = useSound()
   const { reduceMotion } = useSettings()
@@ -495,6 +497,29 @@ export function WinModal({
 
         {/* Buttons */}
         <div ref={btnsRef} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {/* Rematch button for PvP */}
+          {typeof onRematch === 'function' && (
+            <button
+              onClick={() => { play('click'); onRematch() }}
+              style={{
+                width: '100%',
+                background: 'linear-gradient(135deg, #E17055, #D63031)',
+                color: '#fff',
+                border: 'none', borderRadius: 100,
+                padding: '14px 18px',
+                fontSize: 16, fontWeight: 800,
+                fontFamily: "'Fredoka One',cursive",
+                cursor: 'pointer',
+                boxShadow: '0 4px 20px rgba(214,48,49,0.4)',
+                animation: 'rematchPulse 2s ease infinite',
+                transition: 'transform 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              ⚔️ Rematch!
+            </button>
+          )}
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={() => withOutro(() => { play('click'); onRestart() })} style={{
               flex: 1, background: gameColor, color: '#fff',
@@ -554,6 +579,7 @@ export function WinModal({
         @keyframes winBounce  { 0%{transform:scale(0.4)} 60%{transform:scale(1.15)} 100%{transform:scale(1)} }
         @keyframes winStarPop { from{transform:scale(0) rotate(-20deg);opacity:0} to{transform:scale(1) rotate(0deg);opacity:1} }
         @keyframes winSlideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes rematchPulse { 0%,100%{box-shadow:0 4px 20px rgba(214,48,49,0.4)} 50%{box-shadow:0 4px 30px rgba(214,48,49,0.7)} }
       `}</style>
     </div>
   )
@@ -576,6 +602,7 @@ export function LoseModal({
   restartLabel = '🔄 Main Lagi',
   highlight = '',
   duelStats = null,
+  onRematch = null,
 }) {
   return (
     <WinModal
@@ -595,6 +622,7 @@ export function LoseModal({
       restartLabel={restartLabel}
       highlight={highlight}
       duelStats={duelStats}
+      onRematch={onRematch}
     />
   )
 }

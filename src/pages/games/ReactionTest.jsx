@@ -803,7 +803,9 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
         onHome={onHome}
         dark={dark}
         gameColor="#A29BFE"
-        highlight={isMultiplayer ? (multiplayerMatch.winner === myUid ? '⚔️ KAMU MENANG!' : '💀 KAMU KALAH!') : ''}
+        highlight={isMultiplayer ? (multiplayerMatch.winner === myUid ? '⚔️ KAMU MENANG!' : multiplayerMatch?.winner === 'draw' ? '🤝 HASIL SERI!' : '💀 KAMU KALAH!') : ''}
+        duelStats={duelStats}
+        onRematch={isMultiplayer && multiplayerMatch?.winner ? () => matchCtx.requestRematch?.(multiplayerMatch) : null}
       />
 
       <style>{`

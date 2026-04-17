@@ -239,10 +239,55 @@ export function MatchProvider({ children }) {
     }
   }, [])
 
+  // ── Request rematch — creates a new match with same players ──
+  const requestRematch = useCallback(async (currentMatch) => {
+    if (!currentMatch) return { success: false, error: 'No match' }
+    const user = auth.currentUser
+    if (!user) return { success: false, error: 'Login required' }
+
+    setLoading(true)
+    try {
+      const db = await getDb()
+      const { collection, addDoc, serverTimestamp, doc, updateDoc } = await getFirestoreHelpers()
+
+      // Mark the old match with rematch request
+      await updateDoc(doc(db, 'matches', currentMatch.id), {
+        rematchRequestedBy: user.uid,
+        updatedAt: serverTimestamp()
+      })
+
+      // Create a new match — swap host/guest for fairness
+      const isHost = currentMatch.hostUid === user.uid
+      const newMatchData = {
+        hostUid: user.uid,
+        guestUid: isHost ? currentMatch.guestUid : currentMatch.hostUid,
+        hostProfile: isHost ? currentMatch.hostProfile : currentMatch.guestProfile,
+        guestProfile: isHost ? currentMatch.guestProfile : currentMatch.hostProfile,
+        gameId: currentMatch.gameId,
+        seed: Date.now() + Math.floor(Math.random() * 100000),
+        status: 'pending',
+        state: {},
+        winner: '',
+        rematchFrom: currentMatch.id,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }
+
+      const docRef = await addDoc(collection(db, 'matches'), newMatchData)
+      setActiveMatch({ id: docRef.id, ...newMatchData })
+      setLoading(false)
+      return { success: true, matchId: docRef.id }
+    } catch (err) {
+      console.error('[Match] Rematch error:', err)
+      setLoading(false)
+      return { success: false, error: err.message }
+    }
+  }, [])
+
   return (
     <MatchContext.Provider value={{
       activeMatch, setActiveMatch, incomingInvites, loading, error,
-      createMatch, acceptMatch, declineMatch, updateMatchState, finishMatch, quitMatch
+      createMatch, acceptMatch, declineMatch, updateMatchState, finishMatch, quitMatch, requestRematch
     }}>
       {children}
     </MatchContext.Provider>

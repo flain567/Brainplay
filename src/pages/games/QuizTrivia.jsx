@@ -393,9 +393,10 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty, multiplay
             { label: 'Salah', value: String(totalWrong), color: '#FF6B6B' },
           ]}
           stars={stars} coinReward={coinReward}
-          highlight={isNewBest ? '🏆 Skor baru terbaik!' : ''}
+          highlight={isMultiplayer ? (multiplayerMatch?.winner === myUid ? '⚔️ KAMU MENANG!' : multiplayerMatch?.winner === 'draw' ? '🤝 HASIL SERI!' : multiplayerMatch?.winner ? '💀 KAMU KALAH!' : '') : (isNewBest ? '🏆 Skor baru terbaik!' : '')}
           onRestart={() => setPhase('ready')} onBack={onBack} onHome={onHome}
           dark={tc.dark} gameColor={accent}
+          onRematch={isMultiplayer && multiplayerMatch?.winner ? () => matchCtx.requestRematch?.(multiplayerMatch) : null}
         />
       </div>
     )

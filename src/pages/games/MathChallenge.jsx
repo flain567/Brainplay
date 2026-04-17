@@ -482,6 +482,7 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
           highlight={isMultiplayer ? (multiplayerMatch.winner === myUid ? '⚔️ KAMU MENANG!' : multiplayerMatch.winner === 'draw' ? '🤝 HASIL SERI!' : '💀 KAMU KALAH!') : ''}
           onRestart={restart} onBack={onBack} onHome={onHome} dark={darkMode} gameColor={accent}
           duelStats={duelStats}
+          onRematch={isMultiplayer && multiplayerMatch?.winner ? () => matchCtx.requestRematch?.(multiplayerMatch) : null}
         />
         {isMultiplayer && (
           <div style={{ position:'fixed', top:20, width:'100%', textAlign:'center', zIndex:2000, pointerEvents:'none' }}>
