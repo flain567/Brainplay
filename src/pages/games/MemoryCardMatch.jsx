@@ -8,7 +8,12 @@ import { useCoins } from '../../context/CoinContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useHaptics } from '../../hooks/useHaptics.js'
 import { useLeaderboard } from '../../context/LeaderboardContext.jsx'
+import { useMatch } from '../../context/MatchContext.jsx'
+import { useAuth } from '../../context/AuthContext.jsx'
+import { auth } from '../../firebase.js'
 import { WinModal } from '../../components/GameLayout.jsx'
+import PvpScoreBar from '../../components/PvpScoreBar.jsx'
+import BattleEmotes from '../../components/BattleEmotes.jsx'
 
 const TUTORIAL_STEPS = [
   { emoji:'🃏', title:'Memory Card Match', desc:'Temukan semua pasangan kartu yang tersembunyi di balik kartu terbalik!', tip:'Ingat posisi kartu yang sudah pernah kamu buka.' },
@@ -64,13 +69,34 @@ const formatTime = (s) =>
 
 const DIFF_LABEL = { easy: '🟢 Mudah', medium: '🟡 Sedang', hard: '🔴 Sulit' }
 
-export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
+export default function MemoryCardMatch({ onBack, onHome, game, difficulty, multiplayerMatch }) {
   const tc = useThemeColors()
   const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { getActiveCardPack, earnCoins, spendCoins, coins } = useCoins()
   const { vibrateLight, vibrateMedium, vibrateSuccess, vibrateError } = useHaptics()
   const { startScoreSession } = useLeaderboard()
+  const matchCtx = useMatch() || {}
+  const { updateMatchState, finishMatch, setActiveMatch } = matchCtx
+  const { uid: userId } = useAuth()
+
+  // PvP state
+  const isMultiplayer = !!multiplayerMatch
+  const myUid = userId || auth.currentUser?.uid
+  const opponentUid = isMultiplayer ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestUid : multiplayerMatch.hostUid) : null
+  const opponentData = isMultiplayer ? (multiplayerMatch.state?.[opponentUid] || { moves: 0, matched: 0, finished: false }) : null
+  const opponentProfile = isMultiplayer ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestProfile : multiplayerMatch.hostProfile) : null
+  const opponentEmote = isMultiplayer ? opponentData?.emote : null
+  const myEmoteData = isMultiplayer ? (multiplayerMatch.state?.[myUid]?.emote || null) : null
+
+  const sendEmote = useCallback((emoji) => {
+    if (!isMultiplayer || !multiplayerMatch?.id || !myUid) return
+    const newState = {
+      ...multiplayerMatch.state,
+      [myUid]: { ...multiplayerMatch.state?.[myUid], emote: { emoji, ts: Date.now() } }
+    }
+    updateMatchState?.(multiplayerMatch.id, newState)
+  }, [isMultiplayer, multiplayerMatch?.id, multiplayerMatch?.state, myUid, updateMatchState])
 
   const { pairs, cols } = difficulty
   const activePack = getActiveCardPack()
@@ -126,20 +152,67 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
       }
       let stars = moves <= (pairs * 1.5) ? 3 : moves <= (pairs * 2.5) ? 2 : 1
       if (paidHints > 0 && stars > 2) stars = 2
-      reportGameResult({
-        gameId: 'memory-card',
-        difficultyId: difficulty.id,
-        won: true,
-        score: Math.max(0, pairs * 100 - moves * 10),
-        stars,
-        timeSec: gameMode === 'timeAttack' ? initialTime - time : time,
-      })
-      const coinReward = { easy: 15, medium: 25, hard: 40 }
-      let coinAmount = coinReward[difficulty.id] || 15
-      if (stars === 3) coinAmount += 20
-      earnCoins(coinAmount, `Menang Memory Card (${difficulty.id})`)
+      if (!isMultiplayer) {
+        reportGameResult({
+          gameId: 'memory-card',
+          difficultyId: difficulty.id,
+          won: true,
+          score: Math.max(0, pairs * 100 - moves * 10),
+          stars,
+          timeSec: gameMode === 'timeAttack' ? initialTime - time : time,
+        })
+        const coinReward = { easy: 15, medium: 25, hard: 40 }
+        let coinAmount = coinReward[difficulty.id] || 15
+        if (stars === 3) coinAmount += 20
+        earnCoins(coinAmount, `Menang Memory Card (${difficulty.id})`)
+      }
+      // PvP: mark finished
+      if (isMultiplayer && multiplayerMatch?.id) {
+        const myScore = Math.max(0, pairs * 100 - moves * 10)
+        const newState = {
+          ...multiplayerMatch.state,
+          [myUid]: { moves, matched: pairs, score: myScore, finished: true }
+        }
+        updateMatchState?.(multiplayerMatch.id, newState)
+        // If opponent already finished, determine winner
+        if (opponentData?.finished) {
+          const oppScore = opponentData.score || 0
+          const winner = myScore > oppScore ? myUid : myScore < oppScore ? opponentUid : 'draw'
+          finishMatch?.(multiplayerMatch.id, winner)
+        }
+      }
     }
   }, [deck])
+
+  // PvP: sync moves in real-time
+  useEffect(() => {
+    if (!isMultiplayer || !multiplayerMatch?.id || !myUid || won || failed) return
+    const matchedPairs = deck.filter(c => c.matched).length / 2
+    const myScore = Math.max(0, pairs * 100 - moves * 10)
+    const newState = {
+      ...multiplayerMatch.state,
+      [myUid]: { ...multiplayerMatch.state?.[myUid], moves, matched: matchedPairs, score: myScore, finished: false }
+    }
+    updateMatchState?.(multiplayerMatch.id, newState)
+  }, [moves, isMultiplayer, myUid, multiplayerMatch?.id])
+
+  // PvP: if opponent finishes while we're still playing
+  useEffect(() => {
+    if (!isMultiplayer || !won) return
+    if (opponentData?.finished && multiplayerMatch?.status === 'active') {
+      const myScore = Math.max(0, pairs * 100 - moves * 10)
+      const oppScore = opponentData.score || 0
+      const winner = myScore > oppScore ? myUid : myScore < oppScore ? opponentUid : 'draw'
+      finishMatch?.(multiplayerMatch.id, winner)
+    }
+  }, [opponentData?.finished, won])
+
+  // PvP: if match cancelled
+  useEffect(() => {
+    if (isMultiplayer && multiplayerMatch?.status === 'cancelled' && !won && !failed) {
+      setWon(true) // end the game
+    }
+  }, [multiplayerMatch?.status])
 
   const handleRestart = () => {
     setDeck(createDeck(pairs, iconPool))
@@ -251,8 +324,24 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: tc.bg, minHeight: '100dvh', transition: 'background 0.3s', position: 'relative', overflowX: 'hidden' }}>
-      {showTutorial && <TutorialModal steps={TUTORIAL_STEPS} color="#FF6B6B" onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_memory-card","1") }} />}
+      {showTutorial && !isMultiplayer && <TutorialModal steps={TUTORIAL_STEPS} color="#FF6B6B" onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_memory-card","1") }} />}
       {showConfetti && <Confetti onComplete={() => setShowConfetti(false)} />}
+
+      {/* PvP Score Bar */}
+      {isMultiplayer && (
+        <PvpScoreBar
+          opponentProfile={opponentProfile}
+          opponentScore={opponentData?.score || 0}
+          opponentProgress={Math.min(100, Math.round(((opponentData?.matched || 0) / pairs) * 100))}
+          opponentExtra={`${opponentData?.moves || 0} moves`}
+          opponentFinished={opponentData?.finished}
+          myScore={Math.max(0, pairs * 100 - moves * 10)}
+          myProgress={Math.min(100, Math.round((matchedCount / pairs) * 100))}
+          opponentEmote={opponentEmote}
+          myEmote={myEmoteData}
+          onQuit={() => { matchCtx.quitMatch?.(multiplayerMatch?.id); setActiveMatch?.(null); onBack() }}
+        />
+      )}
 
       {/* Mode Selector (Visible before first move) */}
       {moves === 0 && !won && !failed && (
@@ -359,15 +448,32 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty }) {
       {won && (
         <WinModal
           gameTitle={game.title}
-          stars={winStars}
+          stars={isMultiplayer ? 0 : winStars}
           stats={[
             { label: 'Moves', value: moves, color: '#FF6B6B' },
             { label: 'Waktu', value: formatTime(gameMode === 'timeAttack' ? initialTime - time : time), color: '#4ECDC4' },
-            { label: 'Mode', value: gameMode === 'standard' ? 'Standard' : gameMode === 'timeAttack' ? 'Time Attack' : 'Mirror', color: '#A29BFE' }
+            { label: 'Mode', value: isMultiplayer ? 'PvP' : (gameMode === 'standard' ? 'Standard' : gameMode === 'timeAttack' ? 'Time Attack' : 'Mirror'), color: '#A29BFE' }
           ]}
-          onRestart={handleRestart}
+          onRestart={isMultiplayer ? () => { setActiveMatch?.(null); onBack() } : handleRestart}
+          onBack={onBack}
           onHome={onHome}
           gameColor={game.color}
+          highlight={isMultiplayer ? (multiplayerMatch?.winner === myUid ? '⚔️ KAMU MENANG!' : multiplayerMatch?.winner === 'draw' ? '🤝 HASIL SERI!' : multiplayerMatch?.winner ? '💀 KAMU KALAH!' : '⏳ Menunggu lawan...') : ''}
+          duelStats={isMultiplayer ? [
+            { label: 'Skor', myValue: Math.max(0, pairs * 100 - moves * 10), oppValue: opponentData?.score || 0, color: '#6C5CE7' },
+            { label: 'Moves', myValue: moves, oppValue: opponentData?.moves || 0, color: '#FF6B6B' },
+          ] : null}
+          onRematch={isMultiplayer && multiplayerMatch?.winner ? () => matchCtx.requestRematch?.(multiplayerMatch) : null}
+        />
+      )}
+
+      {/* Battle Emotes */}
+      {isMultiplayer && !won && !failed && (
+        <BattleEmotes
+          onSendEmote={sendEmote}
+          incomingEmote={opponentEmote}
+          senderName={opponentProfile?.displayName || 'Lawan'}
+          disabled={locked}
         />
       )}
 
