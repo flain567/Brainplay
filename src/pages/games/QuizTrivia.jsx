@@ -11,6 +11,7 @@ import { useAuth } from '../../context/AuthContext.jsx'
 import { auth } from '../../firebase.js'
 import { WinModal } from '../../components/GameLayout.jsx'
 import PvpScoreBar from '../../components/PvpScoreBar.jsx'
+import BattleEmotes from '../../components/BattleEmotes.jsx'
 
 const TUTORIAL_STEPS = [
   { emoji:'🇮🇩', title:'Quiz Trivia Indonesia', desc:'Uji pengetahuan umummu tentang Indonesia! Geografi, sejarah, budaya, dan lainnya.', tip:'Jawab secepat mungkin untuk bonus waktu!' },
@@ -136,6 +137,18 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty, multiplay
   const opponentProfile = isMultiplayer
     ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestProfile : multiplayerMatch.hostProfile)
     : null
+  const opponentEmote = isMultiplayer ? opponentData?.emote : null
+  const myEmoteData = isMultiplayer ? (multiplayerMatch.state?.[myUid]?.emote || null) : null
+
+  // Send emote to opponent via match state
+  const sendEmote = useCallback((emoji) => {
+    if (!isMultiplayer || !multiplayerMatch?.id || !myUid) return
+    const newState = {
+      ...multiplayerMatch.state,
+      [myUid]: { ...multiplayerMatch.state?.[myUid], emote: { emoji, ts: Date.now() } }
+    }
+    updateMatchState?.(multiplayerMatch.id, newState)
+  }, [isMultiplayer, multiplayerMatch?.id, multiplayerMatch?.state, myUid, updateMatchState])
 
   const [phase, setPhase] = useState('tutorial')
   const [questions, setQuestions] = useState([])
@@ -404,6 +417,8 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty, multiplay
           opponentExtra={`${opponentData?.correct || 0} benar`}
           opponentFinished={opponentData?.finished}
           myScore={score}
+          opponentEmote={opponentEmote}
+          myEmote={myEmoteData}
           onQuit={() => { matchCtx.quitMatch?.(multiplayerMatch?.id); setActiveMatch?.(null); onHome() }}
         />
       )}
@@ -470,6 +485,16 @@ export default function QuizTrivia({ onBack, onHome, game, difficulty, multiplay
           })}
         </div>
       </div>
+
+      {/* Battle Emotes */}
+      {isMultiplayer && phase === 'playing' && (
+        <BattleEmotes
+          onSendEmote={sendEmote}
+          incomingEmote={opponentEmote}
+          senderName={opponentProfile?.displayName || 'Lawan'}
+          disabled={!!feedback}
+        />
+      )}
 
       <style>{`
         @keyframes qtShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }

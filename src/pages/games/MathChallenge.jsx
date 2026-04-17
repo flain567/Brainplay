@@ -18,6 +18,7 @@ import { useAuth } from '../../context/AuthContext.jsx'
 import { auth } from '../../firebase.js'
 import { GameHeader, StatsBar, ActionButtons, WinModal, BestRecord } from '../../components/GameLayout.jsx'
 import PvpScoreBar from '../../components/PvpScoreBar.jsx'
+import BattleEmotes from '../../components/BattleEmotes.jsx'
 
 // ─── Configuration ──────────────────────────────────────────────────────────
 const CFG = {
@@ -158,6 +159,18 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
   const opponentUid = isMultiplayer ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestUid : multiplayerMatch.hostUid) : null
   const opponentData = isMultiplayer ? (multiplayerMatch.state?.[opponentUid] || { score: 0, level: 1, finished: false }) : null
   const opponentProfile = isMultiplayer ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestProfile : multiplayerMatch.hostProfile) : null
+  const opponentEmote = isMultiplayer ? opponentData?.emote : null
+  const myEmoteData = isMultiplayer ? (multiplayerMatch.state?.[myUid]?.emote || null) : null
+
+  // Send emote to opponent via match state
+  const sendEmote = useCallback((emoji) => {
+    if (!isMultiplayer || !multiplayerMatch?.id || !myUid) return
+    const newState = {
+      ...multiplayerMatch.state,
+      [myUid]: { ...multiplayerMatch.state?.[myUid], emote: { emoji, ts: Date.now() } }
+    }
+    updateMatchState?.(multiplayerMatch.id, newState)
+  }, [isMultiplayer, multiplayerMatch?.id, multiplayerMatch?.state, myUid, updateMatchState])
 
   // 5. Refs
   const timerRef = useRef(null)
@@ -499,6 +512,8 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
           opponentFinished={opponentData?.finished}
           myScore={score}
           myProgress={Math.min(100, Math.round(((level - 1) * diff.correctToLevel + correctInLevel) / (diff.targetLevel * diff.correctToLevel) * 100))}
+          opponentEmote={opponentEmote}
+          myEmote={myEmoteData}
           onQuit={() => { matchCtx.quitMatch?.(multiplayerMatch?.id); setActiveMatch?.(null); onBack() }}
         />
       )}
@@ -589,6 +604,16 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
           </>
         )}
       </div>
+
+      {/* Battle Emotes */}
+      {isMultiplayer && phase === 'playing' && (
+        <BattleEmotes
+          onSendEmote={sendEmote}
+          incomingEmote={opponentEmote}
+          senderName={opponentProfile?.displayName || 'Lawan'}
+          disabled={!!feedback}
+        />
+      )}
 
       <style>{`
         @keyframes shakeX { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }

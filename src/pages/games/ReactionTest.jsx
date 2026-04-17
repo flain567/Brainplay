@@ -18,6 +18,7 @@ import { useMatch } from '../../context/MatchContext.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { auth } from '../../firebase.js'
 import PvpScoreBar from '../../components/PvpScoreBar.jsx'
+import BattleEmotes from '../../components/BattleEmotes.jsx'
 import { GameHeader, StatsBar, ActionButtons, WinModal, BestRecord } from '../../components/GameLayout.jsx'
 
 const CFG = {
@@ -95,6 +96,18 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
   const opponentUid = isMultiplayer ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestUid : multiplayerMatch.hostUid) : null
   const opponentData = isMultiplayer ? multiplayerMatch.state?.[opponentUid] || { results: [], finished: false } : null
   const opponentProfile = isMultiplayer ? (multiplayerMatch.hostUid === myUid ? multiplayerMatch.guestProfile : multiplayerMatch.hostProfile) : null
+  const opponentEmote = isMultiplayer ? opponentData?.emote : null
+  const myEmoteData = isMultiplayer ? (multiplayerMatch.state?.[myUid]?.emote || null) : null
+
+  // Send emote to opponent via match state
+  const sendEmote = useCallback((emoji) => {
+    if (!isMultiplayer || !multiplayerMatch?.id || !myUid) return
+    const newState = {
+      ...multiplayerMatch.state,
+      [myUid]: { ...multiplayerMatch.state?.[myUid], emote: { emoji, ts: Date.now() } }
+    }
+    updateMatchState?.(multiplayerMatch?.id, newState)
+  }, [isMultiplayer, multiplayerMatch?.id, multiplayerMatch?.state, myUid, updateMatchState])
 
   const bestKey = `reaction-test-best-${difficulty.id}`
   const [bestScore, setBestScore] = useState(() => parseInt(localStorage.getItem(bestKey) || '0'))
@@ -713,6 +726,16 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
             </span>
           ))}
         </div>
+
+        {/* Battle Emotes */}
+        {isMultiplayer && (
+          <BattleEmotes
+            onSendEmote={sendEmote}
+            incomingEmote={opponentEmote}
+            senderName={opponentProfile?.displayName || 'Lawan'}
+            disabled={seqPhase === 'showing'}
+          />
+        )}
       </div>
     )
   }
