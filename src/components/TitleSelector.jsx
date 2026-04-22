@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import PremiumTitleBadge from './PremiumTitleBadge.jsx'
 
 export default function TitleSelector({ onClose }) {
@@ -64,7 +65,7 @@ export default function TitleSelector({ onClose }) {
     return () => { document.body.style.overflow = prev }
   }, [])
 
-  return (
+  return createPortal(
     <div className="ts-overlay" onClick={onClose}>
       <style>{`
         .ts-overlay {
@@ -182,6 +183,7 @@ export default function TitleSelector({ onClose }) {
           })}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
