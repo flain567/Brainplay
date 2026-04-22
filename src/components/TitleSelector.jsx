@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { useState } from 'react'
+import PremiumTitleBadge from './PremiumTitleBadge.jsx'
 
 export default function TitleSelector({ onClose }) {
   const { progress, setSelectedTitle, getLevelInfo } = useProgress()
@@ -128,19 +129,18 @@ export default function TitleSelector({ onClose }) {
             PRATINJAU TAMPILAN
           </div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 18 }}>
-            <span style={{ 
-              fontFamily: "'Fredoka One', cursive", fontSize: 13, 
-              padding: '2px 8px', borderRadius: 6,
-              background: '#A29BFE22', color: '#A29BFE'
-            }}>
-              {currentTitle || 'Tanpa Gelar'}
-            </span>
+            <PremiumTitleBadge 
+              title={currentTitle || 'Tanpa Gelar'} 
+              rarity={currentTitle ? (uniqueTitles.find(t => t.title === currentTitle)?.rarity || 'common') : 'common'} 
+              size="normal"
+            />
             <span style={{ 
               fontFamily: "'Fredoka One', cursive",
               background: nameColor.bg !== 'transparent' ? nameColor.bg : 'none',
               WebkitBackgroundClip: nameColor.bg !== 'transparent' ? 'text' : 'border-box',
               WebkitTextFillColor: nameColor.bg !== 'transparent' ? 'transparent' : tc.textMain,
-              color: tc.textMain 
+              color: tc.textMain,
+              marginLeft: 8
             }}>{playerName || 'Player'}</span>
           </div>
         </div>
@@ -159,8 +159,13 @@ export default function TitleSelector({ onClose }) {
                 disabled={!unlocked}
               >
                 <div className="ts-item-info">
-                  <div className="ts-item-title" style={{ color: unlocked ? getRarityColor(t.rarity) : tc.textMuted }}>
-                    {t.title === 'None' ? 'Kosongkan Gelar' : t.title}
+                  <div style={{ marginBottom: 6 }}>
+                    <PremiumTitleBadge 
+                      title={t.title === 'None' ? 'Kosongkan Gelar' : t.title} 
+                      rarity={unlocked ? t.rarity : 'common'} 
+                      size="small"
+                      style={!unlocked ? { filter: 'grayscale(1)', opacity: 0.8 } : {}}
+                    />
                   </div>
                   <div className="ts-item-from">
                     {t.title === 'None' ? 'Hapus gelar yang terpasang' : `Diperoleh dari: ${t.from}`}

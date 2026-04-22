@@ -9,6 +9,7 @@ import { ADMIN_IDS } from '../config/admin.js'
 import TitleSelector from '../components/TitleSelector.jsx'
 import BorderSelector from '../components/BorderSelector.jsx'
 import LevelRoad from '../components/LevelRoad.jsx'
+import PremiumTitleBadge from '../components/PremiumTitleBadge.jsx'
 import gsap from 'gsap'
 
 const CATEGORY_META = {
@@ -309,14 +310,12 @@ export default function Profile({ onBack, games, onAnalytics, onAdmin, onFriends
                 <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 13, color: borderData.color, letterSpacing: '0.5px', marginBottom: 2 }}>
                   LEVEL {levelInfo.level}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: -2 }}>
-                  <span style={{ 
-                    fontFamily: "'Fredoka One',cursive", fontSize: 13, color: '#A29BFE',
-                    background: dark ? 'rgba(162,155,254,0.1)' : 'rgba(162,155,254,0.06)',
-                    padding: '2px 8px', borderRadius: 6
-                  }}>
-                    {progress.selectedTitle || levelInfo.title}
-                  </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                  <PremiumTitleBadge 
+                    title={progress.selectedTitle || levelInfo.title}
+                    rarity={progress.getTitleRarity?.(progress.selectedTitle || levelInfo.title) || 'common'}
+                    size="normal"
+                  />
                   <button 
                     onClick={() => { play('click'); setShowTitleSelector(true) }}
                     style={{ 

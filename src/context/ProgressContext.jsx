@@ -211,6 +211,29 @@ export function getTitleColorForLevel(level) {
   return { bg: 'transparent', text: '#A29BFE' }
 }
 
+export function getTitleRarity(title) {
+  if (!title) return 'common'
+  
+  // Check achievements
+  for (const a of ACHIEVEMENTS) {
+    if (a.reward?.title === title) {
+      return (a.category === 'streak' || a.category === 'score') ? 'epic' : 'rare'
+    }
+  }
+  // Check BP
+  for (const b of BP_REWARDS) {
+    if (b.reward?.type === 'title' && b.reward?.value === title) {
+      return b.reward?.rarity || 'legendary'
+    }
+  }
+  // Check Level Titles
+  const idx = LEVEL_TITLES.indexOf(title)
+  if (idx !== -1) {
+    return idx >= 5 ? 'legendary' : idx >= 4 ? 'epic' : 'common'
+  }
+  return 'common'
+}
+
 export function getLevel(xp) {
   let lv = 0
   for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
@@ -725,6 +748,7 @@ export function ProgressProvider({ children }) {
       unlockedMascotHats: progress.unlockedMascotHats || [],
       mascotName: progress.mascotName || 'Brainy',
       getLevelInfo: () => getLevelInfo(progress.totalXP || 0),
+      getTitleRarity: (title) => getTitleRarity(title),
       getSeasonInfo: () => {
         const curXP = progress.seasonXP || 0
         let currentTier = 0

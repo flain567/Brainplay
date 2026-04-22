@@ -26,6 +26,7 @@ import InfiniteTicker from '../components/InfiniteTicker.jsx'
 import BlueprintIntro from '../components/BlueprintIntro.jsx'
 import BorderGlow from '../components/BorderGlow.jsx'
 import Tilt from '../components/Tilt.jsx'
+import PremiumTitleBadge from '../components/PremiumTitleBadge.jsx'
 gsap.registerPlugin(Flip)
 
 const ROADMAP_FUTURE = [
@@ -52,7 +53,7 @@ const TAG_META = {
 export default function Home({ games, onPlay, onContinueLast, onProfile, onShop, onStats, onOpenWheel, onGames, onFriends }) {
   const { darkMode, reduceMotion } = useSettings()
   const { play } = useSound()
-  const { progress, getSeasonInfo } = useProgress()
+  const { progress, getSeasonInfo, getTitleRarity } = useProgress()
   const { playerName } = useAuth()
   const { coins, isDailyClaimable, claimDaily, earnCoins } = useCoins()
   const {
@@ -514,10 +515,17 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                   }} />
                 )}
               </div>
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, overflow: 'hidden' }}>
                 <div style={{ fontSize: 13, fontWeight: 800, color: S.text }}>{playerName || 'User'}</div>
-                <div style={{ fontSize: 10, color: S.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
-                  Tier {getSeasonInfo?.().currentTier} • {progress.selectedTitle || 'Novice'}
+                <div style={{ fontSize: 10, color: S.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 2 }}>
+                  Tier {getSeasonInfo?.().currentTier}
+                </div>
+                <div>
+                  <PremiumTitleBadge 
+                    title={progress.selectedTitle || levelInfo.title}
+                    rarity={getTitleRarity?.(progress.selectedTitle || levelInfo.title) || 'common'}
+                    size="small" 
+                  />
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>

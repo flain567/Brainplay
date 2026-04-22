@@ -78,6 +78,16 @@ const SOUNDS = {
   toggle: (ctx) => {
     playTone(ctx, { frequency: 700, type: 'sine', duration: 0.07, gain: 0.15 })
   },
+  trophy: (ctx) => {
+    // Grand celebratory sound
+    [523, 659, 784, 1047, 1318].forEach((f, i) => {
+      playTone(ctx, { frequency: f, type: 'triangle', duration: 0.3, gain: 0.2, delay: i * 0.05 })
+    });
+    // Lower support notes for fullness
+    [261, 329, 392].forEach((f, i) => {
+      playTone(ctx, { frequency: f, type: 'sine', duration: 0.4, gain: 0.15, delay: 0.1 + i * 0.05 })
+    });
+  },
 }
 
 export function useSound() {
