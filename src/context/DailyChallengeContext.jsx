@@ -165,6 +165,7 @@ export function DailyChallengeProvider({ children }) {
           maxScore: 0,
           threeStars: 0,
         },
+        welcomeClaimed: false,
       }
     }
     return saved
@@ -302,6 +303,13 @@ export function DailyChallengeProvider({ children }) {
     return ALL_COMPLETE_BONUS
   }, [state.bonusClaimed, challenges, isChallengeComplete])
 
+  // Claim Daily Welcome Bonus
+  const claimWelcomeBonus = useCallback(() => {
+    if (state.welcomeClaimed) return false
+    setState(prev => ({ ...prev, welcomeClaimed: true }))
+    return true
+  }, [state.welcomeClaimed])
+
   // Computed
   const completedCount = challenges.filter(c => isChallengeComplete(c)).length
   const claimedCount = Object.keys(state.claimed).length
@@ -322,6 +330,8 @@ export function DailyChallengeProvider({ children }) {
       bonusAvailable,
       bonusClaimed: state.bonusClaimed,
       allCompleteBonus: ALL_COMPLETE_BONUS,
+      welcomeClaimed: state.welcomeClaimed,
+      claimWelcomeBonus,
     }}>
       {children}
     </DailyChallengeContext.Provider>

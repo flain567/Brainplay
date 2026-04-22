@@ -6,6 +6,8 @@ import { useSound } from '../hooks/useSound.js'
 import { useProgress, getLevelInfo, getBorderForLevel, getTitleColorForLevel, CUSTOM_BORDERS, AVATAR_CATALOG } from '../context/ProgressContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
+import DailyChallengeBoard from '../components/DailyChallengeBoard.jsx'
+import DailyWelcomeModal from '../components/DailyWelcomeModal.jsx'
 import { useDailyChallenge } from '../context/DailyChallengeContext.jsx'
 import { useLimitedMode } from '../context/LimitedModeContext.jsx'
 import { useLuckyWheel } from '../context/LuckyWheelContext.jsx'
@@ -789,77 +791,9 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
 
           {/* Daily Challenges are now standalone in the new layout */}
 
-          {/* ── Misi Harian ── */}
-          <BorderGlow glowColor="#FD79A8" borderRadius="20px" style={{ display: 'block', width: '100%', marginBottom: 12 }}>
-          <div className="section-card" id="features-section" data-anime-reveal style={{ marginBottom: 0 }}>
-            <div className="sc-header">
-              <span style={{ fontSize: 20 }}>⚔️</span>
-              <span className="sc-title">Misi Harian</span>
-              <span className="sc-sub">Reset setiap hari</span>
-              {allComplete
-                ? <span className="sc-badge sc-done">Selesai! 🎉</span>
-                : completedCount > 0
-                  ? <span className="sc-badge sc-prog">{completedCount}/{challenges.length}</span>
-                  : null
-              }
-            </div>
+          {/* ── Misi Harian (New Component) ── */}
+          <DailyChallengeBoard />
 
-            {challenges.map(ch => {
-              const prog = getChallengeProgress(ch)
-              const done = isChallengeComplete(ch)
-              const claimed = isChallengeClaimed(ch.id)
-              const pct = Math.min(100, Math.round((prog / (ch.target || 1)) * 100))
-              return (
-                <div key={ch.id} className={`ch-row${done && !claimed ? ' done' : ''}${claimed ? ' claimed' : ''}`}>
-                  <div className={`ch-ico${done && !claimed ? ' done' : ''}${claimed ? ' claimed' : ''}`}>
-                    {claimed ? '✓' : ch.icon}
-                  </div>
-                  <div className="ch-info">
-                    <div className={`ch-desc${claimed ? ' s' : ''}`}>{ch.desc}</div>
-                    {!claimed && (
-                      <div className="ch-pb">
-                        <div className="ch-pb-track">
-                          <div className={`ch-pb-fill${done ? ' done' : ''}`} style={{ width: `${pct}%` }} />
-                        </div>
-                        <span className="ch-pb-lbl">{prog}/{ch.target}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="ch-rwd">
-                    {claimed ? (
-                      <span className="ch-rwd-claimed">+{ch.reward} 🪙</span>
-                    ) : done ? (
-                      <button className="ch-claim-btn" onClick={() => {
-                        const r = claimChallenge(ch.id)
-                        if (r > 0) { play('levelUp'); earnCoins(r, `Misi: ${ch.desc}`) }
-                      }}>Klaim!</button>
-                    ) : (
-                      <div className="ch-rwd-val">{ch.reward} 🪙</div>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-
-            {allComplete && (
-              <div
-                className={`ch-bonus${bonusClaimed ? ' claimed' : ''}`}
-                onClick={() => {
-                  if (bonusAvailable && !bonusClaimed) {
-                    const r = claimBonus()
-                    if (r > 0) { play('levelUp'); earnCoins(r, 'Bonus: Semua misi selesai!') }
-                  }
-                }}
-              >
-                <span style={{ fontSize: 20 }}>{bonusClaimed ? '🎉' : '🎁'}</span>
-                <div style={{ flex: 1, color: bonusClaimed ? S.green : S.accent }}>
-                  {bonusClaimed ? 'Bonus diklaim!' : `Semua misi selesai! Bonus ${allCompleteBonus} 🪙`}
-                </div>
-                {bonusAvailable && !bonusClaimed && (
-                  <span style={{ fontSize: 12, color: S.accent, fontWeight: 800 }}>Klaim →</span>
-                )}
-              </div>
-            )}
             {currentMode && (
               <div
                 className="lm-banner"
@@ -1101,6 +1035,11 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             onPlay(gameId, diffId)
           }}
         />
+      )}
+
+      {/* ── Daily Welcome Modal ── */}
+      {!welcomeClaimed && (
+        <DailyWelcomeModal onClose={() => {}} />
       )}
     </>
   )

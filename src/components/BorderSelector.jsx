@@ -1,6 +1,8 @@
 import { useProgress, CUSTOM_BORDERS, getBorderForLevel } from '../context/ProgressContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useThemeColors } from '../hooks/useThemeColors.js'
+import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 export default function BorderSelector({ onClose }) {
   const { progress, selectBorder, getLevelInfo } = useProgress()
@@ -22,8 +24,16 @@ export default function BorderSelector({ onClose }) {
 
   const dark = tc.dark
 
-  return (
-    <div className="border-modal">
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.scrollTo({ top: 0 })
+    return () => { document.body.style.overflow = prev }
+  }, [])
+
+  return createPortal(
+    <div className="border-modal" onClick={onClose}>
       <style>{`
         .border-modal {
           position: fixed; inset: 0; z-index: 1100;
@@ -80,7 +90,7 @@ export default function BorderSelector({ onClose }) {
         .close-btn:active { transform: scale(0.96); }
       `}</style>
 
-      <div className="border-panel">
+      <div className="border-panel" onClick={e => e.stopPropagation()}>
         <h2 style={{ fontFamily: "'Fredoka One', cursive", fontSize: 24, margin: 0 }}>Avatar Border</h2>
         <p style={{ fontSize: 14, color: tc.textMuted, marginTop: 4 }}>Pilih bingkai kustom yang telah kamu buka!</p>
 
@@ -133,6 +143,7 @@ export default function BorderSelector({ onClose }) {
 
         <button className="close-btn" onClick={() => { play('click'); onClose() }}>Selesai</button>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
