@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Mascot from './Mascot.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useThemeColors } from '../hooks/useThemeColors.js'
+import { useMascot } from '../context/MascotContext.jsx'
 import gsap from 'gsap'
 
 // ─── Dialog Database ──────────────────────────────────────────────────────────
@@ -202,6 +203,7 @@ export default function MascotCompanion({
   const { play } = useSound()
   const tc = useThemeColors()
   const dark = tc.dark
+  const { mascotEvent } = useMascot()
 
   const [bubbleOpen, setBubbleOpen] = useState(false)
   const [bubbleText, setBubbleText] = useState('')
@@ -300,6 +302,20 @@ export default function MascotCompanion({
       default: break
     }
   }, [])
+
+  // ─── External trigger via Context ───
+  useEffect(() => {
+    if (mascotEvent && mascotEvent.ts > 0) {
+      if (typeof mascotEvent.dialog === 'string') {
+        showDialog({ text: mascotEvent.dialog, actions: [] }, mascotEvent.mood)
+      } else {
+        showDialog(mascotEvent.dialog, mascotEvent.mood)
+      }
+      
+      if (mascotEvent.mood === 'excited') animateMascot('jump')
+      else animateMascot('nod')
+    }
+  }, [mascotEvent, showDialog, animateMascot])
 
   // ─── Action handler ───
   const handleAction = useCallback((action) => {
@@ -465,7 +481,7 @@ export default function MascotCompanion({
 
   // ─── Auto-greet on mount (disabled in floating mode) ───
   useEffect(() => {
-    if (floating) return // Floating mascot stays quiet until clicked
+    if (floating) return // Floating mascot stays quiet until clicked or context-triggered
     const t = setTimeout(() => {
       showDialog(pick(dialogs.greet), 'excited')
       animateMascot('jump')

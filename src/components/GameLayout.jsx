@@ -7,6 +7,7 @@ import { useThemeColors } from '../hooks/useThemeColors.js'
 import Confetti from './Confetti.jsx'
 import TutorialModal from './TutorialModal.jsx'
 import { scrambleOnce } from '../hooks/useScrambleNumber.js'
+import { useMascot } from '../context/MascotContext.jsx'
 import gsap from 'gsap'
 
 // ─── Reusable timer hook ─────────────────────────────────────────────────────
@@ -276,6 +277,7 @@ export function WinModal({
   const textMain = tc.textMain
   const textMuted = tc.textMuted
   const noAnim = reduceMotion
+  const { triggerMascot } = useMascot()
 
   const coinRef   = useRef(null)
   const statsRefs  = useRef([])
@@ -343,6 +345,22 @@ export function WinModal({
       revealDelay: 0.25,
       delay: 0.35,
     })
+  }, [])
+
+  // Mascot Trigger
+  useEffect(() => {
+    if (title === 'Game Over' || emoji === '😢' || highlight.includes('KALAH')) {
+      triggerMascot('Yah Game Over.. Ayo coba lagi, kamu pasti bisa! 💪', 'sad')
+    } else if (highlight.includes('MENANG')) {
+      triggerMascot('GG! Kamu menang! Otakmu encer banget! 🏆🎉', 'surprised')
+    } else if (stars === 3) {
+      triggerMascot('Sempurna! 3 Bintang! Mantap sekali! 🌟', 'excited')
+    } else if (stars > 0) {
+      triggerMascot('Kerja bagus! Sedikit lagi bisa perfect! 🔥', 'happy')
+    } else {
+      triggerMascot('Permainan selesai! Mau main lagi tidak? 😊', 'happy')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Scramble tiap stat value — stagger per index

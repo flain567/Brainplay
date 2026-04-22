@@ -14,6 +14,7 @@ import { InventoryProvider } from './context/InventoryContext.jsx'
 import { SocialProvider, useSocial } from './context/SocialContext.jsx'
 import { FriendsProvider, useFriends } from './context/FriendsContext.jsx'
 import { MatchProvider, useMatch } from './context/MatchContext.jsx'
+import { MascotProvider } from './context/MascotContext.jsx'
 import UserProfileModal from './components/UserProfileModal.jsx'
 import Navbar from './components/Navbar.jsx'
 import DifficultySelector from './components/DifficultySelector.jsx'
@@ -820,7 +821,7 @@ function AppInner() {
       )}
       
       {/* ── Global Floating Mascot Assistant ── */}
-      {screen !== 'game' && screen !== 'splash' && (
+      {screen !== 'splash' && (
         <MascotCompanion
           floating={true}
           mascotName={progress.mascotName || 'Brainy'}
@@ -828,7 +829,6 @@ function AppInner() {
           hat={progress.selectedMascotHat}
           level={levelInfo.level}
           pageContext={screen}
-          observeSections={[]} // Can optionally pass sections if desired, but less relevant globally
         />
       )}
 
@@ -864,8 +864,10 @@ export default function App() {
                             <DailyChallengeProvider>
                               <NotifProvider>
                                 <MatchProvider>
-                                  <ThemeApplicator />
-                                  <AppInner />
+                                  <MascotProvider>
+                                    <ThemeApplicator />
+                                    <AppInner />
+                                  </MascotProvider>
                                 </MatchProvider>
                               </NotifProvider>
                             </DailyChallengeProvider>

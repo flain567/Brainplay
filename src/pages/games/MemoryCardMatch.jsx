@@ -11,6 +11,7 @@ import { useLeaderboard } from '../../context/LeaderboardContext.jsx'
 import { useMatch } from '../../context/MatchContext.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { auth } from '../../firebase.js'
+import { useMascot } from '../../context/MascotContext.jsx'
 import { WinModal } from '../../components/GameLayout.jsx'
 import PvpScoreBar from '../../components/PvpScoreBar.jsx'
 import BattleEmotes from '../../components/BattleEmotes.jsx'
@@ -79,6 +80,7 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty, mult
   const matchCtx = useMatch() || {}
   const { updateMatchState, finishMatch, setActiveMatch } = matchCtx
   const { uid: userId } = useAuth()
+  const { triggerMascot } = useMascot()
 
   // PvP state
   const isMultiplayer = !!multiplayerMatch
@@ -117,6 +119,8 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty, mult
   const [deck, setDeck]         = useState(() => createDeck(pairs, iconPool))
   const [selected, setSelected] = useState([])
   const [moves, setMoves]       = useState(0)
+  const [combo, setCombo]       = useState(0)
+  const lastMatchTimeRef        = useRef(0)
   const [locked, setLocked]     = useState(false)
   const [won, setWon]           = useState(false)
   const [failed, setFailed]     = useState(false)
@@ -247,6 +251,20 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty, mult
       if (newSelected[0].emoji === newSelected[1].emoji) {
         play('match')
         vibrateMedium()
+        
+        // Combo logic (within 4 seconds)
+        const now = Date.now()
+        let newCombo = 1
+        if (now - lastMatchTimeRef.current < 4000) {
+          newCombo = combo + 1
+        }
+        setCombo(newCombo)
+        lastMatchTimeRef.current = now
+
+        if (newCombo === 2) triggerMascot("Wow! Combo ×2! 🔥", "excited")
+        else if (newCombo === 3) triggerMascot("Luar biasa!! Triple Combo! 🤯", "surprised")
+        else if (newCombo >= 4) triggerMascot(`OMGG!! Combo ×${newCombo}!! Otakmu dewa! 😱`, "excited")
+
         safeTimeout(() => {
           setDeck(d => d.map(c =>
             c.id === newSelected[0].id || c.id === newSelected[1].id
@@ -256,6 +274,7 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty, mult
           setLocked(false)
         }, 500)
       } else {
+        setCombo(0)
         safeTimeout(() => { play('mismatch'); vibrateError() }, 200)
         safeTimeout(() => {
           setDeck(d => d.map(c =>
@@ -401,7 +420,8 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty, mult
         gap: cols >= 5 ? 8 : 12,
         marginBottom: 24,
         perspective: 1000,
-        transform: gameMode === 'mirror' ? 'scaleX(-1)' : 'none'
+        transform: gameMode === 'mirror' ? 'scaleX(-1)' : 'none',
+        filter: gameMode === 'mirror' ? 'drop-shadow(0 0 10px rgba(162, 155, 254, 0.3)) contrast(1.1)' : 'none'
       }}>
         {deck.map(card => (
           <CardTile
@@ -415,6 +435,27 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty, mult
           />
         ))}
       </div>
+      
+      {/* Combo Floating Text */}
+      {combo > 1 && !won && !failed && (
+        <div style={{
+          position: 'fixed', top: '25%', left: '50%', transform: 'translate(-50%, -50%)',
+          pointerEvents: 'none', zIndex: 10, animation: 'combo-pop 1s ease-out forwards',
+          fontFamily: "'Fredoka One',cursive", fontSize: 36, color: '#FFD700',
+          textShadow: '0 4px 15px rgba(255,215,0,0.5), 0 2px 4px rgba(0,0,0,0.3)',
+          letterSpacing: 2
+        }}>
+          COMBO ×{combo}!
+        </div>
+      )}
+      <style>{`
+        @keyframes combo-pop {
+          0% { transform: translate(-50%, -40%) scale(0.5); opacity: 0; }
+          20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+          80% { transform: translate(-50%, -55%) scale(1); opacity: 1; }
+          100% { transform: translate(-50%, -60%) scale(0.8); opacity: 0; }
+        }
+      `}</style>
 
       {/* Buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
