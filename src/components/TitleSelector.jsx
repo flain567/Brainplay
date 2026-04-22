@@ -1,4 +1,4 @@
-import { useProgress, LEVEL_TITLES, ACHIEVEMENTS, BP_REWARDS, getTitleColorForLevel } from '../context/ProgressContext.jsx'
+import { useProgress, LEVEL_TITLES, ACHIEVEMENTS, BP_REWARDS } from '../context/ProgressContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useThemeColors } from '../hooks/useThemeColors.js'
@@ -54,7 +54,6 @@ export default function TitleSelector({ onClose }) {
     setSelectedTitle(title === 'None' ? null : title)
   }
 
-  const nameColor = getTitleColorForLevel(levelInfo.level || 0)
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -82,7 +81,7 @@ export default function TitleSelector({ onClose }) {
           box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
         .ts-header {
-          padding: 24px; border-bottom: 1px solid ${tc.borderCol};
+          padding: 16px 24px; border-bottom: 1px solid ${tc.borderCol};
           text-align: center; position: relative;
         }
         .ts-close {
@@ -92,19 +91,20 @@ export default function TitleSelector({ onClose }) {
           color: ${tc.textMuted}; cursor: pointer; font-size: 18px;
         }
         .ts-preview {
-          padding: 20px; background: ${dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'};
-          margin: 0 24px 20px; border-radius: 18px; text-align: center;
-          border: 1.5px dashed ${tc.borderCol};
+          padding: 12px 16px; background: ${dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'};
+          margin: 12px 16px; border-radius: 14px; text-align: center;
+          border: 1.5px dashed ${tc.borderCol}; flex-shrink: 0;
         }
         .ts-scroll {
-          flex: 1; overflow-y: auto; padding: 0 24px 24px;
-          display: grid; grid-template-columns: 1fr; gap: 10px;
+          flex: 1; overflow-y: auto; padding: 8px 16px 16px;
+          display: flex; flex-direction: column; gap: 8px;
         }
         .ts-item {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 14px 18px; border-radius: 16px; border: 1.5px solid ${tc.borderCol};
+          padding: 10px 14px; border-radius: 14px; border: 1.5px solid ${tc.borderCol};
           cursor: pointer; transition: all 0.2s; background: transparent;
           color: ${tc.textMain}; font-family: 'Nunito', sans-serif;
+          flex-shrink: 0;
         }
         .ts-item.unlocked:hover { transform: translateX(5px); border-color: #A29BFE; }
         .ts-item.active { border-color: #A29BFE; background: #A29BFE15; }
@@ -122,28 +122,24 @@ export default function TitleSelector({ onClose }) {
       <div className="ts-modal" onClick={e => e.stopPropagation()}>
         <div className="ts-header">
           <button className="ts-close" onClick={onClose}>×</button>
-          <h2 style={{ fontFamily: "'Fredoka One', cursive", fontSize: 20, color: tc.textMain, margin: 0 }}>
+          <h2 style={{ fontFamily: "'Fredoka One', cursive", fontSize: 17, color: tc.textMain, margin: 0 }}>
             Pilih Gelar Player 🎖️
           </h2>
         </div>
 
         <div className="ts-preview">
-          <div style={{ fontSize: 11, fontWeight: 800, color: tc.textMuted, marginBottom: 8, letterSpacing: '1px' }}>
-            PRATINJAU TAMPILAN
+          <div style={{ fontSize: 10, fontWeight: 800, color: tc.textMuted, marginBottom: 6, letterSpacing: '1px' }}>
+            PRATINJAU
           </div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 18 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 16 }}>
             <PremiumTitleBadge 
               title={currentTitle || 'Tanpa Gelar'} 
               rarity={currentTitle ? (uniqueTitles.find(t => t.title === currentTitle)?.rarity || 'common') : 'common'} 
-              size="normal"
+              size="small"
             />
             <span style={{ 
-              fontFamily: "'Fredoka One', cursive",
-              background: nameColor.bg !== 'transparent' ? nameColor.bg : 'none',
-              WebkitBackgroundClip: nameColor.bg !== 'transparent' ? 'text' : 'border-box',
-              WebkitTextFillColor: nameColor.bg !== 'transparent' ? 'transparent' : tc.textMain,
+              fontFamily: "'Fredoka One', cursive", fontSize: 14,
               color: tc.textMain,
-              marginLeft: 8
             }}>{playerName || 'Player'}</span>
           </div>
         </div>
