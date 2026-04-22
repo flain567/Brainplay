@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useMatch, PVP_GAMES } from '../context/MatchContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useSound } from '../hooks/useSound.js'
@@ -31,7 +32,7 @@ export default function ChallengeModal({ friend, friendProfile, onClose }) {
 
     const res = await createMatch(friend.uid, selected, hostProfile, guestProfile)
     if (res.success) {
-      play('level_up')
+      play('levelUp')
       setSent(true)
       setTimeout(() => onClose(), 2000)
     } else {
@@ -40,45 +41,55 @@ export default function ChallengeModal({ friend, friendProfile, onClose }) {
   }
 
   const dark = tc.dark
-  const surface = dark ? '#1a1a2e' : '#fff'
-  const textMain = dark ? '#f0f0f0' : '#1a1a2e'
-  const textMuted = dark ? '#888' : '#999'
-  const border = dark ? '#333' : '#e0e0e0'
+  const bg = dark ? tc.surface : '#fff'
+  const textMain = tc.textMain
+  const textMuted = tc.textMuted
 
-  return (
+  return createPortal(
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
-      background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)',
+      background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 20, animation: 'cmFadeIn 0.25s ease'
+      padding: 24, animation: 'cmFadeIn 0.3s ease'
     }} onClick={onClose}>
+      
+      {/* Glow Behind Modal */}
       <div style={{
-        background: surface, borderRadius: 24, padding: 28,
-        maxWidth: 400, width: '100%', maxHeight: '85vh', overflowY: 'auto',
-        border: `2px solid ${border}`, animation: 'cmSlideUp 0.3s ease'
+        position: 'absolute', top: '50%', left: '50%',
+        width: 300, height: 300, background: 'radial-gradient(circle, rgba(255, 107, 107, 0.3) 0%, transparent 70%)',
+        transform: 'translate(-50%, -50%)', zIndex: -1, pointerEvents: 'none',
+        animation: 'cmPulse 2s ease-in-out infinite alternate'
+      }} />
+
+      <div style={{
+        background: bg, borderRadius: 28, padding: 32,
+        maxWidth: 420, width: '100%', maxHeight: '85vh', overflowY: 'auto',
+        border: dark ? '2px solid rgba(255,107,107,0.3)' : '2px solid rgba(255,107,107,0.8)',
+        boxShadow: '0 24px 60px rgba(0,0,0,0.4), 0 0 20px rgba(255,107,107,0.2)',
+        animation: 'cmScaleUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'
       }} onClick={e => e.stopPropagation()}>
 
         {sent ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div style={{ fontSize: 64, marginBottom: 12 }}>⚔️</div>
-            <h2 style={{ fontFamily: "'Fredoka One',cursive", color: '#4ECDC4', fontSize: 22, margin: '0 0 8px' }}>
-              Tantangan Terkirim!
+            <div style={{ fontSize: 72, marginBottom: 12, animation: 'cmVS 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>⚔️</div>
+            <h2 style={{ fontFamily: "'Fredoka One',cursive", color: '#FF6B6B', fontSize: 24, margin: '0 0 8px' }}>
+              Surat Tantangan Terkirim!
             </h2>
             <p style={{ color: textMuted, fontSize: 14 }}>
-              Menunggu {friendName} menerima...
+              Menunggu <strong>{friendName}</strong> menerima duel ini...
             </p>
           </div>
         ) : (
           <>
-            <div style={{ textAlign: 'center', marginBottom: 20 }}>
-              <div style={{ fontSize: 48, marginBottom: 8 }}>⚔️</div>
-              <h2 style={{ fontFamily: "'Fredoka One',cursive", color: textMain, fontSize: 20, margin: '0 0 4px' }}>
-                Tantang {friendName}
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <div style={{ fontSize: 56, marginBottom: 4, animation: 'cmVS 1s infinite alternate' }}>⚔️</div>
+              <h2 style={{ fontFamily: "'Fredoka One',cursive", color: textMain, fontSize: 22, margin: '0 0 4px', textTransform: 'uppercase' }}>
+                Duel Melawan {friendName}
               </h2>
-              <p style={{ color: textMuted, fontSize: 13, margin: 0 }}>Pilih game untuk duel PvP!</p>
+              <p style={{ color: textMuted, fontSize: 13, margin: 0, fontWeight: 600 }}>Pilih arena kombat favoritmu!</p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
               {PVP_GAMES.map(g => {
                 const isActive = selected === g.id
                 return (
@@ -86,27 +97,33 @@ export default function ChallengeModal({ friend, friendProfile, onClose }) {
                     key={g.id}
                     onClick={() => { play('click'); setSelected(g.id) }}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 14,
-                      padding: '14px 16px', borderRadius: 16,
+                      display: 'flex', alignItems: 'center', gap: 16,
+                      padding: '16px 20px', borderRadius: 20,
                       background: isActive
-                        ? (dark ? 'rgba(108,92,231,0.2)' : 'rgba(108,92,231,0.08)')
-                        : (dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'),
-                      border: isActive ? '2px solid #6C5CE7' : `2px solid ${border}`,
-                      cursor: 'pointer', transition: 'all 0.15s',
+                        ? 'linear-gradient(135deg, rgba(255,107,107,0.1), rgba(253,121,168,0.05))'
+                        : (dark ? 'rgba(255,255,255,0.03)' : '#f7f7f7'),
+                      border: isActive ? '2px solid #FF6B6B' : `2px solid ${dark ? '#333' : '#e0e0e0'}`,
+                      cursor: 'pointer', transition: 'all 0.2s',
                       textAlign: 'left', fontFamily: "'Nunito',sans-serif",
+                      transform: isActive ? 'scale(1.02)' : 'scale(1)',
+                      boxShadow: isActive ? '0 8px 20px rgba(255,107,107,0.15)' : 'none'
                     }}
                   >
-                    <div style={{ fontSize: 32, flexShrink: 0 }}>{g.emoji}</div>
+                    <div style={{ fontSize: 36, flexShrink: 0, filter: isActive ? 'drop-shadow(0 4px 10px rgba(255,107,107,0.3))' : 'none', transition: 'all 0.3s' }}>
+                      {g.emoji}
+                    </div>
                     <div style={{ flex: 1 }}>
                       <div style={{
-                        fontFamily: "'Fredoka One',cursive", fontSize: 15,
-                        color: isActive ? '#6C5CE7' : textMain
+                        fontFamily: "'Fredoka One',cursive", fontSize: 16,
+                        color: isActive ? '#FF6B6B' : textMain, transition: 'color 0.2s'
                       }}>
                         {g.name}
                       </div>
-                      <div style={{ fontSize: 12, color: textMuted, marginTop: 2 }}>{g.desc}</div>
+                      <div style={{ fontSize: 12, color: isActive ? 'rgba(255,107,107,0.8)' : textMuted, marginTop: 4, fontWeight: isActive ? 700 : 600 }}>{g.desc}</div>
                     </div>
-                    {isActive && <div style={{ fontSize: 20, color: '#6C5CE7' }}>✓</div>}
+                    {isActive && (
+                      <div style={{ fontSize: 24, color: '#FF6B6B', animation: 'cmPop 0.3s ease' }}>🔥</div>
+                    )}
                   </button>
                 )
               })}
@@ -114,37 +131,40 @@ export default function ChallengeModal({ friend, friendProfile, onClose }) {
 
             {error && (
               <div style={{
-                color: '#FF6B6B', fontSize: 13, fontWeight: 700, textAlign: 'center',
-                padding: 10, background: 'rgba(255,107,107,0.1)', borderRadius: 10, marginBottom: 12
+                color: '#FF6B6B', fontSize: 13, fontWeight: 800, textAlign: 'center',
+                padding: '12px 16px', background: 'rgba(255,107,107,0.15)', borderRadius: 12, marginBottom: 16,
+                border: '1px dashed rgba(255,107,107,0.4)', animation: 'cmShake 0.3s ease'
               }}>
                 ⚠️ {error}
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ display: 'flex', gap: 12 }}>
               <button
                 onClick={onClose}
                 style={{
-                  flex: 1, padding: '12px 0', borderRadius: 12,
-                  background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                  flex: 1, padding: '14px 0', borderRadius: 16,
+                  background: dark ? 'rgba(255,255,255,0.06)' : '#eee',
                   color: textMuted, border: 'none', fontFamily: "'Fredoka One',cursive",
-                  fontSize: 14, cursor: 'pointer'
+                  fontSize: 14, cursor: 'pointer', transition: 'all 0.2s'
                 }}
               >
-                BATAL
+                MUNDUR
               </button>
               <button
                 onClick={handleChallenge}
                 disabled={!selected || loading}
                 style={{
-                  flex: 2, padding: '12px 0', borderRadius: 12,
-                  background: selected ? 'linear-gradient(135deg,#6C5CE7,#A29BFE)' : border,
+                  flex: 2, padding: '14px 0', borderRadius: 16,
+                  background: selected ? 'linear-gradient(135deg, #FF6B6B, #FD79A8)' : (dark ? '#333' : '#ccc'),
                   color: '#fff', border: 'none', fontFamily: "'Fredoka One',cursive",
-                  fontSize: 14, cursor: selected ? 'pointer' : 'not-allowed',
-                  opacity: loading ? 0.6 : 1
+                  fontSize: 15, cursor: selected ? 'pointer' : 'not-allowed',
+                  opacity: loading ? 0.6 : 1, transition: 'all 0.2s',
+                  boxShadow: selected ? '0 8px 24px rgba(255,107,107,0.4)' : 'none',
+                  textTransform: 'uppercase'
                 }}
               >
-                {loading ? '⏳ MENGIRIM...' : '⚔️ TANTANG!'}
+                {loading ? '⏳ MENGIRIM...' : '⚔️ SERANG SEKARANG!'}
               </button>
             </div>
           </>
@@ -152,9 +172,14 @@ export default function ChallengeModal({ friend, friendProfile, onClose }) {
       </div>
 
       <style>{`
-        @keyframes cmFadeIn { from { opacity:0 } to { opacity:1 } }
-        @keyframes cmSlideUp { from { opacity:0; transform:translateY(30px) } to { opacity:1; transform:translateY(0) } }
+        @keyframes cmFadeIn { from { opacity:0; backdrop-filter:blur(0px); } to { opacity:1; backdrop-filter:blur(8px); } }
+        @keyframes cmScaleUp { from { opacity:0; transform:scale(0.85) translateY(20px); } to { opacity:1; transform:scale(1) translateY(0); } }
+        @keyframes cmPulse { from { transform: translate(-50%, -50%) scale(0.9); opacity:0.6; } to { transform: translate(-50%, -50%) scale(1.1); opacity:1; } }
+        @keyframes cmVS { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
+        @keyframes cmPop { 0% { transform: scale(0.5); opacity:0; } 100% { transform: scale(1); opacity:1; } }
+        @keyframes cmShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-4px)} 40%{transform:translateX(4px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
       `}</style>
-    </div>
+    </div>,
+    document.body
   )
 }

@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 import { useSocial } from '../context/SocialContext.jsx'
 import UserProfileModal from '../components/UserProfileModal.jsx'
+import BorderGlow from '../components/BorderGlow.jsx'
 
 const ChallengeModal = lazy(() => import('../components/ChallengeModal.jsx'))
 
@@ -14,16 +15,16 @@ export default function Friends({ onBack }) {
   const { play } = useSound()
   const tc = useThemeColors()
   const { friends, friendCode, requests, loading, error, addFriendByCode, removeFriend, acceptFriendRequest, declineFriendRequest } = useFriends()
-  const { isLoggedIn, isGuest } = useAuth()
   const { getProfile } = useSocial()
 
+  const [activeTab, setActiveTab] = useState('list') // 'list', 'add', 'requests'
   const [inputCode, setInputCode] = useState('')
   const [adding, setAdding] = useState(false)
   const [addMessage, setAddMessage] = useState(null)
 
   const [friendProfiles, setFriendProfiles] = useState({})
   const [inspectingUid, setInspectingUid] = useState(null)
-  const [challengingFriend, setChallengingFriend] = useState(null) // { uid, displayName, photoURL }
+  const [challengingFriend, setChallengingFriend] = useState(null)
 
   const dark = tc.dark
   const bg = tc.bg
@@ -32,7 +33,6 @@ export default function Friends({ onBack }) {
   const textMuted = tc.textMuted
   const borderCol = tc.borderCol
 
-  // Fetch profiles for friends list
   useEffect(() => {
     let mounted = true
     const fetchFriends = async () => {
@@ -86,7 +86,7 @@ export default function Friends({ onBack }) {
 
   const handleAccept = async (e, req) => {
     e.stopPropagation()
-    play('level_up')
+    play('levelUp')
     await acceptFriendRequest(req)
   }
 
@@ -112,268 +112,269 @@ export default function Friends({ onBack }) {
       <style>{`
         .friends-root {
           min-height: 100vh; padding: 20px 20px 100px;
-          transition: background 0.4s;
+          background: ${bg}; transition: background 0.4s;
         }
-        .friends-inner { max-width: 600px; margin: 0 auto; }
-        .friends-back {
-          display: inline-flex; align-items: center; gap: 8px;
+        .friends-inner { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+        
+        .f-top-bar { display: flex; align-items: center; justify-content: space-between; }
+        .f-back {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 44px; height: 44px; border-radius: 14px;
           background: ${surface}; border: 2px solid ${borderCol};
-          border-radius: 12px; padding: 9px 18px;
-          font-size: 14px; font-weight: 700; color: ${textMuted};
-          cursor: pointer; margin-bottom: 24px; font-family: 'Nunito',sans-serif;
-          transition: all 0.18s ease;
+          color: ${textMain}; cursor: pointer; transition: all 0.2s;
         }
-        .friends-back:hover { border-color: #A29BFE; color: #A29BFE; transform: translateX(-3px); }
+        .f-back:hover { border-color: #6C5CE7; color: #6C5CE7; transform: scale(1.05); }
 
-        .f-card {
-          background: ${surface}; border: 2px solid ${borderCol};
-          border-radius: 20px; padding: 24px; margin-bottom: 24px;
-          animation: slide-up 0.4s ease both;
+        .f-header { text-align: center; animation: slide-down 0.4s ease both; }
+        .f-title { fontFamily: 'Fredoka One', cursive; fontSize: 28px; color: ${textMain}; margin: 0; }
+        .f-subtitle { fontSize: 13px; color: ${textMuted}; font-weight: 600; margin-top: 4px; }
+
+        /* Tabs */
+        .f-tabs {
+          display: flex; gap: 8px; background: ${surface}; padding: 6px;
+          border-radius: 18px; border: 2px solid ${borderCol};
+        }
+        .f-tab {
+          flex: 1; padding: 12px 0; border-radius: 14px; border: none;
+          background: transparent; color: ${textMuted}; font-family: 'Fredoka One', cursive;
+          font-size: 13px; cursor: pointer; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          position: relative;
+        }
+        .f-tab.active {
+          background: ${dark ? 'linear-gradient(135deg, rgba(108,92,231,0.2), rgba(162,155,254,0.1))' : 'linear-gradient(135deg, #e4e1fb, #f0effe)'};
+          color: #6C5CE7; box-shadow: 0 4px 12px rgba(108,92,231,0.1);
+          transform: translateY(-2px);
+        }
+        .f-tab-badge {
+          position: absolute; top: 4px; right: 12px; width: 8px; height: 8px;
+          background: #FF6B6B; border-radius: 50%; box-shadow: 0 0 8px rgba(255,107,107,0.8);
         }
 
-        .code-box {
-          background: ${dark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)'};
-          border: 2px dashed ${borderCol}; border-radius: 16px;
-          padding: 16px; display: flex; align-items: center; justify-content: space-between;
-          margin-bottom: 16px; cursor: pointer; transition: all 0.2s;
-        }
-        .code-box:hover { border-color: #4ECDC4; background: ${dark ? 'rgba(78,205,196,0.1)' : 'rgba(78,205,196,0.05)'}; }
-
-        .add-input {
-          flex: 1; padding: 12px 16px; border-radius: 12px;
-          border: 2px solid ${borderCol}; background: ${dark ? '#0d0b1e' : '#f8f8f8'};
-          color: ${textMain}; font-size: 15px; font-weight: 700;
-          font-family: 'Nunito', sans-serif; outline: none; text-transform: uppercase;
-        }
-        .add-input:focus { border-color: #A29BFE; }
-
-        .add-btn {
-          padding: 12px 24px; border-radius: 12px;
-          background: linear-gradient(135deg, #A29BFE, #6C5CE7);
-          color: #fff; border: none; font-weight: 800;
-          font-family: 'Fredoka One', cursive; cursor: pointer;
-        }
-        .add-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .friend-item {
+        /* Lists and Cards */
+        .f-content { animation: fade-in 0.3s ease both; }
+        .f-item {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 16px; border-radius: 16px; background: ${dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'};
-          border: 1px solid transparent; transition: all 0.2s; cursor: pointer;
-          margin-bottom: 8px;
+          padding: 16px; border-radius: 20px;
+          background: ${surface}; border: 1px solid ${borderCol};
+          margin-bottom: 12px; transition: all 0.2s; cursor: pointer;
         }
-        .friend-item:hover {
-          background: ${dark ? 'rgba(255,255,255,0.05)' : 'white'};
-          border-color: ${borderCol}; transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        .f-item:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.06); border-color: rgba(108,92,231,0.3); }
+        
+        .f-avatar-wrap {
+          position: relative; width: 48px; height: 48px; flex-shrink: 0;
+          border-radius: 14px; overflow: hidden; background: ${dark ? '#2a2a3e' : '#f0f0f0'};
+          display: flex; alignItems: center; justifyContent: center;
+        }
+        .f-avatar-wrap img { width: 100%; height: 100%; objectFit: 'cover'; }
+
+        .f-name { fontFamily: 'Fredoka One', cursive; fontSize: 16px; color: ${textMain}; }
+        .f-title-badge { 
+          fontSize: 10px; color: #fff; background: linear-gradient(90deg, #A29BFE, #6C5CE7);
+          padding: 2px 8px; border-radius: 8px; text-transform: uppercase; font-weight: 800; display: inline-block; margin-top: 4px;
         }
 
-        .pvp-btn {
-          width: 36px; height: 36px; border-radius: 10px;
-          background: linear-gradient(135deg, #6C5CE7, #A29BFE);
-          color: #fff; border: none; cursor: pointer;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 16px; transition: transform 0.15s;
+        /* PvP Button */
+        .btn-pvp {
+          display: flex; align-items: center; justify-content: center; width: 42px; height: 42px;
+          background: linear-gradient(135deg, #FF6B6B, #FD79A8); border: none; border-radius: 14px;
+          color: white; font-size: 20px; cursor: pointer; transition: all 0.2s;
+          box-shadow: 0 6px 15px rgba(255,107,107,0.3);
         }
-        .pvp-btn:hover { transform: scale(1.1); }
-        .pvp-btn:active { transform: scale(0.95); }
+        .btn-pvp:hover { transform: scale(1.1) rotate(5deg); box-shadow: 0 8px 20px rgba(255,107,107,0.5); }
+        .btn-remove {
+          background: transparent; border: 2px solid ${borderCol}; color: ${textMuted};
+          width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justifyContent: center;
+          cursor: pointer; transition: all 0.2s;
+        }
+        .btn-remove:hover { background: rgba(255,107,107,0.1); border-color: #FF6B6B; color: #FF6B6B; }
+
+        /* Add Friend UI */
+        .code-display {
+          background: ${dark ? 'rgba(78,205,196,0.1)' : 'rgba(78,205,196,0.05)'};
+          border: 2px dashed #4ECDC4; border-radius: 20px; padding: 24px; text-align: center;
+          cursor: pointer; transition: all 0.2s; margin-bottom: 24px;
+        }
+        .code-display:hover { transform: scale(1.02); background: rgba(78,205,196,0.15); }
+        
+        .code-input-wrap {
+          display: flex; gap: 12px; background: ${surface}; padding: 8px;
+          border-radius: 20px; border: 2px solid ${borderCol}; box-shadow: inset 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .code-input-wrap input {
+          flex: 1; border: none; background: transparent; padding: 0 16px;
+          font-size: 16px; font-weight: 800; font-family: 'Nunito', sans-serif;
+          color: ${textMain}; outline: none; text-transform: uppercase;
+        }
+        .code-input-wrap button {
+          background: linear-gradient(135deg, #4ECDC4, #00B894); color: white;
+          border: none; border-radius: 14px; padding: 12px 24px;
+          font-family: 'Fredoka One', cursive; cursor: pointer; transition: transform 0.15s;
+        }
+        .code-input-wrap button:hover:not(:disabled) { transform: scale(1.05); }
+
+        @keyframes slide-down { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fade-in { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
       `}</style>
 
-      {inspectingUid && (
-        <UserProfileModal uid={inspectingUid} onClose={() => setInspectingUid(null)} />
-      )}
-
+      {inspectingUid && <UserProfileModal uid={inspectingUid} onClose={() => setInspectingUid(null)} />}
+      
       {challengingFriend && (
         <Suspense fallback={null}>
-          <ChallengeModal
-            friend={challengingFriend}
-            friendProfile={friendProfiles[challengingFriend.uid]}
-            onClose={() => setChallengingFriend(null)}
-          />
+          <ChallengeModal friend={challengingFriend} friendProfile={friendProfiles[challengingFriend.uid]} onClose={() => setChallengingFriend(null)} />
         </Suspense>
       )}
 
-      <div className="friends-root" style={{ background: bg }}>
+      <div className="friends-root">
         <div className="friends-inner">
-          <button className="friends-back" onClick={() => { play('click'); onBack() }}>
-            ← Kembali
-          </button>
-
-          <div style={{ textAlign: 'center', marginBottom: 32, animation: 'slide-up 0.4s ease both' }}>
-            <div style={{ fontSize: 56, marginBottom: 12 }}>🤝</div>
-            <h1 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 32, color: textMain, marginBottom: 8 }}>FRIENDS SYSTEM</h1>
-            <p style={{ color: textMuted, fontSize: 14 }}>Batas pertemanan: {friends.length} / 50</p>
-          </div>
-
-          {/* Add Friend Card */}
-          <div className="f-card">
-            <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 18, color: textMain, marginBottom: 16 }}>Tambahkan Teman</h2>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-              <input
-                className="add-input"
-                placeholder="MASUKKAN KODE TEMAN..."
-                value={inputCode}
-                onChange={e => setInputCode(e.target.value)}
-                maxLength={6}
-              />
-              <button className="add-btn" onClick={handleAdd} disabled={adding || !inputCode}>
-                {adding ? '...' : 'TAMBAH'}
-              </button>
+          <div className="f-top-bar">
+            <button className="f-back" onClick={() => { play('click'); onBack() }}>
+              <span style={{ fontSize: 20 }}>←</span>
+            </button>
+            <div className="f-header">
+              <h1 className="f-title">KONEKSI</h1>
+              <div className="f-subtitle">{friends.length}/50 Teman Setia</div>
             </div>
-            {addMessage && (
-              <div style={{
-                fontSize: 13, fontWeight: 700,
-                color: addMessage.type === 'error' ? '#FF6B6B' : '#4ECDC4',
-                animation: 'slide-up 0.2s ease',
-                background: addMessage.type === 'error' ? 'rgba(255,107,107,0.1)' : 'rgba(78,205,196,0.1)',
-                padding: '8px 12px', borderRadius: 8, textAlign: 'center'
-              }}>
-                {addMessage.text}
-              </div>
-            )}
+            <div style={{ width: 44 }} /> {/* Spacer */}
           </div>
 
-          {/* My Code Card */}
-          <div className="f-card" style={{ animationDelay: '0.1s' }}>
-            <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 18, color: textMain, marginBottom: 16 }}>Kode Kamu</h2>
-            <div className="code-box" onClick={copyCode}>
+          <div className="f-tabs">
+            <button className={`f-tab ${activeTab === 'list' ? 'active' : ''}`} onClick={() => { play('click'); setActiveTab('list') }}>
+              DAFTAR
+            </button>
+            <button className={`f-tab ${activeTab === 'add' ? 'active' : ''}`} onClick={() => { play('click'); setActiveTab('add') }}>
+              TAMBAH
+            </button>
+            <button className={`f-tab ${activeTab === 'requests' ? 'active' : ''}`} onClick={() => { play('click'); setActiveTab('requests') }}>
+              PERMINTAAN
+              {requests.length > 0 && <div className="f-tab-badge" />}
+            </button>
+          </div>
+
+          <div className="f-content">
+            {/* ───── TAB: DAFTAR TEMAN ───── */}
+            {activeTab === 'list' && (
               <div>
-                <div style={{ fontSize: 13, color: textMuted, marginBottom: 4, fontWeight: 700 }}>KETUK UNTUK MENYALIN</div>
-                <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 28, color: '#4ECDC4', letterSpacing: '4px' }}>
-                  {friendCode || '------'}
-                </div>
-              </div>
-              <div style={{ fontSize: 24 }}>📋</div>
-            </div>
-            <p style={{ fontSize: 13, color: textMuted, lineHeight: 1.5 }}>
-              Berikan kode ini ke temanmu agar mereka bisa menambahkanmu ke daftar teman.
-            </p>
-          </div>
-
-          {/* Incoming Requests */}
-          <div className="f-card" style={{
-            animationDelay: '0.15s',
-            border: requests.length > 0 ? '2px solid #A29BFE' : `2px solid ${borderCol}`,
-            background: requests.length > 0 ? (dark ? 'rgba(162,155,254,0.05)' : '#F0F0FF') : surface
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 20 }}>📬</span>
-                <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 18, color: textMain, margin: 0 }}>Permintaan Pertemanan</h2>
-              </div>
-              {requests.length > 0 && <div style={{ width: 10, height: 10, background: '#FF6B6B', borderRadius: '50%' }} />}
-            </div>
-
-            {error && (
-              <div style={{ color: '#FF6B6B', fontSize: 12, fontWeight: 700, padding: 10, background: 'rgba(255,107,107,0.1)', borderRadius: 10, marginBottom: 12 }}>
-                ⚠️ {error}
-              </div>
-            )}
-
-            {requests.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '10px 0', color: textMuted, fontSize: 13 }}>
-                {loading ? '⏳ Mencari permintaan...' : 'Belum ada permintaan baru.'}
-              </div>
-            ) : (
-              <div>
-                {requests.map((r, i) => (
-                  <div
-                    key={r.id}
-                    className="friend-item"
-                    style={{ animation: `slide-up 0.3s ${i * 0.05}s ease both`, background: dark ? 'rgba(255,255,255,0.03)' : 'white' }}
-                    onClick={() => setInspectingUid(r.fromUid)}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                      <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                        {r.fromPhoto ? <img src={r.fromPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ fontSize: 20 }}>👤</div>}
-                      </div>
-                      <div>
-                        <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 15, color: textMain }}>{r.fromName || 'Pemain'}</div>
-                        <div style={{ fontSize: 10, color: '#A29BFE', fontWeight: 800, textTransform: 'uppercase', marginTop: 2 }}>Ingin Berteman!</div>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button onClick={(e) => handleAccept(e, r)}
-                        style={{ padding: '8px 16px', borderRadius: 10, background: '#4ECDC4', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: "'Fredoka One', cursive", fontSize: 12 }}>
-                        TERIMA
-                      </button>
-                      <button onClick={(e) => handleDecline(e, r.id)}
-                        style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255,107,107,0.1)', color: '#FF6B6B', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        ✕
-                      </button>
-                    </div>
+                {friends.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                    <div style={{ fontSize: 64, marginBottom: 16 }}>👻</div>
+                    <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 20, color: textMain }}>Sepi sekali...</div>
+                    <div style={{ color: textMuted, marginTop: 8 }}>Belum ada koneksi. Ayo perluas jaringanmu dan tantang teman-teman di tab "Tambah"!</div>
                   </div>
-                ))}
+                ) : (
+                  friends.map((f, i) => {
+                    const prof = friendProfiles[f.uid]
+                    return (
+                      <div key={f.uid} className="f-item" style={{ animationDelay: \`\${i * 0.05}s\` }} onClick={() => setInspectingUid(f.uid)}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                          <div className="f-avatar-wrap">
+                            {(prof?.photoURL || f.photoURL)
+                              ? <img src={prof?.photoURL || f.photoURL} alt="" />
+                              : <div style={{ fontSize: 24 }}>👤</div>
+                            }
+                          </div>
+                          <div>
+                            <div className="f-name">{prof?.displayName || f.displayName || 'Pemain'}</div>
+                            {prof?.progress?.selectedTitle ? (
+                              <div className="f-title-badge">{prof.progress.selectedTitle}</div>
+                            ) : (
+                              <div style={{ fontSize: 12, color: textMuted, fontWeight: 700, marginTop: 4 }}>Petualang Pemula</div>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 10 }}>
+                          <button className="btn-pvp" onClick={(e) => handleChallenge(e, f)}>⚔️</button>
+                          <button className="btn-remove" onClick={(e) => handleRemove(e, f.uid)}>✕</button>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
               </div>
             )}
-          </div>
 
-          {/* Friends List */}
-          <div className="f-card" style={{ animationDelay: '0.2s' }}>
-            <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 18, color: textMain, marginBottom: 16 }}>
-              Daftar Teman ({friends.length})
-            </h2>
-
-            {friends.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '30px 20px', color: textMuted }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>👻</div>
-                <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 15 }}>Masih sepi nih...</div>
-                <div style={{ fontSize: 13, marginTop: 4 }}>Ayo tambahkan teman pertamamu!</div>
-              </div>
-            ) : (
+            {/* ───── TAB: TAMBAH TEMAN ───── */}
+            {activeTab === 'add' && (
               <div>
-                {friends.map((f, i) => {
-                  const prof = friendProfiles[f.uid]
-                  return (
-                    <div
-                      key={f.uid}
-                      className="friend-item"
-                      style={{ animation: `slide-up 0.3s ${i * 0.05}s ease both` }}
-                      onClick={() => setInspectingUid(f.uid)}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                          {(prof?.photoURL || f.photoURL)
-                            ? <img src={prof?.photoURL || f.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            : <div style={{ fontSize: 20 }}>👤</div>
-                          }
+                <BorderGlow glowColor="#4ECDC4" borderRadius="22px" style={{ marginBottom: 24, padding: 2 }}>
+                  <div className="code-display" onClick={copyCode} style={{ margin: 0, borderRadius: 20, background: surface, border: 'none' }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: textMuted, letterSpacing: 2, marginBottom: 8 }}>KODE RAHASIAMU</div>
+                    <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 40, color: '#4ECDC4', letterSpacing: 8, textShadow: '0 4px 10px rgba(78,205,196,0.3)' }}>
+                      {friendCode || '------'}
+                    </div>
+                    <div style={{ fontSize: 13, color: textMuted, marginTop: 8, fontWeight: 600 }}>KETUK UNTUK MENYALIN 📋</div>
+                  </div>
+                </BorderGlow>
+
+                <h3 style={{ fontFamily: "'Fredoka One',cursive", color: textMain, fontSize: 16, marginBottom: 12 }}>
+                  Masukkan Kode Teman:
+                </h3>
+                <div className="code-input-wrap">
+                  <input
+                    placeholder="Contoh: A1B2C3"
+                    value={inputCode}
+                    onChange={e => setInputCode(e.target.value)}
+                    maxLength={6}
+                  />
+                  <button onClick={handleAdd} disabled={adding || !inputCode}>
+                    {adding ? '...' : 'CARI & TAMBAH'}
+                  </button>
+                </div>
+
+                {addMessage && (
+                  <div style={{
+                    marginTop: 16, textAlign: 'center', padding: '12px', borderRadius: 14,
+                    background: addMessage.type === 'error' ? 'rgba(255,107,107,0.1)' : 'rgba(78,205,196,0.1)',
+                    color: addMessage.type === 'error' ? '#FF6B6B' : '#4ECDC4',
+                    fontWeight: 800, fontSize: 14, border: \`1px dashed \${addMessage.type === 'error' ? 'rgba(255,107,107,0.4)' : 'rgba(78,205,196,0.4)'}\`
+                  }}>
+                    {addMessage.text}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ───── TAB: PERMINTAAN KONEKSI ───── */}
+            {activeTab === 'requests' && (
+              <div>
+                {error && (
+                  <div style={{ padding: 12, background: 'rgba(255,107,107,0.1)', color: '#FF6B6B', borderRadius: 12, marginBottom: 16, textAlign: 'center', fontWeight: 700 }}>
+                    ⚠️ {error}
+                  </div>
+                )}
+                
+                {requests.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                    <div style={{ fontSize: 64, marginBottom: 16, opacity: 0.5 }}>📭</div>
+                    <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 20, color: textMuted }}>Tidak ada panggilan</div>
+                    <div style={{ color: textMuted, marginTop: 8 }}>Belum ada yang minta temenan nih. Coba bagikan kodemu!</div>
+                  </div>
+                ) : (
+                  requests.map((r, i) => (
+                    <div key={r.id} className="f-item" style={{ animationDelay: \`\${i * 0.05}s\` }} onClick={() => setInspectingUid(r.fromUid)}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                        <div className="f-avatar-wrap" style={{ border: '2px solid rgba(255,255,255,0.1)' }}>
+                          {r.fromPhoto ? <img src={r.fromPhoto} alt="" /> : <div style={{ fontSize: 24 }}>👤</div>}
                         </div>
                         <div>
-                          <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 15, color: textMain }}>
-                            {prof?.displayName || f.displayName || 'Pemain'}
-                          </div>
-                          {prof?.progress?.selectedTitle && (
-                            <div style={{ fontSize: 10, color: '#A29BFE', fontWeight: 800, textTransform: 'uppercase', marginTop: 2 }}>
-                              {prof.progress.selectedTitle}
-                            </div>
-                          )}
+                          <div className="f-name">{r.fromName || 'Pemain'}</div>
+                          <div style={{ fontSize: 11, color: '#4ECDC4', fontWeight: 800, textTransform: 'uppercase', marginTop: 4 }}>Ingin Terkoneksi!</div>
                         </div>
                       </div>
-
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                        {/* ⚔️ Challenge Button */}
-                        <button
-                          className="pvp-btn"
-                          title="Tantang PvP!"
-                          onClick={(e) => handleChallenge(e, f)}
-                        >
-                          ⚔️
-                        </button>
-                        {/* Remove Button */}
-                        <button
-                          onClick={(e) => handleRemove(e, f.uid)}
-                          style={{
-                            width: 36, height: 36, borderRadius: '50%',
-                            background: 'rgba(255,107,107,0.1)', color: '#FF6B6B',
-                            border: 'none', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16
-                          }}
-                        >
-                          ✕
-                        </button>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={(e) => handleAccept(e, r)} style={{
+                          background: 'linear-gradient(135deg, #4ECDC4, #00B894)', color: '#fff', border: 'none',
+                          borderRadius: 12, padding: '10px 16px', fontFamily: "'Fredoka One',cursive", fontSize: 13,
+                          cursor: 'pointer', boxShadow: '0 4px 10px rgba(78,205,196,0.3)'
+                        }}>TERIMA</button>
+                        <button onClick={(e) => handleDecline(e, r.id)} style={{
+                          background: 'rgba(255,107,107,0.1)', color: '#FF6B6B', border: 'none',
+                          borderRadius: 12, width: 38, height: 38, fontSize: 16, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>✕</button>
                       </div>
                     </div>
-                  )
-                })}
+                  ))
+                )}
               </div>
             )}
           </div>
