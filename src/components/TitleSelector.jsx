@@ -2,6 +2,7 @@ import { useProgress, LEVEL_TITLES, ACHIEVEMENTS, BP_REWARDS, getTitleColorForLe
 import { useAuth } from '../context/AuthContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useThemeColors } from '../hooks/useThemeColors.js'
+import { useEffect } from 'react'
 import PremiumTitleBadge from './PremiumTitleBadge.jsx'
 
 export default function TitleSelector({ onClose }) {
@@ -55,14 +56,24 @@ export default function TitleSelector({ onClose }) {
 
   const nameColor = getTitleColorForLevel(levelInfo.level || 0)
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    // Scroll overlay into view
+    window.scrollTo({ top: 0 })
+    return () => { document.body.style.overflow = prev }
+  }, [])
+
   return (
     <div className="ts-overlay" onClick={onClose}>
       <style>{`
         .ts-overlay {
-          position: fixed; inset: 0; z-index: 1000;
+          position: fixed; inset: 0; z-index: 9999;
           background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
           display: flex; align-items: center; justify-content: center; padding: 20px;
           animation: ts-fade 0.3s ease;
+          overflow: hidden;
         }
         .ts-modal {
           width: 100%; max-width: 500px; max-height: 85vh;
