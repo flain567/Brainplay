@@ -644,7 +644,6 @@ export default function HangmanGame({ onBack, onHome, game, difficulty }) {
                       style={{
                         width: 'clamp(30px, 8.5vw, 42px)',
                         height: 'clamp(38px, 10vw, 50px)',
-                        border: 'none',
                         borderRadius: 12,
                         fontSize: 'clamp(14px, 3.8vw, 18px)',
                         fontWeight: 800,

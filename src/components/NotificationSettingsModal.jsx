@@ -2,8 +2,12 @@ import { useState } from 'react'
 import { usePushNotif, REMINDER_HOURS } from '../context/PushNotifContext.jsx'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
+import { useSound } from '../hooks/useSound.js'
+import { useThemeColors } from '../hooks/useThemeColors.js'
 
-export default function NotificationSettingsModal({ onClose }) {
+export default function NotificationSettingsModal({ isOpen, onClose }) {
+  const tc = useThemeColors()
+  const { play } = useSound()
   const { darkMode } = useSettings()
   const { permission, isSupported, settings, toggleDailyReminder, updateSettings, sendLocalNotif, requestPermission } = usePushNotif()
   const { dailyStreak } = useCoins()

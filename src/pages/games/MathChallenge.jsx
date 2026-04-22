@@ -590,14 +590,16 @@ export default function MathChallenge({ onBack, onHome, game, difficulty, multip
               {question.options.map((opt, i) => {
                 const isSelected = selectedAnswer === opt; const isCorrectAnswer = opt === question.answer;
                 let btnBg = '#6C5CE7'; let btnColor = '#FFFFFF'; let btnBorder = '#5A4BDB';
+                let opacity = 1
                 if (feedback) {
                   if (isSelected || isCorrectAnswer) { btnBg = isCorrectAnswer ? '#00B894' : '#FF6B6B'; btnBorder = isCorrectAnswer ? '#00B894' : '#FF6B6B' }
-                  else { opacity: 0.5 }
+                  else { opacity = 0.5 }
                 }
                 return (
                   <button key={i} onClick={() => handleAnswer(opt)} disabled={!!feedback} style={{
                     fontFamily:"'Fredoka One',cursive", fontSize:22, padding:'16px 8px', background:btnBg, color:btnColor, border:`2px solid ${btnBorder}`,
-                    borderRadius:14, cursor: feedback ? 'default' : 'pointer', transform: isSelected ? 'scale(0.95)' : 'scale(1)', transition: 'all 0.1s'
+                    borderRadius:14, cursor: feedback ? 'default' : 'pointer', transform: isSelected ? 'scale(0.95)' : 'scale(1)', transition: 'all 0.1s',
+                    opacity
                   }}>{opt}</button>
                 )
               })}

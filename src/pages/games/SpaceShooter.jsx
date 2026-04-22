@@ -357,9 +357,6 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
         } else if (entryType === 'diagonal') {
           startX = pos.x < g.W/2 ? -200 : g.W + 200
           startY = -100
-        } else if (entryType === 'ceremony') {
-          startX = pos.x
-          startY = -150
         }
 
         g.enemies.push({

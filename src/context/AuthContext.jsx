@@ -15,6 +15,7 @@ import { clearGameData } from '../utils/storage.js'
 const AuthContext = createContext(null)
 
 const DISPLAY_NAME_KEY = 'bp_display_name'
+const GUEST_KEY = 'bp_guest_id'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)

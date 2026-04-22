@@ -416,6 +416,34 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
   const finalStars = accuracy >= 90 ? 3 : accuracy >= 70 ? 2 : 1
   const coinAmt = ({ easy: 15, medium: 25, hard: 40 }[difficulty.id] || 15) + Math.floor(finalScore / 100) + (finalStars === 3 ? 20 : 0)
 
+  const duelStats = isMultiplayer ? [
+    { 
+      label: mode === 'sequence' ? 'Skor' : 'Avg Time', 
+      myValue: mode === 'sequence' ? finalScore : avgTime, 
+      oppValue: (() => {
+        const oppResults = opponentData?.results || []
+        const oppValid = oppResults.filter(r => r.time > 0)
+        if (mode === 'sequence') {
+          const oppAcc = oppResults.length > 0 ? Math.round((oppValid.length / oppResults.length) * 100) : 0
+          const oppSeqLen = oppValid.reduce((s, r) => s + (r.seqLen || 0), 0)
+          return Math.round(oppSeqLen * 100 + oppAcc * 3)
+        }
+        return oppValid.length > 0 ? Math.round(oppValid.reduce((s, r) => s + r.time, 0) / oppValid.length) : 0
+      })(), 
+      color: '#6C5CE7' 
+    },
+    { 
+      label: 'Akurasi', 
+      myValue: accuracy, 
+      oppValue: (() => {
+        const oppResults = opponentData?.results || []
+        const oppValid = oppResults.filter(r => r.time > 0)
+        return oppResults.length > 0 ? Math.round((oppValid.length / oppResults.length) * 100) : 0
+      })(), 
+      color: '#00B894' 
+    },
+  ] : null
+
   // ═══════ COUNTDOWN SCREEN ═══════
   if (countdown > 0) {
     return (

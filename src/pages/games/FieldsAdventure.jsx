@@ -6,7 +6,7 @@ const TUT = [
   { emoji: '📦', title: 'Peti Harta', desc: 'Temukan peti tersembunyi di seluruh map. Buka untuk dapat reward!', tip: 'Peti berwarna kuning — dekati lalu tekan aksi.' },
   { emoji: '⚠️', title: 'Jebakan', desc: 'Hati-hati spike trap! Kena = kehilangan HP.', tip: 'Perhatikan lantai — hindari area berbahaya!' },
 ]
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useSound } from '../../hooks/useSound.js'
 import { useProgress } from '../../context/ProgressContext.jsx'
 import { useCoins } from '../../context/CoinContext.jsx'
@@ -192,12 +192,10 @@ const getAutoTile = (map, tx, ty, type) => {
   }
   return null
 }
-
 // Helper for generating winding paths on a 50x40 map
 const createPathMap = () => {
   const map = Array(MAP_W * MAP_H).fill(_)
   
-  // Create primary winding path from West to East village
   const plot = (x, y, w = 1) => {
     for (let dy = -w; dy <= w; dy++) {
       for (let dx = -w; dx <= w; dx++) {
@@ -207,19 +205,16 @@ const createPathMap = () => {
     }
   }
 
-  // Horizontal path connecting villages
   for (let x = 0; x < MAP_W; x++) {
     const y = 18 + Math.sin(x * 0.2) * 2
     plot(x, y, 1)
   }
   
-  // Vertical branch to forest
   for (let y = 0; y < 18; y++) {
     const x = 15 + Math.cos(y * 0.3) * 2
     plot(x, y, 0)
   }
   
-  // Branch to cave/danger zone
   for (let y = 18; y < 35; y++) {
     const x = 35 + Math.sin(y * 0.1) * 3
     plot(x, y, 0)
@@ -228,7 +223,14 @@ const createPathMap = () => {
   return map
 }
 
-const BASE_PATH_MAP = createPathMap()
+const BASE_MAP = createPathMap()
+
+// Game Difficulty Configuration
+const FIELD_CFG = {
+  easy:   { hp: 5, totalChests: 6, coinReward: 25 },
+  medium: { hp: 4, totalChests: 10, coinReward: 50 },
+  hard:   { hp: 3, totalChests: 15, coinReward: 100 },
+}
 
 // Helper to place clusters
 const cluster = (map, tile, x, y, density = 0.6) => {
@@ -358,7 +360,9 @@ const MOVE_SPEED = 1.8
 // ═══════════════════════════════════════════════
 // COMPONENT
 // ═══════════════════════════════════════════════
-export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
+export default function FieldsAdventure({ onBack, onHome, game, difficulty }) {
+  const cfg = FIELD_CFG[difficulty?.id || 'easy']
+  const { play } = useSound()
   const canvasRef = useRef(null)
   const gameRef = useRef(null)
   const rafRef = useRef(null)
@@ -368,7 +372,6 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
   const joystickRef = useRef({ active: false, dx: 0, dy: 0 })
   const tc = useThemeColors()
   const dark = tc.dark
-  const { play } = useSound()
   const { reportGameResult } = useProgress()
   const { earnCoins } = useCoins()
   const { vibrateLight, vibrateMedium, vibrateSuccess, vibrateError } = useHaptics()
@@ -379,7 +382,7 @@ export default function FieldsAdventure({ difficulty, onBack, onHome, game }) {
   const [showConfetti, setShowConfetti] = useState(false)
   // ─── Map Generation (Pre-calculated for performance) ───
   const { MAP, TILE_SRC_MAP, totalChests } = useMemo(() => {
-    const newMap = [...BASE_PATH_MAP]
+    const newMap = [...BASE_MAP]
     const chests = []
     
     // Add variations & decorations

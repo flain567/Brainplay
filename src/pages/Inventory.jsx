@@ -363,7 +363,7 @@ export default function Inventory({ onBack }) {
                    const mat = MATERIALS[r.id]
                    return (
                      <div key={i} style={{
-                       background: '#1A1F35', padding: '20px', borderRadius: 20,
+                       background: '#1A1F35',
                        border: `2px solid ${mat.color}`, textAlign: 'center', width: 130, padding: "24px", borderRadius: 24,
                        boxShadow: `0 10px 30px ${mat.color}33`, animation: `popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.15}s both`
                      }}>
