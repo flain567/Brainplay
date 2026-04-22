@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useSound } from '../hooks/useSound.js'
 import { useSettings } from '../context/SettingsContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
@@ -41,8 +42,8 @@ export default function TutorialModal({ steps, onClose, color = '#A29BFE', stora
 
   const skip = () => fire(() => { play('click'); dismiss() })
 
-  return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.65)', backdropFilter:'blur(8px)', zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:'16px 20px', animation:'fadeInTut 0.3s ease', overflow:'auto' }}>
+  return createPortal(
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.65)', backdropFilter:'blur(8px)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:'16px 20px', animation:'fadeInTut 0.3s ease', overflow:'auto' }}>
       <div style={{ background:bg, borderRadius:28, padding:'28px 24px', maxWidth:360, width:'100%', maxHeight:'calc(100vh - 32px)', overflowY:'auto', boxShadow:`0 24px 80px ${color}33`, border:`2px solid ${color}33`, animation:'popInTut 0.4s cubic-bezier(0.34,1.56,0.64,1)', margin:'auto' }}>
 
         {/* Step dots */}
@@ -99,6 +100,7 @@ export default function TutorialModal({ steps, onClose, color = '#A29BFE', stora
         @keyframes popInTut  { from{transform:scale(0.75);opacity:0} to{transform:scale(1);opacity:1} }
         @keyframes bounceTut { 0%{transform:scale(0.5)} 70%{transform:scale(1.15)} 100%{transform:scale(1)} }
       `}</style>
-    </div>
+    </div>,
+    document.body
   )
 }
