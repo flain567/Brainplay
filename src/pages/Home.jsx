@@ -918,10 +918,6 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                 </div>
               </div>
             )}
-          </div>
-          </BorderGlow>
-
-
           {/* ── CTA Semua Game ── */}
           <BorderGlow glowColor="rgba(255, 118, 117, 0.8)" borderRadius="20px" style={{ display: 'block', width: '100%', marginBottom: 32 }}>
           <div
