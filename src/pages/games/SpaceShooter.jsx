@@ -16,6 +16,7 @@ import { useHaptics } from '../../hooks/useHaptics.js'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { WinModal, LoseModal } from '../../components/GameLayout.jsx'
 import { useLeaderboard } from '../../context/LeaderboardContext.jsx'
+import { useMascot } from '../../context/MascotContext.jsx'
 
 const CFG = {
   easy:   { spawnRate:80, enemySpeed:1.2, enemyHP:1, bossHP:18, bulletSpeed:7, lives:5, waveGoal:5, baseScore:300 },
@@ -98,6 +99,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
   const { vibrateLight, vibrateMedium, vibrateHeavy, vibrateSuccess, vibrateError } = useHaptics()
   const { startScoreSession } = useLeaderboard()
   const tc = useThemeColors()
+  const { triggerMascot } = useMascot()
 
   const cfg = CFG[difficulty.id]
   const activeShip = getActiveShip()
@@ -116,6 +118,25 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
   const [combo, setCombo]               = useState(0)
   const [bestScore, setBestScore]       = useState(() => parseInt(localStorage.getItem(`space-best-${difficulty.id}`) || '0'))
   const [bestWave, setBestWave]         = useState(() => parseInt(localStorage.getItem(`space-bestwave-${difficulty.id}`) || '0'))
+
+  const prevLivesRef = useRef(cfg.lives)
+  const lastBossWaveRef = useRef(0)
+
+  // Mascot Triggers
+  useEffect(() => {
+    if (phase === 'playing' && wave > 1 && wave % 3 === 0 && wave !== lastBossWaveRef.current) {
+      triggerMascot('AWAS BOSS DATANG! 🚨 Persiapkan senjatamu!', 'surprised')
+      lastBossWaveRef.current = wave
+      try { vibrateHeavy() } catch(e){}
+    }
+  }, [wave, phase, triggerMascot, vibrateHeavy])
+
+  useEffect(() => {
+    if (phase === 'playing' && lives === 1 && prevLivesRef.current > 1) {
+      triggerMascot('Awas HP kamu sisa sedikit!! 💔', 'sad')
+    }
+    prevLivesRef.current = lives
+  }, [lives, phase, triggerMascot])
 
   const setPhase = (p) => { phaseRef.current = p; _setPhase(p) }
 

@@ -17,6 +17,7 @@ import { useThemeColors } from '../../hooks/useThemeColors.js'
 import { useMatch } from '../../context/MatchContext.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { auth } from '../../firebase.js'
+import { useMascot } from '../../context/MascotContext.jsx'
 import PvpScoreBar from '../../components/PvpScoreBar.jsx'
 import BattleEmotes from '../../components/BattleEmotes.jsx'
 import { GameHeader, StatsBar, ActionButtons, WinModal, BestRecord } from '../../components/GameLayout.jsx'
@@ -55,6 +56,7 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
   const matchCtx = useMatch() || {}
   const { updateMatchState, finishMatch, setActiveMatch } = matchCtx
   const { uid: userId } = useAuth()
+  const { triggerMascot } = useMascot()
   const tc = useThemeColors()
   const dark = tc.dark
   const bg = tc.bg
@@ -71,6 +73,7 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
   const [results, setResults] = useState([])
   const [resetKey, setResetKey] = useState(0)
   const [countdown, setCountdown] = useState(0) // 3,2,1,0
+  const [bestAvg, setBestAvg] = useState(() => parseInt(localStorage.getItem(`react-best-${difficulty.id}-${mode}`) || '0'))
 
   // Tap mode
   const [tapPhase, setTapPhase] = useState('idle') // idle, waiting, go, early, result
@@ -314,6 +317,35 @@ export default function ReactionTest({ onBack, onHome, game, difficulty, multipl
       setTimeout(() => startSeqRound(round), 400)
     }
   }, [round, mode, tapPhase, gameState, seqPhase])
+
+  // Normal game completion
+  useEffect(() => {
+    if (gameState === 'done' && round >= cfg.rounds) {
+      const validResults = results.filter(r => r.time > 0)
+      const avgTime = validResults.length ? Math.round(validResults.reduce((a, b) => a + b.time, 0) / validResults.length) : 0
+      
+      // Mascot Reactions based on average time
+      if (!isMultiplayer && avgTime > 0) {
+        if (avgTime < 250) triggerMascot('Mata elang! Refleks kamu dewa banget! ⚡', 'excited')
+        else if (avgTime < 400) triggerMascot('Bagus! Refleks kamu di atas rata-rata! 🔥', 'happy')
+        else if (avgTime > 600) triggerMascot('Waduh, sepertinya kamu butuh kopi... ☕', 'sad')
+      }
+
+      if (avgTime < bestAvg || bestAvg === 0) setBestAvg(avgTime)
+      localStorage.setItem(`react-best-${difficulty.id}-${mode}`, Math.min(avgTime, bestAvg || 9999))
+      
+      let stars = 1
+      if (mode === 'tap') { stars = avgTime < 250 ? 3 : avgTime < 400 ? 2 : 1 }
+      else if (mode === 'color') { stars = avgTime < 500 ? 3 : avgTime < 800 ? 2 : 1 }
+      else { stars = avgTime < 800 ? 3 : avgTime < 1200 ? 2 : 1 }
+
+      if (!isMultiplayer) {
+        reportGameResult({ gameId: 'reaction-test', difficultyId: difficulty.id, won: true, score: Math.max(0, 1000 - avgTime), stars, timeSec: 0 })
+        const coinAmount = { easy: 10, medium: 15, hard: 25 }[difficulty.id] + (stars === 3 ? 10 : 0)
+        earnCoins(coinAmount, `Menang Reaction Test (${difficulty.id})`)
+      }
+    }
+  }, [gameState, round, results, cfg.rounds, mode, bestAvg, difficulty.id, earnCoins, reportGameResult, isMultiplayer, triggerMascot])
 
   const finishGame = useCallback(() => {
     setGameState('done')
