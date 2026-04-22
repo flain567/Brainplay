@@ -53,6 +53,10 @@ const SOUNDS = {
   click: (ctx) => {
     playTone(ctx, { frequency: 800, type: 'sine', duration: 0.05, gain: 0.15 })
   },
+  pop: (ctx) => {
+    playTone(ctx, { frequency: 700, type: 'sine', duration: 0.04, gain: 0.3 })
+    playTone(ctx, { frequency: 1200, type: 'sine', duration: 0.05, gain: 0.1, delay: 0.04 })
+  },
   hover: (ctx) => {
     playTone(ctx, { frequency: 1000, type: 'sine', duration: 0.04, gain: 0.08 })
   },

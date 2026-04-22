@@ -658,6 +658,7 @@ function AppInner() {
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
+      <div className={`mesh-bg mesh-${screen}`} />
       {/* Auth loading screen — wait for auth + initial cloud sync */}
       {(authLoading || (isLoggedIn && !initialSyncDone)) && (
         <div style={{

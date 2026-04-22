@@ -160,24 +160,71 @@ div[tabindex]:focus:not(:focus-visible) {
 .mesh-bg {
   position: fixed; inset: 0;
   z-index: 0;
+  filter: blur(90px);
+  animation: mesh-drift 18s ease-in-out infinite alternate;
+  opacity: 1 !important;
+  pointer-events: none;
+  transition: background-image 1.5s ease-in-out;
+}
+
+/* Light Mode Flavors */
+.mesh-home, .mesh-bg {
   background-image: 
     radial-gradient(circle at 10% 10%, #5b21b6 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, #a229b6 0%, transparent 40%),
     radial-gradient(circle at 20% 50%, #FF3D77 0%, transparent 50%),
     radial-gradient(circle at 90% 70%, #30176D 0%, transparent 60%),
     radial-gradient(circle at 40% 90%, #FA8B24 0%, transparent 50%);
-  filter: blur(90px);
-  animation: mesh-drift 18s ease-in-out infinite alternate;
-  opacity: 1 !important;
-  pointer-events: none;
 }
 
-body.dark-mode .mesh-bg {
+.mesh-shop {
+  background-image: 
+    radial-gradient(circle at 20% 10%, #EAB308 0%, transparent 50%),
+    radial-gradient(circle at 70% 30%, #FF3D77 0%, transparent 40%),
+    radial-gradient(circle at 40% 70%, #5b21b6 0%, transparent 60%);
+}
+
+.mesh-profile {
+  background-image: 
+    radial-gradient(circle at 10% 10%, #34D399 0%, transparent 50%),
+    radial-gradient(circle at 90% 40%, #0984E3 0%, transparent 50%),
+    radial-gradient(circle at 30% 80%, #5b21b6 0%, transparent 60%);
+}
+
+.mesh-inventory {
+  background-image: 
+    radial-gradient(circle at 30% 20%, #FDCB6E 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, #00CEC9 0%, transparent 50%);
+}
+
+/* Dark Mode Flavors */
+body.dark-mode .mesh-bg { filter: blur(80px); }
+
+body.dark-mode .mesh-home, body.dark-mode .mesh-bg {
   background-image: 
     radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
     radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
     radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
-  filter: blur(80px);
+}
+
+body.dark-mode .mesh-shop {
+  background-image: 
+    radial-gradient(at 10% 0%, hsla(43,100%,20%,1) 0, transparent 50%), 
+    radial-gradient(at 80% 20%, hsla(339,49%,25%,1) 0, transparent 50%), 
+    radial-gradient(at 50% 80%, hsla(253,16%,12%,1) 0, transparent 50%);
+}
+
+body.dark-mode .mesh-profile {
+  background-image: 
+    radial-gradient(at 0% 20%, hsla(170,100%,15%,1) 0, transparent 50%), 
+    radial-gradient(at 80% 0%, hsla(205,39%,25%,1) 0, transparent 50%), 
+    radial-gradient(at 30% 100%, hsla(253,16%,10%,1) 0, transparent 50%);
+}
+
+body.dark-mode .mesh-inventory {
+  background-image: 
+    radial-gradient(at 20% 0%, hsla(35,100%,15%,1) 0, transparent 50%), 
+    radial-gradient(at 80% 80%, hsla(180,50%,20%,1) 0, transparent 50%);
 }
 
 .blueprint-grid {

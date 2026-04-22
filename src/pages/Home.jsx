@@ -482,7 +482,6 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
 
       <div className="home-root" style={{ background: tc.bg }}>
         <ParticleBackground dark={dark} reduceMotion={reduceMotion} />
-        <div className="mesh-bg" />
 
         <div className="home-content">
 

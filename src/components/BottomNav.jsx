@@ -59,6 +59,12 @@ export default function BottomNav({ activeScreen, onNavigate }) {
         .nav-item.active .nav-item-icon {
           transform: translateY(-4px) scale(1.15);
         }
+        .nav-burst {
+          position: fixed; width: 40px; height: 40px;
+          margin-left: -20px; margin-top: -20px;
+          border-radius: 50%; border: 3px solid ${activeColor};
+          pointer-events: none; z-index: 1000;
+        }
         .nav-item-label {
           font-size: 10px; font-weight: 700; color: ${dark ? '#94A3B8' : '#64748B'};
           transition: color 0.3s;
@@ -78,10 +84,26 @@ export default function BottomNav({ activeScreen, onNavigate }) {
           <div 
             key={item.id} 
             className={`nav-item ${isActive ? 'active' : ''}`}
-            onClick={() => {
+            onClick={(e) => {
               if (isActive) return
-              if (navigator.vibrate) navigator.vibrate(15)
-              play('click')
+              if (navigator.vibrate) navigator.vibrate([15, 30, 20])
+              play('pop')
+              
+              // Spawn burst
+              const rect = e.currentTarget.getBoundingClientRect()
+              const x = rect.left + rect.width / 2
+              const y = rect.top + rect.height / 2
+              const burst = document.createElement('div')
+              burst.className = 'nav-burst'
+              burst.style.left = x + 'px'
+              burst.style.top = y + 'px'
+              document.body.appendChild(burst)
+              
+              gsap.fromTo(burst, 
+                { scale: 0.3, opacity: 0.8 },
+                { scale: 2.5, opacity: 0, duration: 0.4, ease: 'power2.out', onComplete: () => burst.remove() }
+              )
+              
               onNavigate(item.id)
             }}
           >
