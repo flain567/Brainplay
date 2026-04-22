@@ -264,7 +264,7 @@ export default function Friends({ onBack }) {
                   friends.map((f, i) => {
                     const prof = friendProfiles[f.uid]
                     return (
-                      <div key={f.uid} className="f-item" style={{ animationDelay: \`\${i * 0.05}s\` }} onClick={() => setInspectingUid(f.uid)}>
+                      <div key={f.uid} className="f-item" style={{ animationDelay: `${i * 0.05}s` }} onClick={() => setInspectingUid(f.uid)}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                           <div className="f-avatar-wrap">
                             {(prof?.photoURL || f.photoURL)
@@ -325,7 +325,7 @@ export default function Friends({ onBack }) {
                     marginTop: 16, textAlign: 'center', padding: '12px', borderRadius: 14,
                     background: addMessage.type === 'error' ? 'rgba(255,107,107,0.1)' : 'rgba(78,205,196,0.1)',
                     color: addMessage.type === 'error' ? '#FF6B6B' : '#4ECDC4',
-                    fontWeight: 800, fontSize: 14, border: \`1px dashed \${addMessage.type === 'error' ? 'rgba(255,107,107,0.4)' : 'rgba(78,205,196,0.4)'}\`
+                    fontWeight: 800, fontSize: 14, border: `1px dashed ${addMessage.type === 'error' ? 'rgba(255,107,107,0.4)' : 'rgba(78,205,196,0.4)'}`
                   }}>
                     {addMessage.text}
                   </div>
@@ -350,7 +350,7 @@ export default function Friends({ onBack }) {
                   </div>
                 ) : (
                   requests.map((r, i) => (
-                    <div key={r.id} className="f-item" style={{ animationDelay: \`\${i * 0.05}s\` }} onClick={() => setInspectingUid(r.fromUid)}>
+                    <div key={r.id} className="f-item" style={{ animationDelay: `${i * 0.05}s` }} onClick={() => setInspectingUid(r.fromUid)}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                         <div className="f-avatar-wrap" style={{ border: '2px solid rgba(255,255,255,0.1)' }}>
                           {r.fromPhoto ? <img src={r.fromPhoto} alt="" /> : <div style={{ fontSize: 24 }}>👤</div>}
