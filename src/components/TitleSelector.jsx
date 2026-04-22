@@ -2,7 +2,6 @@ import { useProgress, LEVEL_TITLES, ACHIEVEMENTS, BP_REWARDS, getTitleColorForLe
 import { useAuth } from '../context/AuthContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useThemeColors } from '../hooks/useThemeColors.js'
-import { useState } from 'react'
 import PremiumTitleBadge from './PremiumTitleBadge.jsx'
 
 export default function TitleSelector({ onClose }) {
@@ -52,13 +51,6 @@ export default function TitleSelector({ onClose }) {
   const handleSelect = (title) => {
     play('click')
     setSelectedTitle(title === 'None' ? null : title)
-  }
-
-  const getRarityColor = (rarity) => {
-    if (rarity === 'legendary') return '#FDCB6E'
-    if (rarity === 'epic') return '#A29BFE'
-    if (rarity === 'rare') return '#4ECDC4'
-    return tc.textMuted
   }
 
   const nameColor = getTitleColorForLevel(levelInfo.level || 0)

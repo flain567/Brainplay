@@ -1,7 +1,7 @@
 import React from 'react'
 
-export default function PremiumTitleBadge({ title, rarity = 'common', size = 'normal', style={} }) {
-  if (!title) return null;
+export default function PremiumTitleBadge({ title, rarity = 'common', size = 'normal', style = {} }) {
+  if (!title) return null
 
   const themes = {
     mythic: {
@@ -37,112 +37,86 @@ export default function PremiumTitleBadge({ title, rarity = 'common', size = 'no
   }
 
   const theme = themes[rarity?.toLowerCase()] || themes.common
+  const isHighTier = rarity === 'mythic' || rarity === 'legendary'
 
-  // Sizes: small, normal, large
   const sCfg = {
-    small: { height: 22, px: 20, fs: 10, offset: 12 },
+    small:  { height: 22, px: 20, fs: 10, offset: 12 },
     normal: { height: 28, px: 26, fs: 12, offset: 14 },
-    large: { height: 36, px: 32, fs: 15, offset: 18 }
+    large:  { height: 36, px: 32, fs: 15, offset: 18 }
   }
   const cfg = sCfg[size] || sCfg.normal
 
+  const clipOuter = `polygon(${cfg.offset}px 0%, calc(100% - ${cfg.offset}px) 0%, 100% 50%, calc(100% - ${cfg.offset}px) 100%, ${cfg.offset}px 100%, 0% 50%)`
+  const clipInner = `polygon(${cfg.offset - 1}px 0%, calc(100% - ${cfg.offset - 1}px) 0%, 100% 50%, calc(100% - ${cfg.offset - 1}px) 100%, ${cfg.offset - 1}px 100%, 0% 50%)`
+
   return (
-    <div className={`ptb-wrapper ptb-rarity-${rarity}`} style={{ ...style, height: cfg.height, filter: theme.glow }}>
+    <>
       <style>{`
-        .ptb-wrapper {
-          position: relative;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          /* Fire pulse animation for high tiers */
-          min-width: 100px;
-        }
-        .ptb-rarity-mythic, .ptb-rarity-legendary {
-          animation: ptbPulse 2s infinite alternate;
-        }
-        .ptb-core {
-          position: relative;
-          height: 100%;
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 0 ${cfg.px}px;
-          clip-path: polygon(${cfg.offset}px 0%, calc(100% - ${cfg.offset}px) 0%, 100% 50%, calc(100% - ${cfg.offset}px) 100%, ${cfg.offset}px 100%, 0% 50%);
-          background: ${theme.border};
-        }
-        .ptb-inner {
-          position: absolute;
-          inset: 2px;
-          clip-path: polygon(${cfg.offset - 1}px 0%, calc(100% - ${cfg.offset - 1}px) 0%, 100% 50%, calc(100% - ${cfg.offset - 1}px) 100%, ${cfg.offset - 1}px 100%, 0% 50%);
-          background: ${theme.bg};
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-        }
-        
-        /* Shimmer effect inside */
-        .ptb-shimmer {
-          position: absolute;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%);
-          transform: translateX(-100%);
-          animation: ptbShimmer 3s infinite linear;
-        }
-
-        .ptb-text {
-          position: relative;
-          z-index: 2;
-          font-family: 'Fredoka One', cursive;
-          font-size: ${cfg.fs}px;
-          color: ${theme.text};
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-          white-space: nowrap;
-        }
-        
-        /* Wings decoration for Mythic and Epic/Legendary */
-        .ptb-decorator {
-          position: absolute;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 8px;
-          height: 8px;
-          background: #fff;
-          opacity: 0.8;
-          box-shadow: 0 0 6px #fff;
-          clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-        }
-        .ptb-rarity-mythic .ptb-decorator, .ptb-rarity-legendary .ptb-decorator {
-          display: block;
-        }
-        .ptb-decorator { display: none; } /* default hidden */
-        .ptb-decorator-left { left: 4px; }
-        .ptb-decorator-right { right: 4px; }
-
         @keyframes ptbPulse {
-          0% { filter: ${theme.glow} brightness(1); }
-          100% { filter: ${theme.glow} drop-shadow(0 0 20px rgba(255,255,255,0.4)) brightness(1.2); }
+          0%   { filter: brightness(1); }
+          100% { filter: brightness(1.2) drop-shadow(0 0 20px rgba(255,255,255,0.3)); }
         }
         @keyframes ptbShimmer {
+          0%   { transform: translateX(-100%); }
           100% { transform: translateX(100%); }
         }
       `}</style>
-      
-      <div className="ptb-core">
-        <div className="ptb-inner">
-          {(rarity === 'mythic' || rarity === 'legendary') && (
-            <>
-              <div className="ptb-shimmer" />
-              <div className="ptb-decorator ptb-decorator-left" />
-              <div className="ptb-decorator ptb-decorator-right" />
-            </>
-          )}
+      <div style={{
+        ...style,
+        position: 'relative',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: cfg.height,
+        minWidth: 80,
+        filter: theme.glow,
+        animation: isHighTier ? 'ptbPulse 2s infinite alternate' : 'none',
+      }}>
+        {/* Outer border shape */}
+        <div style={{
+          position: 'relative',
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: `0 ${cfg.px}px`,
+          clipPath: clipOuter,
+          background: theme.border,
+        }}>
+          {/* Inner fill */}
+          <div style={{
+            position: 'absolute',
+            inset: 2,
+            clipPath: clipInner,
+            background: theme.bg,
+            overflow: 'hidden',
+          }}>
+            {/* Shimmer */}
+            {isHighTier && (
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%)',
+                animation: 'ptbShimmer 3s infinite linear',
+              }} />
+            )}
+          </div>
+
+          {/* Text */}
+          <span style={{
+            position: 'relative',
+            zIndex: 2,
+            fontFamily: "'Fredoka One', cursive",
+            fontSize: cfg.fs,
+            color: theme.text,
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+            textShadow: '0 2px 4px rgba(0,0,0,0.6)',
+            whiteSpace: 'nowrap',
+          }}>{title}</span>
         </div>
-        <span className="ptb-text">{title}</span>
       </div>
-    </div>
+    </>
   )
 }
