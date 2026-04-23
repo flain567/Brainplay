@@ -227,9 +227,9 @@ const BASE_MAP = createPathMap()
 
 // Game Difficulty Configuration
 const FIELD_CFG = {
-  easy:   { hp: 5, totalChests: 6, coinReward: 25 },
-  medium: { hp: 4, totalChests: 10, coinReward: 50 },
-  hard:   { hp: 3, totalChests: 15, coinReward: 100 },
+  easy:   { hp: 5, totalChests: 6, spikeDmg: 1, chestReward: [30, 50], coinReward: 25 },
+  medium: { hp: 4, totalChests: 10, spikeDmg: 1, chestReward: [50, 80], coinReward: 50 },
+  hard:   { hp: 3, totalChests: 15, spikeDmg: 2, chestReward: [80, 150], coinReward: 100 },
 }
 
 // Helper to place clusters
@@ -348,11 +348,6 @@ const MAP = generateFinalMap()
 // ═══════════════════════════════════════════════
 // GAME CONFIG
 // ═══════════════════════════════════════════════
-const DIFF_CFG = {
-  easy:   { hp: 5, spikeDmg: 1, chestReward: [30, 50],  label: 'Santai' },
-  medium: { hp: 3, spikeDmg: 1, chestReward: [50, 80],  label: 'Petualang' },
-  hard:   { hp: 2, spikeDmg: 2, chestReward: [80, 150], label: 'Legendaris' },
-}
 
 const PLAYER_SIZE = 12 // slightly smaller than tile for smoother collision
 const MOVE_SPEED = 1.8
@@ -660,7 +655,7 @@ export default function FieldsAdventure({ onBack, onHome, game, difficulty }) {
         for (let tx = startTX; tx < endTX; tx++) {
           const idx = ty * MAP_W + tx
           const tileId = MAP[idx]
-          const finalTileSrc = g.TILE_SRC_MAP[idx]
+          const finalTileSrc = TILE_SRC_MAP[idx]
           const dx = Math.round(tx * TILE_SIZE)
           const dy = Math.round(ty * TILE_SIZE)
           const key = `${tx},${ty}`
