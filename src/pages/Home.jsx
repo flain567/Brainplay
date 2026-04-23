@@ -62,6 +62,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
     challenges, getChallengeProgress, isChallengeComplete,
     isChallengeClaimed, claimChallenge, claimBonus,
     completedCount, allComplete, bonusAvailable, bonusClaimed, allCompleteBonus,
+    welcomeClaimed,
   } = useDailyChallenge()
   const { currentMode, isBonusClaimedToday, markBonusAsClaimed, getNextWeekendEvent, getWeekNumber } = useLimitedMode()
   const { hasFreeSpins } = useLuckyWheel()
