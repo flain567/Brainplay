@@ -494,26 +494,26 @@ export default function Shop({ onBack }) {
               ? `linear-gradient(135deg, ${dark?'#2d2000':'#FFF8E1'}, ${dark?'#1a1500':'#FFFDE7'})`
               : (dark?'#16213e':'#F5F5F5'),
             border:`2px solid ${isDailyClaimable ? '#FDCB6E' : borderCol}`,
-            borderRadius:20, padding:'18px 22px', marginBottom:24,
+            borderRadius:20, padding:'16px 14px', marginBottom:24,
             animation:'slide-up 0.4s 0.05s ease both',
-            display:'flex', alignItems:'center', gap:16,
+            display:'flex', alignItems:'center', gap:10,
           }}>
-            <div style={{ fontSize:36, flexShrink:0 }}>🎁</div>
-            <div style={{ flex:1 }}>
-              <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:16, color:textMain, marginBottom:2 }}>Hadiah Harian</div>
-              <div style={{ fontSize:12, color:tc.textMuted }}>
-                Streak: {dailyStreak||0}/7 hari • Reward: {COIN_REWARDS.dailyLogin[Math.min((dailyStreak||0), COIN_REWARDS.dailyLogin.length-1)]} 🪙
+            <div style={{ fontSize:32, flexShrink:0 }}>🎁</div>
+            <div style={{ flex:1, minWidth: 0 }}>
+              <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:15, color:textMain, marginBottom:2 }}>Hadiah Harian</div>
+              <div style={{ fontSize:11, color:tc.textMuted }}>
+                Streak: {dailyStreak||0}/7 hri • {COIN_REWARDS.dailyLogin[Math.min((dailyStreak||0), COIN_REWARDS.dailyLogin.length-1)]} 🪙
               </div>
-              <div style={{ display:'flex', gap:4, marginTop:6 }}>
+              <div style={{ display:'flex', gap:4, marginTop:6, flexWrap:'wrap' }}>
                 {COIN_REWARDS.dailyLogin.map((r, i) => (
                   <div key={i} style={{
-                    width:28, height:28, borderRadius:8, display:'flex', flexDirection:'column',
+                    width:24, height:24, borderRadius:6, display:'flex', flexDirection:'column',
                     alignItems:'center', justifyContent:'center', fontSize:8, fontWeight:800,
                     background: i < (dailyStreak||0) ? '#4ECDC422' : (dark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.04)'),
                     border:`1.5px solid ${i < (dailyStreak||0) ? '#4ECDC4' : 'transparent'}`,
                     color: i < (dailyStreak||0) ? '#4ECDC4' : tc.textMuted,
                   }}>
-                    <span style={{ fontSize:10 }}>{r}</span>
+                    <span style={{ fontSize:9 }}>{r}</span>
                   </div>
                 ))}
               </div>
@@ -522,8 +522,8 @@ export default function Shop({ onBack }) {
               style={{
                 background: isDailyClaimable ? 'linear-gradient(135deg,#FDCB6E,#F9A825)' : (dark?'#1e2a4a':'#eee'),
                 color: isDailyClaimable ? '#5D4037' : tc.textMuted,
-                border:'none', borderRadius:14, padding:'10px 16px',
-                fontFamily:"'Fredoka One',cursive", fontSize:13,
+                border:'none', borderRadius:14, padding:'8px 12px',
+                fontFamily:"'Fredoka One',cursive", fontSize:12,
                 cursor: isDailyClaimable ? 'pointer' : 'default',
                 opacity: isDailyClaimable ? 1 : 0.5,
                 boxShadow: isDailyClaimable ? '0 4px 14px rgba(253,203,110,0.3)' : 'none',
