@@ -162,11 +162,20 @@ export default function Inventory({ onBack }) {
         }
         
         /* Chest overlay */
-        .chest-overlay {
+        .chest-overlay-wrap {
           position: fixed; inset: 0; z-index: 9999;
-          background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
           display: flex; flex-direction: column; align-items: center; justify-content: center;
           animation: overlayFadeIn 0.4s ease both;
+        }
+        .chest-overlay-bg {
+          position: absolute; inset: 0;
+          background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+          z-index: 0;
+        }
+        .chest-overlay-content {
+          position: relative; z-index: 1;
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          width: 100%;
         }
         @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
         
@@ -346,44 +355,48 @@ export default function Inventory({ onBack }) {
 
       {/* ─── CHEST OPENING OVERLAY ─── */}
       {openingChest && (
-        <div className="chest-overlay">
-          {!rewards ? (
-             <div ref={chestRef} className="chest-shaking" style={{ fontSize: 120 }}>
-               {CHESTS[openingChest]?.icon}
-             </div>
-          ) : (
-             <div style={{ animation: 'popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
-               <style>{`@keyframes popIn { 0%{transform:scale(0.5);opacity:0} 100%{transform:scale(1);opacity:1} }`}</style>
-               <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: '#FFD700', marginBottom: 20, textAlign: 'center' }}>
-                 JACKPOT!
+        <div className="chest-overlay-wrap">
+          <div className="chest-overlay-bg" />
+          <div className="chest-overlay-content">
+            {!rewards ? (
+               <div ref={chestRef} className="chest-shaking" style={{ fontSize: 120 }}>
+                 {CHESTS[openingChest]?.icon}
                </div>
-               
-               <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
-                 {rewards.map((r, i) => {
-                   const mat = MATERIALS[r.id]
-                   return (
-                     <div key={i} style={{
-                       background: '#1A1F35',
-                       border: `2px solid ${mat.color}`, textAlign: 'center', width: 130, padding: "24px", borderRadius: 24,
-                       boxShadow: `0 10px 30px ${mat.color}33`, animation: `popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.15}s both`
-                     }}>
-                       <div style={{ fontSize: 52, marginBottom: 12 }}>{mat.icon}</div>
-                       <div style={{ fontSize: 16, color: mat.color, fontWeight: 900, fontFamily: "'Fredoka One',cursive" }}>+{r.qty}</div>
-                       <div style={{ fontSize: 11, color: '#E2E8F0', marginTop: 4 }}>{mat.name}</div>
-                     </div>
-                   )
-                 })}
-               </div>
+            ) : (
+               <div style={{ animation: 'popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)', zIndex: 2 }}>
+                 <style>{`@keyframes popIn { 0%{transform:scale(0.5);opacity:0} 100%{transform:scale(1);opacity:1} }`}</style>
+                 <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: '#FFD700', marginBottom: 20, textAlign: 'center' }}>
+                   JACKPOT!
+                 </div>
+                 
+                 <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+                   {rewards.map((r, i) => {
+                     const mat = MATERIALS[r.id]
+                     return (
+                       <div key={i} style={{
+                         background: '#1A1F35',
+                         border: `2px solid ${mat.color}`, textAlign: 'center', width: 130, padding: "24px", borderRadius: 24,
+                         boxShadow: `0 10px 30px ${mat.color}33`, animation: `popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.15}s both`
+                       }}>
+                         <div style={{ fontSize: 52, marginBottom: 12 }}>{mat.icon}</div>
+                         <div style={{ fontSize: 16, color: mat.color, fontWeight: 900, fontFamily: "'Fredoka One',cursive" }}>+{r.qty}</div>
+                         <div style={{ fontSize: 11, color: '#E2E8F0', marginTop: 4 }}>{mat.name}</div>
+                       </div>
+                     )
+                   })}
+                 </div>
 
-               <button onClick={closeRewards} style={{
-                 marginTop: 40, width: '100%', background: '#fff', color: '#000',
-                 padding: '14px', borderRadius: 100, border: 'none',
-                 fontFamily: "'Fredoka One',cursive", fontSize: 16, cursor: 'pointer'
-               }}>
-                 KUMPULKAN
-               </button>
-             </div>
-          )}
+                 <button onClick={closeRewards} style={{
+                   marginTop: 40, width: '100%', background: '#fff', color: '#000',
+                   padding: '14px', borderRadius: 100, border: 'none',
+                   fontFamily: "'Fredoka One',cursive", fontSize: 16, cursor: 'pointer',
+                   position: 'relative', zIndex: 10
+                 }}>
+                   KUMPULKAN
+                 </button>
+               </div>
+            )}
+          </div>
         </div>
       )}
     </div>
