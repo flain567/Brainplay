@@ -522,12 +522,12 @@ export default function Shop({ onBack }) {
               style={{
                 background: isDailyClaimable ? 'linear-gradient(135deg,#FDCB6E,#F9A825)' : (dark?'#1e2a4a':'#eee'),
                 color: isDailyClaimable ? '#5D4037' : tc.textMuted,
-                border:'none', borderRadius:14, padding:'12px 20px',
-                fontFamily:"'Fredoka One',cursive", fontSize:14,
+                border:'none', borderRadius:14, padding:'10px 16px',
+                fontFamily:"'Fredoka One',cursive", fontSize:13,
                 cursor: isDailyClaimable ? 'pointer' : 'default',
                 opacity: isDailyClaimable ? 1 : 0.5,
                 boxShadow: isDailyClaimable ? '0 4px 14px rgba(253,203,110,0.3)' : 'none',
-                transition:'all 0.2s', whiteSpace:'nowrap',
+                transition:'all 0.2s', whiteSpace:'nowrap', flexShrink:0
               }}
             >
               {isDailyClaimable ? '🎁 Klaim!' : '✅ Sudah'}
