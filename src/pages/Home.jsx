@@ -75,6 +75,41 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
   const [selectedGameForModal, setSelectedGameForModal] = useState(null)
   const flipStateRef = useRef(null)
 
+  const [modeTimeLeft, setModeTimeLeft] = useState('00:00:00')
+  useEffect(() => {
+    if (!currentMode || !currentMode.active_days || currentMode.active_days.length === 0) return
+    const endDay = currentMode.active_days[currentMode.active_days.length - 1]
+    
+    function update() {
+      const now = new Date()
+      const cd = now.getDay()
+      let diffDays = 0
+      
+      // Calculate days until 'endDay'
+      if (endDay !== cd) {
+        if (endDay === 0) diffDays = 7 - cd
+        else if (endDay > cd) diffDays = endDay - cd
+      }
+      
+      const target = new Date()
+      target.setDate(now.getDate() + diffDays)
+      target.setHours(23, 59, 59, 999)
+      
+      const dist = target - now
+      if (dist <= 0) {
+        setModeTimeLeft('00:00:00')
+        return
+      }
+      const h = Math.floor(dist / (1000 * 60 * 60))
+      const m = Math.floor((dist / 1000 / 60) % 60)
+      const s = Math.floor((dist / 1000) % 60)
+      setModeTimeLeft(`${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`)
+    }
+    update()
+    const int = setInterval(update, 1000)
+    return () => clearInterval(int)
+  }, [currentMode])
+
   // Capture Flip state BEFORE React updates DOM, then animate after
   const handleTagChange = useCallback((newTag) => {
     if (newTag === activeTag) return
@@ -885,7 +920,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                         fontFamily: 'monospace', fontSize: 11, color: currentMode.color
                       }}>
                         <span style={{ opacity: 0.5, marginRight: 6 }}>ENDS:</span>
-                        <span style={{ fontWeight: 800, letterSpacing: 0.5 }}>{getNextWeekendEvent()?.label || '00:00:00'}</span>
+                        <span style={{ fontWeight: 800, letterSpacing: 0.5 }}>{modeTimeLeft}</span>
                       </div>
                     </div>
                   </div>
