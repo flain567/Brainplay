@@ -188,6 +188,10 @@ export default function Inventory({ onBack }) {
           from { transform: rotate(-8deg) translateX(-2px); }
           to { transform: rotate(8deg) translateX(2px); }
         }
+        @keyframes chestPopIn {
+          0% { transform: scale(0.5); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
       `}</style>
 
       <div className="inv-header">
@@ -365,8 +369,7 @@ export default function Inventory({ onBack }) {
                  {CHESTS[openingChest]?.icon}
                </div>
             ) : (
-               <div style={{ animation: 'popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)', zIndex: 2 }}>
-                 <style>{`@keyframes popIn { 0%{transform:scale(0.5);opacity:0} 100%{transform:scale(1);opacity:1} }`}</style>
+               <div style={{ animation: 'chestPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards', zIndex: 2 }}>
                  <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: '#FFD700', marginBottom: 20, textAlign: 'center' }}>
                    JACKPOT!
                  </div>
@@ -378,7 +381,7 @@ export default function Inventory({ onBack }) {
                        <div key={i} style={{
                          background: '#1A1F35',
                          border: `2px solid ${mat.color}`, textAlign: 'center', width: 130, padding: "24px", borderRadius: 24,
-                         boxShadow: `0 10px 30px ${mat.color}33`, animation: `popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.15}s both`
+                         boxShadow: `0 10px 30px ${mat.color}33`, animation: `chestPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.15}s both`
                        }}>
                          <div style={{ fontSize: 52, marginBottom: 12 }}>{mat.icon}</div>
                          <div style={{ fontSize: 16, color: mat.color, fontWeight: 900, fontFamily: "'Fredoka One',cursive" }}>+{r.qty}</div>
