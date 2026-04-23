@@ -556,7 +556,7 @@ function AppInner() {
   }, [earnCoins, currentMode, trackEvent, userId, nickname])
 
   const activeDiff   = currentGame?.difficulties?.find(d => d.id === difficulty)
-  const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter' || currentGame?.id === 'brick-breaker' || currentGame?.id === 'memory-pattern' || currentGame?.id === 'neon-dash' || currentGame?.id === 'voxel-racer')
+  const isFullscreen = screen === 'game' && (currentGame?.id === 'slither-worm' || currentGame?.id === 'space-shooter' || currentGame?.id === 'brick-breaker' || currentGame?.id === 'memory-pattern' || currentGame?.id === 'neon-dash' || currentGame?.id === 'voxel-racer' || currentGame?.id === 'fields-adventure')
 
   // ─── Hide status bar in fullscreen canvas games ────────────────────────────
   useEffect(() => {
