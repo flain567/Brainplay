@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useInventory, MATERIALS, CHESTS, CONSUMABLES, CRAFTING_RECIPES } from '../context/InventoryContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
 import { useThemeColors } from '../hooks/useThemeColors.js'
@@ -34,6 +35,7 @@ export default function Inventory({ onBack }) {
 
   // --- Animation Handlers ---
   const handleOpenChest = (chestId) => {
+    if (openingChest) return // Prevent multiple rapid clicks wiping the reward screen
     play('click')
     setOpeningChest(chestId)
     setRewards(null)
@@ -354,7 +356,7 @@ export default function Inventory({ onBack }) {
       )}
 
       {/* ─── CHEST OPENING OVERLAY ─── */}
-      {openingChest && (
+      {openingChest && createPortal(
         <div className="chest-overlay-wrap">
           <div className="chest-overlay-bg" />
           <div className="chest-overlay-content">
@@ -397,7 +399,8 @@ export default function Inventory({ onBack }) {
                </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
