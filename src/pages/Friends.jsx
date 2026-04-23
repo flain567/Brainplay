@@ -167,7 +167,7 @@ export default function Friends({ onBack }) {
         }
         .f-avatar-wrap img { width: 100%; height: 100%; objectFit: 'cover'; }
 
-        .f-name { fontFamily: 'Fredoka One', cursive; fontSize: 16px; color: ${textMain}; }
+        .f-name { fontFamily: 'Fredoka One', cursive; fontSize: 16px; color: ${textMain}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .f-title-badge { 
           fontSize: 10px; color: #fff; background: linear-gradient(90deg, #A29BFE, #6C5CE7);
           padding: 2px 8px; border-radius: 8px; text-transform: uppercase; font-weight: 800; display: inline-block; margin-top: 4px;
@@ -265,14 +265,14 @@ export default function Friends({ onBack }) {
                     const prof = friendProfiles[f.uid]
                     return (
                       <div key={f.uid} className="f-item" style={{ animationDelay: `${i * 0.05}s` }} onClick={() => setInspectingUid(f.uid)}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1, minWidth: 0 }}>
                           <div className="f-avatar-wrap">
                             {(prof?.photoURL || f.photoURL)
                               ? <img src={prof?.photoURL || f.photoURL} alt="" />
                               : <div style={{ fontSize: 24 }}>👤</div>
                             }
                           </div>
-                          <div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
                             <div className="f-name">{prof?.displayName || f.displayName || 'Pemain'}</div>
                             {prof?.progress?.selectedTitle ? (
                               <div className="f-title-badge">{prof.progress.selectedTitle}</div>
@@ -281,7 +281,7 @@ export default function Friends({ onBack }) {
                             )}
                           </div>
                         </div>
-                        <div style={{ display: 'flex', gap: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
                           <button className="btn-pvp" onClick={(e) => handleChallenge(e, f)}>⚔️</button>
                           <button className="btn-remove" onClick={(e) => handleRemove(e, f.uid)}>✕</button>
                         </div>
@@ -351,16 +351,16 @@ export default function Friends({ onBack }) {
                 ) : (
                   requests.map((r, i) => (
                     <div key={r.id} className="f-item" style={{ animationDelay: `${i * 0.05}s` }} onClick={() => setInspectingUid(r.fromUid)}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1, minWidth: 0 }}>
                         <div className="f-avatar-wrap" style={{ border: '2px solid rgba(255,255,255,0.1)' }}>
                           {r.fromPhoto ? <img src={r.fromPhoto} alt="" /> : <div style={{ fontSize: 24 }}>👤</div>}
                         </div>
-                        <div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
                           <div className="f-name">{r.fromName || 'Pemain'}</div>
                           <div style={{ fontSize: 11, color: '#4ECDC4', fontWeight: 800, textTransform: 'uppercase', marginTop: 4 }}>Ingin Terkoneksi!</div>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                         <button onClick={(e) => handleAccept(e, r)} style={{
                           background: 'linear-gradient(135deg, #4ECDC4, #00B894)', color: '#fff', border: 'none',
                           borderRadius: 12, padding: '10px 16px', fontFamily: "'Fredoka One',cursive", fontSize: 13,
