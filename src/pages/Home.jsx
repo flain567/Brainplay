@@ -533,6 +533,15 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         body.bp-reduce-motion .section-card { animation:none !important; }
       `}</style>
 
+      {/* DEBUG: marker OUTSIDE home-root */}
+      <div style={{
+        background: '#FF00FF', color: '#FFF', padding: '10px', margin: '10px',
+        fontSize: '16px', fontWeight: 'bold', borderRadius: '8px', textAlign: 'center',
+        position: 'relative', zIndex: 50
+      }}>
+        🟣 MARKER: OUTSIDE home-root (sebelum home-root)
+      </div>
+
       <div className="home-root" style={{ background: tc.bg }}>
         <ParticleBackground dark={dark} reduceMotion={reduceMotion} />
 
