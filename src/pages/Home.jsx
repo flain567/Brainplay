@@ -66,7 +66,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
   } = useDailyChallenge()
   const { currentMode, isBonusClaimedToday, markBonusAsClaimed, getNextWeekendEvent, getWeekNumber } = useLimitedMode()
   const { hasFreeSpins } = useLuckyWheel()
-  const [showIntro, setShowIntro] = useState(!sessionStorage.getItem('bp_intro_played'))
+  const [showIntro, setShowIntro] = useState(false)
   const [hideWelcomeModal, setHideWelcomeModal] = useState(false)
   const tc = useThemeColors()
   const { trackEvent } = useLocalAnalytics()
