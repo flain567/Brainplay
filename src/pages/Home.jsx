@@ -538,8 +538,24 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
 
         <div className="home-content">
 
+          {/* DEBUG MARKER: INSIDE home-content */}
+          <div style={{
+            background: '#00FF00', color: '#000', padding: '10px', marginBottom: '10px',
+            fontSize: '16px', fontWeight: 'bold', borderRadius: '8px', textAlign: 'center'
+          }}>
+            🟢 MARKER: home-content VISIBLE | bg={tc.bg} | dark={String(dark)}
+          </div>
+
           {/* ── Renaissance Hero Section ── */}
           <section className="renaissance-hero">
+
+            {/* DEBUG MARKER: INSIDE hero section */}
+            <div style={{
+              background: '#FFFF00', color: '#000', padding: '8px', marginBottom: '10px',
+              fontSize: '14px', fontWeight: 'bold', borderRadius: '8px'
+            }}>
+              🟡 MARKER: hero section VISIBLE
+            </div>
 
             <div className="hero-subtitle mono-label">BrainPlay.Renaissance.v1.0</div>
             <h1 className="hero-title-main serif-title">
