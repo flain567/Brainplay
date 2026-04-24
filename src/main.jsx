@@ -4,20 +4,8 @@ import App from './App.jsx'
 import SplashScreen from './components/SplashScreen.jsx'
 import './index.css'
 
-function Root() {
-  const [ready, setReady] = useState(false)
-  return (
-    <>
-      {!ready && <SplashScreen onDone={() => setReady(true)} />}
-      <div style={{ opacity: ready ? 1 : 0, transition: 'opacity 0.4s ease' }}>
-        <App />
-      </div>
-    </>
-  )
-}
-
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <Root />
+    <App />
   </React.StrictMode>
 )
