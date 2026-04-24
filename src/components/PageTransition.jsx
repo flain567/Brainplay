@@ -10,19 +10,16 @@ export default function PageTransition({ children, pageKey }) {
   }, [pageKey])
 
   return (
-    <>
-      <style>{`
-        .page-enter {
-          animation: pageEnter 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-        }
-        @keyframes pageEnter {
-          from { opacity: 0; transform: translateY(16px) scale(0.98); }
-          to   { opacity: 1; transform: none; }
-        }
-      `}</style>
-      <div className={visible ? 'page-enter' : ''} style={{ opacity: visible ? 1 : 0, width: '100%', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {children}
-      </div>
-    </>
+    <div style={{
+      opacity: visible ? 1 : 0,
+      transform: visible ? 'none' : 'translateY(8px)',
+      transition: 'opacity 0.35s ease, transform 0.35s ease',
+      width: '100%',
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      {children}
+    </div>
   )
 }
