@@ -247,6 +247,16 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
 
   return (
     <>
+      {/* DEBUG: Remove this after testing. If you see this red banner, the component renders. */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99999,
+        background: '#FF0000', color: '#FFFFFF', padding: '12px 16px',
+        fontSize: '14px', fontWeight: 'bold', textAlign: 'center',
+        fontFamily: 'monospace'
+      }}>
+        ✅ HOME RENDERS OK | intro={String(showIntro)} | claimed={String(welcomeClaimed)} | hide={String(hideWelcomeModal)}
+      </div>
+
       <BlueprintIntro onComplete={() => setShowIntro(false)} />
 
       <style>{`
