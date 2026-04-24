@@ -1323,23 +1323,49 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
       {/* Victory Sequence Overlay */}
       {phase === 'victory_sequence' && (
         <div 
-          className="absolute inset-0 z-[100] flex flex-col items-center justify-center pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%)', backdropFilter: 'blur(4px)' }}
+          style={{ 
+            position: 'absolute', inset: 0, zIndex: 100, 
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            background: 'radial-gradient(circle, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%)', 
+            backdropFilter: 'blur(4px)',
+            pointerEvents: 'none'
+          }}
         >
-          <div className="text-center animate-in fade-in zoom-in duration-700">
-            <h2 className="text-5xl md:text-8xl font-black text-white italic tracking-tighter mb-4" style={{ textShadow: `0 0 40px ${activeShip.color}`, fontStyle: 'italic' }}>
+          <div style={{ textAlign: 'center', animation: 'fadeIn 0.7s ease both' }}>
+            <h2 style={{ 
+              fontSize: isMobile ? '40px' : '70px', 
+              fontWeight: 900, color: '#fff', fontStyle: 'italic',
+              letterSpacing: '-2px', marginBottom: '16px',
+              textShadow: `0 0 40px ${activeShip.color}`,
+              lineHeight: 1
+            }}>
               MISSION<br/>ACCOMPLISHED
             </h2>
-            <div className="flex flex-col items-center space-y-2">
-              <div className="text-zinc-500 text-sm tracking-[0.3em] uppercase font-black">Data Logs Decrypted</div>
-              <div className="text-7xl md:text-9xl font-black text-white tabular-nums tracking-tighter" style={{ filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.3))' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', letterSpacing: '4px', textTransform: 'uppercase', fontWeight: 900 }}>Data Logs Decrypted</div>
+              <div style={{ 
+                fontSize: isMobile ? '60px' : '90px', 
+                fontWeight: 900, color: '#fff', letterSpacing: '-4px',
+                filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.3))',
+                fontVariantNumeric: 'tabular-nums'
+              }}>
                 {vScore.toLocaleString()}
               </div>
             </div>
             {vScore >= (gameRef.current?.finalScore ?? score) && (
-              <div className="mt-12 animate-bounce">
+              <div style={{ marginTop: '48px' }}>
                 <button 
-                  className="pointer-events-auto px-12 py-5 bg-white text-black font-black italic text-2xl rounded-full hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(255,255,255,0.6)] border-4 border-black"
+                  style={{ 
+                    pointerEvents: 'auto', padding: '16px 40px', 
+                    background: '#fff', color: '#000', 
+                    border: '4px solid #000', borderRadius: '100px',
+                    fontSize: '20px', fontWeight: 900, fontStyle: 'italic',
+                    cursor: 'pointer', outline: 'none',
+                    boxShadow: '0 0 50px rgba(255,255,255,0.4)',
+                    transition: 'transform 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+                  onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
                   onClick={() => setPhase('win')}
                 >
                   DEBRIEFING →
