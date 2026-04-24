@@ -29,6 +29,7 @@ import BlueprintIntro from '../components/BlueprintIntro.jsx'
 import BorderGlow from '../components/BorderGlow.jsx'
 import Tilt from '../components/Tilt.jsx'
 import PremiumTitleBadge from '../components/PremiumTitleBadge.jsx'
+import ModeCountdown from '../components/ModeCountdown.jsx'
 gsap.registerPlugin(Flip)
 
 const ROADMAP_FUTURE = [
@@ -888,7 +889,9 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
                         fontFamily: 'monospace', fontSize: 11, color: currentMode.color
                       }}>
                         <span style={{ opacity: 0.5, marginRight: 6 }}>ENDS:</span>
-                        <span style={{ fontWeight: 800, letterSpacing: 0.5 }}>{getNextWeekendEvent()?.label || '00:00:00'}</span>
+                        <span style={{ fontWeight: 800, letterSpacing: 0.5 }}>
+                          <ModeCountdown activeDays={currentMode.active_days} color={currentMode.color} />
+                        </span>
                       </div>
                     </div>
                   </div>
