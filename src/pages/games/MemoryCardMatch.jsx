@@ -362,12 +362,13 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty, mult
         />
       )}
 
-      {/* Mode Selector (Visible before first move) */}
-      {moves === 0 && !won && !failed && (
+      {/* Mode Selector Container - Fixed height to prevent layout jump */}
+      <div style={{ height: (moves === 0 && !won && !failed) ? 70 : 0, overflow: 'hidden', transition: 'height 0.3s ease', marginBottom: (moves === 0 && !won && !failed) ? 24 : 0 }}>
         <div style={{
-          display: 'flex', justifyContent: 'center', gap: 10, marginBottom: 24, padding: '12px',
+          display: 'flex', justifyContent: 'center', gap: 10, padding: '12px',
           background: tc.surface, borderRadius: 20, border: `2px solid ${tc.borderCol}`,
-          boxShadow: '0 4px 15px rgba(0,0,0,0.05)'
+          boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+          touchAction: 'manipulation'
         }}>
           {['standard', 'timeAttack', 'mirror'].map(m => (
             <button key={m} onClick={() => { play('click'); setGameMode(m); }} style={{
@@ -375,13 +376,14 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty, mult
               background: gameMode === m ? 'linear-gradient(135deg, #A29BFE, #6C5CE7)' : (tc.dark ? '#2d3436' : '#f0f0f0'),
               color: gameMode === m ? '#fff' : tc.textMain,
               fontSize: 12, fontWeight: 800, cursor: 'pointer', fontFamily: "'Fredoka One', cursive",
-              transition: 'all 0.2s', transform: gameMode === m ? 'scale(1.05)' : 'none'
+              transition: 'all 0.2s', transform: gameMode === m ? 'scale(1.05)' : 'none',
+              touchAction: 'manipulation'
             }}>
-              {m === 'standard' ? '🎯 Standard' : m === 'timeAttack' ? '⏳ Time Attack' : '🪞 Mirror'}
+              {m === 'standard' ? '🎯 Std' : m === 'timeAttack' ? '⏳ T.A' : '🪞 Mir'}
             </button>
           ))}
         </div>
-      )}
+      </div>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
@@ -421,7 +423,9 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty, mult
         marginBottom: 24,
         perspective: 1000,
         transform: gameMode === 'mirror' ? 'scaleX(-1)' : 'none',
-        filter: gameMode === 'mirror' ? 'drop-shadow(0 0 10px rgba(162, 155, 254, 0.3)) contrast(1.1)' : 'none'
+        filter: gameMode === 'mirror' ? 'drop-shadow(0 0 10px rgba(162, 155, 254, 0.3)) contrast(1.1)' : 'none',
+        touchAction: 'manipulation',
+        userSelect: 'none'
       }}>
         {deck.map(card => (
           <CardTile
