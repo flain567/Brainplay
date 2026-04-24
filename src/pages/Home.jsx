@@ -150,8 +150,10 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
     })
   }, [activeTag])
 
-  useHomeAnimations(reduceMotion)
-  useGSAPScrollTrigger(reduceMotion)
+  // DISABLED: These hooks set elements to opacity:0 and rely on scroll triggers
+  // that often fail on mobile, leaving the entire Home screen blank.
+  // useHomeAnimations(reduceMotion)
+  // useGSAPScrollTrigger(reduceMotion)
 
   const levelInfo = getLevelInfo(progress.totalXP || 0)
   const borderData = getBorderForLevel(levelInfo.level)
@@ -263,14 +265,14 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         .home-content { position:relative; z-index:1; max-width:860px; margin:0 auto; padding:20px 20px 120px; }
 
         /* Renaissance Hero Overhaul */
-          .renaissance-hero {
-            position: relative;
-            z-index: 1;
-            padding: 40px 0;
-            margin-bottom: 32px;
-            border-bottom: 1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'};
-            transition: opacity 0.8s ease;
-          }
+        .renaissance-hero {
+          position: relative;
+          z-index: 1;
+          padding: 40px 0;
+          margin-bottom: 32px;
+          border-bottom: 1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'};
+          animation: fade-in 0.8s ease both;
+        }
         .hero-title-main {
           font-family: var(--font-serif);
           font-size: 52px;
@@ -535,21 +537,10 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
       <div className="home-root" style={{ background: tc.bg }}>
         <ParticleBackground dark={dark} reduceMotion={reduceMotion} />
 
-        <div className="home-content" style={{ 
-          opacity: showIntro ? 0 : 1, 
-          pointerEvents: showIntro ? 'none' : 'auto', 
-          transition: 'opacity 0.8s ease' 
-        }}>
+        <div className="home-content">
 
           {/* ── Renaissance Hero Section ── */}
-          <section 
-            className="renaissance-hero"
-            style={{ 
-              opacity: showIntro ? 0 : 1,
-              pointerEvents: showIntro ? 'none' : 'auto',
-              transition: 'opacity 1s ease'
-            }}
-          >
+          <section className="renaissance-hero">
 
             <div className="hero-subtitle mono-label">BrainPlay.Renaissance.v1.0</div>
             <h1 className="hero-title-main serif-title">
@@ -641,13 +632,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             </button>
           </div>
 
-          {/* Ticker shown only if intro is done or if enough time has passed */}
-          <div style={{ 
-            opacity: showIntro ? 0 : 1, 
-            transition: 'opacity 1s ease',
-            marginBottom: 32,
-            visibility: showIntro ? 'hidden' : 'visible'
-          }}>
+          <div style={{ marginBottom: 32 }}>
             <InfiniteTicker
               items={['SYSTEMS READY', 'DAILY CHALLENGE UPDATED', 'COMMUNITY RECORD BROKEN', 'EVENT ACTIVE']}
               mode="mono"
