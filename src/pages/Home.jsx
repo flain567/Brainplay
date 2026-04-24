@@ -165,19 +165,8 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
   const streakRef = useScrambleNumber(streak, { duration: 0.6, revealDelay: 0.25, skipFirst: false })
   const xpRef = useScrambleNumber(progress.totalXP || 0, { duration: 1.0, skipFirst: false })
 
-  useEffect(() => {
-    if (reduceMotion) return
-    // Stagger entrance for Quick Actions
-    gsap.from('.qa-btn', {
-      y: 20,
-      opacity: 0,
-      stagger: 0.08,
-      duration: 0.8,
-      ease: 'power3.out',
-      delay: 0.4,
-      clearProps: 'all'
-    })
-  }, [reduceMotion])
+  // GSAP entrance animations removed to prevent blank content on mobile
+  // The qa-btn elements rely on CSS transitions for hover/click effects only
 
   const onHoverQA = (e, enter) => {
     if (reduceMotion) return
@@ -271,7 +260,6 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           padding: 40px 0;
           margin-bottom: 32px;
           border-bottom: 1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'};
-          animation: fade-in 0.8s ease both;
         }
         .hero-title-main {
           font-family: var(--font-serif);
@@ -307,7 +295,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           display:flex; align-items:center; gap:14px;
           background:${S.surfaceDeep}; border:1.5px solid ${S.border};
           border-radius:20px; padding:14px 18px; margin-bottom:12px;
-          cursor:pointer; transition:all 0.2s; animation:slide-up 0.4s ease both;
+          cursor:pointer; transition:all 0.2s;
           -webkit-tap-highlight-color:transparent;
         }
         .profile-banner:hover { border-color:${S.accent}; transform:translateY(-2px); }
@@ -336,7 +324,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           grid-template-columns: repeat(4, 1fr); 
           gap: 10px; 
           margin-bottom: 24px; 
-          animation: slide-up 0.4s 0.05s ease both; 
+          margin-bottom: 24px;
         }
         @media (max-width: 480px) {
           .quick-actions { grid-template-columns: repeat(2, 1fr); }
@@ -383,7 +371,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           display:flex; align-items:center; justify-content:space-between;
           background:${S.accentFill}; border:1.5px solid ${S.accentBorder};
           border-radius:14px; padding:11px 16px; margin-bottom:12px;
-          cursor:pointer; transition:all 0.2s; animation:slide-up 0.4s 0.12s ease both;
+          cursor:pointer; transition:all 0.2s;
           -webkit-tap-highlight-color:transparent;
         }
         .wheel-strip:hover { border-color:${S.accent}; transform:translateY(-2px); }
@@ -395,7 +383,8 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
           display:flex; align-items:center; gap:14px; background:${S.surface};
           border:1.5px solid ${S.border}; border-radius:16px; padding:13px 18px;
           margin-bottom:12px; cursor:pointer; transition:all 0.2s;
-          animation:slide-up 0.4s 0.15s ease both; -webkit-tap-highlight-color:transparent;
+          margin-bottom:12px; cursor:pointer; transition:all 0.2s;
+          -webkit-tap-highlight-color:transparent;
         }
         .continue-card:hover { border-color:${S.accent}; transform:translateY(-2px); }
         .continue-card:active { transform:scale(0.99); }
@@ -403,7 +392,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         .continue-sub { font-size:11px; color:${S.muted}; margin-top:2px; }
 
         /* Section Card */
-        .section-card { background:${S.surface}; border:1.5px solid ${S.border}; border-radius:20px; padding:16px; margin-bottom:12px; animation:slide-up 0.4s ease both; }
+        .section-card { background:${S.surface}; border:1.5px solid ${S.border}; border-radius:20px; padding:16px; margin-bottom:12px; }
         .sc-header { display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
         .sc-title { font-family:'Fredoka One',cursive; font-size:16px; color:${S.text}; flex:1; }
         .sc-sub { font-size:10px; color:${S.muted}; font-weight:600; }
@@ -488,7 +477,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         .cs-card:hover { opacity:0.9; transform:scale(1.03); border-style:solid; }
 
         /* Limited mode */
-        .lm-banner { border-radius:18px; padding:18px; margin-bottom:12px; border:1.5px solid; animation:slide-up 0.4s 0.2s ease both; }
+        .lm-banner { border-radius:18px; padding:18px; margin-bottom:12px; border:1.5px solid; }
         .lm-multiplier { font-size:11px; font-weight:800; padding:3px 9px; border-radius:100px; display:flex; align-items:center; gap:4px; }
 
         /* Footer */
@@ -511,7 +500,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
 
 
 
-        @keyframes slide-up { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes slide-up { from { transform:translateY(14px); } to { transform:translateY(0); } }
         @keyframes pulse-soft { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes live-pulse { 0% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.4; transform: scale(0.8); } }
