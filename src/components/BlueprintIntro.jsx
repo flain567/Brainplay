@@ -106,7 +106,7 @@ export default function BlueprintIntro({ onComplete }) {
         style={{
           fontFamily: "'Space Grotesk', sans-serif",
           color: '#7C6FE8', fontSize: '10px', letterSpacing: '4px',
-          textTransform: 'uppercase', position: 'absolute', bottom: '10%',
+          textTransform: 'uppercase', position: 'absolute', top: '25%',
           opacity: 0
         }}
       >
