@@ -65,24 +65,28 @@ export default function BlueprintIntro({ onComplete }) {
         sessionStorage.setItem('bp_intro_played', 'true')
         if (onComplete) onComplete()
       }
-    }, 6000)
+    }, 5500)
 
     return () => {
       tl.kill()
       clearTimeout(safetyTimeout)
     }
-  }, [onComplete, isVisible])
+  }, [onComplete])
 
   if (!isVisible) return null
 
   return (
     <div 
       ref={containerRef}
+      className={`blueprint-root ${!isVisible ? 'hidden' : ''}`}
       style={{
-        position: 'fixed', inset: 0, zIndex: 10000,
+        position: 'fixed',
+        inset: 0,
+        zIndex: 10000,
         backgroundColor: '#0D1022',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        overflow: 'hidden', pointerEvents: 'none'
+        overflow: 'hidden',
+        pointerEvents: isVisible ? 'auto' : 'none'
       }}
     >
       <div className="blueprint-grid" style={{ position: 'absolute', inset: 0 }} />

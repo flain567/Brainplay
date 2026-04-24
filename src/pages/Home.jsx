@@ -67,8 +67,21 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
   const { currentMode, isBonusClaimedToday, markBonusAsClaimed, getNextWeekendEvent, getWeekNumber } = useLimitedMode()
   const { hasFreeSpins } = useLuckyWheel()
   const [showIntro, setShowIntro] = useState(!sessionStorage.getItem('bp_intro_played'))
+  const [hideWelcomeModal, setHideWelcomeModal] = useState(false)
   const tc = useThemeColors()
   const { trackEvent } = useLocalAnalytics()
+
+  // Safety: Force hide intro after 7 seconds no matter what
+  useEffect(() => {
+    if (showIntro) {
+      const t = setTimeout(() => {
+        console.log('[Home] Safety timeout triggered: forcing showIntro=false')
+        setShowIntro(false)
+      }, 7000)
+      return () => clearTimeout(t)
+    }
+  }, [showIntro])
+
   const [scrollTop, setScrollTop] = useState(false)
   const [activeTag, setActiveTag] = useState('Semua')
   const [searchQuery, setSearchQuery] = useState('')
@@ -250,14 +263,14 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
         .home-content { position:relative; z-index:1; max-width:860px; margin:0 auto; padding:20px 20px 120px; }
 
         /* Renaissance Hero Overhaul */
-        .renaissance-hero {
-          position: relative;
-          z-index: 1; /* Creates stacking context keeping mesh-bg inside */
-          padding: 40px 0;
-          margin-bottom: 32px;
-          border-bottom: 1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'};
-          animation: fade-in 1s ease both;
-        }
+          .renaissance-hero {
+            position: relative;
+            z-index: 1;
+            padding: 40px 0;
+            margin-bottom: 32px;
+            border-bottom: 1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'};
+            transition: opacity 0.8s ease;
+          }
         .hero-title-main {
           font-family: var(--font-serif);
           font-size: 52px;
@@ -522,10 +535,21 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
       <div className="home-root" style={{ background: tc.bg }}>
         <ParticleBackground dark={dark} reduceMotion={reduceMotion} />
 
-        <div className="home-content">
+        <div className="home-content" style={{ 
+          opacity: showIntro ? 0 : 1, 
+          pointerEvents: showIntro ? 'none' : 'auto', 
+          transition: 'opacity 0.8s ease' 
+        }}>
 
           {/* ── Renaissance Hero Section ── */}
-          <section className="renaissance-hero">
+          <section 
+            className="renaissance-hero"
+            style={{ 
+              opacity: showIntro ? 0 : 1,
+              pointerEvents: showIntro ? 'none' : 'auto',
+              transition: 'opacity 1s ease'
+            }}
+          >
 
             <div className="hero-subtitle mono-label">BrainPlay.Renaissance.v1.0</div>
             <h1 className="hero-title-main serif-title">
@@ -617,15 +641,19 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             </button>
           </div>
 
-          {!showIntro && (
-            <div style={{ animation: 'fade-in 1s 0.2s ease both', marginBottom: 32 }}>
-              <InfiniteTicker
-                items={['SYSTEMS READY', 'DAILY CHALLENGE UPDATED', 'COMMUNITY RECORD BROKEN', 'EVENT ACTIVE']}
-                mode="mono"
-                speed="45s"
-              />
-            </div>
-          )}
+          {/* Ticker shown only if intro is done or if enough time has passed */}
+          <div style={{ 
+            opacity: showIntro ? 0 : 1, 
+            transition: 'opacity 1s ease',
+            marginBottom: 32,
+            visibility: showIntro ? 'hidden' : 'visible'
+          }}>
+            <InfiniteTicker
+              items={['SYSTEMS READY', 'DAILY CHALLENGE UPDATED', 'COMMUNITY RECORD BROKEN', 'EVENT ACTIVE']}
+              mode="mono"
+              speed="45s"
+            />
+          </div>
 
           {/* ── Interactive Companion Mascot ── */}
           <Tilt tiltMaxAngleX={6} tiltMaxAngleY={6}>
@@ -1070,8 +1098,8 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
       )}
 
       {/* ── Daily Welcome Modal ── */}
-      {!welcomeClaimed && (
-        <DailyWelcomeModal onClose={() => {}} />
+      {!welcomeClaimed && !hideWelcomeModal && (
+        <DailyWelcomeModal onClose={() => setHideWelcomeModal(true)} />
       )}
     </>
   )
