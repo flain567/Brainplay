@@ -289,8 +289,8 @@ body.dark-mode .mesh-inventory {
 @media (max-width: 640px) {
   .nav-root, .modal-overlay, .gdm-overlay, .qs-item {
     /* Reduce filter overhead on specific components only */
-    backdrop-filter: blur(6px) !important;
-    -webkit-backdrop-filter: blur(6px) !important;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
 }
 

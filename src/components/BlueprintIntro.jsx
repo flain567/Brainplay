@@ -57,8 +57,21 @@ export default function BlueprintIntro({ onComplete }) {
       '-=1'
     )
 
-    return () => tl.kill()
-  }, [onComplete])
+    // Safety timeout: ensure intro finishes even if GSAP fails
+    const safetyTimeout = setTimeout(() => {
+      if (isVisible) {
+        console.warn('[BlueprintIntro] Safety timeout triggered')
+        setIsVisible(false)
+        sessionStorage.setItem('bp_intro_played', 'true')
+        if (onComplete) onComplete()
+      }
+    }, 6000)
+
+    return () => {
+      tl.kill()
+      clearTimeout(safetyTimeout)
+    }
+  }, [onComplete, isVisible])
 
   if (!isVisible) return null
 
@@ -72,7 +85,7 @@ export default function BlueprintIntro({ onComplete }) {
         overflow: 'hidden', pointerEvents: 'none'
       }}
     >
-      <div style={{ position: 'absolute', inset: 0, className: 'blueprint-grid' }} />
+      <div className="blueprint-grid" style={{ position: 'absolute', inset: 0 }} />
       
       <svg width="300" height="300" viewBox="0 0 100 100" style={{ position: 'absolute' }}>
         <circle 

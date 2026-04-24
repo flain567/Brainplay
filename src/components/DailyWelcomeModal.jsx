@@ -4,8 +4,12 @@ import { useCoins } from '../context/CoinContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useThemeColors } from '../hooks/useThemeColors.js'
 
+/**
+ * DailyWelcomeModal
+ * A defensive version with CSS animations to avoid GSAP-related stuck states.
+ */
 export default function DailyWelcomeModal({ onClose }) {
-  const { challenges, claimWelcomeBonus } = useDailyChallenge()
+  const { challenges, claimWelcomeBonus, welcomeClaimed } = useDailyChallenge()
   const { earnCoins } = useCoins()
   const { play } = useSound()
   const tc = useThemeColors()
@@ -14,21 +18,36 @@ export default function DailyWelcomeModal({ onClose }) {
   const LOGIN_BONUS = 20
 
   useEffect(() => {
+    console.log('[DailyWelcomeModal] Mounted. welcomeClaimed:', welcomeClaimed)
     play('levelUp')
-  }, [play])
+  }, [play, welcomeClaimed])
+
+  // If already claimed (state update from elsewhere), just close
+  useEffect(() => {
+    if (welcomeClaimed && !isClosing) {
+      console.log('[DailyWelcomeModal] Detected welcomeClaimed=true, closing...')
+      onClose()
+    }
+  }, [welcomeClaimed, onClose, isClosing])
 
   const handleAccept = () => {
+    console.log('[DailyWelcomeModal] handleAccept clicked')
     play('click')
+    
     // Claim the bonus
-    if (claimWelcomeBonus()) {
+    const success = claimWelcomeBonus()
+    console.log('[DailyWelcomeModal] claimWelcomeBonus success:', success)
+    
+    if (success) {
       earnCoins(LOGIN_BONUS, 'Hadiah Login Harian')
     }
     
-    // Trigger close animation
+    // Trigger close animation locally
     setIsClosing(true)
     setTimeout(() => {
+      console.log('[DailyWelcomeModal] Animation finished, calling onClose')
       onClose()
-    }, 300)
+    }, 350)
   }
 
   const dark = tc.dark
@@ -37,123 +56,121 @@ export default function DailyWelcomeModal({ onClose }) {
     <>
       <style>{`
         .dwm-overlay {
-          position: fixed; inset: 0; z-index: 9999;
-          background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
-          display: flex; align-items: center; justify-content: center;
-          padding: 24px;
-          animation: dwm-fade-in 0.3s ease forwards;
+          position: fixed;
+          top: 0; left: 0; right: 0; bottom: 0;
+          z-index: 99999; /* Super high z-index */
+          background: rgba(10, 8, 20, 0.85);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          animation: dwm-fade-in 0.4s ease forwards;
+          pointer-events: auto;
         }
         .dwm-overlay.closing {
           animation: dwm-fade-out 0.3s ease forwards;
         }
         .dwm-modal {
-          background: ${tc.surface}; width: 100%; max-width: 420px;
-          border-radius: 28px; border: 2px solid rgba(82, 30, 148, 0.4);
-          position: relative; overflow: hidden;
-          box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(124, 111, 232, 0.2);
-          padding: 32px 24px 24px; text-align: center;
-          animation: dwm-slide-up 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+          background: ${tc.surface};
+          width: 100%;
+          max-width: 400px;
+          border-radius: 24px;
+          border: 2px solid ${dark ? 'rgba(162,155,254,0.3)' : 'rgba(162,155,254,0.2)'};
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 30px 70px rgba(0,0,0,0.5);
+          padding: 32px 24px;
+          text-align: center;
+          animation: dwm-pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
         .dwm-overlay.closing .dwm-modal {
-          animation: dwm-slide-down 0.3s ease forwards;
+          animation: dwm-pop-out 0.3s ease forwards;
         }
         
-        @keyframes dwm-fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes dwm-fade-out {
-          from { opacity: 1; }
-          to { opacity: 0; }
-        }
-        @keyframes dwm-slide-up {
-          from { opacity: 0; transform: scale(0.8) translateY(50px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        @keyframes dwm-slide-down {
-          from { opacity: 1; transform: scale(1) translateY(0); }
-          to { opacity: 0; transform: scale(0.9) translateY(20px); }
-        }
+        @keyframes dwm-fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes dwm-fade-out { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes dwm-pop-in { from { opacity: 0; transform: scale(0.9) translateY(30px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        @keyframes dwm-pop-out { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.95) translateY(10px); } }
 
-        .dwm-ray {
-          position: absolute; top: -50%; left: -50%; right: -50%; bottom: 50%;
-          background: radial-gradient(circle, rgba(124, 111, 232, 0.3) 0%, transparent 60%);
-          animation: dwmSpin 10s linear infinite; pointer-events: none; z-index: 0;
+        .dwm-glow {
+          position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+          background: radial-gradient(circle, rgba(162, 155, 254, 0.15) 0%, transparent 60%);
+          animation: dwm-rotate 15s linear infinite;
+          pointer-events: none;
         }
-        @keyframes dwmSpin {
-          100% { transform: rotate(360deg); }
-        }
-        .dwm-content { position: relative; z-index: 1; }
-        .dwm-list {
-          margin: 20px 0; display: flex; flex-direction: column; gap: 8px;
-          text-align: left;
-        }
-        .dwm-item {
-          background: ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'};
-          padding: 12px 14px; border-radius: 14px; border: 1px solid ${tc.borderCol};
-          display: flex; align-items: center; gap: 12px;
-        }
+        @keyframes dwm-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
       
-      <div className={`dwm-overlay ${isClosing ? 'closing' : ''}`}>
+      <div className={`dwm-overlay ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className="dwm-modal">
-          <div className="dwm-ray" />
-          <div className="dwm-content">
+          <div className="dwm-glow" />
+          
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ fontSize: 50, marginBottom: 16 }}>🎁</div>
             
-            <div style={{ fontSize: 56, marginBottom: 12, textShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>🌤️</div>
-            
-            <h2 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, margin: '0 0 4px', color: tc.textMain }}>
-              Selamat Datang Kembali!
+            <h2 style={{ 
+              fontFamily: "'Fredoka One', cursive", 
+              fontSize: 24, 
+              color: tc.textMain, 
+              margin: '0 0 8px' 
+            }}>
+              Bonus Harian!
             </h2>
-            <p style={{ margin: 0, fontSize: 13, color: tc.textMuted, fontWeight: 600 }}>
-              Ini misi harianmu — selesaikan untuk koin ekstra!
-            </p>
             
-            <div className="dwm-list">
-              {challenges && challenges.map((ch, i) => (
-                <div key={i} className="dwm-item">
-                  <div style={{ fontSize: 22 }}>{ch.icon}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: tc.textMain }}>{ch.desc}</div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: tc.textMuted }}>Target: {ch.target}x</div>
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: '#FDCB6E', fontFamily: "'Fredoka One',cursive" }}>
-                    {ch.reward} 🪙
-                  </div>
-                </div>
-              ))}
-            </div>
+            <p style={{ 
+              fontSize: 14, 
+              color: tc.textMuted, 
+              lineHeight: 1.5,
+              marginBottom: 24
+            }}>
+              Selamat datang kembali! Klaim bonus koin harianmu dan selesaikan tantangan untuk hadiah ekstra.
+            </p>
 
             <div style={{ 
-              background: 'linear-gradient(135deg, rgba(253,203,110,0.15), rgba(253,203,110,0.05))',
-              border: '1.5px dashed rgba(253,203,110,0.5)',
-              padding: 14, borderRadius: 16, marginBottom: 20
+              background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+              padding: '16px 20px',
+              borderRadius: 20,
+              border: `1.5px dashed ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+              marginBottom: 24
             }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: '#FDCB6E', textTransform: 'uppercase' }}>HADIAH LOGIN:</span>
-              <div style={{ fontSize: 20, fontFamily: "'Fredoka One',cursive", color: '#FFD700', marginTop: 4 }}>+{LOGIN_BONUS} Koin 🪙</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#FDCB6E', textTransform: 'uppercase', marginBottom: 4 }}>
+                Login Reward
+              </div>
+              <div style={{ 
+                fontSize: 24, 
+                fontFamily: "'Fredoka One', cursive", 
+                color: '#FFD700' 
+              }}>
+                +{LOGIN_BONUS} Koin 🪙
+              </div>
             </div>
 
             <button
               onClick={handleAccept}
               style={{
-                width: '100%', padding: 16, borderRadius: 16, border: 'none',
-                background: 'linear-gradient(135deg, #6C5CE7, #A29BFE)',
-                color: '#fff', fontFamily: "'Fredoka One',cursive", fontSize: 16,
-                boxShadow: '0 8px 20px rgba(108,92,231,0.4)', cursor: 'pointer',
-                transition: 'transform 0.1s'
+                width: '100%',
+                padding: '16px',
+                borderRadius: 18,
+                border: 'none',
+                background: 'linear-gradient(135deg, #7C6FE8, #A29BFE)',
+                color: '#fff',
+                fontFamily: "'Fredoka One', cursive",
+                fontSize: 16,
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                boxShadow: '0 8px 20px rgba(124,111,232,0.3)',
+                transition: 'all 0.2s'
               }}
-              onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.1)'}
-              onMouseLeave={e => e.currentTarget.style.filter = 'brightness(1)'}
               onMouseDown={e => e.currentTarget.style.transform = 'scale(0.96)'}
               onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
             >
-              Terima Tantangan & Klaim!
+              Klaim & Lanjut Main!
             </button>
-            
           </div>
         </div>
       </div>
     </>
   )
 }
-
