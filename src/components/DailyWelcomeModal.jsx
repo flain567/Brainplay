@@ -1,9 +1,8 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDailyChallenge } from '../context/DailyChallengeContext.jsx'
 import { useCoins } from '../context/CoinContext.jsx'
 import { useSound } from '../hooks/useSound.js'
 import { useThemeColors } from '../hooks/useThemeColors.js'
-import gsap from 'gsap'
 
 export default function DailyWelcomeModal({ onClose }) {
   const { challenges, claimWelcomeBonus } = useDailyChallenge()
@@ -11,30 +10,25 @@ export default function DailyWelcomeModal({ onClose }) {
   const { play } = useSound()
   const tc = useThemeColors()
   
-  const overlayRef = useRef()
-  const modalRef = useRef()
+  const [isClosing, setIsClosing] = useState(false)
   const LOGIN_BONUS = 20
 
   useEffect(() => {
     play('levelUp')
-    
-    // Animate In
-    gsap.fromTo(overlayRef.current, { opacity: 0 }, { opacity: 1, duration: 0.3 })
-    gsap.fromTo(modalRef.current, 
-      { opacity: 0, scale: 0.8, y: 50 }, 
-      { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: 'back.out(1.5)' }
-    )
   }, [play])
 
   const handleAccept = () => {
     play('click')
-    // Claim the bonus and dismiss
+    // Claim the bonus
     if (claimWelcomeBonus()) {
       earnCoins(LOGIN_BONUS, 'Hadiah Login Harian')
     }
     
-    gsap.to(modalRef.current, { opacity: 0, scale: 0.9, y: 20, duration: 0.2 })
-    gsap.to(overlayRef.current, { opacity: 0, duration: 0.3, delay: 0.1, onComplete: onClose })
+    // Trigger close animation
+    setIsClosing(true)
+    setTimeout(() => {
+      onClose()
+    }, 300)
   }
 
   const dark = tc.dark
@@ -47,6 +41,10 @@ export default function DailyWelcomeModal({ onClose }) {
           background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
           display: flex; align-items: center; justify-content: center;
           padding: 24px;
+          animation: dwm-fade-in 0.3s ease forwards;
+        }
+        .dwm-overlay.closing {
+          animation: dwm-fade-out 0.3s ease forwards;
         }
         .dwm-modal {
           background: ${tc.surface}; width: 100%; max-width: 420px;
@@ -54,7 +52,29 @@ export default function DailyWelcomeModal({ onClose }) {
           position: relative; overflow: hidden;
           box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(124, 111, 232, 0.2);
           padding: 32px 24px 24px; text-align: center;
+          animation: dwm-slide-up 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
+        .dwm-overlay.closing .dwm-modal {
+          animation: dwm-slide-down 0.3s ease forwards;
+        }
+        
+        @keyframes dwm-fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes dwm-fade-out {
+          from { opacity: 1; }
+          to { opacity: 0; }
+        }
+        @keyframes dwm-slide-up {
+          from { opacity: 0; transform: scale(0.8) translateY(50px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes dwm-slide-down {
+          from { opacity: 1; transform: scale(1) translateY(0); }
+          to { opacity: 0; transform: scale(0.9) translateY(20px); }
+        }
+
         .dwm-ray {
           position: absolute; top: -50%; left: -50%; right: -50%; bottom: 50%;
           background: radial-gradient(circle, rgba(124, 111, 232, 0.3) 0%, transparent 60%);
@@ -65,7 +85,7 @@ export default function DailyWelcomeModal({ onClose }) {
         }
         .dwm-content { position: relative; z-index: 1; }
         .dwm-list {
-          margin: 20px 0; display: flex; flexDirection: column; gap: 8px;
+          margin: 20px 0; display: flex; flex-direction: column; gap: 8px;
           text-align: left;
         }
         .dwm-item {
@@ -75,8 +95,8 @@ export default function DailyWelcomeModal({ onClose }) {
         }
       `}</style>
       
-      <div className="dwm-overlay" ref={overlayRef}>
-        <div className="dwm-modal" ref={modalRef}>
+      <div className={`dwm-overlay ${isClosing ? 'closing' : ''}`}>
+        <div className="dwm-modal">
           <div className="dwm-ray" />
           <div className="dwm-content">
             
@@ -90,7 +110,7 @@ export default function DailyWelcomeModal({ onClose }) {
             </p>
             
             <div className="dwm-list">
-              {challenges.map((ch, i) => (
+              {challenges && challenges.map((ch, i) => (
                 <div key={i} className="dwm-item">
                   <div style={{ fontSize: 22 }}>{ch.icon}</div>
                   <div style={{ flex: 1 }}>
@@ -136,3 +156,4 @@ export default function DailyWelcomeModal({ onClose }) {
     </>
   )
 }
+
