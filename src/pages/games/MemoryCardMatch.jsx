@@ -342,7 +342,7 @@ export default function MemoryCardMatch({ onBack, onHome, game, difficulty, mult
   }, [winStars, difficulty.id])
 
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: tc.bg, minHeight: '100dvh', transition: 'background 0.3s', position: 'relative', overflowX: 'hidden' }}>
+    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 60px', background: tc.bg, minHeight: '100vh', transition: 'background 0.3s', position: 'relative', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
       {showTutorial && !isMultiplayer && <TutorialModal steps={TUTORIAL_STEPS} color="#FF6B6B" onClose={() => { setShowTutorial(false); localStorage.setItem("bp_tut_memory-card","1") }} />}
       {showConfetti && <Confetti onComplete={() => setShowConfetti(false)} />}
 
@@ -565,7 +565,7 @@ function CardTile({ card, onClick, darkMode, small, cardBack, isMirror }) {
   const isImage = card.emoji && card.emoji.startsWith('/')
 
   return (
-    <div onClick={onClick} style={{ aspectRatio: '1', perspective: 1000, cursor: card.matched ? 'default' : 'pointer', height: '100%' }}>
+    <div onClick={onClick} style={{ aspectRatio: '1', perspective: 1000, cursor: card.matched ? 'default' : 'pointer', width: '100%' }}>
       <div style={{
         width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d',
         transition: 'transform 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
