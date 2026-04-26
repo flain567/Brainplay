@@ -65,13 +65,71 @@ div[tabindex]:focus:not(:focus-visible) {
   outline: none;
 }
 
-/* Better tap feedback on mobile */
-@media (hover: none) {
-  .gcard:active, .filter-btn:active, .nav-btn:active,
-  .diff-option:active, .shop-pack:active, .ach-filter-btn:active,
-  .shop-tab:active {
+/* Better tap feedback on mobile — universal system */
+/* Phase 1: All interactive elements get base transition */
+button, [role="button"], [tabindex="0"],
+.nav-item, .gcard, .mini-card, .shop-pack, .shop-tab,
+.filter-btn, .diff-option, .ach-filter-btn, .qs-item,
+.qs-trigger, .f-item, .f-tab, .f-back, .prof-back,
+.lb-back, .lb-game-tab, .lb-diff-tab, .lb-mode-btn, .lb-row,
+.shop-back, .premium-card, .game-stat-row, .prof-stat,
+.nav-btn, .code-display, .btn-pvp, .btn-remove {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.15s ease,
+              box-shadow 0.2s ease,
+              border-color 0.2s ease,
+              background 0.2s ease;
+}
+
+/* Phase 2: Mobile — :active provides tap feedback since :hover doesn't fire */
+@media (hover: none) and (pointer: coarse) {
+  /* Universal button press */
+  button:active, [role="button"]:active, [tabindex="0"]:active {
+    transform: scale(0.96) !important;
+    opacity: 0.85 !important;
+  }
+
+  /* Cards and larger tap targets — subtler scale */
+  .gcard:active, .mini-card:active, .shop-pack:active,
+  .f-item:active, .lb-row:active, .game-stat-row:active,
+  .prof-stat:active, .premium-card:active, .code-display:active {
     transform: scale(0.97) !important;
-    transition: transform 0.1s !important;
+    opacity: 0.9 !important;
+  }
+
+  /* Tabs and small chips — tighter scale */
+  .shop-tab:active, .filter-btn:active, .ach-filter-btn:active,
+  .lb-game-tab:active, .lb-diff-tab:active, .lb-mode-btn:active,
+  .f-tab:active, .diff-option:active {
+    transform: scale(0.94) !important;
+    opacity: 0.8 !important;
+  }
+
+  /* Navigation items */
+  .nav-item:active, .nav-btn:active {
+    transform: scale(0.90) !important;
+    opacity: 0.8 !important;
+  }
+
+  /* Icon buttons — deeper press */
+  .f-back:active, .prof-back:active, .lb-back:active,
+  .shop-back:active, .qs-trigger:active, .btn-pvp:active,
+  .btn-remove:active, .qs-item:active {
+    transform: scale(0.92) !important;
+    opacity: 0.8 !important;
+  }
+
+  /* Prevent :hover "sticking" after tap on mobile */
+  button:hover, [role="button"]:hover { }
+}
+
+/* Phase 3: Desktop — guard :hover transforms so they don't fire on touch */
+@media (hover: hover) and (pointer: fine) {
+  .premium-card:hover {
+    border-color: var(--accent-vivid);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(124,111,232,0.25);
   }
 }
 
@@ -81,8 +139,12 @@ div[tabindex]:focus:not(:focus-visible) {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   padding-bottom: 4px;
+  scroll-snap-type: x proximity;
 }
 .scroll-row::-webkit-scrollbar { display: none; }
+.scroll-row > * {
+  scroll-snap-align: start;
+}
 
 /* Selection color */
 ::selection { background: rgba(162,155,254,0.3); color: #2D3436; }
@@ -268,27 +330,9 @@ body.dark-mode .mesh-inventory {
   -webkit-user-select: none;
 }
 
-/* Optimize all active scales for mobile touch */
-@media (hover: none) {
-  button:active, .gcard:active, .mini-card:active {
-    transform: scale(0.96) translateZ(0) !important;
-    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  }
-}
-
-/* Smoother scroll rows */
-.scroll-row {
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
-}
-.scroll-row > * {
-  scroll-snap-align: start;
-}
-
 /* Optimization for low-end mobile */
 @media (max-width: 640px) {
   .nav-root, .modal-overlay, .gdm-overlay, .qs-item {
-    /* Reduce filter overhead on specific components only */
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
   }
@@ -306,12 +350,6 @@ body.dark-mode .mesh-inventory {
   border-radius: 20px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.22);
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.premium-card:hover {
-  border-color: var(--accent-vivid);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(124,111,232,0.25);
 }
 
 /* --- Atmosphere & Polish --- */
