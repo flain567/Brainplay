@@ -824,8 +824,6 @@ function AppInner() {
             else if (target === 'shop') goShop()
             else if (target === 'profile') goProfile()
             else if (target === 'games') goGames()
-            else if (target === 'inventory') goInventory()
-            else if (target === 'friends') goFriends()
           }} 
         />
       )}
