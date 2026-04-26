@@ -3,6 +3,7 @@ import { auth, googleProvider } from '../firebase.js'
 import { 
   signInWithPopup, 
   signInWithRedirect, 
+  linkWithRedirect, 
   getRedirectResult, 
   signOut, 
   onAuthStateChanged,
@@ -59,24 +60,47 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = useCallback(async () => {
     setError(null)
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
     try {
       if (auth.currentUser?.isAnonymous) {
         try {
           // Attempt to link current guest progress to Google
+          // On mobile, linking with popup is often blocked, but redirect is safer
+          if (isMobile) {
+            await linkWithRedirect(auth.currentUser, googleProvider)
+            return true
+          }
           await linkWithPopup(auth.currentUser, googleProvider)
         } catch (linkErr) {
-          // If the Google account is already linked to another player, 
-          // we should SWITCH to that account instead of staying as guest.
           if (linkErr.code === 'auth/credential-already-in-use') {
             console.log('[Auth] Google account already exists, switching account...')
-            // Force save guest data if needed? Usually we just switch.
-            await signInWithPopup(auth, googleProvider)
+            if (isMobile) {
+              await signInWithRedirect(auth, googleProvider)
+            } else {
+              await signInWithPopup(auth, googleProvider)
+            }
+          } else if (linkErr.code === 'auth/popup-blocked') {
+            // Fallback to redirect if popup is blocked
+            await linkWithRedirect(auth.currentUser, googleProvider)
           } else {
             throw linkErr
           }
         }
       } else {
-        await signInWithPopup(auth, googleProvider)
+        if (isMobile) {
+          await signInWithRedirect(auth, googleProvider)
+        } else {
+          try {
+            await signInWithPopup(auth, googleProvider)
+          } catch (err) {
+            if (err.code === 'auth/popup-blocked') {
+              await signInWithRedirect(auth, googleProvider)
+            } else {
+              throw err
+            }
+          }
+        }
       }
       return true
     } catch (err) {
@@ -84,7 +108,7 @@ export function AuthProvider({ children }) {
       if (err.code === 'auth/credential-already-in-use') {
         setError('Akun Google ini sudah terhubung dengan ID pemain lain.')
       } else if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
-        setError('Popup terblokir atau ditutup. Coba lagi.')
+        setError('Popup terblokir. Gunakan browser standar atau izinkan popup.')
       } else if (err.code === 'auth/cancelled-popup-request') {
         // Ignore duplicate popup requests
       } else {
