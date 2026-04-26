@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense, useCallback } from 'react'
 import { SettingsProvider, useSettings } from './context/SettingsContext.jsx'
 import { ProgressProvider, useProgress, getLevelInfo } from './context/ProgressContext.jsx'
 import { CoinProvider, useCoins } from './context/CoinContext.jsx'
@@ -32,6 +32,7 @@ import MascotCompanion from './components/MascotCompanion.jsx'
 import LuckyWheel from './components/LuckyWheel.jsx'
 import PvpBattleIntro from './components/PvpBattleIntro.jsx'
 import Home from './pages/Home.jsx'
+import { ProfileSkeleton, ShopSkeleton, LeaderboardSkeleton, GamesSkeleton, InventorySkeleton, FriendsSkeleton, StatsSkeleton, GameLoadingSkeleton } from './components/SkeletonLoader.jsx'
 import { PauseModal } from './components/GameLayout.jsx'
 import { useThemeColors } from './hooks/useThemeColors.js'
 import { migrateOldStorage } from './utils/storage.js'
@@ -82,19 +83,9 @@ const MinesweeperGame = lazy(() => import('./pages/games/Minesweeper.jsx'))
 const FieldsAdventure = lazy(() => import('./pages/games/FieldsAdventure.jsx'))
 const LetterTilesGame = lazy(() => import('./pages/games/LetterTiles.jsx'))
 
-// ─── Game loading fallback ──────────────────────────────────────────────────
+// ─── Game loading fallback (legacy — only used for actual game components) ──
 function GameLoader() {
-  return (
-    <div style={{
-      width:'100%', height:'100vh', display:'flex', flexDirection:'column',
-      alignItems:'center', justifyContent:'center', gap:16,
-      background:'#07071a',
-    }}>
-      <div style={{ fontSize:48, animation:'gl-spin 1.2s linear infinite' }}>🎮</div>
-      <div style={{ fontFamily:"'Fredoka One',cursive", color:'#A29BFE', fontSize:16 }}>Memuat game...</div>
-      <style>{`@keyframes gl-spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  )
+  return <GameLoadingSkeleton />
 }
 
 export const GAMES = [
@@ -727,7 +718,7 @@ function AppInner() {
             />
           )}
           {screen === 'profile' && (
-            <Suspense fallback={<GameLoader />}>
+            <Suspense fallback={<ProfileSkeleton />}>
               <Profile 
                 onBack={goHome} 
                 games={GAMES} 
@@ -738,43 +729,43 @@ function AppInner() {
             </Suspense>
           )}
           {screen === 'shop' && (
-            <Suspense fallback={<GameLoader />}>
+            <Suspense fallback={<ShopSkeleton />}>
               <Shop onBack={goHome} />
             </Suspense>
           )}
           {screen === 'games' && (
-            <Suspense fallback={<GameLoader />}>
+            <Suspense fallback={<GamesSkeleton />}>
               <GamesPage games={GAMES} onOpenGame={openGame} onBack={goHome} />
             </Suspense>
           )}
           {screen === 'inventory' && (
-            <Suspense fallback={<GameLoader />}>
+            <Suspense fallback={<InventorySkeleton />}>
               <InventoryPage onBack={goHome} />
             </Suspense>
           )}
           {screen === 'friends' && (
-            <Suspense fallback={<GameLoader />}>
+            <Suspense fallback={<FriendsSkeleton />}>
               <FriendsPage onBack={goHome} />
             </Suspense>
           )}
 
           {screen === 'leaderboard' && (
-            <Suspense fallback={<GameLoader />}>
+            <Suspense fallback={<LeaderboardSkeleton />}>
               <Leaderboard onBack={goHome} games={GAMES} onInspect={setInspectingUid} />
             </Suspense>
           )}
           {screen === 'stats' && (
-            <Suspense fallback={<GameLoader />}>
+            <Suspense fallback={<StatsSkeleton />}>
               <GameStatsPage onBack={goHome} />
             </Suspense>
           )}
           {screen === 'analytics' && (
-            <Suspense fallback={<GameLoader />}>
+            <Suspense fallback={<StatsSkeleton />}>
               <AnalyticsDashboard onBack={goHome} />
             </Suspense>
           )}
           {screen === 'admin' && isAdmin && (
-            <Suspense fallback={<GameLoader />}>
+            <Suspense fallback={<StatsSkeleton />}>
               <AdminAnalyticsDashboard />
             </Suspense>
           )}

@@ -12,15 +12,24 @@ export default function PageTransition({ children, pageKey }) {
   return (
     <>
       <style>{`
-        .page-enter {
-          animation: pageEnter 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        .page-transition-wrap {
+          width: 100%;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+          will-change: opacity, transform;
         }
-        @keyframes pageEnter {
-          from { transform: translateY(16px) scale(0.98); }
-          to   { transform: none; }
+        .page-transition-wrap.entering {
+          opacity: 0;
+          transform: translateY(12px) scale(0.99);
+        }
+        .page-transition-wrap.visible {
+          opacity: 1;
+          transform: none;
         }
       `}</style>
-      <div className={visible ? 'page-enter' : ''} style={{ opacity: visible ? 1 : 0, width: '100%', flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div className={`page-transition-wrap ${visible ? 'visible' : 'entering'}`}>
         {children}
       </div>
     </>
