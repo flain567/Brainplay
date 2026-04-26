@@ -75,6 +75,7 @@ export function AuthProvider({ children }) {
         } catch (linkErr) {
           if (linkErr.code === 'auth/credential-already-in-use') {
             console.log('[Auth] Google account already exists, switching account...')
+            await signOut(auth)
             if (isMobile) {
               await signInWithRedirect(auth, googleProvider)
             } else {
