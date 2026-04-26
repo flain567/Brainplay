@@ -61,18 +61,32 @@ export function AuthProvider({ children }) {
     setError(null)
     try {
       if (auth.currentUser?.isAnonymous) {
-        // Upgrade anonymous account to Google
-        await linkWithPopup(auth.currentUser, googleProvider)
+        try {
+          // Attempt to link current guest progress to Google
+          await linkWithPopup(auth.currentUser, googleProvider)
+        } catch (linkErr) {
+          // If the Google account is already linked to another player, 
+          // we should SWITCH to that account instead of staying as guest.
+          if (linkErr.code === 'auth/credential-already-in-use') {
+            console.log('[Auth] Google account already exists, switching account...')
+            // Force save guest data if needed? Usually we just switch.
+            await signInWithPopup(auth, googleProvider)
+          } else {
+            throw linkErr
+          }
+        }
       } else {
         await signInWithPopup(auth, googleProvider)
       }
       return true
     } catch (err) {
+      console.error('[Auth] Login error:', err)
       if (err.code === 'auth/credential-already-in-use') {
         setError('Akun Google ini sudah terhubung dengan ID pemain lain.')
       } else if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
-        // Fallback for mobile if needed, but linking usually needs popup
         setError('Popup terblokir atau ditutup. Coba lagi.')
+      } else if (err.code === 'auth/cancelled-popup-request') {
+        // Ignore duplicate popup requests
       } else {
         setError(err.message || 'Login gagal')
       }

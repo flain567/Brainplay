@@ -120,8 +120,7 @@ button, [role="button"], [tabindex="0"],
     opacity: 0.8 !important;
   }
 
-  /* Prevent :hover "sticking" after tap on mobile */
-  button:hover, [role="button"]:hover { }
+  /* Prevent :hover "sticking" after tap on mobile — actual hover logic is gated below */
 }
 
 /* Phase 3: Desktop — guard :hover transforms so they don't fire on touch */
