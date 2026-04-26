@@ -428,6 +428,27 @@ function AppInner() {
 
   const screenRef = useRef(screen)
   const navRef = useRef({ goHome: null, goBackToDifficulty: null })
+  const scrollPositions = useRef({})
+
+  // ─── Scroll position save/restore helper ──────────────────────────────────
+  // Save current scroll, switch screen, restore target scroll
+  const navigateTo = useCallback((targetScreen, { resetScroll = false } = {}) => {
+    // Save current screen's scroll position
+    const currentScreen = screenRef.current
+    scrollPositions.current[currentScreen] = window.scrollY || 0
+
+    // Switch screen
+    setScreen(targetScreen)
+
+    // Restore or reset scroll after React render
+    requestAnimationFrame(() => {
+      if (resetScroll || !scrollPositions.current[targetScreen]) {
+        window.scrollTo({ top: 0 })
+      } else {
+        window.scrollTo({ top: scrollPositions.current[targetScreen] })
+      }
+    })
+  }, [])
   const { isLoggedIn, isGuest, needsName, loading: authLoading, userId, playerName: nickname } = useAuth()
   const { initialSyncDone } = useCloudSave()
   const { muted, musicOff } = useSettings()
@@ -561,17 +582,17 @@ function AppInner() {
   const openGame = (gameId, diffId = null) => {
     const g = GAMES.find(x => x.id === gameId)
     if (!g) return
+    scrollPositions.current[screenRef.current] = window.scrollY || 0
     setCurrentGame(g)
     if (diffId) {
       setDifficulty(diffId)
-      setScreen('game')
+      navigateTo('game', { resetScroll: true })
       saveLastPlayed(gameId, diffId)
       trackGameStart(gameId, diffId)
     } else {
-      setScreen('difficulty')
+      navigateTo('difficulty', { resetScroll: true })
     }
     setGameKey(k => k + 1)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   const continueLastSession = () => {
     const lp = getLastPlayed()
@@ -580,14 +601,12 @@ function AppInner() {
     if (!g || !g.difficulties?.some(d => d.id === lp.difficultyId)) return
     setCurrentGame(g)
     setDifficulty(lp.difficultyId)
-    setScreen('game')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    navigateTo('game', { resetScroll: true })
     trackGameStart(g.id, lp.difficultyId)
   }
   const selectDifficulty = (diffId) => {
     setDifficulty(diffId)
-    setScreen('game')
-    window.scrollTo({ top: 0 })
+    navigateTo('game', { resetScroll: true })
     if (currentGame) {
       saveLastPlayed(currentGame.id, diffId)
       trackGameStart(currentGame.id, diffId)
@@ -596,11 +615,11 @@ function AppInner() {
   const goHome = () => {
     setIsWheelOpen(false)
     if (screenRef.current === 'game' && currentGame) trackGameDropoff(currentGame.id, difficulty, 'back_to_home')
-    setScreen('home'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' })
+    setCurrentGame(null); setDifficulty(null); navigateTo('home')
   }
   const goBackToDifficulty = () => {
     if (currentGame) trackGameDropoff(currentGame.id, difficulty, 'back_to_difficulty')
-    setDifficulty(null); setScreen('difficulty'); window.scrollTo({ top: 0, behavior: 'smooth' })
+    setDifficulty(null); navigateTo('difficulty', { resetScroll: true })
   }
 
   // Keep refs in sync for back button handler
@@ -608,15 +627,15 @@ function AppInner() {
   navRef.current.goHome = goHome
   navRef.current.goBackToDifficulty = goBackToDifficulty
   
-  const goProfile     = () => { setIsWheelOpen(false); setScreen('profile'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const goShop        = () => { setIsWheelOpen(false); setScreen('shop'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const goLeaderboard = () => { setIsWheelOpen(false); setScreen('leaderboard'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const goStats       = () => { setIsWheelOpen(false); setScreen('stats'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const goInventory   = () => { setIsWheelOpen(false); setScreen('inventory'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const goFriends     = () => { setIsWheelOpen(false); setScreen('friends'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const goAnalytics   = () => { setIsWheelOpen(false); setScreen('analytics'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const goGames       = () => { setIsWheelOpen(false); setScreen('games'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const goAdmin       = () => { setIsWheelOpen(false); setScreen('admin'); setCurrentGame(null); setDifficulty(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const goProfile     = () => { setIsWheelOpen(false); setCurrentGame(null); setDifficulty(null); navigateTo('profile') }
+  const goShop        = () => { setIsWheelOpen(false); setCurrentGame(null); setDifficulty(null); navigateTo('shop') }
+  const goLeaderboard = () => { setIsWheelOpen(false); setCurrentGame(null); setDifficulty(null); navigateTo('leaderboard') }
+  const goStats       = () => { setIsWheelOpen(false); setCurrentGame(null); setDifficulty(null); navigateTo('stats') }
+  const goInventory   = () => { setIsWheelOpen(false); setCurrentGame(null); setDifficulty(null); navigateTo('inventory') }
+  const goFriends     = () => { setIsWheelOpen(false); setCurrentGame(null); setDifficulty(null); navigateTo('friends') }
+  const goAnalytics   = () => { setIsWheelOpen(false); setCurrentGame(null); setDifficulty(null); navigateTo('analytics') }
+  const goGames       = () => { setIsWheelOpen(false); setCurrentGame(null); setDifficulty(null); navigateTo('games') }
+  const goAdmin       = () => { setIsWheelOpen(false); setCurrentGame(null); setDifficulty(null); navigateTo('admin') }
   const openWheel     = () => setIsWheelOpen(true)
   const restartGame   = () => { setShowPause(false); setGameKey(k => k + 1) }
 
@@ -633,16 +652,15 @@ function AppInner() {
   
   useEffect(() => {
     const handleOpenShop = (e) => {
-      setScreen('shop')
       if (e.detail?.tab) {
         sessionStorage.setItem('shop_target_tab', e.detail.tab)
       }
       setIsWheelOpen(false)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      navigateTo('shop')
     }
     window.addEventListener('openShop', handleOpenShop)
     return () => window.removeEventListener('openShop', handleOpenShop)
-  }, [])
+  }, [navigateTo])
   
   // Check if current user is admin
   const isAdmin = ADMIN_IDS.includes(userId)
