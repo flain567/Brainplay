@@ -495,304 +495,147 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
 
         <div className="home-content">
 
-          {/* ── Renaissance Hero Section ── */}
-          <section className="renaissance-hero">
-
-            <div className="hero-subtitle mono-label">BrainPlay.Renaissance.v1.0</div>
-            <h1 className="hero-title-main serif-title">
-              The <span style={{ color: S.accent }}>Discovery</span> <br />
-              of Intelligence
-            </h1>
-
-            <div style={{ padding: '24px 0', borderTop: `1px solid ${S.border}`, borderBottom: `1px solid ${S.border}`, margin: '24px 0', position: 'relative' }}>
-              <InfiniteTicker
-                items={['MEMORY MASTER', 'LOGIC BOOSTER', 'VOCAB VORTEX', 'NUMBER NINJA', 'PATTERN PATH']}
-                mode="serif"
-                speed="30s"
-              />
+          {/* ── 1. Hero Section ── */}
+          <section style={{ marginBottom: 24, padding: '20px 0 10px', position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div>
+                <h2 style={{ fontSize: 24, fontWeight: 800, color: S.text, margin: 0, letterSpacing: '-0.5px' }}>
+                  Hai, <span style={{ color: S.accent }}>{playerName || 'User'}</span>! 👋
+                </h2>
+                <div style={{ fontSize: 13, color: S.muted, fontWeight: 600, marginTop: 4 }}>
+                   Semoga harimu menyenangkan
+                </div>
+              </div>
+              <div 
+                onClick={() => onProfile?.()}
+                style={{ 
+                  width: 48, height: 48, borderRadius: 16, cursor: 'pointer',
+                  background: borderData.bgColor, border: borderData.border, boxShadow: borderData.boxShadow,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24
+                }}
+              >
+                {AVATAR_CATALOG.find(a => a.id === progress.selectedAvatar)?.emoji || '👤'}
+              </div>
             </div>
 
-            <div className="profile-strip" onClick={() => onProfile?.()}>
-              <div className="pb-avatar" style={{ width: 42, height: 42, fontSize: 20 }}>
-                {AVATAR_CATALOG.find(a => a.id === progress.selectedAvatar)?.emoji || '👤'}
-                {progress.selectedBorder && (
-                  <div style={{
-                    position: 'absolute', inset: -4, borderRadius: '50%',
-                    border: CUSTOM_BORDERS[progress.selectedBorder]?.border,
-                    boxShadow: CUSTOM_BORDERS[progress.selectedBorder]?.boxShadow,
-                    zIndex: 10
-                  }} />
+            {/* Profile Level & XP Bar directly in Hero */}
+            <div style={{ background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', padding: '12px 16px', borderRadius: 16, border: `1px solid ${S.border}`, marginBottom: 16, cursor: 'pointer', transition: 'all 0.2s' }} onClick={() => onProfile?.()} onMouseEnter={e => e.currentTarget.style.borderColor = S.accent} onMouseLeave={e => e.currentTarget.style.borderColor = S.border}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ background: S.accent, color: '#fff', fontSize: 10, fontWeight: 900, padding: '2px 8px', borderRadius: 8, fontFamily: "'Fredoka One',cursive" }}>
+                    LVL {levelInfo.level}
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: S.text }}>{progress.selectedTitle || levelInfo.title}</div>
+                </div>
+                {getSeasonInfo?.() && (
+                  <div style={{ fontSize: 10, fontWeight: 800, color: '#00f5ff', display: 'flex', alignItems: 'center', gap: 4 }} onClick={(e) => { e.stopPropagation(); play('click'); window.dispatchEvent(new CustomEvent('openBP')) }}>
+                    ⚡ BP Tier {getSeasonInfo().currentTier}
+                  </div>
                 )}
               </div>
-              <div style={{ flex: 1, overflow: 'hidden' }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: S.text }}>{playerName || 'User'}</div>
-                <div style={{ fontSize: 10, color: S.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 2 }}>
-                  Tier {getSeasonInfo?.().currentTier}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ flex: 1, height: 6, borderRadius: 100, background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+                  <div style={{ width: `${(progress.totalXP / levelInfo.nextTierXP) * 100}%`, height: '100%', background: S.accent, borderRadius: 100, transition: 'width 0.8s cubic-bezier(0.34,1.56,0.64,1)' }} />
                 </div>
-                <div>
-                  <PremiumTitleBadge 
-                    title={progress.selectedTitle || levelInfo.title}
-                    rarity={getTitleRarity?.(progress.selectedTitle || levelInfo.title) || 'common'}
-                    size="small" 
-                  />
+                <div style={{ fontSize: 10, color: S.muted, fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
+                  {progress.totalXP} / {levelInfo.nextTierXP} XP
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 16, fontWeight: 900, color: S.gold, fontFamily: 'var(--font-display)' }}>
-                  {coins.toLocaleString()}
-                </div>
-                <div style={{ fontSize: 9, color: S.muted, textTransform: 'uppercase', letterSpacing: 1 }}>Coins</div>
-              </div>
+            </div>
+
+            {/* Single Unified Ticker */}
+            <div style={{ borderRadius: 12, overflow: 'hidden', border: `1px solid ${S.border}` }}>
+              <InfiniteTicker
+                items={['MEMORY MASTER', 'LOGIC BOOSTER', 'VOCAB VORTEX', 'Selesaikan misi harian untuk koin ekstra!']}
+                mode="mono"
+                speed="35s"
+              />
             </div>
           </section>
 
-          {/* ── Quick Actions Grid ── */}
-          <div className="quick-actions" style={{ marginBottom: 32 }}>
-            <button
-              className="qa-btn"
-              style={{ border: `1.5px solid ${hasFreeSpins ? S.gold : S.border}` }}
-              onClick={() => { play('click'); onOpenWheel() }}
-              onMouseEnter={e => onHoverQA(e, true)}
-              onMouseLeave={e => onHoverQA(e, false)}
-            >
-              <span className="qa-ico">🎡</span>
-              Wheel
-              {hasFreeSpins && <span className="qa-free">FREE</span>}
-            </button>
-            <button
-              className="qa-btn"
-              onClick={() => { play('click'); onShop?.() }}
-              onMouseEnter={e => onHoverQA(e, true)}
-              onMouseLeave={e => onHoverQA(e, false)}
-            >
-              <span className="qa-ico">🏪</span>
-              Shop
-            </button>
-            <button
-              className="qa-btn"
-              onClick={() => { play('click'); onGames?.() }}
-              onMouseEnter={e => onHoverQA(e, true)}
-              onMouseLeave={e => onHoverQA(e, false)}
-            >
-              <span className="qa-ico">🎮</span>
-              Games
-            </button>
-            <button
-              className="qa-btn"
-              onClick={() => { play('click'); onFriends?.() }}
-              onMouseEnter={e => onHoverQA(e, true)}
-              onMouseLeave={e => onHoverQA(e, false)}
-            >
-              <span className="qa-ico">🤝</span>
-              Friends
-            </button>
-          </div>
-
-          <div style={{ marginBottom: 32 }}>
-            <InfiniteTicker
-              items={['SYSTEMS READY', 'DAILY CHALLENGE UPDATED', 'COMMUNITY RECORD BROKEN', 'EVENT ACTIVE']}
-              mode="mono"
-              speed="45s"
-            />
-          </div>
-
-          {/* ── Interactive Companion Mascot ── */}
-          <Tilt tiltMaxAngleX={6} tiltMaxAngleY={6}>
-          <BorderGlow glowColor={S.accent} borderRadius="24px" style={{ display: 'block', width: '100%', marginBottom: 32 }}>
-          <div
-            id="mascot-home-card"
-            style={{
-              background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-              borderRadius: 24,
-              padding: '16px 20px',
-              border: `1.5px solid ${S.border}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 16,
-              animation: 'slide-up 0.4s 0.1s ease both',
-              boxShadow: '0 8px 30px rgba(0,0,0,0.1)'
-            }}
-          >
-            {/* Mascot Icon */}
-            <div style={{
-              width: 64, height: 64, borderRadius: 20, flexShrink: 0,
-              background: 'linear-gradient(135deg, rgba(124,111,232,0.15) 0%, rgba(124,111,232,0.05) 100%)',
-              border: '2px solid rgba(124,111,232,0.3)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 32, boxShadow: '0 4px 15px rgba(124,111,232,0.15)',
-              position: 'relative'
-            }}>
-              <Mascot skin={progress.selectedMascotSkin} hat={progress.selectedMascotHat} size={44} expression="happy" />
-              {/* Level Badge directly inside Avatar */}
-              <div style={{
-                  position: 'absolute', bottom: -8, left: '50%', transform: 'translateX(-50%)',
-                  background: S.accent, color: '#fff', fontSize: 9, fontWeight: 900,
-                  padding: '2px 8px', borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                  border: `1px solid ${dark ? '#1a1a2e' : '#fff'}`, whiteSpace: 'nowrap'
-              }}>
-                LVL {levelInfo.level}
-              </div>
+          {/* ── 2. Compact Mascot & Stats ── */}
+          <div style={{ 
+            background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+            borderRadius: 20, padding: '14px 16px', border: `1px solid ${S.border}`,
+            display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28,
+            boxShadow: style?.glass ? '0 8px 32px rgba(0,0,0,0.05)' : 'none'
+          }}>
+            <div style={{ width: 50, height: 50, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(124,111,232,0.1)', border: '1px solid rgba(124,111,232,0.2)', fontSize: 28 }}>
+              <Mascot skin={progress.selectedMascotSkin} hat={progress.selectedMascotHat} size={36} expression="happy" />
             </div>
-
-            {/* Info Area */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, justifyContent: 'center' }}>
-              {/* Name and Action */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: S.text, letterSpacing: '0.5px', transform: 'translateY(-2px)' }}>{progress.mascotName || 'Brainy'}</h3>
-                <button 
-                  style={{ 
-                    padding: '6px 14px', fontSize: 11, fontWeight: 800, borderRadius: 12,
-                    background: 'rgba(124,111,232,0.1)', color: S.accent, border: `1.5px solid rgba(124,111,232,0.4)`,
-                    cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 4
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(124,111,232,0.2)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(124,111,232,0.1)'}
-                  onClick={() => { play('click'); window.dispatchEvent(new CustomEvent('openShop', { detail: { tab: 'mascotSkins' } })) }}
-                >
-                  STUDIO <span>🎨</span>
-                </button>
-              </div>
-
-              {/* Stats Area */}
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center', background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.5)', padding: '6px 12px', borderRadius: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: 8, background: 'rgba(255, 215, 0, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🪙</div>
-                  <div>
-                    <div style={{ fontSize: 9, color: S.muted, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 700 }}>Koin</div>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: '#FFD700', lineHeight: 1 }}>{progress.coins || 0}</div>
-                  </div>
+            
+            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, textAlign: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div style={{ fontSize: 9, color: S.muted, fontWeight: 700, textTransform: 'uppercase' }}>Streak</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#FF6B6B', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: "'Fredoka One',cursive" }}>
+                  🔥 {streak}
                 </div>
-                <div style={{ width: 1.5, height: 20, background: dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)' }}></div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: 8, background: 'rgba(124, 111, 232, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✨</div>
-                  <div>
-                    <div style={{ fontSize: 9, color: S.muted, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 700 }}>Total XP</div>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: S.accent, lineHeight: 1 }}>{progress.xp || 0}</div>
-                  </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, borderLeft: `1px solid ${dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`, borderRight: `1px solid ${dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}` }}>
+                <div style={{ fontSize: 9, color: S.muted, fontWeight: 700, textTransform: 'uppercase' }}>Koin</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#FFD700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: "'Fredoka One',cursive" }}>
+                  🪙 {coins.toLocaleString()}
+                </div>
+              </div>
+              <div 
+                style={{ display: 'flex', flexDirection: 'column', gap: 2, cursor: hasFreeSpins ? 'pointer' : 'default', transition: 'all 0.2s' }} 
+                onClick={() => { if(hasFreeSpins){ play('click'); onOpenWheel?.() } }}
+                onMouseEnter={e => { if(hasFreeSpins) e.currentTarget.style.transform = 'scale(1.05)' }}
+                onMouseLeave={e => { if(hasFreeSpins) e.currentTarget.style.transform = 'scale(1)' }}
+              >
+                <div style={{ fontSize: 9, color: S.muted, fontWeight: 700, textTransform: 'uppercase' }}>Wheel</div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: hasFreeSpins ? S.green : S.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 2, fontFamily: "'Fredoka One',cursive" }}>
+                  {hasFreeSpins ? 'SPIN!' : 'Siap'} 🎡
                 </div>
               </div>
             </div>
           </div>
-          </BorderGlow>
-          </Tilt>
 
-          {/* ── Flagship Design (v2) ── */}
+          {/* ── 3. Flagship Game (Focal Point) ── */}
           {flagshipGame && (
             <Tilt tiltMaxAngleX={4} tiltMaxAngleY={4}>
-            <BorderGlow glowColor="rgba(82, 30, 148, 0.7)" borderRadius="20px" style={{ display: 'block', width: '100%' }}>
-            <div className="flagship-banner" data-anime-reveal>
-              <div className="fs-emoji">{flagshipGame.emoji}</div>
-              <div className="fs-tag">Game Favorit</div>
-              <h2 className="fs-title">{flagshipGame.title}</h2>
-              <div style={{ fontSize: 13, color: S.muted, marginBottom: 20, fontWeight: 600 }}>{flagshipGame.description}</div>
-
-              <div className="fs-stats">
-                <div className="fs-stat">
-                  <span className="fs-stat-label">Terbaik</span>
-                  <span className="fs-stat-val">{(progress.gameBests?.[flagshipGame.id] || 0).toLocaleString()}</span>
-                </div>
-                <div className="fs-stat">
-                  <span className="fs-stat-label">Rank</span>
-                  <span className="fs-stat-val">#12</span>
-                </div>
-                <div className="fs-stat">
-                  <span className="fs-stat-label">XP</span>
-                  <span className="fs-stat-val" style={{ color: S.accent }}>+500</span>
-                </div>
-              </div>
+            <BorderGlow glowColor="rgba(82, 30, 148, 0.7)" borderRadius="24px" style={{ display: 'block', width: '100%', marginBottom: 32 }}>
+            <div className="flagship-banner" data-anime-reveal style={{ padding: '24px 20px', borderRadius: 24, overflow: 'hidden' }}>
+              <div className="fs-emoji" style={{ right: -10, top: -20, fontSize: 140 }}>{flagshipGame.emoji}</div>
+              <div className="fs-tag">Pilihan Editor</div>
+              <h2 className="fs-title" style={{ fontSize: 30 }}>{flagshipGame.title}</h2>
+              <div style={{ fontSize: 14, color: S.muted, marginBottom: 24, fontWeight: 600, maxWidth: '80%' }}>{flagshipGame.description}</div>
 
               <button className="fs-btn" onClick={() => { play('click'); setSelectedGameForModal(flagshipGame.id) }}>
-                MAINKAN SEKARANG
+                PLAY NOW — +500 XP
               </button>
             </div>
             </BorderGlow>
             </Tilt>
           )}
 
-          {/* ── Battle Pass Season Banner ── */}
-          {(() => {
-            const seasonInfo = getSeasonInfo?.()
-            if (!seasonInfo) return null
-            const pct = Math.round(seasonInfo.progress * 100)
-            return (
-              <Tilt tiltMaxAngleX={4} tiltMaxAngleY={4}>
-              <BorderGlow glowColor="#00f5ff" borderRadius="20px" style={{ display: 'block', width: '100%', marginBottom: 16 }}>
-              <div
-                className="section-card"
-                style={{
-                  background: 'linear-gradient(135deg, #020118, #1A1F35)',
-                  border: '1.5px solid rgba(0,245,255,0.25)',
-                  boxShadow: '0 8px 30px rgba(0,245,255,0.1)',
-                  position: 'relative', overflow: 'hidden',
-                  marginBottom: 0
-                }}
-                onClick={() => { play('click'); window.dispatchEvent(new CustomEvent('openBP')) }}
-              >
-                <div style={{ position: 'absolute', top: -20, right: -20, fontSize: 80, opacity: 0.1, pointerEvents: 'none' }}>⚡</div>
-                <div className="sc-header" style={{ marginBottom: 12 }}>
-                  <span style={{ fontSize: 20 }}>⚡</span>
-                  <span className="sc-title" style={{ color: '#00f5ff' }}>Season 1: Neon Genesis</span>
-                  <span className="sc-badge" style={{ background: 'rgba(0,245,255,0.15)', color: '#00f5ff', border: '1px solid rgba(0,245,255,0.3)' }}>
-                    Tier {seasonInfo.currentTier}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                  <div className="pb-xp-track" style={{ flex: 1, height: 10, background: 'rgba(255,255,255,0.05)' }}>
-                    <div className="pb-xp-fill" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #00f5ff, #a29bfe)', boxShadow: '0 0 10px #00f5ff' }} />
-                  </div>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: '#00f5ff' }}>{pct}%</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', fontWeight: 700 }}>
-                    {seasonInfo.xpInTier} / {seasonInfo.xpNeededForNext} XP ke Tier {seasonInfo.currentTier + 1}
-                  </span>
-                  {seasonInfo.hasRewardToClaim && (
-                    <span style={{ fontSize: 10, color: '#FFD700', fontWeight: 800, animation: 'pulse-soft 1.5s infinite' }}>
-                      🎁 Hadiah Tersedia!
-                    </span>
-                  )}
-                </div>
-              </div>
-              </BorderGlow>
-              </Tilt>
-            )
-          })()}
-
-          {/* ── Main Lagi (Carousel v2) ── */}
-          <div id="games-section" style={{ marginBottom: 28, animation: 'slide-up 0.4s 0.12s ease both' }}>
-            <div className="section-head" style={{ marginBottom: 14 }}>
-              <h2 className="section-title"><span>🕒</span>Main Lagi</h2>
+          {/* ── 4. Main Lagi / Game Carousel ── */}
+          <div id="games-section" style={{ marginBottom: 32 }}>
+            <div className="section-head" style={{ marginBottom: 12 }}>
+              <h2 className="section-title" style={{ fontSize: 18 }}><span>🎮</span>Lanjutkan Bermain</h2>
               <div className="section-line" />
             </div>
             <div className="carousel-row" style={{ gap: 12 }}>
-              {games.slice(0, 5).map(g => (
+              {games.slice(0, 6).map(g => (
                 <div
                   key={g.id}
                   className="premium-card"
                   style={{
-                    flexShrink: 0, width: 100, height: 100,
+                    flexShrink: 0, width: 104, height: 104, borderRadius: 20,
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    gap: 8, cursor: 'pointer', background: S.surfaceDeep
+                    gap: 8, cursor: 'pointer', background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                    border: `1.5px solid ${S.border}`, transition: 'all 0.2s'
                   }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = S.accent; e.currentTarget.style.background = S.accentFill; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = S.border; e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'; }}
                   onClick={() => { play('click'); setSelectedGameForModal(g.id) }}
                 >
-                  <span style={{ fontSize: 32 }}>{g.emoji}</span>
-                  <span style={{ fontSize: 10, fontWeight: 800, color: S.muted, textAlign: 'center', width: '90%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.title}</span>
+                  <span style={{ fontSize: 36, filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' }}>{g.emoji}</span>
+                  <span style={{ fontFamily: "'Fredoka One',cursive", fontSize: 11, color: S.text, textAlign: 'center', padding: '0 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>{g.title}</span>
                 </div>
               ))}
             </div>
           </div>
-
-          {/* ── Lucky Wheel Strip ── */}
-          {hasFreeSpins && (
-            <div className="wheel-strip" onClick={() => { play('click'); onOpenWheel() }}>
-              <div>
-                <div className="wheel-strip-title">🎰 Lucky Wheel — Spin Gratis Tersedia!</div>
-              </div>
-              <span style={{ fontSize: 22, animation: 'spin 3s linear infinite' }}>🎡</span>
-            </div>
-          )}
 
           {/* Daily Challenges are now standalone in the new layout */}
 
