@@ -558,7 +558,7 @@ export default function Home({ games, onPlay, onContinueLast, onProfile, onShop,
             background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
             borderRadius: 20, padding: '14px 16px', border: `1px solid ${S.border}`,
             display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28,
-            boxShadow: style?.glass ? '0 8px 32px rgba(0,0,0,0.05)' : 'none'
+            boxShadow: dark ? '0 8px 32px rgba(0,0,0,0.2)' : '0 8px 32px rgba(0,0,0,0.05)'
           }}>
             <div style={{ width: 50, height: 50, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(124,111,232,0.1)', border: '1px solid rgba(124,111,232,0.2)', fontSize: 28 }}>
               <Mascot skin={progress.selectedMascotSkin} hat={progress.selectedMascotHat} size={36} expression="happy" />
