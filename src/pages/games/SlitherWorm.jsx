@@ -5,6 +5,7 @@ const TUTORIAL_STEPS_SW = [
   { emoji:'🐍', title:'Slither Worm', desc:'Kendalikan cacing neonmu di arena gelap! Makan makanan untuk tumbuh dan bunuh bot musuh untuk poin besar.', tip:'Jangan sampai menabrak tembok merah di tepi arena!' },
   { emoji:'🕹', title:'Kontrol', desc:'Gunakan joystick virtual di kiri bawah untuk mengarahkan cacing. Geser ke mana pun untuk belok!', tip:'Di desktop: WASD atau tombol panah untuk bergerak.' },
   { emoji:'⚡', title:'Boost!', desc:'Tahan tombol ⚡ di kanan bawah untuk turbo speed! Berguna untuk kabur atau mengejar bot musuh.', tip:'Gunakan boost untuk memotong jalur bot dan membunuhnya.' },
+  { emoji:'✨', title:'Makanan Spesial', desc:'Ada 4 jenis makanan! biasa, emas ✨ (3× poin, hilang 10 detik), racun ☠️ (mengecilkan cacing), dan perisai 🛡 (kebal 5 detik).', tip:'Hindari makanan hijau beracun! Kejar makanan emas untuk skor besar.' },
 ]
 
 import { useEffect, useRef, useState, useCallback } from 'react'
@@ -52,6 +53,9 @@ const CFG = {
 const rand  = (a, b) => a + Math.random() * (b - a)
 const dist2 = (a, b) => (a.x-b.x)**2 + (a.y-b.y)**2
 
+// ─── Food Types ───────────────────────────────────────────────────────────────
+const FOOD_TYPE = { NORMAL: 'normal', GOLDEN: 'golden', POISON: 'poison', SHIELD: 'shield' }
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function spawnFood(mapSize) {
   return {
@@ -60,6 +64,45 @@ function spawnFood(mapSize) {
     color: FOOD_COLORS[Math.floor(Math.random() * FOOD_COLORS.length)],
     r: rand(5, 9),
     pulse: rand(0, Math.PI * 2),
+    type: FOOD_TYPE.NORMAL,
+  }
+}
+
+function spawnGoldenFood(mapSize) {
+  return {
+    x: rand(100, mapSize - 100),
+    y: rand(100, mapSize - 100),
+    color: '#FFD700',
+    r: rand(9, 13),
+    pulse: rand(0, Math.PI * 2),
+    type: FOOD_TYPE.GOLDEN,
+    ttl: 600, // ~10 seconds at 60fps
+    sparkle: 0,
+  }
+}
+
+function spawnPoisonFood(mapSize) {
+  return {
+    x: rand(100, mapSize - 100),
+    y: rand(100, mapSize - 100),
+    color: '#2ECC40',
+    r: rand(6, 10),
+    pulse: rand(0, Math.PI * 2),
+    type: FOOD_TYPE.POISON,
+    toxicPulse: 0,
+  }
+}
+
+function spawnShieldPowerup(mapSize) {
+  return {
+    x: rand(120, mapSize - 120),
+    y: rand(120, mapSize - 120),
+    color: '#00BFFF',
+    r: rand(10, 14),
+    pulse: rand(0, Math.PI * 2),
+    type: FOOD_TYPE.SHIELD,
+    ttl: 480, // ~8 seconds at 60fps
+    rotation: 0,
   }
 }
 
@@ -86,6 +129,26 @@ function botThink(bot, foods, mapSize, cfg, allWorms) {
     while (da >  Math.PI) da -= Math.PI * 2
     while (da < -Math.PI) da += Math.PI * 2
     bot.angle += da * 0.22
+    bot.wantBoost = false
+    return
+  }
+
+  // Poison avoidance — flee from nearby poison food
+  let poisonAngle = null
+  let poisonDist = Infinity
+  for (const f of foods) {
+    if (f.type !== FOOD_TYPE.POISON) continue
+    const d2 = dist2(head, f)
+    if (d2 < 80 * 80 && d2 < poisonDist) {
+      poisonDist = d2
+      poisonAngle = Math.atan2(head.y - f.y, head.x - f.x)
+    }
+  }
+  if (poisonAngle !== null && poisonDist < 50 * 50) {
+    let da = poisonAngle - bot.angle
+    while (da >  Math.PI) da -= Math.PI * 2
+    while (da < -Math.PI) da += Math.PI * 2
+    bot.angle += da * 0.2
     bot.wantBoost = false
     return
   }
@@ -145,11 +208,15 @@ function botThink(bot, foods, mapSize, cfg, allWorms) {
     }
   }
 
-  // Default: Seek nearest food (with some randomness)
-  let best = null, bestD = Infinity
+  // Seek food — prefer golden, then normal, avoid poison
+  let best = null, bestD = Infinity, bestScore = 0
   for (const f of foods) {
+    if (f.type === FOOD_TYPE.POISON) continue // skip poison
     const d = dist2(head, f)
-    if (d < bestD) { bestD = d; best = f }
+    // Golden food is 3× more attractive (divide distance effectively)
+    const attractiveness = f.type === FOOD_TYPE.GOLDEN ? 3 : f.type === FOOD_TYPE.SHIELD ? 2 : 1
+    const effectiveD = d / attractiveness
+    if (effectiveD < bestD) { bestD = effectiveD; best = f }
   }
   if (best) {
     const target = Math.atan2(best.y - head.y, best.x - head.x)
@@ -157,10 +224,13 @@ function botThink(bot, foods, mapSize, cfg, allWorms) {
     while (da >  Math.PI) da -= Math.PI * 2
     while (da < -Math.PI) da += Math.PI * 2
     bot.angle += da * cfg.turn
+    // Boost towards golden food
+    bot.wantBoost = best.type === FOOD_TYPE.GOLDEN && bestD < 200 * 200
     // Occasionally add slight random wobble for natural movement
     bot.angle += (Math.random() - 0.5) * 0.02
+  } else {
+    bot.wantBoost = false
   }
-  bot.wantBoost = false
 }
 
 // ─── Image Cache ──────────────────────────────────────────────────────────────
@@ -277,24 +347,110 @@ function drawWorm(ctx, worm, skin, camX, camY, W, H, isPlayer) {
 }
 
 // ─── Draw Food ────────────────────────────────────────────────────────────────
-function drawFood(ctx, foods, camX, camY, W, H) {
+function drawFood(ctx, foods, camX, camY, W, H, tick) {
   for (const f of foods) {
     const fx = f.x - camX, fy = f.y - camY
     if (fx < -20 || fx > W + 20 || fy < -20 || fy > H + 20) continue
     const pr = f.r + Math.sin(f.pulse) * 1.8
 
-    // Soft outer ring (cheap glow)
-    ctx.globalAlpha = 0.18
-    ctx.fillStyle   = f.color
-    ctx.beginPath(); ctx.arc(fx, fy, pr + 4, 0, Math.PI * 2); ctx.fill()
-    ctx.globalAlpha = 1
+    if (f.type === FOOD_TYPE.GOLDEN) {
+      // Golden — shimmering gold with star sparkle
+      const flicker = 0.6 + Math.sin(tick * 0.15) * 0.4
+      // Outer glow ring
+      ctx.globalAlpha = 0.35 * flicker
+      ctx.fillStyle = '#FFD700'
+      ctx.beginPath(); ctx.arc(fx, fy, pr + 8, 0, Math.PI * 2); ctx.fill()
+      ctx.globalAlpha = 0.2
+      ctx.fillStyle = '#FFF8DC'
+      ctx.beginPath(); ctx.arc(fx, fy, pr + 14, 0, Math.PI * 2); ctx.fill()
+      ctx.globalAlpha = 1
+      // Core
+      ctx.fillStyle = '#FFD700'
+      ctx.beginPath(); ctx.arc(fx, fy, pr, 0, Math.PI * 2); ctx.fill()
+      // Inner bright spot
+      ctx.fillStyle = '#FFF8DC'
+      ctx.beginPath(); ctx.arc(fx - pr * 0.2, fy - pr * 0.2, pr * 0.4, 0, Math.PI * 2); ctx.fill()
+      // Star sparkle cross
+      ctx.strokeStyle = `rgba(255,248,220,${0.5 + Math.sin(tick * 0.2) * 0.3})`
+      ctx.lineWidth = 1.5
+      const sLen = pr * 1.2
+      ctx.beginPath(); ctx.moveTo(fx - sLen, fy); ctx.lineTo(fx + sLen, fy); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(fx, fy - sLen); ctx.lineTo(fx, fy + sLen); ctx.stroke()
+      // TTL fading — blink when about to expire
+      if (f.ttl < 180) {
+        const blink = Math.sin(tick * 0.4) > 0
+        if (!blink) { continue }
+      }
+    } else if (f.type === FOOD_TYPE.POISON) {
+      // Poison — dark green with toxic aura
+      const toxPulse = 0.5 + Math.sin(tick * 0.1 + f.toxicPulse) * 0.3
+      // Toxic aura
+      ctx.globalAlpha = 0.15 * toxPulse
+      ctx.fillStyle = '#00FF00'
+      ctx.beginPath(); ctx.arc(fx, fy, pr + 10, 0, Math.PI * 2); ctx.fill()
+      ctx.globalAlpha = 0.25
+      ctx.fillStyle = '#1a472a'
+      ctx.beginPath(); ctx.arc(fx, fy, pr + 5, 0, Math.PI * 2); ctx.fill()
+      ctx.globalAlpha = 1
+      // Core — dark green
+      ctx.fillStyle = '#2ECC40'
+      ctx.beginPath(); ctx.arc(fx, fy, pr, 0, Math.PI * 2); ctx.fill()
+      // Skull hint — simple X eyes
+      ctx.strokeStyle = '#0a2e0a'
+      ctx.lineWidth = 1.5
+      const ex = pr * 0.3
+      // Left X
+      ctx.beginPath(); ctx.moveTo(fx - ex - 2, fy - 2); ctx.lineTo(fx - ex + 2, fy + 2); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(fx - ex + 2, fy - 2); ctx.lineTo(fx - ex - 2, fy + 2); ctx.stroke()
+      // Right X
+      ctx.beginPath(); ctx.moveTo(fx + ex - 2, fy - 2); ctx.lineTo(fx + ex + 2, fy + 2); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(fx + ex + 2, fy - 2); ctx.lineTo(fx + ex - 2, fy + 2); ctx.stroke()
+    } else if (f.type === FOOD_TYPE.SHIELD) {
+      // Shield — bright blue with rotating ring
+      const rot = (f.rotation || 0)
+      // Outer rotating ring
+      ctx.save()
+      ctx.translate(fx, fy)
+      ctx.rotate(rot)
+      ctx.strokeStyle = 'rgba(0,191,255,0.5)'
+      ctx.lineWidth = 2
+      ctx.beginPath(); ctx.arc(0, 0, pr + 8, 0, Math.PI * 1.2); ctx.stroke()
+      ctx.beginPath(); ctx.arc(0, 0, pr + 8, Math.PI * 1.4, Math.PI * 2); ctx.stroke()
+      ctx.restore()
+      // Glow
+      ctx.globalAlpha = 0.2
+      ctx.fillStyle = '#00BFFF'
+      ctx.beginPath(); ctx.arc(fx, fy, pr + 12, 0, Math.PI * 2); ctx.fill()
+      ctx.globalAlpha = 1
+      // Core
+      ctx.fillStyle = '#00BFFF'
+      ctx.beginPath(); ctx.arc(fx, fy, pr, 0, Math.PI * 2); ctx.fill()
+      // Shield icon — simple chevron
+      ctx.fillStyle = '#FFF'
+      ctx.font = `${Math.floor(pr * 1.1)}px sans-serif`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText('🛡', fx, fy + 1)
+      // TTL blink
+      if (f.ttl < 150) {
+        const blink = Math.sin(tick * 0.4) > 0
+        if (!blink) { continue }
+      }
+    } else {
+      // Normal food
+      // Soft outer ring (cheap glow)
+      ctx.globalAlpha = 0.18
+      ctx.fillStyle   = f.color
+      ctx.beginPath(); ctx.arc(fx, fy, pr + 4, 0, Math.PI * 2); ctx.fill()
+      ctx.globalAlpha = 1
 
-    ctx.fillStyle = f.color
-    ctx.beginPath(); ctx.arc(fx, fy, pr, 0, Math.PI * 2); ctx.fill()
+      ctx.fillStyle = f.color
+      ctx.beginPath(); ctx.arc(fx, fy, pr, 0, Math.PI * 2); ctx.fill()
 
-    // Specular
-    ctx.fillStyle = 'rgba(255,255,255,0.55)'
-    ctx.beginPath(); ctx.arc(fx - pr * 0.3, fy - pr * 0.3, pr * 0.26, 0, Math.PI * 2); ctx.fill()
+      // Specular
+      ctx.fillStyle = 'rgba(255,255,255,0.55)'
+      ctx.beginPath(); ctx.arc(fx - pr * 0.3, fy - pr * 0.3, pr * 0.26, 0, Math.PI * 2); ctx.fill()
+    }
   }
 }
 
@@ -325,6 +481,7 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
   const [kills, setKills]       = useState(0)
   const [knobPos, setKnobPos]   = useState({ x: 0, y: 0 })
   const [boosting, setBoosting] = useState(false)
+  const [shielded, setShielded] = useState(false)
   const [bestScore, setBestScore] = useState(
     () => parseInt(localStorage.getItem(`slither-best-${difficulty.id}`) || '0')
   )
@@ -334,6 +491,8 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
   function initGame(canvas) {
     const M = cfg.mapSize
     const player = makeWorm(M / 2, M / 2, 0, 28)
+    player.shielded = false
+    player.shieldTimer = 0
     const bots   = BOT_SKINS.slice(0, cfg.bots).map((skin, i) => {
       // Variable sizes: ~30% small, ~50% medium, ~20% large
       const sizeRoll = Math.random()
@@ -346,11 +505,17 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
       }
     })
     const foods  = Array.from({ length: cfg.foodCount }, () => spawnFood(M))
+    // Add initial special foods
+    const poisonCount = { easy: 3, medium: 4, hard: 5 }[difficulty.id] || 3
+    for (let i = 0; i < poisonCount; i++) foods.push(spawnPoisonFood(M))
+    foods.push(spawnGoldenFood(M))
     return {
       player, bots, foods, particles: [], speedLines: [],
       score: 0, kills: 0, mapSize: M,
       cam: { x: M / 2 - (canvas._logicalW || canvas.width) / 2, y: M / 2 - (canvas._logicalH || canvas.height) / 2 },
       tick: 0,
+      goldenTimer: 0,   // frames until next golden spawn
+      shieldTimer: 0,   // frames until next shield spawn
     }
   }
 
@@ -443,22 +608,45 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
 
       // Wall death
       if (nx < SEG_R || nx > M - SEG_R || ny < SEG_R || ny > M - SEG_R) {
-        p.alive = false
-        play('gameOver')
-        vibrateError()
-        const fs = g.score
-        if (fs > bestScore) { localStorage.setItem(`slither-best-${difficulty.id}`, fs); setBestScore(fs); setShowConfetti(true); setTimeout(()=>setShowConfetti(false),100) }
-        setDeathCause('wall')
-        setPhase('dead')
+        if (!p.shielded) {
+          p.alive = false
+          play('gameOver')
+          vibrateError()
+          const fs = g.score
+          if (fs > bestScore) { localStorage.setItem(`slither-best-${difficulty.id}`, fs); setBestScore(fs); setShowConfetti(true); setTimeout(()=>setShowConfetti(false),100) }
+          setDeathCause('wall')
+          setPhase('dead')
+          return
+        }
+        // Shield bounces off wall — redirect towards center
+        p.angle = Math.atan2(M / 2 - ny, M / 2 - nx)
         return
       }
 
-      // Player head hits bot body → Player dies
+      // Player head hits bot body → Player dies (unless shielded)
       for (const bot of g.bots) {
         if (!bot.alive) continue
         // Check against bot body segments (skip head, index 0)
         for (let si = 3; si < bot.segs.length; si++) {
           if (dist2({ x: nx, y: ny }, bot.segs[si]) < (SEG_R * 1.9) ** 2) {
+            if (p.shielded) {
+              // Shield kills the bot instead!
+              bot.alive = false; bot.respawnTimer = 220
+              g.score += Math.floor(bot.segs.length * 2)
+              g.kills += 1
+              play('levelUp')
+              vibrateMedium()
+              setScore(g.score); setKills(g.kills)
+              for (let pi = 0; pi < 12; pi++) {
+                g.particles.push({ x: bot.segs[0].x, y: bot.segs[0].y, vx: rand(-4,4), vy: rand(-4,4), r: rand(3,7), color: '#00BFFF', life: 1 })
+              }
+              const drop = Math.min(30, Math.floor(bot.segs.length / 2))
+              for (let i = 0; i < drop; i++) {
+                const bs = bot.segs[i * 2] || bot.segs[0]
+                g.foods.push({ x: bs.x + rand(-14,14), y: bs.y + rand(-14,14), color: bot.skin.head, r: rand(6,10), pulse: 0, type: FOOD_TYPE.NORMAL })
+              }
+              break
+            }
             p.alive = false
             play('gameOver')
             vibrateError()
@@ -468,7 +656,7 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
             const drop = Math.min(25, Math.floor(p.segs.length / 3))
             for (let i = 0; i < drop; i++) {
               const ps = p.segs[i * 3] || p.segs[0]
-              g.foods.push({ x: ps.x + rand(-12,12), y: ps.y + rand(-12,12), color: PLAYER_SKIN.head, r: rand(5,9), pulse: 0 })
+              g.foods.push({ x: ps.x + rand(-12,12), y: ps.y + rand(-12,12), color: PLAYER_SKIN.head, r: rand(5,9), pulse: 0, type: FOOD_TYPE.NORMAL })
             }
             setDeathCause('bot')
             setPhase('dead')
@@ -479,29 +667,86 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
 
       p.segs.unshift({ x: nx, y: ny })
 
+      // Shield timer countdown
+      if (p.shielded) {
+        p.shieldTimer -= 1
+        if (p.shieldTimer <= 0) {
+          p.shielded = false
+          setShielded(false)
+        }
+      }
+
       // Food eating
       let grew = 0
+      let poisoned = false
       g.foods = g.foods.filter(f => {
         if (dist2(p.segs[0], f) < (SEG_R + f.r + 2) ** 2) {
-          g.score += Math.round(f.r); grew += Math.ceil(f.r / 2)
+          if (f.type === FOOD_TYPE.POISON) {
+            // Poison — lose segments!
+            if (!p.shielded) {
+              poisoned = true
+              const loseCount = Math.min(8, Math.floor(p.segs.length * 0.25))
+              for (let pi = 0; pi < loseCount && p.segs.length > 5; pi++) {
+                const removed = p.segs.pop()
+                // Drop food pellets from lost segments
+                g.foods.push({ x: removed.x + rand(-8,8), y: removed.y + rand(-8,8), color: '#2ECC40', r: rand(3,5), pulse: 0, type: FOOD_TYPE.NORMAL })
+              }
+              // Poison particles
+              for (let pi = 0; pi < 10; pi++) {
+                g.particles.push({
+                  x: f.x, y: f.y, vx: rand(-3, 3), vy: rand(-3, 3),
+                  r: rand(3, 7), color: '#2ECC40', life: 1.2,
+                })
+              }
+            } else {
+              // Shield absorbs poison — just eat particles
+              for (let pi = 0; pi < 6; pi++) {
+                g.particles.push({ x: f.x, y: f.y, vx: rand(-2, 2), vy: rand(-2, 2), r: rand(2, 4), color: '#00BFFF', life: 0.8 })
+              }
+            }
+            return false
+          }
+          if (f.type === FOOD_TYPE.SHIELD) {
+            // Shield power-up!
+            p.shielded = true
+            p.shieldTimer = 300 // ~5 seconds
+            setShielded(true)
+            play('levelUp')
+            vibrateMedium()
+            for (let pi = 0; pi < 10; pi++) {
+              g.particles.push({ x: f.x, y: f.y, vx: rand(-3, 3), vy: rand(-3, 3), r: rand(3, 7), color: '#00BFFF', life: 1.2 })
+            }
+            return false
+          }
+          // Normal or Golden
+          const multiplier = f.type === FOOD_TYPE.GOLDEN ? 3 : 1
+          g.score += Math.round(f.r) * multiplier
+          grew += Math.ceil(f.r / 2) * (f.type === FOOD_TYPE.GOLDEN ? 2 : 1)
           // Spawn eat particles
-          for (let pi = 0; pi < 6; pi++) {
+          const pColor = f.type === FOOD_TYPE.GOLDEN ? '#FFD700' : f.color
+          const pCount = f.type === FOOD_TYPE.GOLDEN ? 12 : 6
+          for (let pi = 0; pi < pCount; pi++) {
             g.particles.push({
               x: f.x, y: f.y, vx: rand(-2, 2), vy: rand(-2, 2),
-              r: rand(2, 5), color: f.color, life: 1,
+              r: rand(2, 5), color: pColor, life: f.type === FOOD_TYPE.GOLDEN ? 1.5 : 1,
             })
           }
           return false
         }
         return true
       })
+      if (poisoned) {
+        play('gameOver')
+        vibrateMedium()
+        setLength(p.segs.length)
+      }
       if (grew > 0) {
         play('eat')
         vibrateLight()
         const tail = p.segs[p.segs.length - 1]
         for (let i = 0; i < grew; i++) p.segs.push({ ...tail })
         setScore(g.score); setLength(p.segs.length)
-      } else {
+      } else if (!poisoned) {
         p.segs.pop()
       }
 
@@ -629,8 +874,27 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
         // Bots eat food too
         g.foods = g.foods.filter(f => {
           if (dist2(bot.segs[0], f) < (SEG_R + f.r) ** 2) {
+            if (f.type === FOOD_TYPE.POISON) {
+              // Bot eats poison — dies!
+              bot.alive = false; bot.respawnTimer = 250
+              const drop = Math.min(20, Math.floor(bot.segs.length / 3))
+              for (let i = 0; i < drop; i++) {
+                const bs = bot.segs[i * 3] || bot.segs[0]
+                g.foods.push({ x: bs.x + rand(-12,12), y: bs.y + rand(-12,12), color: bot.skin.head, r: rand(5,8), pulse: 0, type: FOOD_TYPE.NORMAL })
+              }
+              for (let pi = 0; pi < 8; pi++) {
+                g.particles.push({ x: bot.segs[0].x, y: bot.segs[0].y, vx: rand(-3,3), vy: rand(-3,3), r: rand(3,6), color: '#2ECC40', life: 1 })
+              }
+              return false
+            }
+            if (f.type === FOOD_TYPE.SHIELD) {
+              // Bot ignores shield (just removes it)
+              return false
+            }
             const ts = bot.segs[bot.segs.length - 1]
-            bot.segs.push({ ...ts }); return false
+            const growCount = f.type === FOOD_TYPE.GOLDEN ? 3 : 1
+            for (let gi = 0; gi < growCount; gi++) bot.segs.push({ ...ts })
+            return false
           }
           return true
         })
@@ -661,8 +925,40 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
       })
 
       // Replenish food
-      while (g.foods.length < cfg.foodCount) g.foods.push(spawnFood(M))
-      g.foods.forEach(f => { f.pulse += 0.05 })
+      const normalCount = g.foods.filter(f => f.type === FOOD_TYPE.NORMAL).length
+      while (normalCount + (g.foods.length - normalCount) < cfg.foodCount) g.foods.push(spawnFood(M))
+      
+      // Spawn special foods on timers
+      g.goldenTimer = (g.goldenTimer || 0) + 1
+      g.shieldTimer = (g.shieldTimer || 0) + 1
+      const goldenCount = g.foods.filter(f => f.type === FOOD_TYPE.GOLDEN).length
+      if (g.goldenTimer > 480 && goldenCount < 2) { // ~8 seconds
+        g.foods.push(spawnGoldenFood(M))
+        g.goldenTimer = 0
+      }
+      const shieldCount = g.foods.filter(f => f.type === FOOD_TYPE.SHIELD).length
+      if (g.shieldTimer > 1200 && shieldCount < 1) { // ~20 seconds
+        g.foods.push(spawnShieldPowerup(M))
+        g.shieldTimer = 0
+      }
+      // Replenish poison if eaten
+      const poisonTarget = { easy: 3, medium: 4, hard: 5 }[difficulty.id] || 3
+      const poisonCount = g.foods.filter(f => f.type === FOOD_TYPE.POISON).length
+      if (poisonCount < poisonTarget && Math.random() < 0.005) {
+        g.foods.push(spawnPoisonFood(M))
+      }
+
+      // Update food TTL and animations
+      g.foods = g.foods.filter(f => {
+        f.pulse += 0.05
+        if (f.type === FOOD_TYPE.GOLDEN || f.type === FOOD_TYPE.SHIELD) {
+          f.ttl -= 1
+          if (f.ttl <= 0) return false
+        }
+        if (f.type === FOOD_TYPE.SHIELD) f.rotation = (f.rotation || 0) + 0.03
+        if (f.type === FOOD_TYPE.POISON) f.toxicPulse = (f.toxicPulse || 0) + 0.02
+        return true
+      })
 
       // Camera — slightly faster follow for better feel
       const cW = canvas._logicalW || canvas.width, cH = canvas._logicalH || canvas.height
@@ -699,7 +995,7 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
       ctx.strokeRect(2 - cx, 2 - cy, g.mapSize - 4, g.mapSize - 4)
 
       // Food
-      drawFood(ctx, g.foods, cx, cy, W, H)
+      drawFood(ctx, g.foods, cx, cy, W, H, g.tick)
 
       // Bots
       g.bots.forEach(bot => {
@@ -708,6 +1004,31 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
 
       // Player
       drawWorm(ctx, g.player, PLAYER_SKIN, cx, cy, W, H, true)
+
+      // Shield visual on player
+      if (g.player.shielded) {
+        const ph = g.player.segs[0]
+        const phx = ph.x - cx, phy = ph.y - cy
+        const shieldAlpha = 0.25 + Math.sin(g.tick * 0.1) * 0.1
+        ctx.globalAlpha = shieldAlpha
+        ctx.strokeStyle = '#00BFFF'
+        ctx.lineWidth = 3
+        ctx.beginPath()
+        ctx.arc(phx, phy, SEG_R + 8, 0, Math.PI * 2)
+        ctx.stroke()
+        // Shield glow on body segments  
+        for (let si = 0; si < g.player.segs.length; si += 4) {
+          const s = g.player.segs[si]
+          const sx = s.x - cx, sy = s.y - cy
+          if (sx < -30 || sx > W + 30 || sy < -30 || sy > H + 30) continue
+          ctx.globalAlpha = shieldAlpha * 0.4
+          ctx.fillStyle = '#00BFFF'
+          ctx.beginPath()
+          ctx.arc(sx, sy, SEG_R * 0.8, 0, Math.PI * 2)
+          ctx.fill()
+        }
+        ctx.globalAlpha = 1
+      }
 
       // Boost trail / Body glow intensification
       if (boostRef.current && g.player.segs.length > 3) {
@@ -952,9 +1273,16 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
               </div>
             ))}
           </div>
-          <span style={{ background:'rgba(162,155,254,0.1)', color:'#a29bfe', border:'1.5px solid rgba(162,155,254,0.2)', borderRadius:100, padding:'5px 12px', fontSize:12, fontFamily:"'Fredoka One',cursive" }}>
-            {DLABEL[difficulty.id]}
-          </span>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            {shielded && (
+              <span style={{ background:'rgba(0,191,255,0.15)', color:'#00BFFF', border:'1.5px solid rgba(0,191,255,0.4)', borderRadius:100, padding:'5px 12px', fontSize:12, fontFamily:"'Fredoka One',cursive", animation:'shieldPulse 1s ease infinite' }}>
+                🛡 SHIELD
+              </span>
+            )}
+            <span style={{ background:'rgba(162,155,254,0.1)', color:'#a29bfe', border:'1.5px solid rgba(162,155,254,0.2)', borderRadius:100, padding:'5px 12px', fontSize:12, fontFamily:"'Fredoka One',cursive" }}>
+              {DLABEL[difficulty.id]}
+            </span>
+          </div>
         </div>
       )}
 
@@ -1046,7 +1374,8 @@ export default function SlitherWorm({ onBack, onHome, game, difficulty }) {
         </div>
       )}
 
-      <style>{`@keyframes fadeIn{from{opacity:0;transform:scale(0.97)}to{opacity:1;transform:scale(1)}}`}</style>
+      <style>{`@keyframes fadeIn{from{opacity:0;transform:scale(0.97)}to{opacity:1;transform:scale(1)}}
+@keyframes shieldPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.7;transform:scale(1.05)}}`}</style>
     </div>
     </>
   )

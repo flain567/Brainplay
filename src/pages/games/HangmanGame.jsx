@@ -1,5 +1,6 @@
 import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
+import { EXTRA_CATEGORIES } from './hangmanCategories.js'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useSettings } from '../../context/SettingsContext.jsx'
 import { useThemeColors } from '../../hooks/useThemeColors.js'
@@ -204,7 +205,11 @@ const WORDS_HARD = [
   { word: 'MODERNISASI', hint: 'Proses menjadi lebih modern dan maju' },
 ]
 
-const WORD_LISTS = { easy: WORDS_EASY, medium: WORDS_MEDIUM, hard: WORDS_HARD }
+// ─── Category System ─────────────────────────────────────────────────────────
+const ALL_CATEGORIES = [
+  { id: 'umum', name: 'Umum', icon: '📝', words: { easy: WORDS_EASY, medium: WORDS_MEDIUM, hard: WORDS_HARD } },
+  ...EXTRA_CATEGORIES,
+]
 
 const MAX_WRONG = { easy: 8, medium: 7, hard: 6 }
 
@@ -215,18 +220,19 @@ const KEYBOARD_ROWS = [
 ]
 
 // Track used words per session to avoid repeats
-const _usedWords = { easy: [], medium: [], hard: [] }
+const _usedWords = {}
 
-function getRandomWord(diffId) {
-  const list = WORD_LISTS[diffId] || WORDS_EASY
-  const used = _usedWords[diffId] || []
-  // If all words used, reset history
-  if (used.length >= list.length - 1) { _usedWords[diffId] = [] }
-  const available = list.filter(w => !(_usedWords[diffId] || []).includes(w.word))
+function getRandomWord(diffId, categoryId) {
+  const cat = ALL_CATEGORIES.find(c => c.id === categoryId) || ALL_CATEGORIES[0]
+  const list = cat.words[diffId] || cat.words.easy || WORDS_EASY
+  const key = `${categoryId}_${diffId}`
+  if (!_usedWords[key]) _usedWords[key] = []
+  const used = _usedWords[key]
+  if (used.length >= list.length - 1) { _usedWords[key] = [] }
+  const available = list.filter(w => !(_usedWords[key] || []).includes(w.word))
   const pick = available.length > 0 ? available[Math.floor(Math.random() * available.length)] : list[Math.floor(Math.random() * list.length)]
-  if (!_usedWords[diffId]) _usedWords[diffId] = []
-  _usedWords[diffId].push(pick.word)
-  return pick
+  _usedWords[key].push(pick.word)
+  return { ...pick, categoryName: cat.name, categoryIcon: cat.icon }
 }
 
 function useTimer(running, resetKey) {
@@ -309,7 +315,9 @@ export default function HangmanGame({ onBack, onHome, game, difficulty }) {
 
   const maxWrong = MAX_WRONG[difficulty.id] || 8
 
-  const [wordData, setWordData] = useState(() => getRandomWord(difficulty.id))
+  const [activeCategory, setActiveCategory] = useState('random')
+  const getInitialCategory = () => activeCategory === 'random' ? ALL_CATEGORIES[Math.floor(Math.random() * ALL_CATEGORIES.length)].id : activeCategory
+  const [wordData, setWordData] = useState(() => getRandomWord(difficulty.id, getInitialCategory()))
   const [guessed, setGuessed] = useState(new Set())
   const [won, setWon] = useState(false)
   const [lost, setLost] = useState(false)
@@ -420,7 +428,21 @@ export default function HangmanGame({ onBack, onHome, game, difficulty }) {
 
   const restart = () => {
     play('click')
-    setWordData(getRandomWord(difficulty.id))
+    const catId = activeCategory === 'random' ? ALL_CATEGORIES[Math.floor(Math.random() * ALL_CATEGORIES.length)].id : activeCategory
+    setWordData(getRandomWord(difficulty.id, catId))
+    setGuessed(new Set())
+    setWon(false)
+    setLost(false)
+    setShowConfetti(false)
+    setHintUsed(0)
+    setPaidHints(0)
+    setResetKey(k => k + 1)
+  }
+
+  const switchCategory = (catId) => {
+    setActiveCategory(catId)
+    const resolvedCat = catId === 'random' ? ALL_CATEGORIES[Math.floor(Math.random() * ALL_CATEGORIES.length)].id : catId
+    setWordData(getRandomWord(difficulty.id, resolvedCat))
     setGuessed(new Set())
     setWon(false)
     setLost(false)
@@ -549,6 +571,27 @@ export default function HangmanGame({ onBack, onHome, game, difficulty }) {
             {DIFF_LABEL[difficulty.id]}
           </span>
         </div>
+
+        {/* Category Selector */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 16 }}>
+          <button onClick={() => switchCategory('random')}
+            style={{ padding: '5px 12px', borderRadius: 100, border: activeCategory === 'random' ? `2px solid ${accent}` : `2px solid ${borderCol}`, background: activeCategory === 'random' ? `${accent}18` : 'transparent', color: activeCategory === 'random' ? accent : textMuted, fontSize: 12, fontWeight: 700, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
+            🎲 Acak
+          </button>
+          {ALL_CATEGORIES.map(cat => (
+            <button key={cat.id} onClick={() => switchCategory(cat.id)}
+              style={{ padding: '5px 12px', borderRadius: 100, border: activeCategory === cat.id ? `2px solid ${accent}` : `2px solid ${borderCol}`, background: activeCategory === cat.id ? `${accent}18` : 'transparent', color: activeCategory === cat.id ? accent : textMuted, fontSize: 12, fontWeight: 700, fontFamily: "'Fredoka One',cursive", cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
+              {cat.icon} {cat.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Active Category Label */}
+        {wordData.categoryName && (
+          <div style={{ textAlign: 'center', marginBottom: 10, fontSize: 12, color: textMuted, fontWeight: 600 }}>
+            {wordData.categoryIcon} Kategori: <span style={{ color: accent }}>{wordData.categoryName}</span>
+          </div>
+        )}
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 24 }}>

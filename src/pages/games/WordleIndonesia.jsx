@@ -219,22 +219,46 @@ export default function WordleIndonesia({ onBack, onHome, game, difficulty }) {
     msgTimeout.current = setTimeout(() => setMessage(''), duration)
   }, [])
 
-  // Hard mode validation
+  // Hard mode validation — checks ALL previous guesses
   const validateHardMode = useCallback((guess) => {
     if (difficulty.id !== 'hard' || guesses.length === 0) return null
-    const lastGuess = guesses[guesses.length - 1]
-    for (let i = 0; i < 5; i++) {
-      if (lastGuess.result[i] === 'correct' && guess[i] !== lastGuess.word[i]) {
-        return `Posisi ${i+1} harus "${lastGuess.word[i]}" (hijau)`
-      }
-    }
-    for (let i = 0; i < 5; i++) {
-      if (lastGuess.result[i] === 'present') {
-        if (!guess.includes(lastGuess.word[i])) {
-          return `Harus mengandung "${lastGuess.word[i]}" (kuning)`
+
+    // Collect constraints from ALL previous guesses
+    const mustBeAt = {} // position -> letter (from greens)
+    const mustContain = new Set() // letters that must be present (from yellows)
+    const mustNotAt = {} // letter -> Set of positions where it was yellow (can't be placed there again)
+
+    for (const prev of guesses) {
+      for (let i = 0; i < 5; i++) {
+        const letter = prev.word[i]
+        if (prev.result[i] === 'correct') {
+          mustBeAt[i] = letter
+        } else if (prev.result[i] === 'present') {
+          mustContain.add(letter)
+          if (!mustNotAt[letter]) mustNotAt[letter] = new Set()
+          mustNotAt[letter].add(i)
         }
       }
     }
+
+    // Check green constraints: letter must be at exact position
+    for (const [pos, letter] of Object.entries(mustBeAt)) {
+      const p = parseInt(pos)
+      if (guess[p] !== letter) {
+        return `Posisi ${p + 1} harus "${letter}" (hijau)`
+      }
+    }
+
+    // Check yellow constraints: letter must be in the word
+    for (const letter of mustContain) {
+      // Skip if this letter is already locked as green somewhere
+      const isGreenElsewhere = Object.values(mustBeAt).includes(letter)
+      if (isGreenElsewhere) continue
+      if (!guess.includes(letter)) {
+        return `Harus mengandung "${letter}" (kuning)`
+      }
+    }
+
     return null
   }, [guesses, difficulty.id])
 
