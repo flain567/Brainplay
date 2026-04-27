@@ -630,7 +630,7 @@ export default function HangmanGame({ onBack, onHome, game, difficulty }) {
             transition: 'all 0.3s'
           }}>
             <div style={{ filter: style.filter || 'none', transition: 'filter 0.5s ease' }}>
-              <HangmanFigure wrongCount={wrongCount} maxWrong={maxWrong} color={lost ? '#FF6B6B' : hangmanTheme.style.stick} headColor={lost ? '#FF6B6B' : hangmanTheme.style.man} />
+              <HangmanFigure wrongCount={wrongCount} maxWrong={maxWrong} color={lost ? '#FF6B6B' : (hangmanTheme?.style?.stick || '#ffffff')} headColor={lost ? '#FF6B6B' : (hangmanTheme?.style?.man || '#ffffff')} />
             </div>
           </div>
         </div>
