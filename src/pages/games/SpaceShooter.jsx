@@ -645,6 +645,7 @@ export default function SpaceShooter({ onBack, onHome, game, difficulty }) {
     }
 
     function endGame(g, won) {
+      if (phaseRef.current !== 'playing') return
       if (g.score > bestScore) { localStorage.setItem(`space-best-${difficulty.id}`, g.score); setBestScore(g.score) }
       if (g.wave > bestWave) { localStorage.setItem(`space-bestwave-${difficulty.id}`, g.wave); setBestWave(g.wave) }
       if (won) {

@@ -787,7 +787,13 @@ export default function FieldsAdventure({ onBack, onHome, game, difficulty }) {
       ctx.fillText(`🪙 ${g.coinsEarned}`, 14, 44)
 
       // Update React stats
-      setStats({ chestsFound: g.chestsFound, totalChests, coinsEarned: g.coinsEarned, hp: g.hp, maxHp: g.maxHp, steps: Math.floor(g.steps / 30) })
+      const newSteps = Math.floor(g.steps / 30)
+      setStats(prev => {
+        if (prev.chestsFound === g.chestsFound && prev.coinsEarned === g.coinsEarned && prev.hp === g.hp && prev.steps === newSteps) {
+          return prev
+        }
+        return { chestsFound: g.chestsFound, totalChests, coinsEarned: g.coinsEarned, hp: g.hp, maxHp: g.maxHp, steps: newSteps }
+      })
 
       rafRef.current = requestAnimationFrame(loop)
     }

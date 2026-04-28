@@ -258,7 +258,7 @@ export default function Friends({ onBack }) {
                   <div style={{ textAlign: 'center', padding: '60px 20px' }}>
                     <div style={{ fontSize: 64, marginBottom: 16 }}>👻</div>
                     <div style={{ fontFamily: "'Fredoka One',cursive", fontSize: 20, color: textMain }}>Sepi sekali...</div>
-                    <div style={{ color: textMuted, marginTop: 8 }}>Belum ada koneksi. Ayo perluas jaringanmu dan tantang teman-teman di tab "Tambah"!</div>
+                    <div style={{ color: textMuted, marginTop: 8 }}>Belum ada koneksi. Ayo perluas jaringanmu dan tantang teman-teman di tab &quot;Tambah&quot;!</div>
                   </div>
                 ) : (
                   friends.map((f, i) => {
