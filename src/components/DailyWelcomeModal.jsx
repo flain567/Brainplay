@@ -63,11 +63,12 @@ export default function DailyWelcomeModal({ onClose }) {
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
-          padding: 20px;
+          padding: 15vh 20px 20px 20px;
           animation: dwm-fade-in 0.4s ease forwards;
           pointer-events: auto;
+          overflow-y: auto;
         }
         .dwm-overlay.closing {
           animation: dwm-fade-out 0.3s ease forwards;
