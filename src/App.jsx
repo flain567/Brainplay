@@ -82,6 +82,7 @@ const TowerOfHanoi    = lazy(() => import('./pages/games/TowerOfHanoi.jsx'))
 const MinesweeperGame = lazy(() => import('./pages/games/Minesweeper.jsx'))
 const FieldsAdventure = lazy(() => import('./pages/games/FieldsAdventure.jsx'))
 const LetterTilesGame = lazy(() => import('./pages/games/LetterTiles.jsx'))
+const AnagramGame = lazy(() => import('./pages/games/AnagramGame.jsx'))
 
 // ─── Game loading fallback (legacy — only used for actual game components) ──
 function GameLoader() {
@@ -399,6 +400,19 @@ export const GAMES = [
       { id:'easy',   description:'10 level, 60 detik, 3 hint — santai untuk pemula',           stats:['10 level','60s','3 hint'] },
       { id:'medium', description:'20 level, 45 detik, 2 hint — butuh kecepatan!',              stats:['20 level','45s','2 hint'] },
       { id:'hard',   description:'30 level, 30 detik, 1 hint — master kata!',                  stats:['30 level','30s','1 hint'] },
+    ],
+  },
+  {
+    id: 'anagram',
+    title: 'Anagram',
+    emoji: '🔀',
+    description: 'Hubungkan huruf acak untuk membentuk berbagai kata tersembunyi. Temukan semua kata target!',
+    color: '#FDCB6E', bg: '#FFFDF0', tag: 'Kata',
+    component: AnagramGame, day: 25,
+    difficulties: [
+      { id:'easy',   description:'Roda 3-4 huruf, kata sederhana, 60 detik — pemula', stats:['3-4 huruf','60s'] },
+      { id:'medium', description:'Roda 4-5 huruf, grid teka-teki, 45 detik — menengah', stats:['4-5 huruf','45s'] },
+      { id:'hard',   description:'Roda 5-6 huruf, grid padat, 30 detik — master kata!', stats:['5-6 huruf','30s'] },
     ],
   },
 ]
