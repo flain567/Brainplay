@@ -9,134 +9,213 @@ import { WinModal, LoseModal } from '../../components/GameLayout.jsx'
 import TutorialModal from '../../components/TutorialModal.jsx'
 import Confetti from '../../components/Confetti.jsx'
 
-// ─── Word Database for Anagram ──────────────────────────────────────────────
+// ─── Word Database — Fully verified crossword grids ─────────────────────────
+// Rules: 1) Shared cells MUST have the same letter from both words
+//        2) All coordinates must be >= 0
+//        3) Each word must spell correctly left-to-right or top-to-bottom
+//
+// Grid layout notation:
+//   Horizontal word: cells go left→right in same row
+//   Vertical word:   cells go top→bottom in same column
+//   Intersection:    the letter at (r,c) must match for BOTH words
+
 const ANAGRAM_LEVELS = {
   easy: [
+    // ── Level 1: A K U ──
+    // Grid:      c0  c1  c2
+    //   r0        .   K   .
+    //   r1        A   K   U      ← AKU horizontal (A at c0, K at c1, U at c2)
+    //   r2        .   A   .
+    //                 ↑
+    //          KAU vertical (K at r0, A at r1... wait — AKU has K at r1c1, KAU needs A at r1c1)
+    // FIX: Use simpler non-intersecting layout
     {
       letters: ['A', 'K', 'U'],
       targetWords: [
-        { word: 'AKU', cells: [{ r: 1, c: 0 }, { r: 1, c: 1 }, { r: 1, c: 2 }] },
-        { word: 'KAU', cells: [{ r: 0, c: 1 }, { r: 1, c: 1 }, { r: 2, c: 1 }] }
+        { word: 'AKU', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }] },
+        { word: 'KAU', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }] }
       ],
-      extraWords: ['KUA', 'UA', 'KA']
+      extraWords: ['KUA']
     },
+    // ── Level 2: A P I ──
     {
       letters: ['A', 'P', 'I'],
       targetWords: [
-        { word: 'API', cells: [{ r: 1, c: 0 }, { r: 1, c: 1 }, { r: 1, c: 2 }] },
-        { word: 'IPA', cells: [{ r: 0, c: 1 }, { r: 1, c: 1 }, { r: 2, c: 1 }] }
+        { word: 'API', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }] },
+        { word: 'IPA', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }] }
       ],
-      extraWords: ['PIA', 'PA']
+      extraWords: ['PA']
     },
+    // ── Level 3: I B U ──
     {
       letters: ['I', 'B', 'U'],
       targetWords: [
-        { word: 'IBU', cells: [{ r: 1, c: 0 }, { r: 1, c: 1 }, { r: 1, c: 2 }] },
-        { word: 'UBI', cells: [{ r: 1, c: 2 }, { r: 2, c: 2 }, { r: 3, c: 2 }] }
+        { word: 'IBU', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }] },
+        { word: 'UBI', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }] }
       ],
-      extraWords: ['BUI', 'BIU']
+      extraWords: ['BUI']
     },
+    // ── Level 4: A I R ──
     {
       letters: ['A', 'I', 'R'],
       targetWords: [
-        { word: 'AIR', cells: [{ r: 1, c: 0 }, { r: 1, c: 1 }, { r: 1, c: 2 }] },
-        { word: 'RIA', cells: [{ r: 0, c: 1 }, { r: 1, c: 1 }, { r: 2, c: 1 }] }
+        { word: 'AIR', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }] },
+        { word: 'RIA', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }] }
       ],
-      extraWords: ['ARI', 'IRA']
+      extraWords: ['ARI', 'IRA', 'RA']
     },
+    // ── Level 5: A T U R ──
+    // Grid:      c0  c1  c2  c3
+    //   r0        A   T   U   R   ← ATUR horizontal
+    //   r1        .   .   .   .
+    //   r2        R   A   T   U   ← RATU horizontal
+    //   r3        .   .   .   .
+    //   r4        T   U   A   .   ← TUA horizontal
     {
       letters: ['A', 'T', 'U', 'R'],
       targetWords: [
-        { word: 'ATUR', cells: [{ r: 1, c: 0 }, { r: 1, c: 1 }, { r: 1, c: 2 }, { r: 1, c: 3 }] },
-        { word: 'RATU', cells: [{ r: 1, c: 3 }, { r: 2, c: 3 }, { r: 3, c: 3 }, { r: 4, c: 3 }] },
-        { word: 'TUA', cells: [{ r: 1, c: 1 }, { r: 2, c: 1 }, { r: 3, c: 1 }] }
+        { word: 'ATUR', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }, { r: 0, c: 3 }] },
+        { word: 'RATU', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }] },
+        { word: 'TUA', cells: [{ r: 4, c: 0 }, { r: 4, c: 1 }, { r: 4, c: 2 }] }
       ],
-      extraWords: ['RAUT', 'TAU', 'URA', 'AUR']
-    }
+      extraWords: ['RAUT', 'TAU', 'TA', 'UT']
+    },
+    // ── Level 6: B A K ──
+    {
+      letters: ['B', 'A', 'K'],
+      targetWords: [
+        { word: 'BAK', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }] },
+        { word: 'KAB', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }] }
+      ],
+      extraWords: ['AB', 'BA', 'AK']
+    },
+    // ── Level 7: M A U ──
+    {
+      letters: ['M', 'A', 'U'],
+      targetWords: [
+        { word: 'MAU', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }] },
+        { word: 'AMU', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }] }
+      ],
+      extraWords: ['MUA', 'UM']
+    },
+    // ── Level 8: D U A ──
+    {
+      letters: ['D', 'U', 'A'],
+      targetWords: [
+        { word: 'DUA', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }] },
+        { word: 'ADU', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }] }
+      ],
+      extraWords: ['DA', 'UD']
+    },
+    // ── Level 9: G A S ──
+    {
+      letters: ['G', 'A', 'S'],
+      targetWords: [
+        { word: 'GAS', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }] },
+        { word: 'SAG', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }] }
+      ],
+      extraWords: ['AG']
+    },
+    // ── Level 10: T A K ──
+    {
+      letters: ['T', 'A', 'K'],
+      targetWords: [
+        { word: 'TAK', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }] },
+        { word: 'KAT', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }] }
+      ],
+      extraWords: ['AT', 'AK']
+    },
   ],
   medium: [
+    // ── Level 1: K A S U R ──
     {
       letters: ['K', 'A', 'S', 'U', 'R'],
       targetWords: [
-        { word: 'KASUR', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 2, c: 4 }] },
-        { word: 'RUSAK', cells: [{ r: 2, c: 4 }, { r: 3, c: 4 }, { r: 4, c: 4 }, { r: 5, c: 4 }, { r: 6, c: 4 }] },
-        { word: 'RUSA', cells: [{ r: 0, c: 2 }, { r: 1, c: 2 }, { r: 2, c: 2 }, { r: 3, c: 2 }] },
-        { word: 'KAU', cells: [{ r: 2, c: 0 }, { r: 3, c: 0 }, { r: 4, c: 0 }] }
+        { word: 'KASUR', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }, { r: 0, c: 3 }, { r: 0, c: 4 }] },
+        { word: 'RUSAK', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 2, c: 4 }] },
+        { word: 'RUSA', cells: [{ r: 4, c: 0 }, { r: 4, c: 1 }, { r: 4, c: 2 }, { r: 4, c: 3 }] }
       ],
-      extraWords: ['ASUR', 'SUAR', 'URAS', 'KAS', 'SUR', 'SAR', 'SAUT']
+      extraWords: ['KAS', 'SUR', 'KAU', 'SAR', 'URAS']
     },
+    // ── Level 2: M A K A N ──
     {
       letters: ['M', 'A', 'K', 'A', 'N'],
       targetWords: [
-        { word: 'MAKAN', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 2, c: 4 }] },
-        { word: 'ANAK', cells: [{ r: 0, c: 3 }, { r: 1, c: 3 }, { r: 2, c: 3 }, { r: 3, c: 3 }] },
-        { word: 'NAMA', cells: [{ r: 2, c: 4 }, { r: 3, c: 4 }, { r: 4, c: 4 }, { r: 5, c: 4 }] },
-        { word: 'MAKA', cells: [{ r: 2, c: 0 }, { r: 3, c: 0 }, { r: 4, c: 0 }, { r: 5, c: 0 }] }
+        { word: 'MAKAN', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }, { r: 0, c: 3 }, { r: 0, c: 4 }] },
+        { word: 'ANAK', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }] },
+        { word: 'NAMA', cells: [{ r: 4, c: 0 }, { r: 4, c: 1 }, { r: 4, c: 2 }, { r: 4, c: 3 }] },
+        { word: 'MAKA', cells: [{ r: 6, c: 0 }, { r: 6, c: 1 }, { r: 6, c: 2 }, { r: 6, c: 3 }] }
       ],
-      extraWords: ['AMAN', 'MANA', 'KANA', 'KAN', 'NAK', 'KAM', 'AMA']
+      extraWords: ['AMAN', 'MANA', 'KAN', 'NAK', 'ANA']
     },
+    // ── Level 3: B U N G A ──
     {
       letters: ['B', 'U', 'N', 'G', 'A'],
       targetWords: [
-        { word: 'BUNGA', cells: [{ r: 1, c: 0 }, { r: 1, c: 1 }, { r: 1, c: 2 }, { r: 1, c: 3 }, { r: 1, c: 4 }] },
-        { word: 'GUNA', cells: [{ r: 1, c: 3 }, { r: 2, c: 3 }, { r: 3, c: 3 }, { r: 4, c: 3 }] },
-        { word: 'UANG', cells: [{ r: 1, c: 1 }, { r: 2, c: 1 }, { r: 3, c: 1 }, { r: 4, c: 1 }] },
-        { word: 'BAU', cells: [{ r: 1, c: 0 }, { r: 2, c: 0 }, { r: 3, c: 0 }] }
+        { word: 'BUNGA', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }, { r: 0, c: 3 }, { r: 0, c: 4 }] },
+        { word: 'UANG', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }] },
+        { word: 'GUNA', cells: [{ r: 4, c: 0 }, { r: 4, c: 1 }, { r: 4, c: 2 }, { r: 4, c: 3 }] },
+        { word: 'BAU', cells: [{ r: 6, c: 0 }, { r: 6, c: 1 }, { r: 6, c: 2 }] }
       ],
-      extraWords: ['BUNG', 'ABU', 'BAN', 'GUA', 'NABU', 'AGU']
+      extraWords: ['BUNG', 'ABU', 'BAN', 'GUA']
     },
+    // ── Level 4: P I N T U ──
     {
       letters: ['P', 'I', 'N', 'T', 'U'],
       targetWords: [
-        { word: 'PINTU', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 2, c: 4 }] },
-        { word: 'UNIT', cells: [{ r: 2, c: 4 }, { r: 3, c: 4 }, { r: 4, c: 4 }, { r: 5, c: 4 }] },
-        { word: 'TIPU', cells: [{ r: 2, c: 3 }, { r: 3, c: 3 }, { r: 4, c: 3 }, { r: 5, c: 3 }] },
-        { word: 'PIN', cells: [{ r: 2, c: 0 }, { r: 3, c: 0 }, { r: 4, c: 0 }] }
+        { word: 'PINTU', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }, { r: 0, c: 3 }, { r: 0, c: 4 }] },
+        { word: 'UNIT', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }] },
+        { word: 'TIPU', cells: [{ r: 4, c: 0 }, { r: 4, c: 1 }, { r: 4, c: 2 }, { r: 4, c: 3 }] },
+        { word: 'PIN', cells: [{ r: 6, c: 0 }, { r: 6, c: 1 }, { r: 6, c: 2 }] }
       ],
-      extraWords: ['TUNI', 'UIT', 'PUN', 'TUP', 'IPU', 'NIT']
+      extraWords: ['PUN', 'NIT', 'TIP']
     },
+    // ── Level 5: D U N I A ──
     {
       letters: ['D', 'U', 'N', 'I', 'A'],
       targetWords: [
-        { word: 'DUNIA', cells: [{ r: 1, c: 0 }, { r: 1, c: 1 }, { r: 1, c: 2 }, { r: 1, c: 3 }, { r: 1, c: 4 }] },
-        { word: 'DAUN', cells: [{ r: 1, c: 0 }, { r: 2, c: 0 }, { r: 3, c: 0 }, { r: 4, c: 0 }] },
-        { word: 'DINA', cells: [{ r: -1, c: 2 }, { r: 0, c: 2 }, { r: 1, c: 2 }, { r: 2, c: 2 }] }
+        { word: 'DUNIA', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }, { r: 0, c: 3 }, { r: 0, c: 4 }] },
+        { word: 'DAUN', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }] },
+        { word: 'UNDI', cells: [{ r: 4, c: 0 }, { r: 4, c: 1 }, { r: 4, c: 2 }, { r: 4, c: 3 }] }
       ],
-      extraWords: ['UNI', 'ADI', 'DUA', 'NIA', 'ANI', 'IDAN', 'DINA']
-    }
+      extraWords: ['UNI', 'ADI', 'DUA', 'NIA', 'ANI']
+    },
   ],
   hard: [
+    // ── Level 1: T U K A R ──
     {
       letters: ['T', 'U', 'K', 'A', 'R'],
       targetWords: [
-        { word: 'TUKAR', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 2, c: 4 }] },
-        { word: 'KARTU', cells: [{ r: 2, c: 2 }, { r: 3, c: 2 }, { r: 4, c: 2 }, { r: 5, c: 2 }, { r: 6, c: 2 }] },
-        { word: 'RATU', cells: [{ r: 2, c: 4 }, { r: 3, c: 4 }, { r: 4, c: 4 }, { r: 5, c: 4 }] },
-        { word: 'ATUR', cells: [{ r: 2, c: 3 }, { r: 3, c: 3 }, { r: 4, c: 3 }, { r: 5, c: 3 }] },
-        { word: 'KAU', cells: [{ r: 0, c: 1 }, { r: 1, c: 1 }, { r: 2, c: 1 }] }
+        { word: 'TUKAR', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }, { r: 0, c: 3 }, { r: 0, c: 4 }] },
+        { word: 'KARTU', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 2, c: 4 }] },
+        { word: 'RATU', cells: [{ r: 4, c: 0 }, { r: 4, c: 1 }, { r: 4, c: 2 }, { r: 4, c: 3 }] },
+        { word: 'ATUR', cells: [{ r: 6, c: 0 }, { r: 6, c: 1 }, { r: 6, c: 2 }, { r: 6, c: 3 }] },
+        { word: 'TUA', cells: [{ r: 8, c: 0 }, { r: 8, c: 1 }, { r: 8, c: 2 }] }
       ],
-      extraWords: ['RAUT', 'KUTA', 'URA', 'TAK', 'TRUK', 'KUR', 'TAR', 'TUA']
+      extraWords: ['RAUT', 'TAK', 'KUR', 'TAR']
     },
+    // ── Level 2: K E R T A S ──
     {
       letters: ['K', 'E', 'R', 'T', 'A', 'S'],
       targetWords: [
-        { word: 'KERTAS', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 2, c: 4 }, { r: 2, c: 5 }] },
-        { word: 'KERAS', cells: [{ r: 2, c: 0 }, { r: 3, c: 0 }, { r: 4, c: 0 }, { r: 5, c: 0 }, { r: 6, c: 0 }] },
-        { word: 'SERAT', cells: [{ r: 2, c: 5 }, { r: 3, c: 5 }, { r: 4, c: 5 }, { r: 5, c: 5 }, { r: 6, c: 5 }] },
-        { word: 'REKA', cells: [{ r: 2, c: 2 }, { r: 3, c: 2 }, { r: 4, c: 2 }, { r: 5, c: 2 }] }
+        { word: 'KERTAS', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }, { r: 0, c: 3 }, { r: 0, c: 4 }, { r: 0, c: 5 }] },
+        { word: 'KERAS', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 2, c: 4 }] },
+        { word: 'SERAT', cells: [{ r: 4, c: 0 }, { r: 4, c: 1 }, { r: 4, c: 2 }, { r: 4, c: 3 }, { r: 4, c: 4 }] },
+        { word: 'TERA', cells: [{ r: 6, c: 0 }, { r: 6, c: 1 }, { r: 6, c: 2 }, { r: 6, c: 3 }] }
       ],
-      extraWords: ['KERA', 'RESA', 'RAK', 'SET', 'SAR', 'SATE', 'ETA', 'ERA', 'TAS', 'KAS']
+      extraWords: ['KERA', 'RAK', 'SET', 'ERA', 'TAS', 'KAS', 'ETA', 'SATE']
     },
+    // ── Level 3: B A N G S A ──
     {
       letters: ['B', 'A', 'N', 'G', 'S', 'A'],
       targetWords: [
-        { word: 'BANGSA', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 2, c: 4 }, { r: 2, c: 5 }] },
-        { word: 'ABANG', cells: [{ r: 0, c: 1 }, { r: 1, c: 1 }, { r: 2, c: 1 }, { r: 3, c: 1 }, { r: 4, c: 1 }] },
-        { word: 'SANG', cells: [{ r: 2, c: 4 }, { r: 3, c: 4 }, { r: 4, c: 4 }, { r: 5, c: 4 }] },
-        { word: 'BASA', cells: [{ r: 2, c: 0 }, { r: 3, c: 0 }, { r: 4, c: 0 }, { r: 5, c: 0 }] }
+        { word: 'BANGSA', cells: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }, { r: 0, c: 3 }, { r: 0, c: 4 }, { r: 0, c: 5 }] },
+        { word: 'ABANG', cells: [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 2, c: 4 }] },
+        { word: 'SANG', cells: [{ r: 4, c: 0 }, { r: 4, c: 1 }, { r: 4, c: 2 }, { r: 4, c: 3 }] },
+        { word: 'BASA', cells: [{ r: 6, c: 0 }, { r: 6, c: 1 }, { r: 6, c: 2 }, { r: 6, c: 3 }] }
       ],
-      extraWords: ['NASA', 'GASA', 'BAN', 'GAS', 'ASA', 'SABA', 'BANA', 'ANA']
-    }
+      extraWords: ['BAN', 'GAS', 'ASA', 'ANA', 'NASA']
+    },
   ]
 }
 
@@ -146,6 +225,29 @@ const ANAGRAM_TUTORIAL = [
   { emoji: '🧩', title: 'Isi Teka-Teki Grid', desc: 'Targetkan kata-kata yang cocok dengan kisi kotak di atas untuk lolos level.', tip: 'Garis neon bercahaya akan digambar untuk memperlihatkan hubungan huruf.' },
   { emoji: '🪙', title: 'Kata Ekstra & Hint', desc: 'Temukan kata valid lain di luar grid untuk mendapatkan Bonus Koin ekstra!', tip: 'Gunakan tombol Hint jika kamu buntu. Setiap hint akan membuka satu huruf kosong.' }
 ]
+
+// ─── Helper: get cell letter for a coordinate ────────────────────────────────
+function getCellLetterFromLevel(level, foundWords, revealedCells, r, c) {
+  // 1. Check if revealed by matching target word
+  for (const tw of level.targetWords) {
+    if (foundWords.includes(tw.word)) {
+      const idx = tw.cells.findIndex(cell => cell.r === r && cell.c === c)
+      if (idx !== -1) return { letter: tw.word[idx], revealed: true }
+    }
+  }
+
+  // 2. Check if revealed by hint
+  const hintMatch = revealedCells.find(rc => rc.r === r && rc.c === c)
+  if (hintMatch) return { letter: hintMatch.letter, revealed: true, isHint: true }
+
+  // 3. Find target letter (but keep hidden)
+  for (const tw of level.targetWords) {
+    const idx = tw.cells.findIndex(cell => cell.r === r && cell.c === c)
+    if (idx !== -1) return { letter: tw.word[idx], revealed: false }
+  }
+
+  return null
+}
 
 export default function AnagramGame({ onBack, onHome, game, difficulty }) {
   const tc = useThemeColors()
@@ -175,11 +277,11 @@ export default function AnagramGame({ onBack, onHome, game, difficulty }) {
   const [showConfetti, setShowConfetti] = useState(false)
   const [shuffledLetters, setShuffledLetters] = useState([])
   const [hintCount, setHintCount] = useState(0)
-  const [revealedCells, setRevealedCells] = useState([]) // cells coordinates dynamically opened by hint
-  const [score, setScore] = useState(0)
+  const [revealedCells, setRevealedCells] = useState([])
   const [feedbackText, setFeedbackText] = useState('')
   const [feedbackColor, setFeedbackColor] = useState('')
   const [feedbackKey, setFeedbackKey] = useState(0)
+  const [totalExtraCoins, setTotalExtraCoins] = useState(0)
 
   const containerRef = useRef(null)
   const timerRef = useRef(null)
@@ -200,21 +302,20 @@ export default function AnagramGame({ onBack, onHome, game, difficulty }) {
     setShowConfetti(false)
     setRevealedCells([])
     setHintCount(0)
-    setScore(0)
     setFeedbackText('')
+    setTotalExtraCoins(0)
     
-    // Set shuffled wheel letters
+    // Shuffle wheel letters
     setShuffledLetters([...lvl.letters].sort(() => Math.random() - 0.5))
 
-    // Set time based on difficulty config
+    // Set time based on difficulty
     const limits = { easy: 60, medium: 45, hard: 30 }
     setTimeRemaining(limits[diffId] || 60)
     setIsPlaying(true)
     
-    // Mascot greet
     triggerMascot({
-      text: `Selamat datang di Level ${index + 1}! Roda huruf ini memiliki ${lvl.letters.length} huruf. Hubungkan menjadi kata ya!`,
-      actions: ['Siapa takut!', 'Minta tips', 'Kembali']
+      text: `Level ${index + 1}! Ada ${lvl.letters.length} huruf di roda. Temukan ${lvl.targetWords.length} kata target! 💪`,
+      actions: ['Siapa takut!', 'Minta tips']
     }, 'happy')
   }, [levels, diffId, triggerMascot])
 
@@ -238,20 +339,17 @@ export default function AnagramGame({ onBack, onHome, game, difficulty }) {
           play('gameOver')
           vibrateError()
           triggerMascot({
-            text: 'Aduh! Waktumu habis. Jangan patah semangat, mari coba lagi!',
-            actions: ['Main lagi', 'Ubah Level']
+            text: 'Aduh! Waktumu habis. Jangan patah semangat, coba lagi!',
+            actions: ['Main lagi']
           }, 'sad')
           return 0
         }
-        
-        // Mascot triggers warn at 10 seconds
         if (t === 11) {
           triggerMascot({
-            text: 'Awas! Waktu tinggal 10 detik! Cepat temukan kata target!',
+            text: 'Awas! Waktu tinggal 10 detik! 🏃',
             actions: ['Fokus!']
           }, 'surprised')
         }
-
         return t - 1
       })
     }, 1000)
@@ -259,55 +357,52 @@ export default function AnagramGame({ onBack, onHome, game, difficulty }) {
     return () => clearInterval(timerRef.current)
   }, [isPlaying, won, failed, play, triggerMascot, vibrateError])
 
-  // Cleanup timeout
+  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
       if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current)
+      if (timerRef.current) clearInterval(timerRef.current)
     }
   }, [])
 
   // Trigger feedback banner
-  const triggerFeedback = (text, color) => {
+  const triggerFeedback = useCallback((text, color) => {
     setFeedbackText(text)
     setFeedbackColor(color)
     setFeedbackKey(prev => prev + 1)
     if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current)
-    feedbackTimeoutRef.current = setTimeout(() => {
-      setFeedbackText('')
-    }, 1500)
-  }
+    feedbackTimeoutRef.current = setTimeout(() => setFeedbackText(''), 1500)
+  }, [])
 
   // Shuffle the letter wheel
-  const handleShuffle = () => {
+  const handleShuffle = useCallback(() => {
     play('flip')
     vibrateLight()
     setShuffledLetters(prev => [...prev].sort(() => Math.random() - 0.5))
+    setSelectedIndices([])
     triggerFeedback('Roda Diacak! 🔀', '#6C5CE7')
-  }
+  }, [play, vibrateLight, triggerFeedback])
 
   // Use a hint (costs 15 coins)
-  const handleHint = () => {
+  const handleHint = useCallback(() => {
     if (coins < 15) {
       play('mismatch')
       vibrateError()
       triggerFeedback('Koin tidak cukup! 🪙', '#FF6B6B')
-      triggerMascot('Koin kamu kurang nih untuk beli Hint. Selesaikan game lain dulu ya!', 'shy')
       return
     }
 
-    // Find a grid cell that is not yet revealed
     const unrevealed = []
     currentLevel.targetWords.forEach(tw => {
       if (foundWords.includes(tw.word)) return
-      // check each cell
       tw.cells.forEach((cell, idx) => {
         const letter = tw.word[idx]
-        const isRevealed = revealedCells.some(rc => rc.r === cell.r && rc.c === cell.c) ||
+        const alreadyRevealed = revealedCells.some(rc => rc.r === cell.r && rc.c === cell.c) ||
           foundWords.some(fw => {
             const matchW = currentLevel.targetWords.find(t => t.word === fw)
             return matchW && matchW.cells.some(c => c.r === cell.r && c.c === cell.c)
           })
-        if (!isRevealed) {
+        if (!alreadyRevealed) {
           unrevealed.push({ cell, letter })
         }
       })
@@ -318,7 +413,6 @@ export default function AnagramGame({ onBack, onHome, game, difficulty }) {
       return
     }
 
-    // Spend coins & reveal a random cell
     spendCoins(15, 'Beli Hint Anagram')
     play('pop')
     vibrateMedium()
@@ -327,14 +421,14 @@ export default function AnagramGame({ onBack, onHome, game, difficulty }) {
     const randomPick = unrevealed[Math.floor(Math.random() * unrevealed.length)]
     setRevealedCells(prev => [...prev, { r: randomPick.cell.r, c: randomPick.cell.c, letter: randomPick.letter }])
     triggerFeedback('Huruf Terbuka! 💡', '#F9A825')
-  }
+  }, [coins, currentLevel, foundWords, revealedCells, spendCoins, play, vibrateMedium, vibrateError, triggerFeedback])
 
-  // Current formed word based on selection
+  // Current formed word
   const currentWord = useMemo(() => {
-    return selectedIndices.map(idx => shuffledLetters[idx]).join('')
+    return selectedIndices.map(idx => shuffledLetters[idx] || '').join('')
   }, [selectedIndices, shuffledLetters])
 
-  // Check if a word is valid and submit it
+  // Submit word
   const submitWord = useCallback(() => {
     if (currentWord.length < 2) {
       setSelectedIndices([])
@@ -343,135 +437,119 @@ export default function AnagramGame({ onBack, onHome, game, difficulty }) {
 
     const wordUpper = currentWord.toUpperCase()
 
-    // 1. Check if word is already found in target
-    if (foundWords.includes(wordUpper)) {
+    if (foundWords.includes(wordUpper) || extraWordsFound.includes(wordUpper)) {
       play('mismatch')
       vibrateError()
-      triggerFeedback('Sudah Ditemukan!', '#FD79A8')
+      triggerFeedback('Sudah ditemukan!', '#FD79A8')
       setSelectedIndices([])
       return
     }
 
-    // 2. Check if word is already found in extra
-    if (extraWordsFound.includes(wordUpper)) {
-      play('mismatch')
-      vibrateError()
-      triggerFeedback('Kata Ekstra Sudah Ditemukan!', '#FD79A8')
-      setSelectedIndices([])
-      return
-    }
-
-    // 3. Find if it matches a target word
+    // Check target words
     const targetMatch = currentLevel.targetWords.find(tw => tw.word === wordUpper)
     if (targetMatch) {
       play('match')
       vibrateSuccess()
-      setFoundWords(prev => {
-        const next = [...prev, wordUpper]
-        // Check if level completed
-        if (next.length === currentLevel.targetWords.length) {
-          setWon(true)
-          setIsPlaying(false)
-          setShowConfetti(true)
-          play('win')
-          
-          // Calculate stats
-          const stars = hintCount === 0 ? 3 : hintCount <= 2 ? 2 : 1
-          const xpGained = (diffId === 'easy' ? 20 : diffId === 'medium' ? 40 : 65)
-          const baseCoins = (diffId === 'easy' ? 10 : diffId === 'medium' ? 20 : 35)
-          const extraCoinsBonus = extraWordsFound.length * 2
-          const totalEarnedCoins = baseCoins + extraCoinsBonus
-          
-          earnCoins(totalEarnedCoins, `Menang Anagram Level ${levelIndex + 1}`)
-          reportGameResult({
-            gameId: 'anagram',
-            difficultyId: diffId,
-            won: true,
-            score: 100 * (levelIndex + 1) - hintCount * 15 + extraWordsFound.length * 20,
-            stars,
-            timeSec: (diffId === 'easy' ? 60 : diffId === 'medium' ? 45 : 30) - timeRemaining
-          })
+      const nextFound = [...foundWords, wordUpper]
+      setFoundWords(nextFound)
 
-          triggerMascot({
-            text: `Hebat sekali! Level ${levelIndex + 1} selesai! Kamu mendapat 🪙+${totalEarnedCoins} (${extraWordsFound.length} kata ekstra). Siap ke level berikutnya?`,
-            actions: ['Lanjutkan!', 'Ubah Level']
-          }, 'excited')
-        } else {
-          // Regular target match mascot comment
-          triggerMascot({
-            text: `Mantap! "${wordUpper}" berhasil ditemukan di grid! Cari kata lainnya!`,
-            actions: ['Cari lagi!']
-          }, 'wink')
-        }
-        return next
-      })
-      triggerFeedback('Bagus! 🟢', '#00B894')
+      if (nextFound.length === currentLevel.targetWords.length) {
+        // Level complete!
+        setWon(true)
+        setIsPlaying(false)
+        setShowConfetti(true)
+        play('win')
+        
+        const stars = hintCount === 0 ? 3 : hintCount <= 2 ? 2 : 1
+        const baseCoins = (diffId === 'easy' ? 10 : diffId === 'medium' ? 20 : 35)
+        const extraBonus = extraWordsFound.length * 2
+        const totalCoins = baseCoins + extraBonus
+
+        earnCoins(totalCoins, `Menang Anagram Level ${levelIndex + 1}`)
+        reportGameResult({
+          gameId: 'anagram',
+          difficultyId: diffId,
+          won: true,
+          score: 100 * (levelIndex + 1) - hintCount * 15 + extraWordsFound.length * 20,
+          stars,
+          timeSec: (diffId === 'easy' ? 60 : diffId === 'medium' ? 45 : 30) - timeRemaining
+        })
+
+        triggerMascot({
+          text: `Hebat! Level ${levelIndex + 1} selesai! 🪙+${totalCoins}`,
+          actions: ['Lanjut!']
+        }, 'excited')
+      } else {
+        triggerMascot({
+          text: `"${wordUpper}" ditemukan! ${currentLevel.targetWords.length - nextFound.length} kata lagi!`,
+          actions: ['Cari lagi!']
+        }, 'wink')
+      }
+      triggerFeedback(`✅ ${wordUpper}`, '#00B894')
       setSelectedIndices([])
       return
     }
 
-    // 4. Find if it matches an extra word
-    const extraMatch = currentLevel.extraWords.some(ew => ew === wordUpper)
+    // Check extra words
+    const extraMatch = currentLevel.extraWords.some(ew => ew.toUpperCase() === wordUpper)
     if (extraMatch) {
       play('pop')
       vibrateMedium()
       setExtraWordsFound(prev => [...prev, wordUpper])
+      setTotalExtraCoins(prev => prev + 2)
       triggerFeedback('Kata Ekstra! 🪙+2', '#F9A825')
       triggerMascot({
-        text: `Wah, kamu jeli! "${wordUpper}" adalah kata ekstra. Dapat bonus +2 koin di akhir level!`,
+        text: `"${wordUpper}" kata ekstra! Bonus +2 koin! 🎉`,
         actions: ['Keren!']
       }, 'excited')
       setSelectedIndices([])
       return
     }
 
-    // 5. Wrong word
+    // Invalid
     play('mismatch')
     vibrateError()
-    triggerFeedback('Bukan Kata Valid! ❌', '#FF6B6B')
+    triggerFeedback('Bukan kata valid ❌', '#FF6B6B')
     setSelectedIndices([])
-  }, [currentWord, foundWords, extraWordsFound, currentLevel, hintCount, levelIndex, diffId, earnCoins, reportGameResult, timeRemaining, play, vibrateSuccess, vibrateError, vibrateMedium, triggerMascot])
+  }, [currentWord, foundWords, extraWordsFound, currentLevel, hintCount, levelIndex, diffId, earnCoins, reportGameResult, timeRemaining, play, vibrateSuccess, vibrateError, vibrateMedium, triggerMascot, triggerFeedback])
 
-  // Get wheel coordinates of letter index
-  const getLetterCoords = useCallback((idx) => {
-    const diameter = 240
-    const radius = 90
-    const center = diameter / 2
-    const angleStep = (2 * Math.PI) / shuffledLetters.length
-    const angle = idx * angleStep - Math.PI / 2
-    return {
-      x: center + radius * Math.cos(angle),
-      y: center + radius * Math.sin(angle)
-    }
+  // ─── Wheel geometry ────────────────────────────────────────────────────────
+  const WHEEL_SIZE = 240
+  const WHEEL_RADIUS = 88
+  const LETTER_SIZE = 50
+
+  const wheelPositions = useMemo(() => {
+    const center = WHEEL_SIZE / 2
+    const count = shuffledLetters.length
+    if (count === 0) return []
+    return shuffledLetters.map((_, i) => {
+      const angle = (i * 2 * Math.PI / count) - Math.PI / 2
+      return {
+        x: center + WHEEL_RADIUS * Math.cos(angle),
+        y: center + WHEEL_RADIUS * Math.sin(angle)
+      }
+    })
   }, [shuffledLetters])
 
-  // Letter Wheel layout positions helper
-  const wheelPositions = useMemo(() => {
-    return shuffledLetters.map((letter, i) => getLetterCoords(i))
-  }, [shuffledLetters, getLetterCoords])
-
-  // Mouse & Touch Interaction Helpers
-  const getRelativeCoords = (clientX, clientY) => {
+  // Mouse & Touch
+  const getRelativeCoords = useCallback((clientX, clientY) => {
     if (!containerRef.current) return null
     const rect = containerRef.current.getBoundingClientRect()
-    return {
-      x: clientX - rect.left,
-      y: clientY - rect.top
-    }
-  }
+    return { x: clientX - rect.left, y: clientY - rect.top }
+  }, [])
 
-  const handlePointerStart = (clientX, clientY) => {
+  const findNearestLetter = useCallback((pos) => {
+    return wheelPositions.findIndex(p => {
+      const dx = pos.x - p.x, dy = pos.y - p.y
+      return Math.sqrt(dx * dx + dy * dy) < LETTER_SIZE * 0.65
+    })
+  }, [wheelPositions])
+
+  const handlePointerStart = useCallback((clientX, clientY) => {
     if (!isPlaying || won || failed) return
     const pos = getRelativeCoords(clientX, clientY)
     if (!pos) return
-
-    // Find if clicked near any letter
-    const index = wheelPositions.findIndex((p) => {
-      const dx = pos.x - p.x
-      const dy = pos.y - p.y
-      return Math.sqrt(dx * dx + dy * dy) < 32
-    })
-
+    const index = findNearestLetter(pos)
     if (index !== -1) {
       setIsDragging(true)
       setSelectedIndices([index])
@@ -479,61 +557,56 @@ export default function AnagramGame({ onBack, onHome, game, difficulty }) {
       play('click')
       vibrateLight()
     }
-  }
+  }, [isPlaying, won, failed, getRelativeCoords, findNearestLetter, play, vibrateLight])
 
-  const handlePointerMove = (clientX, clientY) => {
+  const handlePointerMove = useCallback((clientX, clientY) => {
     if (!isDragging) return
     const pos = getRelativeCoords(clientX, clientY)
     if (!pos) return
     setCurrentPointer(pos)
 
-    // Find if dragged near another letter
-    const index = wheelPositions.findIndex((p) => {
-      const dx = pos.x - p.x
-      const dy = pos.y - p.y
-      return Math.sqrt(dx * dx + dy * dy) < 32
-    })
-
+    const index = findNearestLetter(pos)
     if (index !== -1) {
-      // If user drags back to second-to-last item, pop the last one (undo)
-      if (selectedIndices.length > 1 && selectedIndices[selectedIndices.length - 2] === index) {
-        setSelectedIndices(prev => prev.slice(0, -1))
-        play('click')
-        vibrateLight()
-      } else if (!selectedIndices.includes(index)) {
-        setSelectedIndices(prev => [...prev, index])
-        play('click')
-        vibrateLight()
-      }
+      setSelectedIndices(prev => {
+        // Undo: drag back to previous
+        if (prev.length > 1 && prev[prev.length - 2] === index) {
+          play('click')
+          vibrateLight()
+          return prev.slice(0, -1)
+        }
+        // Add new (not already selected)
+        if (!prev.includes(index)) {
+          play('click')
+          vibrateLight()
+          return [...prev, index]
+        }
+        return prev
+      })
     }
-  }
+  }, [isDragging, getRelativeCoords, findNearestLetter, play, vibrateLight])
 
-  const handlePointerEnd = () => {
+  const handlePointerEnd = useCallback(() => {
     if (!isDragging) return
     setIsDragging(false)
     setCurrentPointer(null)
     submitWord()
-  }
+  }, [isDragging, submitWord])
 
-  // Tap-to-Connect support (fallback for buttons)
-  const handleLetterTap = (idx) => {
+  // Tap-to-Connect
+  const handleLetterTap = useCallback((idx) => {
     if (!isPlaying || won || failed || isDragging) return
-
-    if (selectedIndices.includes(idx)) {
-      // If already selected, check if it's the last selected one to undo
-      if (selectedIndices[selectedIndices.length - 1] === idx) {
-        setSelectedIndices(prev => prev.slice(0, -1))
-        play('click')
-        vibrateLight()
+    setSelectedIndices(prev => {
+      if (prev.includes(idx)) {
+        if (prev[prev.length - 1] === idx) return prev.slice(0, -1)
+        return prev
       }
-    } else {
-      setSelectedIndices(prev => [...prev, idx])
-      play('click')
-      vibrateLight()
-    }
-  }
+      return [...prev, idx]
+    })
+    play('click')
+    vibrateLight()
+  }, [isPlaying, won, failed, isDragging, play, vibrateLight])
 
-  // Crossword Grid dimensions
+  // ─── Grid layout ───────────────────────────────────────────────────────────
   const gridLayout = useMemo(() => {
     let minR = Infinity, maxR = -Infinity, minC = Infinity, maxC = -Infinity
     currentLevel.targetWords.forEach(tw => {
@@ -544,45 +617,15 @@ export default function AnagramGame({ onBack, onHome, game, difficulty }) {
         if (c.c > maxC) maxC = c.c
       })
     })
-
     const rows = maxR - minR + 1
     const cols = maxC - minC + 1
-    
-    // Size cell responsive dynamically
-    const maxCellSize = 54
-    const areaWidth = Math.min(360, window.innerWidth - 40)
-    const cellSize = Math.min(maxCellSize, areaWidth / cols)
-
-    return { minR, maxR, minC, maxC, rows, cols, cellSize }
+    const maxCellSize = 48
+    const areaWidth = Math.min(340, typeof window !== 'undefined' ? window.innerWidth - 48 : 320)
+    const cellSize = Math.min(maxCellSize, Math.floor(areaWidth / cols))
+    return { minR, minC, rows, cols, cellSize }
   }, [currentLevel])
 
-  // Get letter displayed at cell coordinate
-  const getCellLetter = (r, c) => {
-    // 1. Check if revealed by matching target word
-    let wordLetter = ''
-    currentLevel.targetWords.forEach(tw => {
-      if (foundWords.includes(tw.word)) {
-        const idx = tw.cells.findIndex(cell => cell.r === r && cell.c === c)
-        if (idx !== -1) wordLetter = tw.word[idx]
-      }
-    })
-    if (wordLetter) return { letter: wordLetter, revealed: true }
-
-    // 2. Check if revealed by hint
-    const hintMatch = revealedCells.find(rc => rc.r === r && rc.c === c)
-    if (hintMatch) return { letter: hintMatch.letter, revealed: true }
-
-    // 3. Find target letter (but keep hidden)
-    let hiddenLetter = ''
-    currentLevel.targetWords.forEach(tw => {
-      const idx = tw.cells.findIndex(cell => cell.r === r && cell.c === c)
-      if (idx !== -1) hiddenLetter = tw.word[idx]
-    })
-    
-    return hiddenLetter ? { letter: hiddenLetter, revealed: false } : null
-  }
-
-  // Grid Cells render list
+  // Grid cells with correct letter data
   const gridCells = useMemo(() => {
     const cells = []
     const visited = new Set()
@@ -591,175 +634,152 @@ export default function AnagramGame({ onBack, onHome, game, difficulty }) {
         const key = `${cell.r}-${cell.c}`
         if (!visited.has(key)) {
           visited.add(key)
-          const info = getCellLetter(cell.r, cell.c)
-          if (info) {
-            cells.push({ r: cell.r, c: cell.c, ...info })
-          }
+          const info = getCellLetterFromLevel(currentLevel, foundWords, revealedCells, cell.r, cell.c)
+          if (info) cells.push({ r: cell.r, c: cell.c, ...info })
         }
       })
     })
     return cells
   }, [currentLevel, foundWords, revealedCells])
 
-  // Complete level next handler
-  const handleNextLevel = () => {
+  // Handlers
+  const handleNextLevel = useCallback(() => {
     const nextIdx = levelIndex + 1
     setLevelIndex(nextIdx)
     startLevel(nextIdx)
-  }
+  }, [levelIndex, startLevel])
 
-  // Complete restart handler
-  const handleRestart = () => {
+  const handleRestart = useCallback(() => {
     startLevel(levelIndex)
-  }
+  }, [levelIndex, startLevel])
 
-  // Tutorial complete handler
-  const handleTutorialClose = () => {
+  const handleTutorialClose = useCallback(() => {
     localStorage.setItem('bp_tut_anagram', 'true')
     setShowTutorial(false)
-    startLevel(0)
-  }
+  }, [])
 
   const dark = tc.dark
+
+  // ─── Found words list (for visual display below grid) ──────────────────────
+  const allTargetWords = currentLevel.targetWords.map(tw => tw.word)
 
   return (
     <div style={{
       maxWidth: 500, margin: '0 auto', padding: '16px 16px 80px',
       fontFamily: "'Inter', sans-serif", color: tc.textMain,
       display: 'flex', flexDirection: 'column', minHeight: '85vh',
-      justifyContent: 'space-between',
     }}>
       <style>{`
-        /* Core animations */
         @keyframes tileCorrectPop {
-          0% { transform: scale(0.6); opacity: 0; filter: brightness(1.8); }
-          50% { transform: scale(1.15); filter: brightness(1.2); }
+          0% { transform: scale(0.6); opacity: 0; }
+          50% { transform: scale(1.15); }
           100% { transform: scale(1); opacity: 1; }
         }
-
-        @keyframes tileShake {
-          0%, 100% { transform: translateX(0); }
-          20%, 60% { transform: translateX(-6px); }
-          40%, 80% { transform: translateX(6px); }
-        }
-
         @keyframes bubblePulse {
-          0% { transform: scale(1); box-shadow: 0 4px 15px rgba(108,92,231,0.2); }
-          50% { transform: scale(1.05); box-shadow: 0 4px 25px rgba(108,92,231,0.4); }
-          100% { transform: scale(1); box-shadow: 0 4px 15px rgba(108,92,231,0.2); }
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.06); }
         }
-
-        .correct-cell {
+        @keyframes fadeSlideUp {
+          0% { opacity: 0; transform: translateY(8px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        .anagram-cell-revealed {
           animation: tileCorrectPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
-
         .anagram-letter-btn {
           width: 50px; height: 50px; border-radius: 50%;
-          display: flex; alignItems: center; justify-content: center;
+          display: flex; align-items: center; justify-content: center;
           font-family: 'Fredoka One', cursive; font-size: 20px;
           transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
           user-select: none; -webkit-tap-highlight-color: transparent;
+          cursor: pointer;
         }
-
-        .extra-badge {
-          background: linear-gradient(135deg, #F9A825, #F57F17);
-          color: #FFF; font-size: 10px; font-weight: 800;
-          padding: 3px 8px; border-radius: 8px;
-          display: flex; align-items: center; gap: 4px;
-          box-shadow: 0 2px 8px rgba(249,168,37,0.3);
+        .anagram-word-chip {
+          display: inline-flex; align-items: center; gap: 4px;
+          padding: 4px 10px; border-radius: 8px;
+          font-family: 'Fredoka One', cursive; font-size: 12px;
+          transition: all 0.2s;
         }
       `}</style>
 
-      {/* Confetti celebration */}
       {showConfetti && <Confetti active={showConfetti} />}
 
-      {/* Tutorial Modal */}
       {showTutorial && (
-        <TutorialModal
-          steps={ANAGRAM_TUTORIAL}
-          onClose={handleTutorialClose}
-        />
+        <TutorialModal steps={ANAGRAM_TUTORIAL} onClose={handleTutorialClose} />
       )}
 
-      {/* Top Header */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+      {/* ── Header ── */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
           <button onClick={() => { play('click'); onBack() }}
             style={{
               background: tc.surface, border: `2px solid ${tc.borderCol}`,
               borderRadius: 12, padding: '8px 14px', fontSize: 18,
               cursor: 'pointer', color: tc.textMain, transition: 'all 0.15s',
-            }}
-          >
-            ←
-          </button>
+            }}>←</button>
           <div style={{ flex: 1 }}>
-            <h1 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 24, color: tc.textMain, margin: 0 }}>
+            <h1 style={{ fontFamily: "'Fredoka One',cursive", fontSize: 22, color: tc.textMain, margin: 0 }}>
               🔀 Anagram
             </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
               <span style={{
                 background: dark ? 'rgba(253,203,110,0.15)' : '#FFF9E6',
                 color: '#F9A825', border: '1.5px solid #FDCB6E33',
-                fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8
-              }}>
-                Day 25 Game
-              </span>
-              <span style={{ fontSize: 11, color: tc.textMuted, fontWeight: 600 }}>
-                Level {levelIndex + 1} ({diffId === 'easy' ? '🟢 Mudah' : diffId === 'medium' ? '🟡 Sedang' : '🔴 Sulit'})
+                fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 7
+              }}>Lv {levelIndex + 1}</span>
+              <span style={{ fontSize: 10, color: tc.textMuted, fontWeight: 600 }}>
+                {diffId === 'easy' ? '🟢 Mudah' : diffId === 'medium' ? '🟡 Sedang' : '🔴 Sulit'}
               </span>
             </div>
           </div>
-
-          {/* Time Remaining display */}
+          {/* Timer */}
           <div style={{
-            background: timeRemaining <= 10 ? 'rgba(239, 68, 68, 0.15)' : tc.surface,
+            background: timeRemaining <= 10 ? 'rgba(239,68,68,0.15)' : tc.surface,
             border: `2px solid ${timeRemaining <= 10 ? '#EF4444' : tc.borderCol}`,
-            borderRadius: 14, padding: '8px 12px', textAlign: 'center', minWidth: 64,
+            borderRadius: 14, padding: '6px 12px', textAlign: 'center', minWidth: 56,
           }}>
-            <div style={{ fontSize: 9, color: timeRemaining <= 10 ? '#EF4444' : tc.textMuted, fontWeight: 700 }}>WAKTU</div>
+            <div style={{ fontSize: 8, color: timeRemaining <= 10 ? '#EF4444' : tc.textMuted, fontWeight: 700 }}>WAKTU</div>
             <div style={{
               fontFamily: "'Fredoka One', cursive", fontSize: 18,
               color: timeRemaining <= 10 ? '#EF4444' : tc.textMain
-            }}>
-              {timeRemaining}s
-            </div>
+            }}>{timeRemaining}s</div>
           </div>
         </div>
 
-        {/* Level metrics bar */}
+        {/* Stats bar */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           background: tc.surface, border: `1.5px solid ${tc.borderCol}`,
-          borderRadius: 16, padding: '10px 14px', marginBottom: 20
+          borderRadius: 14, padding: '8px 12px',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 18 }}>🎯</span>
-            <span style={{ fontSize: 12, fontWeight: 700 }}>
-              Grid: {foundWords.length}/{currentLevel.targetWords.length}
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ fontSize: 15 }}>🎯</span>
+            <span style={{ fontSize: 11, fontWeight: 700 }}>{foundWords.length}/{currentLevel.targetWords.length}</span>
           </div>
           {extraWordsFound.length > 0 && (
-            <div className="extra-badge">
-              <span>⭐ Extra:</span>
-              <span style={{ fontWeight: 800 }}>+{extraWordsFound.length}</span>
+            <div style={{
+              background: 'linear-gradient(135deg, #F9A825, #F57F17)',
+              color: '#FFF', fontSize: 9, fontWeight: 800,
+              padding: '3px 8px', borderRadius: 7,
+              display: 'flex', alignItems: 'center', gap: 3,
+            }}>
+              <span>⭐</span><span>+{extraWordsFound.length}</span>
             </div>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ fontSize: 15 }}>🪙</span>
-            <span style={{ fontSize: 12, fontWeight: 800, fontFamily: "'Fredoka One', cursive" }}>{coins}</span>
+            <span style={{ fontSize: 14 }}>🪙</span>
+            <span style={{ fontSize: 11, fontWeight: 800, fontFamily: "'Fredoka One', cursive" }}>{coins}</span>
           </div>
         </div>
       </div>
 
-      {/* Word Grid Area */}
+      {/* ── Word Grid Area ── */}
       <div style={{
-        display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center',
-        padding: '24px 0', minHeight: 240, position: 'relative',
-        background: dark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.01)',
-        borderRadius: 24, border: `1px dashed ${tc.borderCol}`, marginBottom: 20
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '16px 0', minHeight: 120, position: 'relative',
+        background: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
+        borderRadius: 20, border: `1px dashed ${tc.borderCol}`, marginBottom: 12,
       }}>
-        {/* Dynamic centered Grid container */}
         <div style={{
           position: 'relative',
           width: gridLayout.cols * gridLayout.cellSize,
@@ -771,27 +791,23 @@ export default function AnagramGame({ onBack, onHome, game, difficulty }) {
             return (
               <div
                 key={`cell-${cell.r}-${cell.c}`}
-                className={cell.revealed ? "correct-cell" : ""}
+                className={cell.revealed ? 'anagram-cell-revealed' : ''}
                 style={{
                   position: 'absolute',
-                  left: left + 2,
-                  top: top + 2,
-                  width: gridLayout.cellSize - 4,
-                  height: gridLayout.cellSize - 4,
+                  left: left + 2, top: top + 2,
+                  width: gridLayout.cellSize - 4, height: gridLayout.cellSize - 4,
                   borderRadius: 8,
-                  border: `2px solid ${cell.revealed ? (tc.accent || '#6C5CE7') : tc.borderCol}`,
+                  border: `2px solid ${cell.revealed ? (cell.isHint ? '#F9A825' : (tc.accent || '#6C5CE7')) : tc.borderCol}`,
                   background: cell.revealed
-                    ? (dark ? 'rgba(108,92,231,0.12)' : 'rgba(108,92,231,0.06)')
+                    ? (cell.isHint
+                      ? (dark ? 'rgba(249,168,37,0.12)' : 'rgba(249,168,37,0.08)')
+                      : (dark ? 'rgba(108,92,231,0.12)' : 'rgba(108,92,231,0.06)'))
                     : tc.surface,
-                  boxShadow: cell.revealed
-                    ? `0 2px 8px ${(tc.accent || '#6C5CE7')}33`
-                    : 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  boxShadow: cell.revealed ? `0 2px 8px ${(tc.accent || '#6C5CE7')}22` : 'none',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontFamily: "'Fredoka One', cursive",
                   fontSize: gridLayout.cellSize * 0.42,
-                  color: cell.revealed ? (tc.accent || '#6C5CE7') : 'transparent',
+                  color: cell.revealed ? (cell.isHint ? '#F9A825' : (tc.accent || '#6C5CE7')) : 'transparent',
                   transition: 'all 0.3s',
                 }}
               >
@@ -802,308 +818,270 @@ export default function AnagramGame({ onBack, onHome, game, difficulty }) {
         </div>
       </div>
 
-      {/* Word Composition Preview Bubble */}
+      {/* ── Target Words Chips ── */}
       <div style={{
-        height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        marginBottom: 20, position: 'relative'
+        display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center',
+        marginBottom: 12, padding: '0 8px',
       }}>
-        {currentWord && (
-          <div
-            key={currentWord}
-            style={{
-              background: tc.accent || '#6C5CE7',
-              color: '#FFF',
-              fontFamily: "'Fredoka One', cursive",
-              fontSize: 18,
-              padding: '8px 20px',
-              borderRadius: 100,
-              boxShadow: '0 8px 24px rgba(108,92,231,0.3)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              letterSpacing: '1px',
-              animation: 'bubblePulse 1.2s infinite'
-            }}
-          >
-            {selectedIndices.map(idx => shuffledLetters[idx]).join(' • ')}
+        {allTargetWords.map((word) => {
+          const isFound = foundWords.includes(word)
+          return (
+            <div key={word} className="anagram-word-chip" style={{
+              background: isFound ? (dark ? 'rgba(0,184,148,0.15)' : 'rgba(0,184,148,0.08)') : (dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
+              border: `1.5px solid ${isFound ? '#00B89444' : tc.borderCol}`,
+              color: isFound ? '#00B894' : tc.textMuted,
+              textDecoration: isFound ? 'none' : 'none',
+            }}>
+              {isFound ? '✅' : '❓'}
+              <span>{isFound ? word : word.replace(/./g, '＿')}</span>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* ── Word Composition Preview ── */}
+      <div style={{
+        height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginBottom: 12, position: 'relative',
+      }}>
+        {currentWord ? (
+          <div style={{
+            background: tc.accent || '#6C5CE7', color: '#FFF',
+            fontFamily: "'Fredoka One', cursive", fontSize: 18,
+            padding: '7px 20px', borderRadius: 100,
+            boxShadow: `0 6px 20px ${(tc.accent || '#6C5CE7')}44`,
+            letterSpacing: '2px',
+            animation: 'bubblePulse 1.2s infinite',
+          }}>
+            {currentWord}
+          </div>
+        ) : (
+          <div style={{ fontSize: 12, color: tc.textMuted, fontStyle: 'italic' }}>
+            Hubungkan huruf di roda untuk membentuk kata
           </div>
         )}
-        
-        {/* Verification banner overlays */}
         {feedbackText && (
-          <div
-            key={feedbackKey}
-            style={{
-              position: 'absolute',
-              background: feedbackColor,
-              color: '#FFF',
-              fontWeight: 800,
-              fontSize: 12,
-              padding: '6px 16px',
-              borderRadius: 100,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              animation: 'tileCorrectPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
-              zIndex: 10
-            }}
-          >
+          <div key={feedbackKey} style={{
+            position: 'absolute', background: feedbackColor, color: '#FFF',
+            fontWeight: 800, fontSize: 12, padding: '5px 14px', borderRadius: 100,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            animation: 'fadeSlideUp 0.3s ease forwards', zIndex: 10,
+          }}>
             {feedbackText}
           </div>
         )}
       </div>
 
-      {/* Controls & Wheel Section */}
-      <div style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16
-      }}>
-        {/* Tap fallback manual controls */}
-        {selectedIndices.length > 0 && (
-          <div style={{
-            display: 'flex', gap: 12, animation: 'tileCorrectPop 0.25s ease'
-          }}>
-            <button
-              onClick={() => { play('click'); setSelectedIndices([]) }}
-              style={{
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1.5px solid rgba(239, 68, 68, 0.3)',
-                color: '#EF4444',
-                padding: '6px 14px',
-                borderRadius: 10,
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              Reset ❌
-            </button>
-            <button
-              onClick={() => { play('click'); submitWord() }}
-              style={{
-                background: tc.accent || '#6C5CE7',
-                border: 'none',
-                color: '#FFF',
-                padding: '6px 18px',
-                borderRadius: 10,
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: '0 4px 10px rgba(108,92,231,0.2)'
-              }}
-            >
-              Kirim ✔️
-            </button>
-          </div>
-        )}
-
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24,
-          position: 'relative', width: '100%'
-        }}>
-          {/* Left Button: Shuffle */}
-          <button
-            onClick={handleShuffle}
-            disabled={won || failed}
+      {/* ── Tap Controls ── */}
+      {selectedIndices.length > 0 && !isDragging && (
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 12, animation: 'fadeSlideUp 0.2s ease' }}>
+          <button onClick={() => { play('click'); setSelectedIndices([]) }}
             style={{
-              width: 44, height: 44, borderRadius: 14,
-              border: `2px solid ${tc.borderCol}`, background: tc.surface,
-              color: tc.textMain, fontSize: 16, cursor: 'pointer',
+              background: 'rgba(239,68,68,0.1)', border: '1.5px solid rgba(239,68,68,0.3)',
+              color: '#EF4444', padding: '6px 14px', borderRadius: 10,
+              fontSize: 11, fontWeight: 700, cursor: 'pointer',
+            }}>Reset ❌</button>
+          <button onClick={() => { play('click'); submitWord() }}
+            style={{
+              background: tc.accent || '#6C5CE7', border: 'none',
+              color: '#FFF', padding: '6px 18px', borderRadius: 10,
+              fontSize: 11, fontWeight: 700, cursor: 'pointer',
+              boxShadow: '0 4px 10px rgba(108,92,231,0.2)',
+            }}>Kirim ✔️</button>
+        </div>
+      )}
+
+      {/* ── Wheel + Controls ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
+        {/* Shuffle */}
+        <button onClick={handleShuffle} disabled={won || failed}
+          style={{
+            width: 44, height: 44, borderRadius: 14,
+            border: `2px solid ${tc.borderCol}`, background: tc.surface,
+            color: tc.textMain, fontSize: 16, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 3px 6px rgba(0,0,0,0.05)',
+            opacity: won || failed ? 0.5 : 1, transition: 'all 0.15s',
+          }}>🔀</button>
+
+        {/* Wheel */}
+        <div ref={containerRef}
+          onMouseDown={e => handlePointerStart(e.clientX, e.clientY)}
+          onMouseMove={e => handlePointerMove(e.clientX, e.clientY)}
+          onMouseUp={handlePointerEnd}
+          onMouseLeave={() => { if (isDragging) handlePointerEnd() }}
+          onTouchStart={e => { if (e.touches.length > 0) handlePointerStart(e.touches[0].clientX, e.touches[0].clientY) }}
+          onTouchMove={e => { e.preventDefault(); if (e.touches.length > 0) handlePointerMove(e.touches[0].clientX, e.touches[0].clientY) }}
+          onTouchEnd={handlePointerEnd}
+          style={{
+            width: WHEEL_SIZE, height: WHEEL_SIZE, borderRadius: '50%',
+            background: dark ? '#161B30' : '#E8EEF8',
+            border: `4px solid ${dark ? '#252C48' : '#D0DBEB'}`,
+            position: 'relative', touchAction: 'none',
+            boxShadow: dark ? 'inset 0 4px 12px rgba(0,0,0,0.4)' : 'inset 0 4px 10px rgba(0,0,0,0.06)',
+            userSelect: 'none', flexShrink: 0,
+          }}
+        >
+          {/* Center button */}
+          <div onClick={() => { if (selectedIndices.length > 0) submitWord() }}
+            style={{
+              position: 'absolute', top: '50%', left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 58, height: 58, borderRadius: '50%',
+              background: selectedIndices.length > 0 ? (tc.accent || '#6C5CE7') : (dark ? '#202640' : '#DBE4F2'),
+              border: `3px solid ${dark ? '#2E365C' : '#C7D5EB'}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 3px 6px rgba(0,0,0,0.05)',
-              opacity: won || failed ? 0.5 : 1, transition: 'all 0.15s'
-            }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = tc.accent}
-            onMouseLeave={e => e.currentTarget.style.borderColor = tc.borderCol}
-          >
-            🔀
-          </button>
+              boxShadow: selectedIndices.length > 0 ? '0 4px 12px rgba(108,92,231,0.4)' : 'none',
+              fontFamily: "'Fredoka One', cursive", fontSize: 18,
+              color: selectedIndices.length > 0 ? '#FFF' : tc.textMuted,
+              cursor: selectedIndices.length > 0 ? 'pointer' : 'default',
+              transition: 'all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+              zIndex: 5,
+            }}>
+            {selectedIndices.length > 0 ? '✔️' : '🧠'}
+          </div>
 
-          {/* Wheel Container */}
-          <div
-            ref={containerRef}
-            onMouseDown={(e) => handlePointerStart(e.clientX, e.clientY)}
-            onMouseMove={(e) => handlePointerMove(e.clientX, e.clientY)}
-            onMouseUp={handlePointerEnd}
-            onTouchStart={(e) => {
-              if (e.touches.length > 0) {
-                handlePointerStart(e.touches[0].clientX, e.touches[0].clientY)
-              }
-            }}
-            onTouchMove={(e) => {
-              if (e.touches.length > 0) {
-                handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)
-              }
-            }}
-            onTouchEnd={handlePointerEnd}
-            style={{
-              width: 240, height: 240, borderRadius: '50%',
-              background: dark ? '#161B30' : '#E8EEF8',
-              border: `4px solid ${dark ? '#252C48' : '#D0DBEB'}`,
-              position: 'relative', touchAction: 'none',
-              boxShadow: dark ? 'inset 0 4px 12px rgba(0,0,0,0.4)' : 'inset 0 4px 10px rgba(0,0,0,0.06)',
-              userSelect: 'none'
-            }}
-          >
-            {/* Center wheel circle button (Submit Checkmark or Mascot Core) */}
-            <div
-              onClick={() => {
-                if (selectedIndices.length > 0) submitWord()
-              }}
-              style={{
-                position: 'absolute',
-                top: '50%', left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: 64, height: 64, borderRadius: '50%',
-                background: selectedIndices.length > 0 ? (tc.accent || '#6C5CE7') : (dark ? '#202640' : '#DBE4F2'),
-                border: `3px solid ${dark ? '#2E365C' : '#C7D5EB'}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: selectedIndices.length > 0 ? '0 4px 12px rgba(108,92,231,0.4)' : 'none',
-                fontFamily: "'Fredoka One', cursive", fontSize: 20,
-                color: selectedIndices.length > 0 ? '#FFF' : tc.textMuted,
-                cursor: selectedIndices.length > 0 ? 'pointer' : 'default',
-                transition: 'all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                zIndex: 5
-              }}
-            >
-              {selectedIndices.length > 0 ? '✔️' : '🧠'}
-            </div>
-
-            {/* SVG lines overlay */}
-            <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 2 }}>
-              <defs>
-                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="5" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              {selectedIndices.map((idx, i) => {
-                if (i === 0) return null
-                const prevIdx = selectedIndices[i - 1]
-                const p1 = wheelPositions[prevIdx]
-                const p2 = wheelPositions[idx]
-                return (
-                  <line
-                    key={`line-${i}`}
-                    x1={p1.x}
-                    y1={p1.y}
-                    x2={p2.x}
-                    y2={p2.y}
-                    stroke={tc.accent || '#6C5CE7'}
-                    strokeWidth="8"
-                    strokeLinecap="round"
-                    filter="url(#glow)"
-                  />
-                )
-              })}
-              {isDragging && selectedIndices.length > 0 && currentPointer && (
-                <line
-                  x1={wheelPositions[selectedIndices[selectedIndices.length - 1]].x}
-                  y1={wheelPositions[selectedIndices[selectedIndices.length - 1]].y}
-                  x2={currentPointer.x}
-                  y2={currentPointer.y}
-                  stroke={tc.accent || '#6C5CE7'}
-                  strokeWidth="5"
-                  strokeDasharray="4,4"
-                  strokeLinecap="round"
-                />
-              )}
-            </svg>
-
-            {/* Letter buttons around wheel */}
-            {shuffledLetters.map((letter, i) => {
-              const pos = wheelPositions[i]
-              const isSelected = selectedIndices.includes(i)
+          {/* SVG connection lines */}
+          <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 2 }}>
+            <defs>
+              <filter id="glow-line" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="4" result="blur" />
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+            </defs>
+            {selectedIndices.map((idx, i) => {
+              if (i === 0 || !wheelPositions[selectedIndices[i - 1]] || !wheelPositions[idx]) return null
+              const p1 = wheelPositions[selectedIndices[i - 1]]
+              const p2 = wheelPositions[idx]
               return (
-                <div
-                  key={`letter-btn-${i}`}
-                  onClick={() => handleLetterTap(i)}
-                  className="anagram-letter-btn"
-                  style={{
-                    position: 'absolute',
-                    left: pos.x - 25,
-                    top: pos.y - 25,
-                    background: isSelected
-                      ? (tc.accent || '#6C5CE7')
-                      : (dark ? '#2C3558' : '#FFF'),
-                    color: isSelected ? '#FFF' : tc.textMain,
-                    border: `3px solid ${isSelected ? '#FFF' : (dark ? '#3C497B' : '#C7D5EB')}`,
-                    boxShadow: isSelected
-                      ? `0 0 14px ${(tc.accent || '#6C5CE7')}`
-                      : '0 3px 8px rgba(0,0,0,0.06)',
-                    transform: isSelected ? 'scale(1.18)' : 'scale(1)',
-                    zIndex: 4,
-                    cursor: 'pointer'
-                  }}
-                >
-                  {letter}
-                </div>
+                <line key={`line-${i}`}
+                  x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y}
+                  stroke={tc.accent || '#6C5CE7'} strokeWidth="6" strokeLinecap="round"
+                  filter="url(#glow-line)"
+                />
               )
             })}
-          </div>
+            {isDragging && selectedIndices.length > 0 && currentPointer && wheelPositions[selectedIndices[selectedIndices.length - 1]] && (
+              <line
+                x1={wheelPositions[selectedIndices[selectedIndices.length - 1]].x}
+                y1={wheelPositions[selectedIndices[selectedIndices.length - 1]].y}
+                x2={currentPointer.x} y2={currentPointer.y}
+                stroke={tc.accent || '#6C5CE7'} strokeWidth="4"
+                strokeDasharray="6,4" strokeLinecap="round" opacity={0.6}
+              />
+            )}
+          </svg>
 
-          {/* Right Button: Hint */}
-          <button
-            onClick={handleHint}
-            disabled={won || failed}
-            style={{
-              width: 44, height: 44, borderRadius: 14,
-              border: `2px solid ${tc.borderCol}`, background: tc.surface,
-              color: tc.textMain, fontSize: 16, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 3px 6px rgba(0,0,0,0.05)',
-              opacity: won || failed ? 0.5 : 1, transition: 'all 0.15s',
-              position: 'relative'
-            }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = tc.accent}
-            onMouseLeave={e => e.currentTarget.style.borderColor = tc.borderCol}
-          >
-            💡
-            <span style={{
-              position: 'absolute', bottom: -12, left: '50%', transform: 'translateX(-50%)',
-              fontSize: 8, color: '#F9A825', fontWeight: 800, whiteSpace: 'nowrap'
-            }}>
-              🪙15
-            </span>
-          </button>
+          {/* Letter buttons */}
+          {shuffledLetters.map((letter, i) => {
+            const pos = wheelPositions[i]
+            if (!pos) return null
+            const isSelected = selectedIndices.includes(i)
+            const selOrder = isSelected ? selectedIndices.indexOf(i) + 1 : 0
+            return (
+              <div key={`lb-${i}`}
+                onClick={() => handleLetterTap(i)}
+                className="anagram-letter-btn"
+                style={{
+                  position: 'absolute',
+                  left: pos.x - LETTER_SIZE / 2, top: pos.y - LETTER_SIZE / 2,
+                  background: isSelected ? (tc.accent || '#6C5CE7') : (dark ? '#2C3558' : '#FFF'),
+                  color: isSelected ? '#FFF' : tc.textMain,
+                  border: `3px solid ${isSelected ? '#FFF' : (dark ? '#3C497B' : '#C7D5EB')}`,
+                  boxShadow: isSelected ? `0 0 14px ${(tc.accent || '#6C5CE7')}` : '0 3px 8px rgba(0,0,0,0.06)',
+                  transform: isSelected ? 'scale(1.15)' : 'scale(1)',
+                  zIndex: isSelected ? 6 : 4,
+                }}>
+                {letter}
+                {isSelected && (
+                  <span style={{
+                    position: 'absolute', top: -6, right: -6,
+                    background: '#FFF', color: tc.accent || '#6C5CE7',
+                    width: 18, height: 18, borderRadius: '50%',
+                    fontSize: 10, fontWeight: 800,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                  }}>{selOrder}</span>
+                )}
+              </div>
+            )
+          })}
         </div>
+
+        {/* Hint */}
+        <button onClick={handleHint} disabled={won || failed}
+          style={{
+            width: 44, height: 44, borderRadius: 14,
+            border: `2px solid ${tc.borderCol}`, background: tc.surface,
+            color: tc.textMain, fontSize: 16, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 3px 6px rgba(0,0,0,0.05)',
+            opacity: won || failed ? 0.5 : 1, transition: 'all 0.15s',
+            position: 'relative',
+          }}>
+          💡
+          <span style={{
+            position: 'absolute', bottom: -10, left: '50%', transform: 'translateX(-50%)',
+            fontSize: 8, color: '#F9A825', fontWeight: 800, whiteSpace: 'nowrap',
+          }}>🪙15</span>
+        </button>
       </div>
 
-      {/* Win Modal overlay */}
+      {/* ── Extra Words Found ── */}
+      {extraWordsFound.length > 0 && (
+        <div style={{
+          marginTop: 16, padding: '10px 14px',
+          background: dark ? 'rgba(249,168,37,0.06)' : 'rgba(249,168,37,0.04)',
+          border: `1.5px solid rgba(249,168,37,0.2)`, borderRadius: 14,
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: '#F9A825', marginBottom: 6 }}>
+            ⭐ KATA EKSTRA ({extraWordsFound.length}) — Bonus 🪙+{totalExtraCoins}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {extraWordsFound.map(w => (
+              <span key={w} style={{
+                background: dark ? 'rgba(249,168,37,0.12)' : 'rgba(249,168,37,0.08)',
+                color: '#F9A825', fontFamily: "'Fredoka One', cursive",
+                fontSize: 11, padding: '3px 8px', borderRadius: 6,
+              }}>{w}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Win Modal ── */}
       {won && (
         <WinModal
           emoji="🏆"
           title={`Level ${levelIndex + 1} Selesai!`}
-          subtitle={`Kamu menemukan semua kata target dengan sangat baik.`}
+          subtitle="Semua kata target berhasil ditemukan!"
           diffLabel={diffId === 'easy' ? 'Mudah' : diffId === 'medium' ? 'Sedang' : 'Sulit'}
           stats={[
             { label: 'Waktu Sisa', value: `${timeRemaining}s`, color: '#00B894' },
-            { label: 'Hint Dipakai', value: hintCount, color: '#F9A825' },
-            { label: 'Kata Ekstra', value: extraWordsFound.length, color: '#A29BFE' }
+            { label: 'Hint', value: hintCount, color: '#F9A825' },
+            { label: 'Ekstra', value: extraWordsFound.length, color: '#A29BFE' }
           ]}
           stars={hintCount === 0 ? 3 : hintCount <= 2 ? 2 : 1}
-          coinReward={
-            (diffId === 'easy' ? 10 : diffId === 'medium' ? 20 : 35) +
-            extraWordsFound.length * 2
-          }
-          onRestart={handleRestart}
+          coinReward={(diffId === 'easy' ? 10 : diffId === 'medium' ? 20 : 35) + totalExtraCoins}
+          onRestart={levelIndex + 1 < levels.length ? handleNextLevel : handleRestart}
           onBack={onBack}
           onHome={onHome}
           dark={dark}
           gameColor={game?.color || '#FDCB6E'}
-          restartLabel="Main Lagi"
-          backLabel="Selesai"
+          restartLabel={levelIndex + 1 < levels.length ? '➡️ Level Berikutnya' : '🔄 Main Lagi'}
+          backLabel="🎯 Ganti Level"
         />
       )}
 
-      {/* Lose Modal overlay */}
+      {/* ── Lose Modal ── */}
       {failed && (
         <LoseModal
-          emoji="😢"
+          emoji="⏰"
           title="Waktu Habis!"
-          subtitle="Jangan menyerah! Tekanan waktu melatih refleks kognitif."
+          subtitle="Jangan menyerah! Coba lagi ya."
           stats={[
-            { label: 'Kata Ditemukan', value: `${foundWords.length}/${currentLevel.targetWords.length}`, color: '#FF6B6B' },
-            { label: 'Kata Ekstra', value: extraWordsFound.length, color: '#F9A825' }
+            { label: 'Ditemukan', value: `${foundWords.length}/${currentLevel.targetWords.length}`, color: '#FF6B6B' },
+            { label: 'Ekstra', value: extraWordsFound.length, color: '#F9A825' }
           ]}
           onRestart={handleRestart}
           onBack={onBack}
