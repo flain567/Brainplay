@@ -843,7 +843,8 @@ function AppInner() {
       )}
       
       {/* ── Global Floating Mascot Assistant ── */}
-      {screen !== 'splash' && (
+      {/* Hidden during active gameplay to avoid blocking the screen on mobile */}
+      {screen !== 'splash' && screen !== 'game' && screen !== 'difficulty' && (
         <MascotCompanion
           floating={true}
           mascotName={progress.mascotName || 'Brainy'}
@@ -853,6 +854,7 @@ function AppInner() {
           pageContext={screen}
         />
       )}
+
 
       <div className="crt-overlay" />
 
