@@ -1,5 +1,6 @@
 // ─── Anagram Crossword Level Database ─────────────────────────────────────────
 // Words of Wonders style — 50 levels across 5 chapters
+// Progressive difficulty: 3→9 words per level
 //
 // Data format per level:
 //   letters:    array of characters on the wheel (may contain duplicates)
@@ -15,9 +16,7 @@
 
 export const CHAPTERS = [
   // ═══════════════════════════════════════════════════════════════════════════
-  // CHAPTER 1: HUTAN KATA — The Forest of Words
-  // Theme: Growth, beginning of the word journey
-  // Art: Deep forest greens, leaf patterns, organic feel
+  // CHAPTER 1: HUTAN KATA — 3-5 words per level, 3-5 letters
   // ═══════════════════════════════════════════════════════════════════════════
   {
     id: 'hutan',
@@ -41,104 +40,120 @@ export const CHAPTERS = [
       wheelBorder: '#1B6B4B',
     },
     levels: [
-      // L1: AKU + KAU — Int K@(0,1)
+      // L1: 3 words — AKU×KAU×KUA
       {
         letters: ['A','K','U'],
         words: [
           { word:'AKU', dir:'H', r:0, c:0 },
           { word:'KAU', dir:'V', r:0, c:1 },
+          { word:'KUA', dir:'H', r:2, c:0 },
         ],
-        extraWords: ['KUA'],
+        extraWords: [],
       },
-      // L2: API + IPA — Int I@(0,2)
+      // L2: 3 words — API×PAI×IPA
       {
         letters: ['A','P','I'],
         words: [
           { word:'API', dir:'H', r:0, c:0 },
+          { word:'PAI', dir:'V', r:0, c:1 },
           { word:'IPA', dir:'V', r:0, c:2 },
         ],
-        extraWords: ['PA'],
+        extraWords: [],
       },
-      // L3: IBU + UBI — Int U@(0,2)
+      // L3: 3 words — IBU×BUS×UBI
       {
-        letters: ['I','B','U'],
+        letters: ['I','B','U','S'],
         words: [
           { word:'IBU', dir:'H', r:0, c:0 },
+          { word:'BUS', dir:'V', r:0, c:1 },
           { word:'UBI', dir:'V', r:0, c:2 },
         ],
-        extraWords: [],
+        extraWords: ['BIS'],
       },
-      // L4: AIR + RIA — Int R@(0,2)
-      {
-        letters: ['A','I','R'],
-        words: [
-          { word:'AIR', dir:'H', r:0, c:0 },
-          { word:'RIA', dir:'V', r:0, c:2 },
-        ],
-        extraWords: [],
-      },
-      // L5: DUA + ADU — Int A@(0,2)
-      {
-        letters: ['D','U','A'],
-        words: [
-          { word:'DUA', dir:'H', r:0, c:0 },
-          { word:'ADU', dir:'V', r:0, c:2 },
-        ],
-        extraWords: [],
-      },
-      // L6: BATU + TUBA — Int T@(0,2)
+      // L4: 4 words — BATU + 3 verticals
       {
         letters: ['B','A','T','U'],
         words: [
-          { word:'BATU', dir:'H', r:0, c:0 },
-          { word:'TUBA', dir:'V', r:0, c:2 },
+          { word:'BATU', dir:'H', r:1, c:0 },
+          { word:'BAU',  dir:'V', r:1, c:0 },
+          { word:'ABU',  dir:'V', r:1, c:1 },
+          { word:'TUBA', dir:'V', r:1, c:2 },
         ],
         extraWords: ['TAU','TUA','BUT'],
       },
-      // L7: LAMA + ALAM — Int A@(0,3)
+      // L5: 4 words — SARI + 3 crossings
       {
-        letters: ['L','A','M','A'],
+        letters: ['S','A','R','I'],
         words: [
-          { word:'LAMA', dir:'H', r:0, c:0 },
-          { word:'ALAM', dir:'V', r:0, c:3 },
+          { word:'SARI', dir:'H', r:1, c:0 },
+          { word:'SIR',  dir:'V', r:1, c:0 },
+          { word:'AIR',  dir:'V', r:1, c:1 },
+          { word:'RIA',  dir:'V', r:1, c:2 },
         ],
-        extraWords: ['MAL'],
+        extraWords: ['ARI'],
       },
-      // L8: RAJA + AJAR — Int A@(0,3)
+      // L6: 4 words — TAMAN + 3 verticals
       {
-        letters: ['R','A','J','A'],
+        letters: ['T','A','M','A','N'],
         words: [
-          { word:'RAJA', dir:'H', r:0, c:0 },
-          { word:'AJAR', dir:'V', r:0, c:3 },
+          { word:'TAMAN', dir:'H', r:1, c:0 },
+          { word:'MANA',  dir:'V', r:1, c:2 },
+          { word:'AMAN',  dir:'V', r:1, c:3 },
+          { word:'NAMA',  dir:'V', r:1, c:4 },
         ],
-        extraWords: [],
+        extraWords: ['MATA'],
       },
-      // L9: GULA + LAGU — Int L@(0,2)
+      // L7: 4 words — KASUR + 3 verticals
       {
-        letters: ['G','U','L','A'],
+        letters: ['K','A','S','U','R'],
         words: [
-          { word:'GULA', dir:'H', r:0, c:0 },
-          { word:'LAGU', dir:'V', r:0, c:2 },
+          { word:'KASUR', dir:'H', r:2, c:0 },
+          { word:'KAUS',  dir:'V', r:2, c:0 },
+          { word:'SUKA',  dir:'V', r:2, c:2 },
+          { word:'RUSA',  dir:'V', r:2, c:4 },
         ],
-        extraWords: [],
+        extraWords: ['KAS','KAU','ARUS'],
       },
-      // L10: ATUR + RATU + TUA — Int R@(1,3), T@(1,1)
+      // L8: 5 words — MAKAN + 4 verticals
+      {
+        letters: ['M','A','K','A','N'],
+        words: [
+          { word:'MAKAN', dir:'H', r:2, c:0 },
+          { word:'MAKA',  dir:'V', r:2, c:0 },
+          { word:'AKAN',  dir:'V', r:2, c:1 },
+          { word:'ANAK',  dir:'V', r:2, c:3 },
+          { word:'NAMA',  dir:'V', r:2, c:4 },
+        ],
+        extraWords: ['AMAN','MANA'],
+      },
+      // L9: 4 words — BUNGA + 3 verticals
+      {
+        letters: ['B','U','N','G','A'],
+        words: [
+          { word:'BUNGA', dir:'H', r:2, c:0 },
+          { word:'BANG',  dir:'V', r:2, c:0 },
+          { word:'UANG',  dir:'V', r:2, c:1 },
+          { word:'GUNA',  dir:'V', r:2, c:3 },
+        ],
+        extraWords: ['BAU','BAN','GUA','BUNG'],
+      },
+      // L10: 5 words — ATUR + complex grid
       {
         letters: ['A','T','U','R'],
         words: [
           { word:'ATUR', dir:'H', r:1, c:0 },
           { word:'RATU', dir:'V', r:1, c:3 },
           { word:'TUA',  dir:'V', r:1, c:1 },
+          { word:'RAUT', dir:'H', r:2, c:2 },
+          { word:'URAT', dir:'V', r:1, c:2 },
         ],
-        extraWords: ['RAUT','TAU'],
+        extraWords: ['TAU'],
       },
     ],
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // CHAPTER 2: PANTAI BAHASA — The Language Beach
-  // Theme: Exploration, expanding horizons
-  // Art: Ocean blues, sand yellows, tropical vibes
+  // CHAPTER 2: PANTAI BAHASA — 4-5 words per level, 5-6 letters
   // ═══════════════════════════════════════════════════════════════════════════
   {
     id: 'pantai',
@@ -162,114 +177,126 @@ export const CHAPTERS = [
       wheelBorder: '#0891B2',
     },
     levels: [
-      // L11: KASUR + RUSAK + RUSA — Int S@(2,2), U@(2,3)
-      {
-        letters: ['K','A','S','U','R'],
-        words: [
-          { word:'KASUR', dir:'H', r:2, c:0 },
-          { word:'RUSAK', dir:'V', r:0, c:2 },
-          { word:'RUSA',  dir:'V', r:1, c:3 },
-        ],
-        extraWords: ['KAS','KAU'],
-      },
-      // L12: MAKAN + ANAK + NAMA — Int A@(0,3), N@(0,4)
-      {
-        letters: ['M','A','K','A','N'],
-        words: [
-          { word:'MAKAN', dir:'H', r:0, c:0 },
-          { word:'ANAK',  dir:'V', r:0, c:3 },
-          { word:'NAMA',  dir:'V', r:0, c:4 },
-        ],
-        extraWords: ['MAKA','AMAN','MANA'],
-      },
-      // L13: BUNGA + UANG + GUNA — Int U@(0,1), G@(0,3)
-      {
-        letters: ['B','U','N','G','A'],
-        words: [
-          { word:'BUNGA', dir:'H', r:0, c:0 },
-          { word:'UANG',  dir:'V', r:0, c:1 },
-          { word:'GUNA',  dir:'V', r:0, c:3 },
-        ],
-        extraWords: ['BAU','BAN','BUNG','GUA'],
-      },
-      // L14: PINTU + TIPU + UNIT — Int T@(0,3), U@(0,4)
-      {
-        letters: ['P','I','N','T','U'],
-        words: [
-          { word:'PINTU', dir:'H', r:0, c:0 },
-          { word:'TIPU',  dir:'V', r:0, c:3 },
-          { word:'UNIT',  dir:'V', r:0, c:4 },
-        ],
-        extraWords: ['PIN','TIP'],
-      },
-      // L15: DUNIA + DAUN + UNDI — Int D@(2,0), U@(2,1)
+      // L11: 4 words — DUNIA + 3V
       {
         letters: ['D','U','N','I','A'],
         words: [
           { word:'DUNIA', dir:'H', r:2, c:0 },
           { word:'DAUN',  dir:'V', r:2, c:0 },
           { word:'UNDI',  dir:'V', r:2, c:1 },
+          { word:'NADI',  dir:'V', r:2, c:2 },
         ],
         extraWords: ['DUA','UNI','ADI'],
       },
-      // L16: SURAT + RATUS + URAT — Int T@(2,4), U@(2,1)
+      // L12: 5 words — SURAT + 4V
       {
         letters: ['S','U','R','A','T'],
         words: [
           { word:'SURAT', dir:'H', r:2, c:0 },
-          { word:'RATUS', dir:'V', r:0, c:4 },
+          { word:'SATU',  dir:'V', r:2, c:0 },
           { word:'URAT',  dir:'V', r:2, c:1 },
+          { word:'RATUS', dir:'V', r:2, c:2 },
+          { word:'ARUS',  dir:'V', r:2, c:3 },
         ],
-        extraWords: ['RATU','TUA'],
+        extraWords: ['RATU','RAUT','TUA','TAU'],
       },
-      // L17: TAMAN + MANA + AMAN — Int M@(0,2), A@(0,3)
-      {
-        letters: ['T','A','M','A','N'],
-        words: [
-          { word:'TAMAN', dir:'H', r:0, c:0 },
-          { word:'MANA',  dir:'V', r:0, c:2 },
-          { word:'AMAN',  dir:'V', r:0, c:3 },
-        ],
-        extraWords: ['MATA'],
-      },
-      // L18: KAMUS + MUKA + SAKU — Int M@(0,2), S@(0,4)
+      // L13: 4 words — KAMUS + 3V
       {
         letters: ['K','A','M','U','S'],
         words: [
-          { word:'KAMUS', dir:'H', r:0, c:0 },
-          { word:'MUKA',  dir:'V', r:0, c:2 },
-          { word:'SAKU',  dir:'V', r:0, c:4 },
+          { word:'KAMUS', dir:'H', r:2, c:0 },
+          { word:'KUAS',  dir:'V', r:2, c:0 },
+          { word:'MUKA',  dir:'V', r:2, c:2 },
+          { word:'SAKU',  dir:'V', r:2, c:4 },
         ],
-        extraWords: ['MAS','KAU','AKU'],
+        extraWords: ['KAS','KAU','AKU','MAS','MAU','SUKA'],
       },
-      // L19: TIKUS + SIKU + KUIS — Int S@(0,4), K@(0,2)
+      // L14: 4 words — TIKUS + 3V
       {
         letters: ['T','I','K','U','S'],
         words: [
-          { word:'TIKUS', dir:'H', r:0, c:0 },
-          { word:'SIKU',  dir:'V', r:0, c:4 },
-          { word:'KUIS',  dir:'V', r:0, c:2 },
+          { word:'TIKUS', dir:'H', r:2, c:0 },
+          { word:'IKUT',  dir:'V', r:2, c:1 },
+          { word:'KUIS',  dir:'V', r:2, c:2 },
+          { word:'SIKU',  dir:'V', r:2, c:4 },
         ],
         extraWords: ['SITU'],
       },
-      // L20: TUKAR + KARTU + RATU + ATUR — Int K@(2,2), R@(2,4), A@(2,3)
+      // L15: 4 words — BUKAN + cross grid
+      {
+        letters: ['B','U','K','A','N'],
+        words: [
+          { word:'BUKAN', dir:'H', r:2, c:0 },
+          { word:'BANK',  dir:'V', r:2, c:0 },
+          { word:'UBAN',  dir:'V', r:2, c:1 },
+          { word:'ABU',   dir:'H', r:3, c:0 },
+        ],
+        extraWords: ['BAN','BAU','KAN'],
+      },
+      // L16: 4 words — SEMUA + 3V
+      {
+        letters: ['S','E','M','U','A'],
+        words: [
+          { word:'SEMUA', dir:'H', r:2, c:0 },
+          { word:'SEMU',  dir:'V', r:2, c:0 },
+          { word:'EMAS',  dir:'V', r:2, c:1 },
+          { word:'ASEM',  dir:'V', r:2, c:4 },
+        ],
+        extraWords: ['MAS','MAU'],
+      },
+      // L17: 5 words — PINTAR + 4V
+      {
+        letters: ['P','I','N','T','A','R'],
+        words: [
+          { word:'PINTAR', dir:'H', r:2, c:0 },
+          { word:'PINTA',  dir:'V', r:2, c:0 },
+          { word:'NIAT',   dir:'V', r:2, c:2 },
+          { word:'TARI',   dir:'V', r:2, c:3 },
+          { word:'ARIT',   dir:'V', r:2, c:4 },
+        ],
+        extraWords: ['ANTI','PITA','TANI'],
+      },
+      // L18: 5 words — TUKAR + 4V
       {
         letters: ['T','U','K','A','R'],
         words: [
           { word:'TUKAR', dir:'H', r:2, c:0 },
-          { word:'KARTU', dir:'V', r:2, c:2 },
-          { word:'RATU',  dir:'V', r:2, c:4 },
+          { word:'URAT',  dir:'V', r:2, c:1 },
+          { word:'KUAT',  dir:'V', r:2, c:2 },
           { word:'ATUR',  dir:'V', r:2, c:3 },
+          { word:'RATU',  dir:'V', r:2, c:4 },
         ],
-        extraWords: ['RAUT','TUA','TAK'],
+        extraWords: ['RAUT','TUA','TAU','KARTU'],
+      },
+      // L19: 5 words — SAYANG + 4V
+      {
+        letters: ['S','A','Y','A','N','G'],
+        words: [
+          { word:'SAYANG', dir:'H', r:2, c:0 },
+          { word:'SANG',   dir:'V', r:2, c:0 },
+          { word:'YANG',   dir:'V', r:2, c:2 },
+          { word:'NAGA',   dir:'V', r:2, c:4 },
+          { word:'GANAS',  dir:'V', r:2, c:5 },
+        ],
+        extraWords: ['SANA'],
+      },
+      // L20: 5 words — HARUM + 4V
+      {
+        letters: ['H','A','R','U','M'],
+        words: [
+          { word:'HARUM', dir:'H', r:2, c:0 },
+          { word:'HUMA',  dir:'V', r:2, c:0 },
+          { word:'ARUM',  dir:'V', r:2, c:1 },
+          { word:'RUMAH', dir:'V', r:2, c:2 },
+          { word:'MURAH', dir:'V', r:2, c:4 },
+        ],
+        extraWords: ['RAMU'],
       },
     ],
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // CHAPTER 3: PUNCAK PIKIRAN — The Mind Summit
-  // Theme: Rising challenge, elevation of the mind
-  // Art: Mountain purples, snow sparkle, ethereal glow
+  // CHAPTER 3: PUNCAK PIKIRAN — 4-6 words per level, 5-7 letters
   // ═══════════════════════════════════════════════════════════════════════════
   {
     id: 'puncak',
@@ -293,120 +320,131 @@ export const CHAPTERS = [
       wheelBorder: '#5A20B8',
     },
     levels: [
-      // L21: KERTAS + KERAS + SERAT + TERA
+      // L21: 5 words — KERTAS + 4V
       {
         letters: ['K','E','R','T','A','S'],
         words: [
           { word:'KERTAS', dir:'H', r:2, c:0 },
           { word:'KERAS',  dir:'V', r:2, c:0 },
-          { word:'SERAT',  dir:'V', r:2, c:5 },
+          { word:'ERAT',   dir:'V', r:2, c:1 },
           { word:'TERA',   dir:'V', r:2, c:3 },
+          { word:'SERAT',  dir:'V', r:2, c:5 },
         ],
         extraWords: ['KERA','RAK','TAS','ERA','SATE'],
       },
-      // L22: BANGSA + ABANG + SANG + BASA
+      // L22: 5 words — BANGSA + 4 crossings
       {
         letters: ['B','A','N','G','S','A'],
         words: [
           { word:'BANGSA', dir:'H', r:2, c:0 },
           { word:'ABANG',  dir:'V', r:0, c:1 },
+          { word:'NAGA',   dir:'V', r:2, c:2 },
           { word:'SANG',   dir:'V', r:2, c:4 },
           { word:'BASA',   dir:'H', r:3, c:3 },
         ],
         extraWords: ['BAN','GAS'],
       },
-      // L23: HARUM + MURAH + RUMAH
-      {
-        letters: ['H','A','R','U','M'],
-        words: [
-          { word:'HARUM', dir:'H', r:2, c:0 },
-          { word:'MURAH', dir:'V', r:2, c:4 },
-          { word:'RUMAH', dir:'V', r:2, c:2 },
-        ],
-        extraWords: ['RAMU','ARUM'],
-      },
-      // L24: PANTAI + NIAT + ANTI + PINTA
+      // L23: 6 words — PANTAI + 5V
       {
         letters: ['P','A','N','T','A','I'],
         words: [
           { word:'PANTAI', dir:'H', r:2, c:0 },
-          { word:'NIAT',   dir:'V', r:2, c:2 },
-          { word:'ANTI',   dir:'V', r:2, c:4 },
           { word:'PINTA',  dir:'V', r:2, c:0 },
+          { word:'APIT',   dir:'V', r:2, c:1 },
+          { word:'NIAT',   dir:'V', r:2, c:2 },
+          { word:'TANI',   dir:'V', r:2, c:3 },
+          { word:'ANTI',   dir:'V', r:2, c:4 },
         ],
-        extraWords: ['PITA','TANI','TAPI'],
+        extraWords: ['PITA','TAPI'],
       },
-      // L25: BINTANG + NANTI + TIANG + GANTI
+      // L24: 6 words — BINTANG + 5V
       {
         letters: ['B','I','N','T','A','N','G'],
         words: [
           { word:'BINTANG', dir:'H', r:2, c:0 },
+          { word:'BAIT',    dir:'V', r:2, c:0 },
           { word:'NANTI',   dir:'V', r:2, c:2 },
           { word:'TIANG',   dir:'V', r:2, c:3 },
+          { word:'ANTI',    dir:'V', r:2, c:4 },
           { word:'GANTI',   dir:'V', r:2, c:6 },
         ],
-        extraWords: ['ANTI','BANG','TANG'],
+        extraWords: ['BANG','TANG'],
       },
-      // L26: KARENA + ARENA + KENA + ENAK
+      // L25: 5 words — KARENA + 4V
       {
         letters: ['K','A','R','E','N','A'],
         words: [
           { word:'KARENA', dir:'H', r:2, c:0 },
-          { word:'ARENA',  dir:'V', r:2, c:1 },
           { word:'KENA',   dir:'V', r:2, c:0 },
+          { word:'ARENA',  dir:'V', r:2, c:1 },
           { word:'ENAK',   dir:'V', r:2, c:3 },
+          { word:'ARAK',   dir:'V', r:2, c:5 },
         ],
-        extraWords: ['ERA'],
+        extraWords: ['ERA','KERA'],
       },
-      // L27: TULANG + ULANG + TUAN + GUNA
+      // L26: 6 words — TULANG + 5V
       {
         letters: ['T','U','L','A','N','G'],
         words: [
           { word:'TULANG', dir:'H', r:2, c:0 },
-          { word:'ULANG',  dir:'V', r:2, c:1 },
           { word:'TUAN',   dir:'V', r:2, c:0 },
+          { word:'ULANG',  dir:'V', r:2, c:1 },
+          { word:'LAGU',   dir:'V', r:2, c:2 },
+          { word:'ALUN',   dir:'V', r:2, c:3 },
           { word:'GUNA',   dir:'V', r:2, c:5 },
         ],
         extraWords: ['UANG','TANG'],
       },
-      // L28: PASANG + PANAS + SANG + ASA
+      // L27: 5 words — PASANG + cross grid
       {
         letters: ['P','A','S','A','N','G'],
         words: [
           { word:'PASANG', dir:'H', r:2, c:0 },
           { word:'PANAS',  dir:'V', r:2, c:0 },
           { word:'SANG',   dir:'V', r:2, c:2 },
+          { word:'NAGA',   dir:'V', r:2, c:4 },
           { word:'ASA',    dir:'H', r:3, c:0 },
         ],
-        extraWords: ['NAGA','SANA','PAS'],
+        extraWords: ['SANA','PAS'],
       },
-      // L29: SENANG + SEGAN + NENAS
+      // L28: 4 words — SENANG + 3V
       {
         letters: ['S','E','N','A','N','G'],
         words: [
           { word:'SENANG', dir:'H', r:2, c:0 },
           { word:'SEGAN',  dir:'V', r:2, c:0 },
+          { word:'AGEN',   dir:'V', r:2, c:3 },
           { word:'NENAS',  dir:'V', r:2, c:4 },
         ],
-        extraWords: ['AGEN','SANG'],
+        extraWords: ['SANG'],
       },
-      // L30: MUDAH + MUDA + HUMA
+      // L29: 4 words — MUDAH + 3V
       {
         letters: ['M','U','D','A','H'],
         words: [
           { word:'MUDAH', dir:'H', r:0, c:0 },
           { word:'MUDA',  dir:'V', r:0, c:0 },
+          { word:'ADUH',  dir:'V', r:0, c:3 },
           { word:'HUMA',  dir:'V', r:0, c:4 },
         ],
-        extraWords: ['MAU'],
+        extraWords: ['MAU','DUA'],
+      },
+      // L30: 4 words — GULAI + cross grid
+      {
+        letters: ['G','U','L','A','I'],
+        words: [
+          { word:'GULAI', dir:'H', r:3, c:0 },
+          { word:'GALI',  dir:'V', r:3, c:0 },
+          { word:'LAGU',  dir:'V', r:3, c:2 },
+          { word:'GILA',  dir:'V', r:0, c:3 },
+        ],
+        extraWords: ['GUA'],
       },
     ],
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // CHAPTER 4: KOTA AKSARA — The City of Letters
-  // Theme: Civilization, complexity, sophistication
-  // Art: Warm amber/orange, urban glow, geometric patterns
+  // CHAPTER 4: KOTA AKSARA — 5-7 words per level, 6-8 letters
   // ═══════════════════════════════════════════════════════════════════════════
   {
     id: 'kota',
@@ -430,90 +468,31 @@ export const CHAPTERS = [
       wheelBorder: '#8B4A10',
     },
     levels: [
-      // L31: PELAN + PANEL + LENA
-      {
-        letters: ['P','E','L','A','N'],
-        words: [
-          { word:'PELAN', dir:'H', r:2, c:0 },
-          { word:'PANEL', dir:'V', r:2, c:0 },
-          { word:'LENA',  dir:'V', r:2, c:2 },
-        ],
-        extraWords: ['PENA'],
-      },
-      // L32: SEMUA + EMAS + SEMU
-      {
-        letters: ['S','E','M','U','A'],
-        words: [
-          { word:'SEMUA', dir:'H', r:0, c:0 },
-          { word:'EMAS',  dir:'V', r:0, c:1 },
-          { word:'SEMU',  dir:'V', r:0, c:0 },
-        ],
-        extraWords: ['MAS','MAU'],
-      },
-      // L33: LEBAR + BELA + RELA
-      {
-        letters: ['L','E','B','A','R'],
-        words: [
-          { word:'LEBAR', dir:'H', r:2, c:0 },
-          { word:'BELA',  dir:'V', r:2, c:2 },
-          { word:'RELA',  dir:'V', r:2, c:4 },
-        ],
-        extraWords: ['ERA'],
-      },
-      // L34: SAYANG + SANG + YANG
-      {
-        letters: ['S','A','Y','A','N','G'],
-        words: [
-          { word:'SAYANG', dir:'H', r:2, c:0 },
-          { word:'SANG',   dir:'V', r:2, c:0 },
-          { word:'YANG',   dir:'V', r:2, c:2 },
-        ],
-        extraWords: ['NAGA','SANA'],
-      },
-      // L35: MALAM + LAMA + ALAM + MAL
-      {
-        letters: ['M','A','L','A','M'],
-        words: [
-          { word:'MALAM', dir:'H', r:2, c:0 },
-          { word:'LAMA',  dir:'V', r:2, c:2 },
-          { word:'ALAM',  dir:'V', r:2, c:1 },
-          { word:'MAL',   dir:'V', r:2, c:4 },
-        ],
-        extraWords: ['MAMA'],
-      },
-      // L36: PERAHU + RUAH + UPAH + PURA
+      // L31: 5 words — PERAHU + 4 crossings
       {
         letters: ['P','E','R','A','H','U'],
         words: [
           { word:'PERAHU', dir:'H', r:2, c:0 },
+          { word:'PURA',   dir:'V', r:2, c:0 },
+          { word:'ERA',    dir:'V', r:2, c:1 },
           { word:'RUAH',   dir:'V', r:2, c:2 },
           { word:'UPAH',   dir:'V', r:2, c:5 },
-          { word:'PURA',   dir:'V', r:2, c:0 },
         ],
         extraWords: ['URAP'],
       },
-      // L37: MENARA + ARENA + NAMA + AMAN
+      // L32: 5 words — MENARA + 4V
       {
         letters: ['M','E','N','A','R','A'],
         words: [
           { word:'MENARA', dir:'H', r:2, c:0 },
-          { word:'ARENA',  dir:'V', r:2, c:5 },
+          { word:'ENAM',   dir:'V', r:2, c:1 },
           { word:'NAMA',   dir:'V', r:2, c:2 },
           { word:'AMAN',   dir:'V', r:2, c:3 },
+          { word:'ARENA',  dir:'V', r:2, c:5 },
         ],
         extraWords: ['ERA','MANA'],
       },
-      // L38: TERBANG + TERANG + BERANG
-      {
-        letters: ['T','E','R','B','A','N','G'],
-        words: [
-          { word:'TERBANG', dir:'H', r:3, c:0 },
-          { word:'TERANG',  dir:'V', r:3, c:0 },
-          { word:'BERANG',  dir:'V', r:3, c:3 },
-        ],
-        extraWords: ['BERAT','BANG','ERA','BAN'],
-      },
-      // L39: SELAMAT + SALAM + LEMAS + ATLAS + MALAS
+      // L33: 6 words — SELAMAT + 5V
       {
         letters: ['S','E','L','A','M','A','T'],
         words: [
@@ -522,29 +501,103 @@ export const CHAPTERS = [
           { word:'LEMAS',   dir:'V', r:3, c:2 },
           { word:'ATLAS',   dir:'V', r:3, c:3 },
           { word:'MALAS',   dir:'V', r:3, c:4 },
+          { word:'TALAM',   dir:'V', r:3, c:6 },
         ],
         extraWords: ['METAL','MASA'],
       },
-      // L40: MATAHARI + MATI + TARI + AMAT + HARI + RAHIM
+      // L34: 7 words — MATAHARI + 6V
       {
         letters: ['M','A','T','A','H','A','R','I'],
         words: [
           { word:'MATAHARI', dir:'H', r:3, c:0 },
           { word:'MATI',     dir:'V', r:3, c:0 },
+          { word:'AMAT',     dir:'V', r:3, c:1 },
           { word:'TARI',     dir:'V', r:3, c:2 },
-          { word:'AMAT',     dir:'V', r:3, c:3 },
           { word:'HARI',     dir:'V', r:3, c:4 },
+          { word:'ARTI',     dir:'V', r:3, c:5 },
           { word:'RAHIM',    dir:'V', r:3, c:6 },
         ],
         extraWords: ['MAHIR','TIARA'],
+      },
+      // L35: 5 words — TERBANG + 4V
+      {
+        letters: ['T','E','R','B','A','N','G'],
+        words: [
+          { word:'TERBANG', dir:'H', r:3, c:0 },
+          { word:'TERANG',  dir:'V', r:3, c:0 },
+          { word:'ERANG',   dir:'V', r:3, c:1 },
+          { word:'BERANG',  dir:'V', r:3, c:3 },
+          { word:'NETRA',   dir:'V', r:3, c:5 },
+        ],
+        extraWords: ['BERAT','BANG','ERA','BAN'],
+      },
+      // L36: 5 words — MALAM + 4 crossings
+      {
+        letters: ['M','A','L','A','M'],
+        words: [
+          { word:'MALAM', dir:'H', r:2, c:0 },
+          { word:'MAMA',  dir:'V', r:2, c:0 },
+          { word:'ALAM',  dir:'V', r:2, c:1 },
+          { word:'LAMA',  dir:'V', r:2, c:2 },
+          { word:'MAL',   dir:'V', r:2, c:4 },
+        ],
+        extraWords: [],
+      },
+      // L37: 5 words — PELAJAR + cross grid
+      {
+        letters: ['P','E','L','A','J','A','R'],
+        words: [
+          { word:'PELAJAR', dir:'H', r:3, c:0 },
+          { word:'AJAR',    dir:'V', r:3, c:3 },
+          { word:'JALA',    dir:'V', r:3, c:4 },
+          { word:'RELA',    dir:'V', r:3, c:6 },
+          { word:'RAJA',    dir:'H', r:6, c:3 },
+        ],
+        extraWords: ['PALA'],
+      },
+      // L38: 5 words — MERDEKA + 4V
+      {
+        letters: ['M','E','R','D','E','K','A'],
+        words: [
+          { word:'MERDEKA', dir:'H', r:3, c:0 },
+          { word:'MEKAR',   dir:'V', r:3, c:0 },
+          { word:'DEREK',   dir:'V', r:3, c:3 },
+          { word:'KERA',    dir:'V', r:3, c:5 },
+          { word:'ADEM',    dir:'V', r:3, c:6 },
+        ],
+        extraWords: ['KREM','ERA'],
+      },
+      // L39: 6 words — PERTAMA + 5V
+      {
+        letters: ['P','E','R','T','A','M','A'],
+        words: [
+          { word:'PERTAMA', dir:'H', r:3, c:0 },
+          { word:'PETA',    dir:'V', r:3, c:0 },
+          { word:'ERAT',    dir:'V', r:3, c:1 },
+          { word:'TERA',    dir:'V', r:3, c:3 },
+          { word:'AMAT',    dir:'V', r:3, c:4 },
+          { word:'MARA',    dir:'V', r:3, c:5 },
+        ],
+        extraWords: ['TARA'],
+      },
+      // L40: 6 words — BERSAMA + 5V
+      {
+        letters: ['B','E','R','S','A','M','A'],
+        words: [
+          { word:'BERSAMA', dir:'H', r:3, c:0 },
+          { word:'BERAS',   dir:'V', r:3, c:0 },
+          { word:'EMAS',    dir:'V', r:3, c:1 },
+          { word:'RASA',    dir:'V', r:3, c:2 },
+          { word:'SEBAR',   dir:'V', r:3, c:3 },
+          { word:'MASA',    dir:'V', r:3, c:5 },
+        ],
+        extraWords: ['MAS'],
       },
     ],
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // CHAPTER 5: GALAKSI KATA — The Word Galaxy
-  // Theme: Mastery, infinite possibilities
-  // Art: Deep cosmic blacks/purples, gold star accents, iridescent glow
+  // CHAPTER 5: GALAKSI KATA — 5-9 words per level, 7-9 letters
   // ═══════════════════════════════════════════════════════════════════════════
   {
     id: 'galaksi',
@@ -568,122 +621,144 @@ export const CHAPTERS = [
       wheelBorder: '#3A0080',
     },
     levels: [
-      // L41: PELAJAR + AJAR + JALA + RELA
-      {
-        letters: ['P','E','L','A','J','A','R'],
-        words: [
-          { word:'PELAJAR', dir:'H', r:3, c:0 },
-          { word:'AJAR',    dir:'V', r:3, c:3 },
-          { word:'JALA',    dir:'V', r:3, c:4 },
-          { word:'RELA',    dir:'V', r:3, c:6 },
-        ],
-        extraWords: ['PALA'],
-      },
-      // L42: MERDEKA + DEREK + MEKAR
-      {
-        letters: ['M','E','R','D','E','K','A'],
-        words: [
-          { word:'MERDEKA', dir:'H', r:3, c:0 },
-          { word:'DEREK',   dir:'V', r:3, c:3 },
-          { word:'MEKAR',   dir:'V', r:3, c:0 },
-        ],
-        extraWords: ['KREM','ERA'],
-      },
-      // L43: PERTAMA + PETA + TERA + AMAT + MARA
-      {
-        letters: ['P','E','R','T','A','M','A'],
-        words: [
-          { word:'PERTAMA', dir:'H', r:3, c:0 },
-          { word:'PETA',    dir:'V', r:3, c:0 },
-          { word:'TERA',    dir:'V', r:3, c:3 },
-          { word:'AMAT',    dir:'V', r:3, c:4 },
-          { word:'MARA',    dir:'V', r:3, c:5 },
-        ],
-        extraWords: ['TARA'],
-      },
-      // L44: BERSAMA + BERAS + EMAS + SEBAR + MASA
-      {
-        letters: ['B','E','R','S','A','M','A'],
-        words: [
-          { word:'BERSAMA', dir:'H', r:3, c:0 },
-          { word:'BERAS',   dir:'V', r:3, c:0 },
-          { word:'EMAS',    dir:'V', r:3, c:1 },
-          { word:'SEBAR',   dir:'V', r:3, c:3 },
-          { word:'MASA',    dir:'V', r:3, c:5 },
-        ],
-        extraWords: ['RASA','MAS'],
-      },
-      // L45: PELANGI + PALING + LAGI + GALI
+      // L41: 6 words — PELANGI + 5V
       {
         letters: ['P','E','L','A','N','G','I'],
         words: [
           { word:'PELANGI', dir:'H', r:3, c:0 },
           { word:'PALING',  dir:'V', r:3, c:0 },
           { word:'LAGI',    dir:'V', r:3, c:2 },
+          { word:'AGEN',    dir:'V', r:3, c:3 },
+          { word:'NILA',    dir:'V', r:3, c:4 },
           { word:'GALI',    dir:'V', r:3, c:5 },
         ],
         extraWords: ['PAGI','GELI'],
       },
-      // L46: SEMANGAT + SETAN + ANGSA + GANAS + TEMAN
-      {
-        letters: ['S','E','M','A','N','G','A','T'],
-        words: [
-          { word:'SEMANGAT', dir:'H', r:3, c:0 },
-          { word:'SETAN',    dir:'V', r:3, c:0 },
-          { word:'ANGSA',    dir:'V', r:3, c:3 },
-          { word:'GANAS',    dir:'V', r:3, c:5 },
-          { word:'TEMAN',    dir:'V', r:3, c:7 },
-        ],
-        extraWords: ['EMAS','NAGA','SANG','MATA'],
-      },
-      // L47: MENCARI + MARI + NIRA + CERIA + IMAN
+      // L42: 6 words — MENCARI + 5 crossings
       {
         letters: ['M','E','N','C','A','R','I'],
         words: [
           { word:'MENCARI', dir:'H', r:3, c:0 },
           { word:'MARI',    dir:'V', r:3, c:0 },
+          { word:'ERA',     dir:'V', r:3, c:1 },
           { word:'NIRA',    dir:'V', r:3, c:2 },
-          { word:'CERIA',   dir:'V', r:3, c:3 },
+          { word:'CARI',    dir:'V', r:3, c:3 },
           { word:'IMAN',    dir:'V', r:3, c:6 },
         ],
-        extraWords: ['CARI','ERA'],
+        extraWords: ['CERIA'],
       },
-      // L48: KEADILAN + ADIL + KIDAL + IDEAL + LENA + NAIK
+      // L43: 7 words — SEMANGAT + 6V
+      {
+        letters: ['S','E','M','A','N','G','A','T'],
+        words: [
+          { word:'SEMANGAT', dir:'H', r:3, c:0 },
+          { word:'SETAN',    dir:'V', r:3, c:0 },
+          { word:'EMAS',     dir:'V', r:3, c:1 },
+          { word:'ANGSA',    dir:'V', r:3, c:3 },
+          { word:'NAGA',     dir:'V', r:3, c:4 },
+          { word:'GANAS',    dir:'V', r:3, c:5 },
+          { word:'TEMAN',    dir:'V', r:3, c:7 },
+        ],
+        extraWords: ['MATA','SANG','AGEN'],
+      },
+      // L44: 7 words — KEADILAN + 6V
       {
         letters: ['K','E','A','D','I','L','A','N'],
         words: [
           { word:'KEADILAN', dir:'H', r:3, c:0 },
-          { word:'ADIL',     dir:'V', r:3, c:2 },
           { word:'KIDAL',    dir:'V', r:3, c:0 },
+          { word:'ADIL',     dir:'V', r:3, c:2 },
+          { word:'DIAN',     dir:'V', r:3, c:3 },
           { word:'IDEAL',    dir:'V', r:3, c:4 },
           { word:'LENA',     dir:'V', r:3, c:5 },
           { word:'NAIK',     dir:'V', r:3, c:7 },
         ],
         extraWords: ['AKAL','IKAN'],
       },
-      // L49: PETUALANG + TULANG + ULANG + GELAP
+      // L45: 6 words — BERMAIN + 5V
+      {
+        letters: ['B','E','R','M','A','I','N'],
+        words: [
+          { word:'BERMAIN', dir:'H', r:3, c:0 },
+          { word:'BERI',    dir:'V', r:3, c:0 },
+          { word:'EMIR',    dir:'V', r:3, c:1 },
+          { word:'MAIN',    dir:'V', r:3, c:3 },
+          { word:'AMIN',    dir:'V', r:3, c:4 },
+          { word:'NABI',    dir:'V', r:3, c:6 },
+        ],
+        extraWords: ['RANI','RAMI','IMAN'],
+      },
+      // L46: 6 words — BERLARI + 5V
+      {
+        letters: ['B','E','R','L','A','R','I'],
+        words: [
+          { word:'BERLARI', dir:'H', r:3, c:0 },
+          { word:'BELA',    dir:'V', r:3, c:0 },
+          { word:'ERA',     dir:'V', r:3, c:1 },
+          { word:'RELA',    dir:'V', r:3, c:2 },
+          { word:'LARI',    dir:'V', r:3, c:3 },
+          { word:'RABI',    dir:'V', r:3, c:5 },
+        ],
+        extraWords: ['BERI','AIR'],
+      },
+      // L47: 7 words — MERANTAU + 6V
+      {
+        letters: ['M','E','R','A','N','T','A','U'],
+        words: [
+          { word:'MERANTAU', dir:'H', r:3, c:0 },
+          { word:'MANTRA',   dir:'V', r:3, c:0 },
+          { word:'RANTAU',   dir:'V', r:3, c:2 },
+          { word:'ANTAR',    dir:'V', r:3, c:3 },
+          { word:'NAMA',     dir:'V', r:3, c:4 },
+          { word:'TUAN',     dir:'V', r:3, c:5 },
+          { word:'ATUR',     dir:'V', r:3, c:6 },
+        ],
+        extraWords: ['ENAM','MARA','RATU'],
+      },
+      // L48: 8 words — PETUALANG + 7V
       {
         letters: ['P','E','T','U','A','L','A','N','G'],
         words: [
           { word:'PETUALANG', dir:'H', r:4, c:0 },
+          { word:'PALU',      dir:'V', r:4, c:0 },
           { word:'TULANG',    dir:'V', r:4, c:2 },
           { word:'ULANG',     dir:'V', r:4, c:3 },
+          { word:'ALUN',      dir:'V', r:4, c:4 },
+          { word:'LAGU',      dir:'V', r:4, c:5 },
+          { word:'NAGA',      dir:'V', r:4, c:7 },
           { word:'GELAP',     dir:'V', r:4, c:8 },
         ],
         extraWords: ['UANG','TANG','TUAN'],
       },
-      // L50: NUSANTARA + NUSA + SURAT + ANTAR + TUAN + RATU ← FINAL BOSS
+      // L49: 7 words — MATAHARI + 6V
+      {
+        letters: ['M','A','T','A','H','A','R','I'],
+        words: [
+          { word:'MATAHARI', dir:'H', r:4, c:0 },
+          { word:'MAHIR',    dir:'V', r:4, c:0 },
+          { word:'ARAH',     dir:'V', r:4, c:1 },
+          { word:'TIARA',    dir:'V', r:4, c:2 },
+          { word:'HARI',     dir:'V', r:4, c:4 },
+          { word:'ARTI',     dir:'V', r:4, c:5 },
+          { word:'RAHIM',    dir:'V', r:4, c:6 },
+        ],
+        extraWords: ['TARI','MATI','AMAT'],
+      },
+      // L50: 9 words — NUSANTARA ← FINAL BOSS
       {
         letters: ['N','U','S','A','N','T','A','R','A'],
         words: [
           { word:'NUSANTARA', dir:'H', r:4, c:0 },
           { word:'NUSA',      dir:'V', r:4, c:0 },
+          { word:'URAT',      dir:'V', r:4, c:1 },
           { word:'SURAT',     dir:'V', r:4, c:2 },
           { word:'ANTAR',     dir:'V', r:4, c:3 },
+          { word:'NAAS',      dir:'V', r:4, c:4 },
           { word:'TUAN',      dir:'V', r:4, c:5 },
           { word:'RATU',      dir:'V', r:4, c:7 },
+          { word:'ATAS',      dir:'V', r:4, c:8 },
         ],
-        extraWords: ['SUARA','RANTAU','ANTARA','RATUS','SANA','URAT'],
+        extraWords: ['SUARA','RANTAU','ANTARA','SANA'],
       },
     ],
   },
